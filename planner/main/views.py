@@ -8,3 +8,6 @@ def week(request):
 
 def month(request):
     return render(request, 'main/month.html')
+
+def full_list(request):
+    return render(request, 'main/list.html')
