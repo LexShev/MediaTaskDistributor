@@ -1,78 +1,90 @@
 <div class="card shadow-lg mx-1 my-2 mt-0 p-2">
 <!--  <span class="placeholder col-5"></span>-->
 <!-- style="border-color: rgba(75,115,255,.1); background-color: #eee;"-->
-  Описание
-<div class="row m-0">
-<div class="col col-2 p-0">
-  <img src="/static/img/Avengers.webp" class="img-fluid rounded mx-1 my-2" alt="..." style="height: 190px;">
-</div>
-<div class="col col-4 p-0">
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="year_form" style="height: 50px" disabled>2019</textarea>
-  <label for="year_form">Год</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="country_form" style="height: 50px" disabled>США</textarea>
-  <label for="country_form">Страна</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="director_form" style="height: 50px" disabled>Джосс Уэдон</textarea>
-  <label for="director_form">Режиссёр</label>
-</div>
-</div>
-<div class="col col-6 p-0">
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="roles_form" style="height: 50px" disabled>Крис Эванс, Марк Руффало, Крис Хэмсворт</textarea>
-  <label for="roles_form">В ролях</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="theme_form" style="height: 50px" disabled>Можно в линейку фильмов</textarea>
-  <label for="theme_form">Тематика</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>Фильм, Кино+</textarea>
-  <label for="keywords_form">Ключевые слова</label>
-</div>
-</div>
-</div>
+  <div class="accordion" id="accordion_description">
+    <div class="accordion-item">
+        <h6 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+        Описание
+      </button></h6>
+      <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
+        <div class="accordion-body">
+          <div class="row m-0">
+            <div class="col col-2 p-0">
+              <img src="/static/img/Avengers.webp" class="img-fluid rounded mx-1 my-2" alt="..." style="height: 190px;">
+            </div>
+            <div class="col col-4 p-0">
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="year_form" style="height: 50px" disabled>2019</textarea>
+                <label for="year_form">Год</label>
+              </div>
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="country_form" style="height: 50px" disabled>США</textarea>
+                <label for="country_form">Страна</label>
+              </div>
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="director_form" style="height: 50px" disabled>Джосс Уэдон</textarea>
+                <label for="director_form">Режиссёр</label>
+              </div>
+            </div>
+            <div class="col col-6 p-0">
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="roles_form" style="height: 50px" disabled>Крис Эванс, Марк Руффало, Крис Хэмсворт</textarea>
+                <label for="roles_form">В ролях</label>
+              </div>
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="theme_form" style="height: 50px" disabled>Можно в линейку фильмов</textarea>
+                <label for="theme_form">Тематика</label>
+              </div>
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>Фильм, Кино+</textarea>
+                <label for="keywords_form">Ключевые слова</label>
+              </div>
+            </div>
+          </div>
 
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="short_descript_form" style="height: 150px">Локи, сводный брат Тора, возвращается, и в этот раз он не один.
-  </textarea>
-  <label for="short_descript_form">Краткое описание</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="full_descript_form" style="height: 250px">Локи, сводный брат Тора, возвращается, и в этот раз он не один. Земля оказывается на грани порабощения, и только лучшие из лучших могут спасти человечество. Глава международной организации Щ.И.Т. Ник Фьюри собирает выдающихся поборников справедливости и добра, чтобы отразить атаку. Под предводительством Капитана Америки Железный Человек, Тор, Невероятный Халк, Соколиный Глаз и Чёрная Вдова вступают в войну с захватчиком.
-  </textarea>
-  <label for="full_descript_form">Полное описание</label>
-</div>
-  Цензура
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="lgbt_form" style="height: 100px">Не найдено</textarea>
-  <label for="lgbt_form">ЛГБТ</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="sig_form" style="height: 100px">00:21 - Вырезано</textarea>
-  <label for="sig_form">Сигареты</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="obnazh_form" style="height: 100px">Не найдено</textarea>
-  <label for="obnazh_form">Обнаженка</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="narc_form" style="height: 100px">Нет</textarea>
-  <label for="narc_form">Наркотики</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="mat_form" style="height: 100px">02:38 - ?@#$</textarea>
-  <label for="mat_form">Мат</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="other_form" style="height: 100px">Нет</textarea>
-  <label for="other_form">Другое</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="editor_form" style="height: 100px"> - </textarea>
-  <label for="editor_form">Редакторские замечания</label>
-</div>
+          <div class="form-floating mx-1 my-2">
+            <textarea class="form-control" id="short_descript_form" style="height: 150px">Локи, сводный брат Тора, возвращается, и в этот раз он не один.
+            </textarea>
+            <label for="short_descript_form">Краткое описание</label>
+          </div>
+          <div class="form-floating mx-1 my-2">
+            <textarea class="form-control" id="full_descript_form" style="height: 250px">Локи, сводный брат Тора, возвращается, и в этот раз он не один. Земля оказывается на грани порабощения, и только лучшие из лучших могут спасти человечество. Глава международной организации Щ.И.Т. Ник Фьюри собирает выдающихся поборников справедливости и добра, чтобы отразить атаку. Под предводительством Капитана Америки Железный Человек, Тор, Невероятный Халк, Соколиный Глаз и Чёрная Вдова вступают в войну с захватчиком.
+            </textarea>
+            <label for="full_descript_form">Полное описание</label>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+    <h6>Цензура</h6>
+  <div class="form-floating mx-1 my-2">
+    <textarea class="form-control" id="lgbt_form" style="height: 100px">Не найдено</textarea>
+    <label for="lgbt_form">ЛГБТ</label>
+  </div>
+  <div class="form-floating mx-1 my-2">
+    <textarea class="form-control" id="sig_form" style="height: 100px">00:21 - Вырезано</textarea>
+    <label for="sig_form">Сигареты</label>
+  </div>
+  <div class="form-floating mx-1 my-2">
+    <textarea class="form-control" id="obnazh_form" style="height: 100px">Не найдено</textarea>
+    <label for="obnazh_form">Обнаженка</label>
+  </div>
+  <div class="form-floating mx-1 my-2">
+    <textarea class="form-control" id="narc_form" style="height: 100px">Нет</textarea>
+    <label for="narc_form">Наркотики</label>
+  </div>
+  <div class="form-floating mx-1 my-2">
+    <textarea class="form-control" id="mat_form" style="height: 100px">02:38 - ?@#$</textarea>
+    <label for="mat_form">Мат</label>
+  </div>
+  <div class="form-floating mx-1 my-2">
+    <textarea class="form-control" id="other_form" style="height: 100px">Нет</textarea>
+    <label for="other_form">Другое</label>
+  </div>
+  <div class="form-floating mx-1 my-2">
+    <textarea class="form-control" id="editor_form" style="height: 100px"> - </textarea>
+    <label for="editor_form">Редакторские замечания</label>
+  </div>
+</div>
