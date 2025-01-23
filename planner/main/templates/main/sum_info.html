@@ -105,36 +105,20 @@
         </button></h6>
       <div id="collapseHistory" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
         <div class="accordion-body">
-          <table class="table table-striped table-hover">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">First</th>
-                <th scope="col">Last</th>
-                <th scope="col">Handle</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-              </tr>
-              <tr>
-                <th scope="row">2</th>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-              </tr>
-              <tr>
-                <th scope="row">3</th>
-                <td colspan="2">Larry the Bird</td>
-                <td>@twitter</td>
-              </tr>
-            </tbody>
-        </table>
-
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">12.01.2023 - Ольга Кузовкина
+              <small class="text-body-secondary m-2">(Описание)</small>
+            </li>
+            <li class="list-group-item">13.01.2023 - Ольга Кузовкина
+              <small class="text-body-secondary m-2">(Описание, Цензура)</small>
+            </li>
+            <li class="list-group-item">25.01.2024 - Александр Кисляков
+              <small class="text-body-secondary m-2">(Цензура)</small>
+            </li>
+            <li class="list-group-item">26.01.2024 - Айнур Мингазов
+              <small class="text-body-secondary m-2">(ОТК)</small>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
@@ -149,29 +133,52 @@
           <table class="table table-striped table-hover">
             <thead>
               <tr>
-                <th scope="col">#</th>
-                <th scope="col">First</th>
-                <th scope="col">Last</th>
-                <th scope="col">Handle</th>
+                <th class="col-2">General</th>
+                <th class="col-6"></th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <th scope="row">1</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
+                <th scope="row">Complete name</th>
+                <td>E:\TEST_Material\F_Вариант Омега_1975_P02_1080p25_H264_10Mbps.mp4</td>
               </tr>
               <tr>
-                <th scope="row">2</th>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
+                <th scope="row">Format</th>
+                <td>MPEG-4</td>
               </tr>
               <tr>
-                <th scope="row">3</th>
-                <td colspan="2">Larry the Bird</td>
-                <td>@twitter</td>
+                <th scope="row">Format profile</th>
+                <td>Base Media / Version 2</td>
+              </tr>
+              <tr>
+                <th scope="row">Codec ID</th>
+                <td>mp42 (mp42/mp41)</td>
+              </tr>
+              <tr>
+                <th scope="row">File size</th>
+                <td>4.96 GiB</td>
+              </tr>
+              <tr>
+                <th scope="row">Duration</th>
+                <td>1 h 9 min</td>
+              </tr>
+            </tbody>
+          </table>
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th class="col-2">Video</th>
+                <th class="col-6"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">ID</th>
+                <td>1</td>
+              </tr>
+              <tr>
+                <th scope="row">Format</th>
+                <td>AVC</td>
               </tr>
             </tbody>
         </table>
@@ -183,37 +190,26 @@
     <div class="accordion-item">
       <h6 class="accordion-header">
         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCheck" aria-expanded="false" aria-controls="collapseCenz">
-          АвтоСканеры
+          Авто сканеры
         </button></h6>
       <div id="collapseCheck" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
         <div class="accordion-body">
-          <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="lgbt_form" style="height: 100px">Не найдено</textarea>
-            <label for="lgbt_form">ЛГБТ</label>
+          <div class="card mx-1 my-2 boarder">
+            <div><small class="text-body-secondary m-2">R128</small></div>
+            <img id="r_128" src="/static/waveforms/F_25_039XV_H_1080p25_H264_6Mbps_WaveForm.png" class="img-fluid w-100 mx-auto d-block" alt="..." style="height: 190px;">
+            <div class="text-body-secondary text-center mb-2">I = 23, LRA = 2, THR = 12</div>
           </div>
           <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="sig_form" style="height: 100px">00:21 - Вырезано</textarea>
-            <label for="sig_form">Сигареты</label>
+            <textarea class="form-control" id="black_form" style="height: 100px">Не найдено</textarea>
+            <label for="black_form">Чёрные поля</label>
           </div>
           <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="obnazh_form" style="height: 100px">Не найдено</textarea>
-            <label for="obnazh_form">Обнаженка</label>
+            <textarea class="form-control" id="silence_form" style="height: 100px">00:21-00:45</textarea>
+            <label for="silence_form">Тишина</label>
           </div>
           <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="narc_form" style="height: 100px">Нет</textarea>
-            <label for="narc_form">Наркотики</label>
-          </div>
-          <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="mat_form" style="height: 100px">02:38 - ?@#$</textarea>
-            <label for="mat_form">Мат</label>
-          </div>
-          <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="other_form" style="height: 100px">Нет</textarea>
-            <label for="other_form">Другое</label>
-          </div>
-          <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="editor_form" style="height: 100px"> - </textarea>
-            <label for="editor_form">Редакторские замечания</label>
+            <textarea class="form-control" id="freeze_form" style="height: 100px">Не найдено</textarea>
+            <label for="freeze_form">Стоп-кадр</label>
           </div>
         </div>
       </div>
