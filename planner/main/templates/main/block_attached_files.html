@@ -1,0 +1,20 @@
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th class="col-2"></th>
+      <th class="col-1"></th>
+      <th class="col-1"></th>
+      <th class="col"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% include 'main/attach_row_table.html' %}
+    {% include 'main/attach_row_table.html' %}
+    {% include 'main/attach_row_table.html' %}
+
+  </tbody>
+</table>
+<div class="input-group">
+  <input class="form-control" type="file" id="upload_form" accept="" multiple>
+  <button class="btn btn-outline-secondary" type="button" id="upload_form_btn">Загрузить</button>
+</div>
