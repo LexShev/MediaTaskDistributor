@@ -1,9 +1,8 @@
 {% extends  'main/index.html' %}
 
+<main>
 {% block body %}
-
-<div class="container-fluid text-start px-lg-5">
-  <main>
+  <div class="container-fluid text-start px-lg-5">
     <div class="row p-0">
       <div class="overflow-auto col-6 p-0" style="max-height: 1016px;">
         {% include 'main/card_list_2.html' %}
@@ -17,21 +16,21 @@
         {% include 'main/card_list.html' %}
         {% include 'main/card_list.html' %}
         {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
+        {% include 'main/card_list_season.html' %}
         <div class="row align-items-center">
-          <div class="col" style="max-width:50px">
+          <div class="col ps-4" style="max-width:50px">
             <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
           </div>
           <div class="col">
-            {% include 'main/card_list.html' %}
+            {% include 'main/card_list_episode.html' %}
           </div>
         </div>
         <div class="row align-items-center">
-          <div class="col" style="max-width:50px">
+          <div class="col ps-4" style="max-width:50px">
             <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
           </div>
           <div class="col">
-            {% include 'main/card_list.html' %}
+            {% include 'main/card_list_episode.html' %}
           </div>
         </div>
         {% include 'main/card_list.html' %}
@@ -63,7 +62,6 @@
         {% include 'main/sum_info.html' %}
       </div>
     </div>
-  </main>
-</div>
+  </div>
 {% endblock %}
-
+</main>

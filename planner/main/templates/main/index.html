@@ -16,11 +16,12 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
 
-<link href="{% static '/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}"  rel="stylesheet">
-<script src="{% static '/bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js' %}"></script>
+    <link href="{% static '/img/LOGO_VideoInfo_256x256_WB.ico' %}"  rel="shortcut icon">
+    <link href="{% static '/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}"  rel="stylesheet">
+    <script src="{% static '/bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js' %}"></script>
 
-<link href="{% static '/css/main.css' %}"  rel="stylesheet">
-<script src="{% static '/bootstrap-5.3.3-dist/js/color-modes.js' %}"></script>
+    <link href="{% static '/css/main.css' %}"  rel="stylesheet">
+    <script src="{% static '/bootstrap-5.3.3-dist/js/color-modes.js' %}"></script>
 
 
 <!--<link href="{% static '/UI-Card-master/card.min.css' %}"  rel="stylesheet">-->
@@ -167,6 +168,14 @@
         <li><a href="/month" class="nav-link px-2 link-body-emphasis">Месяц</a></li>
         <li><a href="/list" class="nav-link px-2 link-body-emphasis">Список</a></li>
       </ul>
+
+      <!-- Example split danger button -->
+      <div class="btn-group dropstart">
+        <button type="button" class="btn dropdown-toggle dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
+        <div class="dropdown-menu">
+          {% include 'main/filter_settings.html' %}
+        </div>
+      </div>
 
       <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search">
         <input type="search" class="form-control" placeholder="Поиск..." aria-label="Search">
