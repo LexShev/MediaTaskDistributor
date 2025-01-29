@@ -5,6 +5,58 @@
   <div class="container-fluid text-start px-lg-5">
     <div class="row p-0">
       <div class="overflow-auto col-6 p-0" style="max-height: 1016px;">
+        <nav class="px-1 pb-2 bg-body sticky-top">
+          <div class="container p-0 d-flex align-items-center justify-content-start">
+            <div class="form-floating ms-0 mx-1">
+              <select class="form-select" name="channel_filter" id="ChannelFilter" aria-label="ChannelFilter">
+                <option value="1" selected>Все</option>
+                <option value="2">Романтический</option>
+                <option value="3">Крепкое</option>
+                <option value="4">Кино +</option>
+              </select>
+              <label for="ChannelFilter">Канал</label>
+            </div>
+
+            <div class="form-floating mx-1">
+              <select class="form-select" name="worker_filter" id="WorkerFilter" aria-label="WorkerFilter">
+                <option value="1" selected>Все</option>
+                <option value="2">Александр Кисляков</option>
+                <option value="3">Ольга Кузовкина</option>
+                <option value="4">Айнур Мингазов</option>
+              </select>
+              <label for="WorkerFilter">Выполняет</label>
+            </div>
+
+            <div class="form-floating mx-1" style="width: 150px">
+              <select class="form-select" name="material_filter" id="MaterialFilter" aria-label="MaterialFilter">
+                <option value="1" selected>Все</option>
+                <option value="2">Фильмы</option>
+                <option value="3">Сериалы</option>
+              </select>
+              <label for="MaterialFilter">Тип материала</label>
+            </div>
+
+            <div class="form-floating mx-1" style="width: 150px">
+              <select class="form-select" name="data_filter" id="DataFilter" aria-label="DataFilter">
+                <option value="1" selected>Все</option>
+                <option value="2">Сегодня</option>
+                <option value="3">Теущая неделя</option>
+                <option value="3">Месяц</option>
+              </select>
+              <label for="DataFilter">Дата</label>
+            </div>
+
+            <div class="form-floating mx-1 me-lg-auto">
+              <select class="form-select" name="status_filter" id="StatusFilter" aria-label="StatusFilter">
+                <option value="1" selected>Все</option>
+                <option value="2">Отсмотрено</option>
+                <option value="3">В работе</option>
+                <option value="3">Исправить</option>
+              </select>
+              <label for="StatusFilter">Статус</label>
+            </div>
+          </div>
+        </nav>
         {% include 'main/card_list_2.html' %}
         {% include 'main/card_list.html' %}
         {% include 'main/card_list_2.html' %}
