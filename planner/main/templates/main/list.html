@@ -2,6 +2,7 @@
 
 <main>
 {% block body %}
+
   <div class="container-fluid text-start px-lg-5">
     <div class="row p-0">
       <div class="overflow-auto col-6 p-0" style="max-height: 1016px;">
@@ -57,59 +58,97 @@
             </div>
           </div>
         </nav>
-        {% include 'main/card_list_2.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list_2.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list_2.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list_season.html' %}
-        <div class="row align-items-center">
-          <div class="col ps-4" style="max-width:50px">
-            <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
-          </div>
-          <div class="col">
-            {% include 'main/card_list_episode.html' %}
-          </div>
-        </div>
-        <div class="row align-items-center">
-          <div class="col ps-4" style="max-width:50px">
-            <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
-          </div>
-          <div class="col">
-            {% include 'main/card_list_episode.html' %}
-          </div>
-        </div>
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
-        {% include 'main/card_list.html' %}
+
+        {% for material in material_list %}
+          {% if material.type == 'film' %}
+            <div class="card border shadow mx-1 my-2 mt-0 p-0">
+              <div class="card-header p-2">
+                <input class="form-check-input me-1" type="checkbox" value="" id="movie_id">
+                  <label class="form-check-label" for="movie_id">
+                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                      <h6 class="my-0 mx-1">{{ material.name }}, {{ material.year }}</h6>
+                    </a>
+                  </label>
+              </div>
+              <div class="card-body p-2">
+                <div class="row">
+                  <div class="col">
+                    <p class="card-text m-0"><small class="text-body-secondary">
+                      Канал: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                      {{ material.channel }}</a></small>
+                    </p>
+                  </div>
+                  <div class="col">
+                    <p class="card-text m-0"><small class="text-body-secondary">
+                    Дата эфира: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.air_date }}</a></small>
+                    </p>
+                  </div>
+                  <div class="col">
+                    <p class="card-text m-0"><small class="text-body-secondary">
+                    Выполняет: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.worker }}</a></small>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% elif material.type == 'series' %}
+            <div class="card border shadow mx-1 my-2 mt-0 p-0">
+              <div class="card-body p-2">
+                <input class="form-check-input me-1" type="checkbox" value="" id="season_id">
+                  <label class="form-check-label" for="season_id">
+                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                      <h6 class="my-0 mx-1">{{ material.name }}, {{ material.year }}</h6>
+                    </a>
+                  </label>
+              </div>
+            </div>
+            {% for episode in material.episode %}
+              <div class="row align-items-center">
+                <div class="col ps-4" style="max-width:50px">
+                  <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
+                </div>
+                <div class="col">
+                  <div class="card border shadow mx-1 my-2 mt-0 p-0">
+                    <div class="card-header p-2">
+                      <input class="form-check-input me-1" type="checkbox" value="" id="episode_id">
+                        <label class="form-check-label" for="episode_id">
+                          <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          <h6 class="my-0 mx-1">{{ episode.name }}</h6>
+                          </a>
+                        </label>
+                    </div>
+                    <div class="card-body p-2">
+                      <div class="row">
+                        <div class="col">
+                          <p class="card-text m-0"><small class="text-body-secondary">
+                          Канал: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          {{ episode.channel }}</a></small>
+                          </p>
+                        </div>
+
+                        <div class="col">
+                          <p class="card-text m-0"><small class="text-body-secondary">
+                          Дата эфира: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                         {{ episode.air_date }}</a></small>
+                          </p>
+                        </div>
+                        <div class="col">
+                          <p class="card-text m-0"><small class="text-body-secondary">
+                          Выполняет: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          {{ episode.worker }}</a></small>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
       </div>
-<!--      <div class="col col-6 p-0">-->
-<!--      <div class="b-example-divider b-example-vr"></div>-->
-<!--        </div>-->
       <div class="col col-6 p-0">
         {% include 'main/sum_info.html' %}
       </div>
