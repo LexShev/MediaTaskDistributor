@@ -75,9 +75,29 @@ WSGI_APPLICATION = "planner.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
+    # "default": {
+    #     "ENGINE": "django.db.backends.sqlite3",
+    #     "NAME": BASE_DIR / "db.sqlite3",
+    # }
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "mssql",
+        "NAME": 'planner',
+        "USER": "alex",
+        "PASSWORD": "alex",
+        "HOST": "ST14\\FINAL_BASE",
+        # "PORT": "1433",
+        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
+        },
+    },
+    "oplan3": {
+        "ENGINE": "mssql",
+        "NAME": 'oplan3',
+        "USER": "alex",
+        "PASSWORD": "alex",
+        "HOST": "ST14\\FINAL_BASE",
+        # "PORT": "1433",
+        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
+        },
     }
 }
 
