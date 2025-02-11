@@ -3,50 +3,29 @@ from django.db import connections
 
 def program_id():
     with connections['oplan3'].cursor() as cursor:
-        schedule_name = 'Кино +'
-        day_date = '2024-02-14'
-
-        query = f'''
-        SELECT [program_id]
-        FROM [oplan3].[dbo].[scheduled_program]
-        WHERE [program_id] > 0
-        AND [schedule_day_id] IN
-            (SELECT [schedule_day_id]
-            FROM [oplan3].[dbo].[schedule_day]
-            WHERE [day_date] = '{day_date}'
-            AND [schedule_id] IN
-                (SELECT [schedule_id]
-                FROM [oplan3].[dbo].[schedule]
-                WHERE [schedule_name] = '{schedule_name}'))
-        '''
-        cursor.execute(query)
-        program_id_list = [schedule_id[0] for schedule_id in cursor.fetchall()]
+        dates = ('2024-02-16', '2024-02-17')
+        channels = ('Крепкое', 'Крепкое')
+        order = 'ASC'
         material_list = []
 
-        for program_id in program_id_list:
+        field_val_columns = '[ProgramCustomFieldValuesID], [ProgramCustomFieldId], [ObjectId], [TextValue], [IntValue], [DateValue], [ObjectType], [TimeStamp]'
+        fields_name_columns = '[CustomFieldID], [Name], [FieldType], [ItemsString], [Position], [ObjectType], [TimeStamp]'
 
-            field_val_columns = '[ProgramCustomFieldValuesID], [ProgramCustomFieldId], [ObjectId], [TextValue], [IntValue], [DateValue], [ObjectType], [TimeStamp]'
-            fields_name_columns = '[CustomFieldID], [Name], [FieldType], [ItemsString], [Position], [ObjectType], [TimeStamp]'
+        file_columns = ('Name', 'Size', 'CreationTime', 'ModificationTime')
+        program_columns = ('program_id', 'parent_id', 'name', 'orig_name', 'annotation', 'duration', 'comment',
+                           'keywords', 'anounce_text', 'program_type_id', 'episode_num', 'last_edit_user_id',
+                           'last_edit_time', 'authors', 'producer', 'production_year', 'production_country',
+                           'subject', 'SourceID', 'AnonsCaption', 'DisplayMediumName', 'SourceFileMedium',
+                           'EpisodesTotal', 'MaterialState', 'SourceMedium', 'HasSourceClip', 'AnonsCaptionInherit',
+                           'AdultTypeID', 'CreationDate', 'Subtitled', 'Season', 'Director', 'Cast',
+                           'MusicComposer', 'ShortAnnotation')
 
-            file_columns = 'Name, Size, CreationTime, ModificationTime'
-            program_columns = ('[program_id], [parent_id], [name], [orig_name], [annotation], [duration], [comment], '
-                               '[keywords], [anounce_text], [program_type_id], [episode_num], [last_edit_user_id], '
-                               '[last_edit_time], [authors], [producer], [production_year], [production_country], [subject], '
-                               '[SourceID], [AnonsCaption], [DisplayMediumName], [SourceFileMedium], [EpisodesTotal], '
-                               '[MaterialState], [SourceMedium], [HasSourceClip], [AnonsCaptionInherit], [AdultTypeID], '
-                               '[CreationDate], [Subtitled], [Season], [Director], [Cast], [MusicComposer], [ShortAnnotation]')
-            types_columns = '[type_name]'
-            sql_columns = ', '.join(
-                [f'Files.{col}' for col in file_columns.split(', ')] +
-                [f'Types.{col}' for col in types_columns.split(', ')] +
-                [f'Progs.{col}' for col in program_columns.split(', ')])
-            django_columns = ', '.join(
-                [f'Files_{col}' for col in file_columns.split(', ')] +
-                [f'Types_{col}' for col in types_columns.split(', ')] +
-                [f'Progs_{col}' for col in program_columns.split(', ')])
-            # ', '.join([f'Val.{col}' for col in field_val_columns.split(', ')])+", "+
-            # ', '.join(f'Fields.{col}' for col in fields_name_columns.split(', '))+", "+
-            query = f'''
+        sql_columns = ', '.join(
+            [f'Files.[{col}]' for col in file_columns] + [f'Progs.[{col}]' for col in program_columns] + [
+                'Types.[type_name]', 'SchedDay.[day_date]', 'Sched.[schedule_name]'])
+        django_columns = [f'Files_{col}' for col in file_columns] + [f'Progs_{col}' for col in program_columns] + [
+            'Types_type_name', 'SchedDay_day_date', 'Sched_schedule_name']
+        query = f'''
             SELECT {sql_columns}
             FROM [oplan3].[dbo].[File] AS Files
             JOIN [oplan3].[dbo].[Clip] AS Clips
@@ -55,20 +34,28 @@ def program_id():
                 ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
             JOIN [oplan3].[dbo].[program_type] AS Types
                 ON Progs.[program_type_id] = Types.[program_type_id]
+            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+                ON Progs.[program_id] = SchedProg.[program_id]
+            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+                ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
+                    AND SchedDay.[day_date] IN {dates}
+            JOIN [oplan3].[dbo].[schedule] AS Sched
+                ON SchedDay.[schedule_id] = Sched.[schedule_id]
+                    AND Sched.[schedule_name] IN {channels}
             WHERE Files.[Deleted] = 0
             AND Files.[PhysicallyDeleted] = 0
             AND Clips.[Deleted] = 0
             AND Progs.[deleted] = 0
-            AND Progs.[program_id] = '{program_id}'
             AND Progs.[program_type_id] NOT IN (3, 9, 13, 14, 15, 17, 18)
+            AND Progs.[program_id] > 0
+            ORDER BY SchedProg.[DateTime] {order}
                     '''
-            cursor.execute(query)
-            full_info = cursor.fetchone()
-            if full_info:
-                full_info_dict = dict(zip(django_columns.split(', '), full_info))
-                material_list.append(full_info_dict)
-                print(full_info_dict)
-    return material_list
+
+        cursor.execute(query)
+        material_list = [dict(zip(django_columns, values)) for values in cursor.fetchall()]
+        for mat in material_list:
+            print(mat)
+        return material_list
 
 def day(request):
     return render(request, 'main/day.html')
