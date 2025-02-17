@@ -1,9 +1,10 @@
 from django.urls import path
-from . import views
+from .views import*
 
 urlpatterns = [
-    path("day", views.day),
-    path("week", views.week),
-    path("month", views.month),
-    path("list", views.full_list),
+    path("day", day),
+    path("week", week),
+    path("month", month),
+    path("list", full_list),
+    path("card_<int:id_card>", material_card),
 ]

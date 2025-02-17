@@ -72,9 +72,9 @@ def make_material_list(material_list_sql, django_columns):
 
 def oplan_material_list():
     with connections['oplan3'].cursor() as cursor:
-        dates = ('2024-02-16', '2024-02-16')
+        dates = ('2024-02-15', '2024-02-16')
         # channels = (channels, 'Крепкое')
-        channels = ('Кино +', 'Романтичный сериал')
+        channels = ('Кино +', 'Романтичный сериал', 'Крепкое')
         order = 'ASC'
 
         field_val_columns = '[ProgramCustomFieldValuesID], [ProgramCustomFieldId], [ObjectId], [TextValue], [IntValue], [DateValue], [ObjectType], [TimeStamp]'
@@ -130,10 +130,10 @@ def oplan_material_list():
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         material_list = make_material_list(material_list_sql, django_columns)
-        print(material_list)
+        print('\t', material_list)
         return material_list
 
-def full_info(program_id=63550):
+def full_info(program_id):
     with connections['oplan3'].cursor() as cursor:
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'orig_name'), ('Progs', 'annotation'), ('Progs', 'duration'), ('Progs', 'comment'),
@@ -174,7 +174,7 @@ def full_info(program_id=63550):
         full_info_dict = dict(zip(django_columns, full_info_list))
         full_info_dict['custom_fields'] = cenz_info(program_id)
         full_info_dict['schedule_info'] = schedule_info(program_id)
-        print(full_info_dict)
+        print('\t', full_info_dict)
         return full_info_dict
 
 def cenz_info(program_id):
@@ -193,7 +193,7 @@ def cenz_info(program_id):
 
         for cenz in cenz_info_sql:
             field_id, field_name, text_value, items_string, int_value, data_value = cenz
-            if field_id in (14, 15, 18, 19):
+            if field_id in (14, 15):
                 custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
             elif field_id == 7:
                 custom_fields_dict[field_id] = data_value

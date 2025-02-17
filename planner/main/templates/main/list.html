@@ -3,7 +3,8 @@
 {% block body %}
   <div class="container-fluid text-start px-lg-5">
     <div class="row p-0">
-      <div class="overflow-auto col-6 p-0" style="max-height: 1016px;">
+      <div class="container-md text-start px-lg-5">
+<!--      <div class="overflow-auto col-6 p-0" style="max-height: 1016px;">-->
         <nav class="px-1 pb-2 bg-body sticky-top">
           <form method="post" class="container p-0 d-flex align-items-center justify-content-start">
           {% csrf_token %}
@@ -65,7 +66,7 @@
               <div class="card-header p-2">
                 <input class="form-check-input me-1" type="checkbox" value="" id="movie_id">
                   <label class="form-check-label" for="movie_id">
-                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    <a href="/card_{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                       <h6 class="my-0 mx-1">{{ material.Progs_name }}, {{ material.Progs_production_year }}</h6>
                     </a>
                   </label>
@@ -87,7 +88,7 @@
                   <div class="col">
                     <p class="card-text m-0"><small class="text-body-secondary">
                     Выполняет: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ material.worker }}</a></small>
+                    {{ material.DopInf_worker }}</a></small>
                     </p>
                   </div>
                 </div>
@@ -98,7 +99,7 @@
               <div class="card-body p-2">
                 <input class="form-check-input me-1" type="checkbox" value="" id="season_id">
                   <label class="form-check-label" for="season_id">
-                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    <a href="/card_{{ material.Progs_parent_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                       <h6 class="my-0 mx-1">{{ material.Progs_AnonsCaption|truncatechars:40 }}, {{ material.Progs_production_year }}</h6>
                     </a>
                   </label>
@@ -114,7 +115,7 @@
                     <div class="card-header p-2">
                       <input class="form-check-input me-1" type="checkbox" value="" id="episode_id">
                         <label class="form-check-label" for="episode_id">
-                          <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          <a href="/card_{{ episode.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                           <h6 class="my-0 mx-1">{{ episode.Progs_name }}, {{ episode.Progs_episode_num }}</h6>
                           </a>
                         </label>
@@ -137,7 +138,7 @@
                         <div class="col">
                           <p class="card-text m-0"><small class="text-body-secondary">
                           Выполняет: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                          {{ episode.worker }}</a></small>
+                          {{ episode.DopInf_worker }}</a></small>
                           </p>
                         </div>
                       </div>
@@ -149,9 +150,9 @@
           {% endif %}
         {% endfor %}
       </div>
-      <div class="col col-6 p-0">
-        {% include 'main/sum_info.html' %}
-      </div>
+<!--      <div class="col col-6 p-0">-->
+<!--        {% include 'main/sum_info.html' %}-->
+<!--      </div>-->
     </div>
   </div>
 {% endblock %}
