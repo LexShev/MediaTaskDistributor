@@ -1,5 +1,6 @@
 from django.db import connections
 
+
 def distribution(program_id):
     return 'Александр Кисляков'
 
@@ -19,12 +20,11 @@ def make_material_list(material_list_sql, django_columns):
             continue
         temp_dict = dict(zip(django_columns, program_info))
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
-            if temp_dict['worker']:
-                worker = temp_dict['worker']
+            if temp_dict['DopInf_worker']:
+                worker = temp_dict['DopInf_worker']
             else:
                 worker = distribution(program_id)
             repeat_index = repeat_index_search(material_list, temp_dict)
-            print(repeat_index)
             if not repeat_index and repeat_index != 0:
                 program_info_dict = {
                     'Progs_parent_id': temp_dict['Progs_parent_id'],
@@ -37,7 +37,7 @@ def make_material_list(material_list_sql, django_columns):
                                  'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                                  'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                                  'status': 'ready',
-                                 'worker': worker}]}
+                                 'DopInf_worker': worker}]}
                 program_id_list.append(program_id)
                 material_list.append(program_info_dict)
             else:
@@ -48,7 +48,7 @@ def make_material_list(material_list_sql, django_columns):
                     'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                     'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                     'status': 'ready',
-                    'worker': worker})
+                    'DopInf_worker': worker})
                 program_id_list.append(program_id)
 
 
@@ -62,14 +62,12 @@ def make_material_list(material_list_sql, django_columns):
                 'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                 'type': 'film',
                 'status': 'ready'}
-            if temp_dict['worker']:
-                program_info_dict['worker'] = temp_dict['worker']
+            if temp_dict['DopInf_worker']:
+                program_info_dict['DopInf_worker'] = temp_dict['DopInf_worker']
             else:
-                program_info_dict['worker'] = distribution(program_id)
+                program_info_dict['DopInf_worker'] = distribution(program_id)
             program_id_list.append(program_id)
             material_list.append(program_info_dict)
-    print('material_list', material_list)
-
     return material_list
 
 def oplan_material_list():
@@ -96,6 +94,12 @@ def oplan_material_list():
                 'Types.[type_name]', 'SchedDay.[day_date]', 'Sched.[schedule_name]', 'worker'])
         django_columns = [f'Progs_{col}' for col in program_columns] + [f'Files_{col}' for col in file_columns] + [
             'Types_type_name', 'SchedDay_day_date', 'Sched_schedule_name', 'worker']
+
+        columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
+                   ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
+                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date'), ('DopInf', 'worker')]
+        sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+        django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
             SELECT {sql_columns}
             FROM [oplan3].[dbo].[File] AS Files
@@ -123,12 +127,55 @@ def oplan_material_list():
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
                     '''
-
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         material_list = make_material_list(material_list_sql, django_columns)
+        print(material_list)
         return material_list
 
+def full_info(program_id=63550):
+    with connections['oplan3'].cursor() as cursor:
+        columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
+                   ('Progs', 'orig_name'), ('Progs', 'annotation'), ('Progs', 'duration'), ('Progs', 'comment'),
+                   ('Progs', 'keywords'), ('Progs', 'anounce_text'), ('Progs', 'episode_num'),
+                   ('Progs', 'last_edit_user_id'), ('Progs', 'last_edit_time'), ('Progs', 'authors'),
+                   ('Progs', 'producer'), ('Progs', 'production_year'), ('Progs', 'production_country'),
+                   ('Progs', 'subject'), ('Progs', 'SourceID'), ('Progs', 'AnonsCaption'),
+                   ('Progs', 'DisplayMediumName'), ('Progs', 'SourceFileMedium'), ('Progs', 'EpisodesTotal'),
+                   ('Progs', 'MaterialState'), ('Progs', 'SourceMedium'), ('Progs', 'HasSourceClip'),
+                   ('Progs', 'AnonsCaptionInherit'), ('Progs', 'AdultTypeID'), ('Progs', 'CreationDate'),
+                   ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
+                   ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'), ('Files', 'Name'), ('Files', 'Size'),
+                   ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('DopInf', 'worker')]
+
+        sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+        django_columns = [f'{col}_{val}' for col, val in columns]
+        query = f'''
+        SELECT {sql_columns}
+        FROM [oplan3].[dbo].[File] AS Files
+            JOIN [oplan3].[dbo].[Clip] AS Clips
+                ON Files.[ClipID] = Clips.[ClipID]
+            JOIN [oplan3].[dbo].[program] AS Progs
+                ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+            JOIN [oplan3].[dbo].[program_type] AS Types
+                ON Progs.[program_type_id] = Types.[program_type_id]
+            LEFT JOIN [planner].[dbo].[dop_info] AS DopInf
+                ON Progs.[program_id] = DopInf.[program_id]
+            WHERE Files.[Deleted] = 0
+            AND Files.[PhysicallyDeleted] = 0
+            AND Clips.[Deleted] = 0
+            AND Progs.[deleted] = 0
+            AND Progs.[program_type_id] NOT IN (3, 9, 13, 14, 15, 17, 18)
+            AND Progs.[program_id] = {program_id}
+                '''
+        cursor.execute(query)
+        full_info_list = cursor.fetchone()
+        # [info.replace('\n', '') for info in full_info_list if isinstance(info, str)]
+        full_info_dict = dict(zip(django_columns, full_info_list))
+        full_info_dict['custom_fields'] = cenz_info(program_id)
+        full_info_dict['schedule_info'] = schedule_info(program_id)
+        print(full_info_dict)
+        return full_info_dict
 
 def cenz_info(program_id):
     with connections['oplan3'].cursor() as cursor:
@@ -142,18 +189,26 @@ def cenz_info(program_id):
                 '''
         cursor.execute(query_test)
         cenz_info_sql = cursor.fetchall()
-        cenz_info_list = []
+        custom_fields_dict = {}
+
         for cenz in cenz_info_sql:
-            cenz_info_dict = {}
             field_id, field_name, text_value, items_string, int_value, data_value = cenz
-            if field_id == 5:
-                cenz_info_dict['field_id'] = field_id
-                cenz_info_dict['value'] = text_value
-            elif field_id == 14 or field_id == 15:
-                cenz_info_dict['field_id'] = field_id
-                cenz_info_dict['value'] = items_string.split('\r\n')[int_value]
+            if field_id in (14, 15, 18, 19):
+                custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
             elif field_id == 7:
-                cenz_info_dict['field_id'] = field_id
-                cenz_info_dict['value'] = data_value
-            cenz_info_list.append(cenz_info_dict)
-        return cenz_info_list
+                custom_fields_dict[field_id] = data_value
+            else:
+                custom_fields_dict[field_id] = text_value
+    return custom_fields_dict
+
+def schedule_info(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        columns = ['ChannelId', 'ChannelName', 'DateTime']
+        sql_columns = ', '.join(columns)
+        query = f'''SELECT {sql_columns}
+          FROM [oplan3].[dbo].[ScheduledInfo]
+          WHERE [ProgramId] = {program_id}'''
+        cursor.execute(query)
+        schedule_list = cursor.fetchall()
+        schedule_dict = [dict(zip(columns, schedule)) for schedule in schedule_list]
+    return schedule_dict

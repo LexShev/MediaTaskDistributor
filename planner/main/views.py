@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .sql_connection import oplan_material_list, cenz_info
+from .sql_connection import oplan_material_list, full_info, cenz_info
 
 
 def day(request):
@@ -38,6 +38,8 @@ def full_list(request):
                          {'id': 147, 'name': 'Avengers_S02E02', 'channel': 'Наше детство', 'air_date': '03.03.2025', 'worker': 'Ольга Кузовкина'},]}
                 ]
             }
-    data = {'material_list': oplan_material_list}
+    data = {'material_list': oplan_material_list,
+            'full_info': full_info}
     return render(request, 'main/list.html', data)
+
 
