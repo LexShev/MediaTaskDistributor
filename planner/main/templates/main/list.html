@@ -1,10 +1,9 @@
 {% extends  'main/index.html' %}
 <main>
 {% block body %}
-  <div class="container-fluid text-start px-lg-5">
+  <div class="container-xxl text-start px-0">
     <div class="row p-0">
-      <div class="container-md text-start px-lg-5">
-<!--      <div class="overflow-auto col-6 p-0" style="max-height: 1016px;">-->
+      <div class="container-xxl text-start px-0">
         <nav class="px-1 pb-2 bg-body sticky-top">
           <form method="post" class="container p-0 d-flex align-items-center justify-content-start">
           {% csrf_token %}
@@ -66,7 +65,7 @@
               <div class="card-header p-2">
                 <input class="form-check-input me-1" type="checkbox" value="" id="movie_id">
                   <label class="form-check-label" for="movie_id">
-                    <a href="/card_{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    <a href="/{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                       <h6 class="my-0 mx-1">{{ material.Progs_name }}, {{ material.Progs_production_year }}</h6>
                     </a>
                   </label>
@@ -82,7 +81,7 @@
                   <div class="col">
                     <p class="card-text m-0"><small class="text-body-secondary">
                     Дата эфира: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ material.SchedDay_day_date }}</a></small>
+                    {{ material.SchedDay_day_date|date:"d E Y" }}</a></small>
                     </p>
                   </div>
                   <div class="col">
@@ -99,13 +98,13 @@
               <div class="card-body p-2">
                 <input class="form-check-input me-1" type="checkbox" value="" id="season_id">
                   <label class="form-check-label" for="season_id">
-                    <a href="/card_{{ material.Progs_parent_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    <a href="/{{ material.Progs_parent_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                       <h6 class="my-0 mx-1">{{ material.Progs_AnonsCaption|truncatechars:40 }}, {{ material.Progs_production_year }}</h6>
                     </a>
                   </label>
               </div>
             </div>
-            {% for episode in material.episode %}
+            {% for episode in material.episode|dictsort:"Progs_episode_num" %}
               <div class="row align-items-center">
                 <div class="col ps-4" style="max-width:50px">
                   <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
@@ -115,7 +114,7 @@
                     <div class="card-header p-2">
                       <input class="form-check-input me-1" type="checkbox" value="" id="episode_id">
                         <label class="form-check-label" for="episode_id">
-                          <a href="/card_{{ episode.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          <a href="/{{ episode.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                           <h6 class="my-0 mx-1">{{ episode.Progs_name }}, {{ episode.Progs_episode_num }}</h6>
                           </a>
                         </label>
@@ -132,7 +131,7 @@
                         <div class="col">
                           <p class="card-text m-0"><small class="text-body-secondary">
                           Дата эфира: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                         {{ episode.SchedDay_day_date }}</a></small>
+                         {{ episode.SchedDay_day_date|date:"d E Y" }}</a></small>
                           </p>
                         </div>
                         <div class="col">
@@ -150,9 +149,6 @@
           {% endif %}
         {% endfor %}
       </div>
-<!--      <div class="col col-6 p-0">-->
-<!--        {% include 'main/sum_info.html' %}-->
-<!--      </div>-->
     </div>
   </div>
 {% endblock %}

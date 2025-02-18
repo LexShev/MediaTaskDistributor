@@ -1,0 +1,19 @@
+<table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th class="col-1">Дата эфира</th>
+        <th class="col-1">Время эфира</th>
+        <th class="col-6">Канал</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        {% for air in full_info.schedule_info|dictsort:"DateTime" %}
+            <td>{{ air.DateTime|date:"d.m.Y" }}</td>
+            <td>{{ air.DateTime|date:"H:i:s" }}</td>
+            <td>{{ air.ChannelName }}</td>
+      </tr>
+        {% endfor %}
+
+    </tbody>
+  </table>

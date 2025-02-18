@@ -6,5 +6,5 @@ urlpatterns = [
     path("week", week),
     path("month", month),
     path("list", full_list),
-    path("card_<int:id_card>", material_card),
+    path("<int:id_card>", material_card),
 ]

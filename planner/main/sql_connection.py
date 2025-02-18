@@ -2,7 +2,7 @@ from django.db import connections
 
 
 def distribution(program_id):
-    return 'Александр Кисляков'
+    return 0, 'Александр Кисляков'
 
 def repeat_index_search(material_list, temp_dict):
     for num, program in enumerate(material_list):
@@ -19,11 +19,14 @@ def make_material_list(material_list_sql, django_columns):
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
+        print(temp_dict)
+        if temp_dict['Progs_program_type_id'] in (4, 5, 6, 10, 11, 12) and not temp_dict['DopInf_worker']:
+            worker_id, worker = distribution(program_id)
+        else:
+            worker_id = temp_dict['DopInf_worker_id']
+            worker = temp_dict['DopInf_worker']
+
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
-            if temp_dict['DopInf_worker']:
-                worker = temp_dict['DopInf_worker']
-            else:
-                worker = distribution(program_id)
             repeat_index = repeat_index_search(material_list, temp_dict)
             if not repeat_index and repeat_index != 0:
                 program_info_dict = {
@@ -37,6 +40,7 @@ def make_material_list(material_list_sql, django_columns):
                                  'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                                  'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                                  'status': 'ready',
+                                 'DopInf_worker_id': worker_id,
                                  'DopInf_worker': worker}]}
                 program_id_list.append(program_id)
                 material_list.append(program_info_dict)
@@ -48,10 +52,9 @@ def make_material_list(material_list_sql, django_columns):
                     'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                     'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                     'status': 'ready',
+                    'DopInf_worker_id': worker_id,
                     'DopInf_worker': worker})
                 program_id_list.append(program_id)
-
-
         if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
             program_info_dict = {
                 'Progs_program_id': temp_dict['Progs_program_id'],
@@ -61,11 +64,9 @@ def make_material_list(material_list_sql, django_columns):
                 'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                 'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                 'type': 'film',
-                'status': 'ready'}
-            if temp_dict['DopInf_worker']:
-                program_info_dict['DopInf_worker'] = temp_dict['DopInf_worker']
-            else:
-                program_info_dict['DopInf_worker'] = distribution(program_id)
+                'status': 'ready',
+                'DopInf_worker_id': worker_id,
+                'DopInf_worker': worker}
             program_id_list.append(program_id)
             material_list.append(program_info_dict)
     return material_list
@@ -73,31 +74,12 @@ def make_material_list(material_list_sql, django_columns):
 def oplan_material_list():
     with connections['oplan3'].cursor() as cursor:
         dates = ('2024-02-15', '2024-02-16')
-        # channels = (channels, 'Крепкое')
         channels = ('Кино +', 'Романтичный сериал', 'Крепкое')
         order = 'ASC'
 
-        field_val_columns = '[ProgramCustomFieldValuesID], [ProgramCustomFieldId], [ObjectId], [TextValue], [IntValue], [DateValue], [ObjectType], [TimeStamp]'
-        fields_name_columns = '[CustomFieldID], [Name], [FieldType], [ItemsString], [Position], [ObjectType], [TimeStamp]'
-
-        file_columns = ('Name', 'Size', 'CreationTime', 'ModificationTime')
-        program_columns = ('program_id', 'parent_id', 'program_type_id', 'name', 'orig_name', 'annotation', 'duration', 'comment',
-                           'keywords', 'anounce_text', 'episode_num', 'last_edit_user_id',
-                           'last_edit_time', 'authors', 'producer', 'production_year', 'production_country',
-                           'subject', 'SourceID', 'AnonsCaption', 'DisplayMediumName', 'SourceFileMedium',
-                           'EpisodesTotal', 'MaterialState', 'SourceMedium', 'HasSourceClip', 'AnonsCaptionInherit',
-                           'AdultTypeID', 'CreationDate', 'Subtitled', 'Season', 'Director', 'Cast',
-                           'MusicComposer', 'ShortAnnotation')
-
-        sql_columns = ', '.join(
-            [f'Progs.[{col}]' for col in program_columns] + [f'Files.[{col}]' for col in file_columns] + [
-                'Types.[type_name]', 'SchedDay.[day_date]', 'Sched.[schedule_name]', 'worker'])
-        django_columns = [f'Progs_{col}' for col in program_columns] + [f'Files_{col}' for col in file_columns] + [
-            'Types_type_name', 'SchedDay_day_date', 'Sched_schedule_name', 'worker']
-
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date'), ('DopInf', 'worker')]
+                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date'), ('DopInf', 'worker_id'), ('DopInf', 'worker')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
@@ -146,7 +128,7 @@ def full_info(program_id):
                    ('Progs', 'AnonsCaptionInherit'), ('Progs', 'AdultTypeID'), ('Progs', 'CreationDate'),
                    ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
                    ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'), ('Files', 'Name'), ('Files', 'Size'),
-                   ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('DopInf', 'worker')]
+                   ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('DopInf', 'worker_id'), ('DopInf', 'worker')]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -177,6 +159,23 @@ def full_info(program_id):
         print('\t', full_info_dict)
         return full_info_dict
 
+def cenz_worker(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        columns = 'Val.[IntValue], Fields.[ItemsString]'
+        query_test = f'''
+            SELECT {columns}
+            FROM [oplan3].[dbo].[ProgramCustomFields] AS Fields
+            JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Val
+                ON Fields.[CustomFieldID] = Val.[ProgramCustomFieldId]
+            WHERE Val.[ObjectId] = {program_id}
+            AND Val.[ProgramCustomFieldId] = 15
+                '''
+        cursor.execute(query_test)
+        int_value, items_string = cursor.fetchone()
+        custom_fields_dict = {'DopInf_worker_id': int_value,
+                              'DopInf_worker': items_string.split('\r\n')[int_value]}
+    return custom_fields_dict
+
 def cenz_info(program_id):
     with connections['oplan3'].cursor() as cursor:
         columns = 'Val.[ProgramCustomFieldId], Fields.[Name], Val.[TextValue], Fields.[ItemsString], Val.[IntValue], Val.[DateValue]'
@@ -190,10 +189,12 @@ def cenz_info(program_id):
         cursor.execute(query_test)
         cenz_info_sql = cursor.fetchall()
         custom_fields_dict = {}
-
         for cenz in cenz_info_sql:
             field_id, field_name, text_value, items_string, int_value, data_value = cenz
-            if field_id in (14, 15):
+            if field_id == 14:
+                custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
+            elif field_id == 15:
+                custom_fields_dict['worker_id'] = int_value
                 custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
             elif field_id == 7:
                 custom_fields_dict[field_id] = data_value
