@@ -98,6 +98,16 @@ DATABASES = {
         # "PORT": "1433",
         "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
         },
+    },
+    "planner": {
+        "ENGINE": "mssql",
+        "NAME": 'planner',
+        "USER": "alex",
+        "PASSWORD": "alex",
+        "HOST": "ST14\\FINAL_BASE",
+        # "PORT": "1433",
+        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
+        },
     }
 }
 

@@ -1,8 +1,34 @@
 from django.db import connections
 
 
-def distribution(program_id):
-    return 0, 'Александр Кисляков'
+def distribution(program_id, program_type_id):
+    planner_worker_list, oplan3_worker_list = cenz_worker(program_id)
+    if planner_worker_list:
+        planner_worker_id, planner_worker = planner_worker_list
+    else:
+        planner_worker_id, planner_worker = None, None
+    if oplan3_worker_list:
+        int_value, items_string = oplan3_worker_list
+        oplan3_worker_id = int_value
+        oplan3_worker = items_string.split('\r\n')[int_value]
+    else:
+        oplan3_worker_id, oplan3_worker = None, None
+
+    if program_type_id in (4, 5, 6, 10, 11, 12) and not oplan3_worker:
+        if not planner_worker:
+            worker_id = 0
+            worker = 'Необходимо назначить'
+            status = 'not_ready'
+            # distribution
+        else:
+            worker_id = planner_worker_id
+            worker = planner_worker
+            status = 'not_ready'
+    else:
+        worker_id = oplan3_worker_id
+        worker = oplan3_worker
+        status = 'ready'
+    return worker_id, worker, status
 
 def repeat_index_search(material_list, temp_dict):
     for num, program in enumerate(material_list):
@@ -20,12 +46,8 @@ def make_material_list(material_list_sql, django_columns):
             continue
         temp_dict = dict(zip(django_columns, program_info))
         print(temp_dict)
-        if temp_dict['Progs_program_type_id'] in (4, 5, 6, 10, 11, 12) and not temp_dict['DopInf_worker']:
-            worker_id, worker = distribution(program_id)
-        else:
-            worker_id = temp_dict['DopInf_worker_id']
-            worker = temp_dict['DopInf_worker']
-
+        program_type_id = temp_dict['Progs_program_type_id']
+        worker_id, worker, status = distribution(program_id, program_type_id)
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
             repeat_index = repeat_index_search(material_list, temp_dict)
             if not repeat_index and repeat_index != 0:
@@ -39,9 +61,9 @@ def make_material_list(material_list_sql, django_columns):
                                  'Progs_episode_num': temp_dict['Progs_episode_num'],
                                  'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                                  'SchedDay_day_date': temp_dict['SchedDay_day_date'],
-                                 'status': 'ready',
-                                 'DopInf_worker_id': worker_id,
-                                 'DopInf_worker': worker}]}
+                                 'status': status,
+                                 'worker_id': worker_id,
+                                 'worker': worker}]}
                 program_id_list.append(program_id)
                 material_list.append(program_info_dict)
             else:
@@ -51,9 +73,9 @@ def make_material_list(material_list_sql, django_columns):
                     'Progs_episode_num': temp_dict['Progs_episode_num'],
                     'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                     'SchedDay_day_date': temp_dict['SchedDay_day_date'],
-                    'status': 'ready',
-                    'DopInf_worker_id': worker_id,
-                    'DopInf_worker': worker})
+                    'status': status,
+                    'worker_id': worker_id,
+                    'worker': worker})
                 program_id_list.append(program_id)
         if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
             program_info_dict = {
@@ -64,22 +86,22 @@ def make_material_list(material_list_sql, django_columns):
                 'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                 'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                 'type': 'film',
-                'status': 'ready',
-                'DopInf_worker_id': worker_id,
-                'DopInf_worker': worker}
+                'status': status,
+                'worker_id': worker_id,
+                'worker': worker}
             program_id_list.append(program_id)
             material_list.append(program_info_dict)
     return material_list
 
 def oplan_material_list():
     with connections['oplan3'].cursor() as cursor:
-        dates = ('2024-02-15', '2024-02-16')
+        dates = ('2025-03-07', '2025-03-08')
         channels = ('Кино +', 'Романтичный сериал', 'Крепкое')
         order = 'ASC'
 
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date'), ('DopInf', 'worker_id'), ('DopInf', 'worker')]
+                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
@@ -99,8 +121,6 @@ def oplan_material_list():
             JOIN [oplan3].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
                     AND Sched.[schedule_name] IN {channels}
-            LEFT JOIN [planner].[dbo].[dop_info] AS DopInf
-                ON Progs.[program_id] = DopInf.[program_id]
             WHERE Files.[Deleted] = 0
             AND Files.[PhysicallyDeleted] = 0
             AND Clips.[Deleted] = 0
@@ -160,9 +180,16 @@ def full_info(program_id):
         return full_info_dict
 
 def cenz_worker(program_id):
+    with connections['planner'].cursor() as cursor:
+        query_planner = f'''SELECT worker_id, worker
+        FROM [planner].[dbo].[dop_info]
+        WHERE [program_id] = {program_id}'''
+        cursor.execute(query_planner)
+        planner_worker_list = cursor.fetchone()
+
     with connections['oplan3'].cursor() as cursor:
         columns = 'Val.[IntValue], Fields.[ItemsString]'
-        query_test = f'''
+        query_oplan3 = f'''
             SELECT {columns}
             FROM [oplan3].[dbo].[ProgramCustomFields] AS Fields
             JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Val
@@ -170,11 +197,10 @@ def cenz_worker(program_id):
             WHERE Val.[ObjectId] = {program_id}
             AND Val.[ProgramCustomFieldId] = 15
                 '''
-        cursor.execute(query_test)
-        int_value, items_string = cursor.fetchone()
-        custom_fields_dict = {'DopInf_worker_id': int_value,
-                              'DopInf_worker': items_string.split('\r\n')[int_value]}
-    return custom_fields_dict
+        cursor.execute(query_oplan3)
+        oplan3_worker_list = cursor.fetchone()
+
+    return planner_worker_list, oplan3_worker_list
 
 def cenz_info(program_id):
     with connections['oplan3'].cursor() as cursor:
