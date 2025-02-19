@@ -6,7 +6,7 @@ import datetime
 start = datetime.datetime.now()
 print('start:', start, '\n')
 
-def main(file_path):
+def ffmpeg_scan(file_path):
     parent_directory = os.path.dirname(os.path.abspath(__file__))
     parent_directory = r'C:\Users\a.shevchenko.st14\PycharmProjects\Viewing_planner\planner'
     ffprobe_directory = os.path.join(parent_directory, r'ffmpeg\bin\ffprobe.exe')
@@ -18,9 +18,8 @@ def main(file_path):
     )
 
     media = ffprobe.execute()
-    return media
-file_path = r"E:\TEST_Material\F_From Dusk Till Dawn 2 Texas Blood Money_1998.mp4"
-print(json.loads(main(file_path)))
+    print(json.loads(media))
+    return json.loads(media)
 
 end = datetime.datetime.now()
 print('\nend:', end)

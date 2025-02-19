@@ -1,7 +1,36 @@
+from datetime import datetime, timedelta
 from django.db import connections
 
 
+def kpi_worker(worker_id, date):
+    with connections['planner'].cursor() as cursor:
+        query = f'''SELECT SUM([duration])/8.0
+        FROM [planner].[dbo].[dop_info]
+        WHERE [worker_id] = {worker_id}
+        AND [datetime] = {date}
+        AND [status] = 'ready'
+        AND [vacation] = 0'''
+        cursor.execute(query)
+        kpi_w = cursor.fetchone()
+    return kpi_w
+
+
+def kpi_min(date):
+    with connections['planner'].cursor() as cursor:
+        query = f'''SELECT 
+        [worker_id], 
+        [worker], 
+        SUM([duration])/8.0 AS KPI 
+        FROM [planner].[dbo].[dop_info] 
+        WHERE [datetime] = '{date}'
+        GROUP BY [worker_id], [worker]'''
+        cursor.execute(query)
+        kpi_list = cursor.fetchall()
+    return min(kpi_list, key=lambda x: x[2])
+
+
 def distribution(program_id, program_type_id):
+    date = datetime(2024,2,11)
     planner_worker_list, oplan3_worker_list = cenz_worker(program_id)
     if planner_worker_list:
         planner_worker_id, planner_worker = planner_worker_list
@@ -16,10 +45,13 @@ def distribution(program_id, program_type_id):
 
     if program_type_id in (4, 5, 6, 10, 11, 12) and not oplan3_worker:
         if not planner_worker:
-            worker_id = 0
-            worker = 'Необходимо назначить'
             status = 'not_ready'
-            # distribution
+            kpi_info = kpi_min(date)
+            if kpi_info[2] < 1:
+                worker_id, worker, kpi = kpi_info
+            else:
+                date += timedelta(days=1)
+                worker_id, worker, kpi = kpi_min(date)
         else:
             worker_id = planner_worker_id
             worker = planner_worker
