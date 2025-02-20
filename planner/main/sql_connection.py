@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from django.db import connections
 
+work_date = datetime.now()
 
 def kpi_worker(worker_id, date):
     with connections['planner'].cursor() as cursor:
@@ -43,7 +44,7 @@ def insert_film(program_id, worker_id, worker, duration, date, status):
         print('successfully added')
 
 def distribution(program_id, program_type_id, duration):
-    date = datetime.now()
+    global work_date
     planner_worker_list, oplan3_worker_list = cenz_worker(program_id)
     if planner_worker_list:
         planner_worker_id, planner_worker = planner_worker_list
@@ -60,15 +61,15 @@ def distribution(program_id, program_type_id, duration):
     if program_type_id in (4, 5, 6, 10, 11, 12) and not oplan3_worker:
         if not planner_worker:
             status = 'not_ready'
-            kpi_info = kpi_min(date)
+            kpi_info = kpi_min(work_date)
             if kpi_info[2] < 1:
                 worker_id, worker, kpi = kpi_info
-                insert_film(program_id, worker_id, worker, duration, date, status)
+                insert_film(program_id, worker_id, worker, duration, work_date, status)
             else:
-                date += timedelta(days=1)
-                worker_id, worker, kpi = kpi_min(date)
-                insert_film(program_id, worker_id, worker, duration, date, status)
-            print('\tdate', date)
+                work_date += timedelta(days=1)
+                worker_id, worker, kpi = kpi_min(work_date)
+                insert_film(program_id, worker_id, worker, duration, work_date, status)
+            print('\twork_date', work_date)
         else:
             worker_id = planner_worker_id
             worker = planner_worker
@@ -148,7 +149,7 @@ def make_material_list(material_list_sql, django_columns):
 
 def oplan_material_list():
     with connections['oplan3'].cursor() as cursor:
-        dates = ('2025-03-25', '2025-03-26', '2025-03-27', '2025-03-28', '2025-03-29', '2025-03-30')
+        dates = ('2025-03-01', '2025-03-02', '2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06', '2025-03-07', '2025-03-08', '2025-03-09', '2025-03-10', '2025-03-11', '2025-03-12', '2025-03-13', '2025-03-14', '2025-03-15', '2025-03-16', '2025-03-17', '2025-03-18', '2025-03-19', '2025-03-20', '2025-03-21', '2025-03-22', '2025-03-23', '2025-03-24', '2025-03-25', '2025-03-26', '2025-03-27', '2025-03-28', '2025-03-29')
         channels = ('Кино +', 'Романтичный сериал', 'Крепкое')
         order = 'ASC'
 
