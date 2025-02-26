@@ -2,6 +2,7 @@ from django.shortcuts import render
 from .sql_connection import oplan_material_list, full_info
 from .ffprobe_scan import ffmpeg_scan
 from .kpi_admin_panel import kpi_info_dict
+from .ffmpeg_info import ffmpeg_dict
 
 
 def day(request):
@@ -32,9 +33,11 @@ def full_list(request):
     return render(request, 'main/list.html', data)
 
 
-def material_card(request, id_card):
-    data = {'full_info': full_info(id_card),
-            'ffmpeg': ffmpeg_scan(r"E:\TEST_Material\F_From Dusk Till Dawn 2 Texas Blood Money_1998.mp4")}
+def material_card(request, program_id):
+    data = {'full_info': full_info(program_id),
+            # 'ffmpeg': ffmpeg_scan(r"E:\TEST_Material\F_From Dusk Till Dawn 2 Texas Blood Money_1998.mp4"),
+            'ffmpeg': ffmpeg_dict(program_id),
+            }
     return render(request, 'main/full_info_card.html', data)
 
 def kpi_info(request):

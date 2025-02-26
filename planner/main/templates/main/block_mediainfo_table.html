@@ -1,7 +1,11 @@
 <ul>
-{% for index in ffmpeg %}
+{% for index in ffmpeg.streams %}
     <li>{{ index }}</li>
 {% endfor %}
+</ul>
+
+<ul>
+    <li>{{ ffmpeg.format }}</li>
 </ul>
 
 <table class="table table-striped table-hover">

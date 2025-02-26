@@ -108,6 +108,10 @@ DATABASES = {
         # "PORT": "1433",
         "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
         },
+    },
+    "ffmpeg": {
+        "ENGINE": "django_mongodb_engine",
+        "NAME": 'planner_db',
     }
 }
 
