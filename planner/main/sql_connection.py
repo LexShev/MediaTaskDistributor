@@ -1,84 +1,14 @@
-from datetime import datetime, timedelta
-
 from django.db import connections
+from .kpi_calc import *
 
-work_date = datetime.now()
-
-def kpi_worker(worker_id, date):
-    with connections['planner'].cursor() as cursor:
-        query = f'''SELECT SUM([duration])/8.0
-        FROM [planner].[dbo].[task_list]
-        WHERE [worker_id] = {worker_id}
-        AND [datetime] = {date}
-        AND [status] = 'ready'
-        AND [vacation] = 0'''
-        cursor.execute(query)
-        kpi_w = cursor.fetchone()
-    return kpi_w
-
-
-def kpi_min(date):
-    with connections['planner'].cursor() as cursor:
-        query = f'''SELECT 
-        Worker.[worker_id], Worker.[worker], COALESCE(SUM(Task.[duration])/720000.0, 0) AS KPI
-        FROM [planner].[dbo].[worker_list] AS Worker
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
-            ON Worker.[worker_id] = Task.[worker_id]
-            AND Task.[date_time] = '{date.strftime('%Y-%m-%d %H:%M:%S')}'
-        WHERE Worker.[holidays] != '{date.strftime('%Y-%m-%d %H:%M:%S')}'
-        AND Worker.[fired] = 'False'
-        GROUP BY Worker.[worker_id], Worker.[worker]'''
-        cursor.execute(query)
-        kpi_list = cursor.fetchall()
-        kpi_asc_list = sorted(kpi_list, key=lambda x: x[2])
-        print('kpi_asc_list', kpi_asc_list)
-    return min(kpi_list, key=lambda x: x[2])
-
-def insert_film(program_id, worker_id, worker, duration, date, status):
-    with connections['planner'].cursor() as cursor:
-        columns = '[program_id], [worker_id], [worker], [duration], [date_time], [task_status]'
-        query = f'''INSERT INTO [planner].[dbo].[task_list] ({columns})
-        VALUES ({program_id}, {worker_id}, '{worker}', {duration}, '{date.strftime('%Y-%m-%d %H:%M:%S')}', '{status}')
-        '''
-        cursor.execute(query)
-        print('successfully added')
-
-def distribution(program_id, program_type_id, duration):
-    global work_date
-    planner_worker_list, oplan3_worker_list = cenz_worker(program_id)
-    if planner_worker_list:
-        planner_worker_id, planner_worker = planner_worker_list
-    else:
-        planner_worker_id, planner_worker = None, None
-    if oplan3_worker_list:
-        int_value, items_string = oplan3_worker_list
-        oplan3_worker_id = int_value
-        oplan3_worker = items_string.split('\r\n')[int_value]
-        print('oplan3_worker: ', oplan3_worker)
-    else:
-        oplan3_worker_id, oplan3_worker = None, None
-
-    if program_type_id in (4, 5, 6, 10, 11, 12) and not oplan3_worker:
-        if not planner_worker:
-            status = 'not_ready'
-            kpi_info = kpi_min(work_date)
-            if kpi_info[2] < 1:
-                worker_id, worker, kpi = kpi_info
-                insert_film(program_id, worker_id, worker, duration, work_date, status)
-            else:
-                work_date += timedelta(days=1)
-                worker_id, worker, kpi = kpi_min(work_date)
-                insert_film(program_id, worker_id, worker, duration, work_date, status)
-            print('\twork_date', work_date)
-        else:
-            worker_id = planner_worker_id
-            worker = planner_worker
-            status = 'not_ready'
-    else:
-        worker_id = oplan3_worker_id
-        worker = oplan3_worker
-        status = 'ready'
-    return worker_id, worker, status
+def convert_fr_to_tf(frames, fps=25):
+    sec = frames/fps
+    hh = int(sec // 3600)
+    mm = int((sec % 3600) // 60)
+    ss = int((sec % 3600) % 60 // 1)
+    ff = int(sec % 1 * fps)
+    tf = f'{hh:02}:{mm:02}:{ss:02}.{ff:03}'
+    return tf
 
 def repeat_index_search(material_list, temp_dict):
     for num, program in enumerate(material_list):
@@ -95,10 +25,9 @@ def make_material_list(material_list_sql, django_columns):
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
-        print('temp_dict', temp_dict)
         program_type_id = temp_dict['Progs_program_type_id']
         duration = temp_dict['Progs_duration']
-        worker_id, worker, status = distribution(program_id, program_type_id, duration)
+        worker_id, worker, status, work_date = distribution(program_id, program_type_id, duration)
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
             repeat_index = repeat_index_search(material_list, temp_dict)
             if not repeat_index and repeat_index != 0:
@@ -111,6 +40,7 @@ def make_material_list(material_list_sql, django_columns):
                                  'Progs_name': temp_dict['Progs_name'],
                                  'Progs_episode_num': temp_dict['Progs_episode_num'],
                                  'Progs_duration': duration,
+                                 'TaskInf_work_date': work_date,
                                  'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                                  'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                                  'status': status,
@@ -124,6 +54,7 @@ def make_material_list(material_list_sql, django_columns):
                     'Progs_name': temp_dict['Progs_name'],
                     'Progs_episode_num': temp_dict['Progs_episode_num'],
                     'Progs_duration': duration,
+                    'TaskInf_work_date': work_date,
                     'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                     'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                     'status': status,
@@ -137,6 +68,7 @@ def make_material_list(material_list_sql, django_columns):
                 'Progs_name': temp_dict['Progs_name'],
                 'Progs_production_year': temp_dict['Progs_production_year'],
                 'Progs_duration': duration,
+                'TaskInf_work_date': work_date,
                 'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                 'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                 'type': 'film',
@@ -145,12 +77,14 @@ def make_material_list(material_list_sql, django_columns):
                 'worker': worker}
             program_id_list.append(program_id)
             material_list.append(program_info_dict)
+    print('\t', material_list)
     return material_list
 
 def oplan_material_list():
     with connections['oplan3'].cursor() as cursor:
         dates = ('2025-03-01', '2025-03-02', '2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06', '2025-03-07', '2025-03-08', '2025-03-09', '2025-03-10', '2025-03-11', '2025-03-12', '2025-03-13', '2025-03-14', '2025-03-15', '2025-03-16', '2025-03-17', '2025-03-18', '2025-03-19', '2025-03-20', '2025-03-21', '2025-03-22', '2025-03-23', '2025-03-24', '2025-03-25', '2025-03-26', '2025-03-27', '2025-03-28', '2025-03-29')
-        channels = ('Кино +', 'Романтичный сериал', 'Крепкое')
+
+        channels = ('Кино +', 'Романтичный сериал', 'Крепкое', 'Советское родное кино')
         order = 'ASC'
 
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
@@ -201,7 +135,8 @@ def full_info(program_id):
                    ('Progs', 'AnonsCaptionInherit'), ('Progs', 'AdultTypeID'), ('Progs', 'CreationDate'),
                    ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
                    ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'), ('Files', 'Name'), ('Files', 'Size'),
-                   ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('TaskInf', 'worker_id'), ('TaskInf', 'worker')]
+                   ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('TaskInf', 'work_date'),
+                   ('TaskInf', 'worker_id'), ('TaskInf', 'worker')]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -231,26 +166,6 @@ def full_info(program_id):
         full_info_dict['schedule_info'] = schedule_info(program_id)
         return full_info_dict
 
-def cenz_worker(program_id):
-    with connections['planner'].cursor() as cursor:
-        query_planner = f'''SELECT worker_id, worker
-        FROM [planner].[dbo].[task_list]
-        WHERE [program_id] = {program_id}'''
-        cursor.execute(query_planner)
-        planner_worker_list = cursor.fetchone()
-    with connections['oplan3'].cursor() as cursor:
-        columns = 'Val.[IntValue], Fields.[ItemsString]'
-        query_oplan3 = f'''
-            SELECT {columns}
-            FROM [oplan3].[dbo].[ProgramCustomFields] AS Fields
-            JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Val
-                ON Fields.[CustomFieldID] = Val.[ProgramCustomFieldId]
-            WHERE Val.[ObjectId] = {program_id}
-            AND Val.[ProgramCustomFieldId] = 15
-                '''
-        cursor.execute(query_oplan3)
-        oplan3_worker_list = cursor.fetchone()
-    return planner_worker_list, oplan3_worker_list
 
 def cenz_info(program_id):
     with connections['oplan3'].cursor() as cursor:

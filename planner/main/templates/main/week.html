@@ -1,16 +1,116 @@
 {% extends  'main/index.html' %}
 
 {% block body %}
+<nav class="container-xxl px-1 pb-2 bg-body sticky-top">
+  <div class="row px-1 pb-2 bg-body sticky-top">
+    <div class="col">
+      <form method="post" class="container p-0 d-flex align-items-center justify-content-start">
+      {% csrf_token %}
+        <div class="form-floating ms-0 mx-1">
+          <select class="form-select" name="channel_filter" id="ChannelFilter" aria-label="ChannelFilter">
+            <option value="Все" selected>Все</option>
+            <option value="Романтический">Наше детство</option>
+            <option value="Крепкое">Крепкое</option>
+            <option value="Кино +">Кино +</option>
+          </select>
+          <label for="ChannelFilter">Канал</label>
+        </div>
 
+        <div class="form-floating mx-1">
+          <select class="form-select" name="worker_filter" id="WorkerFilter" aria-label="WorkerFilter">
+            <option value="Все" selected>Все</option>
+            <option value="Александр Кисляков">Александр Кисляков</option>
+            <option value="Ольга Кузовкина">Ольга Кузовкина</option>
+            <option value="Айнур Мингазов">Айнур Мингазов</option>
+          </select>
+          <label for="WorkerFilter">Выполняет</label>
+        </div>
+
+        <div class="form-floating mx-1" style="width: 150px">
+          <select class="form-select" name="material_filter" id="MaterialFilter" aria-label="MaterialFilter">
+            <option value="1" selected>Все</option>
+            <option value="2">Фильмы</option>
+            <option value="3">Сериалы</option>
+          </select>
+          <label for="MaterialFilter">Тип материала</label>
+        </div>
+
+        <div class="form-floating mx-1" style="width: 150px">
+          <select class="form-select" name="data_filter" id="DataFilter" aria-label="DataFilter">
+            <option value="1" selected>Все</option>
+            <option value="2">Сегодня</option>
+            <option value="3">Теущая неделя</option>
+            <option value="3">Месяц</option>
+          </select>
+          <label for="DataFilter">Дата</label>
+        </div>
+
+        <div class="form-floating mx-1 me-lg-auto">
+          <select class="form-select" name="status_filter" id="StatusFilter" aria-label="StatusFilter">
+            <option value="1" selected>Все</option>
+            <option value="2">Отсмотрено</option>
+            <option value="3">В работе</option>
+            <option value="3">Исправить</option>
+          </select>
+          <label for="StatusFilter">Статус</label>
+        </div>
+        <button type="submit" class="btn register-button btn-outline-secondary m-2">Применить</button>
+      </form>
+    </div>
+    <div class="col">
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+      <!--    paginator-->
+        <button class="btn btn-outline-info me-md-2" type="button">Назад</button>
+        <button class="btn btn-outline-info" type="button">Вперёд</button>
+      </div>
+    </div>
+  </div>
+</nav>
 <div class="container-fluid text-start px-lg-5">
   <main>
     <div class="row p-0">
       <div class="col p-0">
         Пн
-        {% include 'main/card_week.html' %}
-        {% include 'main/card_week.html' %}
-        {% include 'main/card_week.html' %}
-        {% include 'main/card_week.html' %}
+        {% for material in material_list %}
+          {% if material.type == 'film' %}
+            <div class="card border-info shadow-sm mx-1 my-2">
+              <div class="card-header p-2">
+                <input class="form-check-input me-1" type="checkbox" value="" id="firstCheckbox">
+                <label class="form-check-label" for="firstCheckbox">
+                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    <h6 class="m-0">{{ material.Progs_name }}, {{ material.Progs_production_year }}</h6>
+                  </a>
+                </label>
+              </div>
+              <div class="card-body p-2">
+                <div class="card-text m-0"><small class="text-body-secondary">
+                  Канал:
+                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.Sched_schedule_name }}
+                  </a></small>
+                </div>
+                <div class="card-text m-0"><small class="text-body-secondary">
+                  Дата эфира:
+                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.SchedDay_day_date|date:"d E Y" }}
+                  </a></small>
+                </div>
+                <div class="card-text m-0"><small class="text-body-secondary">
+                  Выполняет:
+                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.worker }}
+                  </a></small>
+                </div>
+                <div class="card-text m-0"><small class="text-body-secondary">
+                  Хронометраж: </small>
+                  <small class="text-emphasis">
+                    01:01:45
+                  </small>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
       </div>
       <div class="col p-0">
         Вт
