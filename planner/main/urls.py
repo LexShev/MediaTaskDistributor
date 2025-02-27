@@ -8,4 +8,5 @@ urlpatterns = [
     path("list", full_list),
     path("<int:program_id>", material_card),
     path("kpi_info", kpi_info),
+    path("worker_<int:worker_id>", kpi_worker),
 ]

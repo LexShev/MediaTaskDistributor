@@ -25,6 +25,8 @@ def convert_frames_to_time(frames, fps=25):
 #     return datetime.timedelta(seconds=sec)
 
 def kpi_info_dict(work_date, workers):
+    if isinstance(workers, int):
+        workers = (workers, workers)
     with connections['planner'].cursor() as cursor:
         columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'worker'), ('Task', 'duration'),
                    ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
@@ -41,7 +43,7 @@ def kpi_info_dict(work_date, workers):
         '''
         cursor.execute(query)
         result = cursor.fetchall()
-        task_list = [dict(zip(django_columns, task)) for task in result]
+        # task_list = [dict(zip(django_columns, task)) for task in result]
         task_list = []
         total_duration = 0
         total_count = 0
@@ -55,5 +57,6 @@ def kpi_info_dict(work_date, workers):
                 ready_tasks += 1
         print(task_list)
         not_ready_tasks = total_count - ready_tasks
-        summary_list = (total_count, ready_tasks, not_ready_tasks, total_duration)
-    return {'task_list': task_list, 'summary_list': summary_list}
+        summary_dict = {'total_count': total_count, 'ready_tasks': ready_tasks, 'not_ready_tasks': not_ready_tasks,
+                        'total_duration': total_duration, 'date': datetime.datetime.now()}
+    return {'task_list': task_list, 'summary_dict': summary_dict}
