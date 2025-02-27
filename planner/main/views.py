@@ -42,7 +42,6 @@ def material_card(request, program_id):
 
 def kpi_info(request):
     work_date = request.POST.get('work_date',  '2025-02-26')
-    if work_date:
-        print(work_date)
-    data = {'task_list': kpi_info_dict(work_date)}
+    workers = request.POST.get('workers', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
+    data = kpi_info_dict(work_date, workers)
     return render(request, 'main/kpi_admin_panel.html', data)

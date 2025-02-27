@@ -1,62 +1,183 @@
-<ul>
-{% for index in ffmpeg.streams %}
-    <li>{{ index }}</li>
-{% endfor %}
-</ul>
-
-<ul>
-    <li>{{ ffmpeg.format }}</li>
-</ul>
 
 <table class="table table-striped table-hover">
     <thead>
       <tr>
-        <th class="col-2">General</th>
-        <th class="col-6"></th>
+        <th class="col-1">Format</th>
+        <th class="col-7"></th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="table-group-divider">
       <tr>
-        <th scope="row">Complete name</th>
-        <td>E:\TEST_Material\F_Вариант Омега_1975_P02_1080p25_H264_10Mbps.mp4</td>
+        <th scope="row">filename</th>
+        <td>{{ ffmpeg.format.filename }}</td>
       </tr>
       <tr>
-        <th scope="row">Format</th>
-        <td>MPEG-4</td>
+        <th scope="row">format_name</th>
+        <td>{{ ffmpeg.format.format_name }}</td>
       </tr>
       <tr>
-        <th scope="row">Format profile</th>
-        <td>Base Media / Version 2</td>
+        <th scope="row">format_long_name</th>
+        <td>{{ ffmpeg.format.format_long_name }}</td>
       </tr>
       <tr>
-        <th scope="row">Codec ID</th>
-        <td>mp42 (mp42/mp41)</td>
+        <th scope="row">start_time</th>
+        <td>{{ ffmpeg.format.start_time }}</td>
       </tr>
       <tr>
-        <th scope="row">File size</th>
-        <td>4.96 GiB</td>
+        <th scope="row">duration</th>
+        <td>
+          {{ ffmpeg.format.duration|convert_sec_to_time }}
+        </td>
       </tr>
       <tr>
-        <th scope="row">Duration</th>
-        <td>1 h 9 min</td>
+        <th scope="row">size</th>
+        <td>{{ ffmpeg.format.size|convert_bytes:'b' }}</td>
       </tr>
+      <tr>
+        <th scope="row">bit_rate</th>
+        <td>{{ ffmpeg.format.bit_rate|convert_bytes }}</td>
+      </tr>
+      {% if ffmpeg.format.tags.creation_time %}
+      <tr>
+        <th scope="row">creation_time</th>
+        <td>{{ ffmpeg.format.tags.creation_time }}</td>
+      </tr>
+      {% endif %}
+      {% if ffmpeg.format.tags.encoder %}
+      <tr>
+        <th scope="row">encoder</th>
+        <td>{{ ffmpeg.format.tags.encoder }}</td>
+      </tr>
+      {% endif %}
     </tbody>
   </table>
+
   <table class="table table-striped table-hover">
     <thead>
       <tr>
-        <th class="col-2">Video</th>
-        <th class="col-6"></th>
+        <th class="col-1">Streams</th>
+        <th class="col-7"></th>
       </tr>
     </thead>
-    <tbody>
+      {% for index in ffmpeg.streams %}
+    <tbody class="table-group-divider">
       <tr>
-        <th scope="row">ID</th>
-        <td>1</td>
+        <th scope="row">{{ index.codec_type|title }}</th>
+        <td></td>
       </tr>
       <tr>
-        <th scope="row">Format</th>
-        <td>AVC</td>
+        <th scope="row">codec_name</th>
+        <td>{{ index.codec_name }}</td>
       </tr>
+      <tr>
+        <th scope="row">codec_long_name</th>
+        <td>{{ index.codec_long_name }}</td>
+      </tr>
+      <tr>
+        <th scope="row">codec_tag_string</th>
+        <td>{{ index.codec_tag_string }}</td>
+      </tr>
+      <tr>
+        <th scope="row">profile</th>
+        <td>{{ index.profile }}</td>
+      </tr>
+      {% if index.sample_rate %}
+      <tr>
+        <th scope="row">sample_rate</th>
+        <td>{{ index.sample_rate|convert_khz }}</td>
+      </tr>
+      {% endif %}
+      {% if index.channels %}
+      <tr>
+        <th scope="row">channels</th>
+        <td>{{ index.channels }}</td>
+      </tr>
+      {% endif %}
+      {% if index.channel_layout %}
+      <tr>
+        <th scope="row">channel_layout</th>
+        <td>{{ index.channel_layout }}</td>
+      </tr>
+      {% endif %}
+      {% if index.level %}
+      <tr>
+        <th scope="row">level</th>
+        <td>{{ index.level }}</td>
+      </tr>
+      {% endif %}
+      {% if index.pix_fmt %}
+      <tr>
+        <th scope="row">pix_fmt</th>
+        <td>{{ index.pix_fmt }}</td>
+      </tr>
+      {% endif %}
+      {% if index.field_order %}
+      <tr>
+        <th scope="row">field_order</th>
+        <td>{{ index.field_order }}</td>
+      </tr>
+      {% endif %}
+      {% if index.avg_frame_rate != '0/0' %}
+      <tr>
+        <th scope="row">avg_frame_rate</th>
+        <td>{{ index.avg_frame_rate }}</td>
+      </tr>
+      {% endif %}
+      {% if index.width %}
+      <tr>
+        <th scope="row">width</th>
+        <td>{{ index.width }}</td>
+      </tr>
+      {% endif %}
+      {% if index.height %}
+      <tr>
+        <th scope="row">height</th>
+        <td>{{ index.height }}</td>
+      </tr>
+      {% endif %}
+      {% if index.sample_aspect_ratio %}
+      <tr>
+        <th scope="row">sample_aspect_ratio</th>
+        <td>{{ index.sample_aspect_ratio }}</td>
+      </tr>
+      {% endif %}
+      {% if index.display_aspect_ratio %}
+      <tr>
+        <th scope="row">display_aspect_ratio</th>
+        <td>{{ index.display_aspect_ratio }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <th scope="row">start_time</th>
+        <td>{{ index.start_time }}</td>
+      </tr>
+      <tr>
+        <th scope="row">duration</th>
+        <td>{{ index.duration|convert_sec_to_time }}</td>
+      </tr>
+      <tr>
+        <th scope="row">bit_rate</th>
+        <td>{{ index.bit_rate|convert_bytes }}</td>
+      </tr>
+      <tr>
+        <th scope="row">nb_frames</th>
+        <td>{{ index.nb_frames }}</td>
+      </tr>
+      <tr>
+        <th scope="row">language</th>
+        <td>{{ index.tags.language }}</td>
+      </tr>
+      <tr>
+        <th scope="row">handler_name</th>
+        <td>{{ index.tags.handler_name }}</td>
+      </tr>
+      {% if index.tags.encoder %}
+      <tr>
+        <th scope="row">encoder</th>
+        <td>{{ index.tags.encoder }}</td>
+      </tr>
+      {% endif %}
+
     </tbody>
+    {% endfor %}
 </table>
