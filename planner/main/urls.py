@@ -2,11 +2,12 @@ from django.urls import path
 from .views import*
 
 urlpatterns = [
+    path("", index, name='home'),
     path("day", day),
     path("week", week),
     path("month", month),
     path("list", full_list),
     path("<int:program_id>", material_card),
     path("kpi_info", kpi_info),
-    path("worker_<int:worker_id>", kpi_worker),
+    path("workers/<int:worker_id>", kpi_worker),
 ]
