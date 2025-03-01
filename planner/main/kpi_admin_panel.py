@@ -55,7 +55,6 @@ def kpi_info_dict(work_date, workers):
             total_count += 1
             if task_dict['Task_task_status'] == 'ready':
                 ready_tasks += 1
-        print(task_list)
         not_ready_tasks = total_count - ready_tasks
         summary_dict = {'total_count': total_count, 'ready_tasks': ready_tasks, 'not_ready_tasks': not_ready_tasks,
                         'total_duration': total_duration, 'date': datetime.datetime.now()}

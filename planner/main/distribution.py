@@ -1,5 +1,23 @@
 from datetime import datetime, timedelta
 from django.db import connections
+from .list_view import oplan_material_list
+
+
+def main_distribution():
+    material_list_sql, django_columns = oplan_material_list(program_type=(4, 5, 6, 10, 11, 12))
+    program_id_list = []
+    for program_info in material_list_sql:
+        if not program_info:
+            continue
+        program_id = program_info[0]
+        if program_id in program_id_list:
+            print(program_id, 'duplicated')
+            continue
+        temp_dict = dict(zip(django_columns, program_info))
+        program_type_id = temp_dict['Progs_program_type_id']
+        duration = temp_dict['Progs_duration']
+        distribution_by_id(program_id, program_type_id, duration)
+        program_id_list.append(program_id)
 
 
 def distribution_by_id(program_id, program_type_id, duration):
@@ -19,7 +37,6 @@ def distribution_by_id(program_id, program_type_id, duration):
         worker_id = oplan3_worker_id
         worker = oplan3_worker
         status = 'ready'
-        print('oplan3', program_id, worker)
     return worker_id, worker, status, date
 
 # def kpi_min(date):

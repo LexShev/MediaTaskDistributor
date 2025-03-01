@@ -1,7 +1,10 @@
 from django.shortcuts import render
-from .sql_connection import make_material_list, full_info
+from .list_view import list_material_list
+from .week_view import week_material_list
 from .kpi_admin_panel import kpi_info_dict
 from .ffmpeg_info import ffmpeg_dict
+from .detail_view import full_info
+
 
 def index(request):
     return render(request, 'main/index.html')
@@ -10,7 +13,7 @@ def day(request):
     return render(request, 'main/day.html')
 
 def week(request):
-    data = {'material_list': make_material_list,
+    data = {'week_material_list': week_material_list,
             }
     return render(request, 'main/week.html', data)
 
@@ -28,7 +31,7 @@ def full_list(request):
     if main_search:
         print('main:', main_search)
 
-    data = {'material_list': make_material_list,
+    data = {'material_list': list_material_list,
             }
     return render(request, 'main/list.html', data)
 

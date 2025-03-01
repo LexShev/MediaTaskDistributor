@@ -76,81 +76,55 @@
     </div>
   </div>
 </nav>
-<div class="container-fluid text-start px-lg-5">
-  <main>
-    <div class="row p-0">
-      <div class="col p-0">
-        Пн
-        {% for material in material_list %}
-          {% if material.type == 'film' %}
-            <div class="card border-info shadow-sm mx-1 my-2">
-              <div class="card-header p-2">
-                <input class="form-check-input me-1" type="checkbox" value="" id="firstCheckbox">
-                <label class="form-check-label" for="firstCheckbox">
-                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    <h6 class="m-0">{{ material.Progs_name }}, {{ material.Progs_production_year }}</h6>
-                  </a>
-                </label>
+<main>
+  <div class="container-fluid text-start px-lg-5">
+      <div class="row p-0">
+        {% for day in week_material_list %}
+        <div class="col p-0">
+          {{ forloop.counter }}
+          {% for material in day %}
+            {% if material.type == 'film' %}
+              <div class="card border-info shadow-sm mx-1 my-2">
+                <div class="card-header p-2">
+                  <input class="form-check-input me-1" type="checkbox" value="" id="firstCheckbox">
+                  <label class="form-check-label" for="firstCheckbox">
+                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                      <h6 class="m-0">{{ material.Progs_name }}, {{ material.Progs_production_year }}</h6>
+                    </a>
+                  </label>
+                </div>
+                <div class="card-body p-2">
+                  <div class="card-text m-0"><small class="text-body-secondary">
+                    Канал:
+                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                      {{ material.Sched_schedule_name }}
+                    </a></small>
+                  </div>
+                  <div class="card-text m-0"><small class="text-body-secondary">
+                    Дата эфира:
+                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                      {{ material.SchedDay_day_date|date:"d E Y" }}
+                    </a></small>
+                  </div>
+                  <div class="card-text m-0"><small class="text-body-secondary">
+                    Выполняет:
+                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                      {{ material.worker }}
+                    </a></small>
+                  </div>
+                  <div class="card-text m-0"><small class="text-body-secondary">
+                    Хронометраж: </small>
+                    <small class="text-emphasis">
+                      01:01:45
+                    </small>
+                  </div>
+                </div>
               </div>
-              <div class="card-body p-2">
-                <div class="card-text m-0"><small class="text-body-secondary">
-                  Канал:
-                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ material.Sched_schedule_name }}
-                  </a></small>
-                </div>
-                <div class="card-text m-0"><small class="text-body-secondary">
-                  Дата эфира:
-                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ material.SchedDay_day_date|date:"d E Y" }}
-                  </a></small>
-                </div>
-                <div class="card-text m-0"><small class="text-body-secondary">
-                  Выполняет:
-                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ material.worker }}
-                  </a></small>
-                </div>
-                <div class="card-text m-0"><small class="text-body-secondary">
-                  Хронометраж: </small>
-                  <small class="text-emphasis">
-                    01:01:45
-                  </small>
-                </div>
-              </div>
-            </div>
-          {% endif %}
+            {% endif %}
+          {% endfor %}
+        </div>
         {% endfor %}
       </div>
-      <div class="col p-0">
-        Вт
-        {% include 'main/card_week.html' %}
-        {% include 'main/card_week.html' %}
-      </div>
-      <div class="col p-0">
-        Ср
-        {% include 'main/card_week.html' %}
-        {% include 'main/card_week.html' %}
-        {% include 'main/card_week.html' %}
-      </div>
-      <div class="col p-0">
-        Чт
-        {% include 'main/card_week.html' %}
-      </div>
-      <div class="col p-0">
-        Пт
-        {% include 'main/card_week.html' %}
-        {% include 'main/card_week.html' %}
-      </div>
-      <div class="col p-0">
-        Сб
-        {% include 'main/card_week.html' %}
-      </div>
-      <div class="col p-0">
-        Вс
-        {% include 'main/card_week.html' %}
-      </div>
-    </div>
-  </main>
-</div>
+  </div>
+</main>
 {% endblock %}
