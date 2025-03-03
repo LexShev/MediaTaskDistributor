@@ -24,7 +24,7 @@ def convert_frames_to_time(frames, fps=25):
 #     sec = int(frames)/fps
 #     return datetime.timedelta(seconds=sec)
 
-def kpi_info_dict(work_date, workers):
+def kpi_summary_dict(work_date, workers):
     if isinstance(workers, int):
         workers = (workers, workers)
     with connections['planner'].cursor() as cursor:
@@ -57,5 +57,43 @@ def kpi_info_dict(work_date, workers):
                 ready_tasks += 1
         not_ready_tasks = total_count - ready_tasks
         summary_dict = {'total_count': total_count, 'ready_tasks': ready_tasks, 'not_ready_tasks': not_ready_tasks,
-                        'total_duration': total_duration, 'date': datetime.datetime.now()}
+                        'total_duration': total_duration, 'date': datetime.date.today()}
+    return {'task_list': task_list, 'summary_dict': summary_dict}
+
+
+def kpi_personal_dict(work_date, worker_id):
+    with connections['planner'].cursor() as cursor:
+        columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'worker'), ('Task', 'duration'),
+                   ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
+                   ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year')]
+        sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+        django_columns = [f'{col}_{val}' for col, val in columns]
+        query = f'''
+        SELECT {sql_columns}
+        FROM [planner].[dbo].[task_list] AS Task
+        JOIN [oplan3].[dbo].[program] AS Progs
+            ON Task.[program_id] = Progs.[program_id]
+        WHERE Task.[work_date] = '{work_date}'
+        AND Task.[worker_id] = {worker_id}
+        '''
+        cursor.execute(query)
+        result = cursor.fetchall()
+        # task_list = [dict(zip(django_columns, task)) for task in result]
+        task_list = []
+        total_duration = 0
+        total_count = 0
+        ready_tasks = 0
+        for task in result:
+            task_dict = dict(zip(django_columns, task))
+            task_list.append(task_dict)
+            total_duration += task_dict['Task_duration']
+            total_count += 1
+            if task_dict['Task_task_status'] == 'ready':
+                ready_tasks += 1
+        not_ready_tasks = total_count - ready_tasks
+        kpi_theory = total_duration/720000.0
+        kpi_real = total_duration
+        summary_dict = {'total_count': total_count, 'ready_tasks': ready_tasks, 'not_ready_tasks': not_ready_tasks,
+                        'total_duration': total_duration, 'kpi_theory': kpi_theory, 'kpi_real': kpi_real,
+                        'date': datetime.date.today()}
     return {'task_list': task_list, 'summary_dict': summary_dict}

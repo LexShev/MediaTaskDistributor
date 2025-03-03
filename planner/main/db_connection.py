@@ -1,10 +1,11 @@
 from django.db import connections
+import datetime
 
 
 def oplan_material_list(program_type):
     with connections['oplan3'].cursor() as cursor:
         dates = ('2025-03-01', '2025-03-02', '2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06', '2025-03-07', '2025-03-08', '2025-03-09', '2025-03-10', '2025-03-11', '2025-03-12', '2025-03-13', '2025-03-14', '2025-03-15', '2025-03-16', '2025-03-17', '2025-03-18', '2025-03-19', '2025-03-20', '2025-03-21', '2025-03-22', '2025-03-23', '2025-03-24', '2025-03-25', '2025-03-26', '2025-03-27', '2025-03-28', '2025-03-29')
-        dates = ('2025-03-01', '2025-03-02', '2025-03-03')
+        # dates = ('2025-03-01', '2025-03-02', '2025-03-03')
 
         channels = ('Кино +', 'Романтичный сериал', 'Крепкое', 'Советское родное кино')
         order = 'ASC'
@@ -43,9 +44,9 @@ def oplan_material_list(program_type):
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
 
-def planner_material_list():
+def planner_material_list(dates):
     with connections['planner'].cursor() as cursor:
-        dates = ('2025-03-01', '2025-03-02', '2025-03-03')
+        # dates = ('2025-03-01', '2025-03-02', '2025-03-03')
 
         channels = ('Кино +', 'Романтичный сериал', 'Крепкое', 'Советское родное кино')
         order = 'ASC'
@@ -57,24 +58,24 @@ def planner_material_list():
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
-            SELECT {sql_columns}
-            FROM [planner].[dbo].[task_list] AS Task
-            JOIN [oplan3].[dbo].[program] AS Progs
-                ON Task.[program_id] = Progs.[program_id]
-            JOIN [oplan3].[dbo].[program_type] AS Types
-                ON Progs.[program_type_id] = Types.[program_type_id]
-            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
-                ON Progs.[program_id] = SchedProg.[program_id]
-            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
-                ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-                    AND SchedDay.[day_date] IN {dates}
-            JOIN [oplan3].[dbo].[schedule] AS Sched
-                ON SchedDay.[schedule_id] = Sched.[schedule_id]
-                    AND Sched.[schedule_name] IN {channels}
-            WHERE Progs.[deleted] = 0
-            AND Progs.[program_id] > 0
-            ORDER BY SchedProg.[DateTime] {order}
-                    '''
+        SELECT {sql_columns}
+        FROM [planner].[dbo].[task_list] AS Task
+        JOIN [oplan3].[dbo].[program] AS Progs
+            ON Task.[program_id] = Progs.[program_id]
+        JOIN [oplan3].[dbo].[program_type] AS Types
+            ON Progs.[program_type_id] = Types.[program_type_id]
+        JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+            ON Progs.[program_id] = SchedProg.[program_id]
+        JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+            ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
+        JOIN [oplan3].[dbo].[schedule] AS Sched
+            ON SchedDay.[schedule_id] = Sched.[schedule_id]
+                AND Sched.[schedule_name] IN {channels}
+        WHERE Progs.[deleted] = 0
+        AND Progs.[program_id] > 0
+        AND Task.[work_date] IN {dates}
+        ORDER BY SchedProg.[DateTime] {order}
+        '''
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
@@ -87,7 +88,6 @@ def planner_task_list(program_id):
         WHERE [program_id] = {program_id}'''
         cursor.execute(query_planner)
         task_list = cursor.fetchone()
-        print('task_list', task_list)
         if task_list:
             return task_list
         else:

@@ -1,130 +1,186 @@
 {% extends  'main/index.html' %}
 
+<main role="main">
 {% block body %}
-<nav class="container-xxl px-1 pb-2 bg-body sticky-top">
-  <div class="row px-1 pb-2 bg-body sticky-top">
-    <div class="col">
-      <form method="post" class="container p-0 d-flex align-items-center justify-content-start">
-      {% csrf_token %}
-        <div class="form-floating ms-0 mx-1">
-          <select class="form-select" name="channel_filter" id="ChannelFilter" aria-label="ChannelFilter">
-            <option value="Все" selected>Все</option>
-            <option value="Романтический">Наше детство</option>
-            <option value="Крепкое">Крепкое</option>
-            <option value="Кино +">Кино +</option>
-          </select>
-          <label for="ChannelFilter">Канал</label>
-        </div>
+  <nav class="container-xxl px-1 pb-2 bg-body">
+    <div class="row px-1 pb-2 bg-body sticky-top">
+      <div class="col">
+        <form method="post" class="container p-0 d-flex align-items-center justify-content-start">
+        {% csrf_token %}
+          <div class="form-floating ms-0 mx-1">
+            <select class="form-select" name="channel_filter" id="ChannelFilter" aria-label="ChannelFilter">
+              <option value="Все" selected>Все</option>
+              <option value="Романтический">Наше детство</option>
+              <option value="Крепкое">Крепкое</option>
+              <option value="Кино +">Кино +</option>
+            </select>
+            <label for="ChannelFilter">Канал</label>
+          </div>
 
-        <div class="form-floating mx-1">
-          <select class="form-select" name="worker_filter" id="WorkerFilter" aria-label="WorkerFilter">
-            <option value="Все" selected>Все</option>
-            <option value="Александр Кисляков">Александр Кисляков</option>
-            <option value="Ольга Кузовкина">Ольга Кузовкина</option>
-            <option value="Айнур Мингазов">Айнур Мингазов</option>
-          </select>
-          <label for="WorkerFilter">Выполняет</label>
-        </div>
+          <div class="form-floating mx-1">
+            <select class="form-select" name="worker_filter" id="WorkerFilter" aria-label="WorkerFilter">
+              <option value="Все" selected>Все</option>
+              <option value="Александр Кисляков">Александр Кисляков</option>
+              <option value="Ольга Кузовкина">Ольга Кузовкина</option>
+              <option value="Айнур Мингазов">Айнур Мингазов</option>
+            </select>
+            <label for="WorkerFilter">Выполняет</label>
+          </div>
 
-        <div class="form-floating mx-1" style="width: 150px">
-          <select class="form-select" name="material_filter" id="MaterialFilter" aria-label="MaterialFilter">
-            <option value="1" selected>Все</option>
-            <option value="2">Фильмы</option>
-            <option value="3">Сериалы</option>
-          </select>
-          <label for="MaterialFilter">Тип материала</label>
-        </div>
+          <div class="form-floating mx-1" style="width: 150px">
+            <select class="form-select" name="material_filter" id="MaterialFilter" aria-label="MaterialFilter">
+              <option value="1" selected>Все</option>
+              <option value="2">Фильмы</option>
+              <option value="3">Сериалы</option>
+            </select>
+            <label for="MaterialFilter">Тип материала</label>
+          </div>
 
-        <div class="form-floating mx-1" style="width: 150px">
-          <select class="form-select" name="data_filter" id="DataFilter" aria-label="DataFilter">
-            <option value="1" selected>Все</option>
-            <option value="2">Сегодня</option>
-            <option value="3">Теущая неделя</option>
-            <option value="3">Месяц</option>
-          </select>
-          <label for="DataFilter">Дата</label>
-        </div>
+          <div class="form-floating mx-1" style="width: 150px">
+            <select class="form-select" name="data_filter" id="DataFilter" aria-label="DataFilter">
+              <option value="1" selected>Все</option>
+              <option value="2">Сегодня</option>
+              <option value="3">Теущая неделя</option>
+              <option value="3">Месяц</option>
+            </select>
+            <label for="DataFilter">Дата</label>
+          </div>
 
-        <div class="form-floating mx-1 me-lg-auto">
-          <select class="form-select" name="status_filter" id="StatusFilter" aria-label="StatusFilter">
-            <option value="1" selected>Все</option>
-            <option value="2">Отсмотрено</option>
-            <option value="3">В работе</option>
-            <option value="3">Исправить</option>
-          </select>
-          <label for="StatusFilter">Статус</label>
-        </div>
-        <button type="submit" class="btn register-button btn-outline-secondary m-2">Применить</button>
-      </form>
+          <div class="form-floating mx-1 me-lg-auto">
+            <select class="form-select" name="status_filter" id="StatusFilter" aria-label="StatusFilter">
+              <option value="1" selected>Все</option>
+              <option value="2">Отсмотрено</option>
+              <option value="3">В работе</option>
+              <option value="3">Исправить</option>
+            </select>
+            <label for="StatusFilter">Статус</label>
+          </div>
+          <button type="submit" class="btn register-button btn-outline-secondary m-2">Применить</button>
+        </form>
+      </div>
+      <div class="col">
+        <nav>
+          <ul class="pagination justify-content-end">
+            <li class="page-item">
+              <a class="page-link link-info border-info" title="Назад" href="{% url 'home' %}week/{{ service_dict.prev_week_day|date:'Y-m-d' }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            <li class="page-item"><a class="page-link link-info border-info" href="{% url 'home' %}week/{{ service_dict.start_day|date:'Y-m-d' }}">{{ service_dict.week_dates }}</a></li>
+            <li class="page-item">
+              <a class="page-link link-info border-info" title="Вперёд" href="{% url 'home' %}week/{{ service_dict.next_week_day|date:'Y-m-d' }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
     </div>
-    <div class="col">
-      <nav>
-        <ul class="pagination justify-content-end">
-          <li class="page-item">
-            <a class="page-link link-info border-info" title="Назад" href="#" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-          <li class="page-item"><a class="page-link link-info border-info" href="#">24/02 - 02/03</a></li>
-          <li class="page-item">
-            <a class="page-link link-info border-info" title="Вперёд" href="#" aria-label="Next">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </div>
-  </div>
-</nav>
-<main>
+  </nav>
   <div class="container-fluid text-start px-lg-5">
-      <div class="row p-0">
-        {% for day in week_material_list %}
-        <div class="col p-0">
-          {{ forloop.counter }}
-          {% for material in day %}
-            {% if material.type == 'film' %}
-              <div class="card border-info shadow-sm mx-1 my-2">
-                <div class="card-header p-2">
-                  <input class="form-check-input me-1" type="checkbox" value="" id="firstCheckbox">
-                  <label class="form-check-label" for="firstCheckbox">
-                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                      <h6 class="m-0">{{ material.Progs_name }}, {{ material.Progs_production_year }}</h6>
-                    </a>
-                  </label>
+    <div class="row p-0">
+      {% for day in week_material_list %}
+      <div class="col p-0">
+        <div class="sticky-top text-center bg-dark p-2">{{ day.0.weekday }} - {{ day.0.date|date:"d E Y" }}</div>
+        {% for material in day %}
+          {% if material.type == 'film' %}
+            <div class="card border-info shadow-sm mx-1 my-2">
+              <div class="card-header p-2">
+                <input class="form-check-input me-1" type="checkbox" value="" id="film_id">
+                <label class="form-check-label" for="film_id">
+                  <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    <h6 class="m-0">{{ material.Progs_name }}, {{ material.Progs_production_year }}</h6>
+                  </a>
+                </label>
+              </div>
+              <div class="card-body p-2">
+                <div class="card-text m-0"><small class="text-body-secondary">
+                  Канал:
+                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.Sched_schedule_name }}
+                  </a></small>
                 </div>
-                <div class="card-body p-2">
-                  <div class="card-text m-0"><small class="text-body-secondary">
-                    Канал:
-                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                      {{ material.Sched_schedule_name }}
-                    </a></small>
-                  </div>
-                  <div class="card-text m-0"><small class="text-body-secondary">
-                    Дата эфира:
-                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                      {{ material.SchedDay_day_date|date:"d E Y" }}
-                    </a></small>
-                  </div>
-                  <div class="card-text m-0"><small class="text-body-secondary">
-                    Выполняет:
-                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                      {{ material.worker }}
-                    </a></small>
-                  </div>
-                  <div class="card-text m-0"><small class="text-body-secondary">
-                    Хронометраж: </small>
-                    <small class="text-emphasis">
-                      01:01:45
-                    </small>
+                <div class="card-text m-0"><small class="text-body-secondary">
+                  Дата эфира:
+                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.SchedDay_day_date|date:"d E Y" }}
+                  </a></small>
+                </div>
+                <div class="card-text m-0"><small class="text-body-secondary">
+                  Выполняет:
+                  <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.worker }}
+                  </a></small>
+                </div>
+                <div class="card-text m-0"><small class="text-body-secondary">
+                  Хронометраж: </small>
+                  <small class="text-emphasis">
+                    01:01:45
+                  </small>
+                </div>
+              </div>
+            </div>
+          {% elif material.type == 'season' %}
+            <div class="card border-info shadow-sm mx-1 my-2">
+              <div class="card-header p-2">
+                <input class="form-check-input me-1" type="checkbox" value="" id="season_id">
+                <label class="form-check-label" for="season_id">
+                  <a href="{% url 'home' %}{{ material.Progs_parent_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    <h6 class="m-0">{{ material.Progs_AnonsCaption }}, {{ material.Progs_production_year }}</h6>
+                  </a>
+                </label>
+              </div>
+            </div>
+            {% for episode in material.episode|dictsort:"Progs_episode_num" %}
+              <div class="row align-items-center">
+                <div class="col ps-4" style="max-width:50px">
+                  <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
+                </div>
+                <div class="col">
+                  <div class="card border-info shadow mx-1 my-2 mt-0 p-0">
+                    <div class="card-header p-2">
+                      <input class="form-check-input me-1" type="checkbox" value="" id="episode_id">
+                        <label class="form-check-label" for="episode_id">
+                          <a href="{% url 'home' %}{{ episode.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          <h6 class="my-0 mx-1">{{ episode.Progs_name }}, {{ episode.Progs_episode_num }}</h6>
+                          </a>
+                        </label>
+                    </div>
+                    <div class="card-body p-2">
+                      <div class="card-text m-0"><small class="text-body-secondary">
+                        Канал:
+                        <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          {{ episode.Sched_schedule_name }}
+                        </a></small>
+                      </div>
+                      <div class="card-text m-0"><small class="text-body-secondary">
+                        Дата эфира:
+                        <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          {{ episode.SchedDay_day_date|date:"d E Y" }}
+                        </a></small>
+                      </div>
+                      <div class="card-text m-0"><small class="text-body-secondary">
+                        Выполняет:
+                        <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          {{ episode.worker }}
+                        </a></small>
+                      </div>
+                      <div class="card-text m-0"><small class="text-body-secondary">
+                        Хронометраж: </small>
+                        <small class="text-emphasis">
+                          01:01:45
+                        </small>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            {% endif %}
-          {% endfor %}
-        </div>
+              {% endfor %}
+          {% endif %}
         {% endfor %}
       </div>
+      {% endfor %}
+    </div>
   </div>
-</main>
 {% endblock %}
+</main>

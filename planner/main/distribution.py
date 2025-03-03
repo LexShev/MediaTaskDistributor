@@ -11,7 +11,6 @@ def main_distribution():
             continue
         program_id = program_info[0]
         if program_id in program_id_list:
-            print(program_id, 'duplicated')
             continue
         temp_dict = dict(zip(django_columns, program_info))
         program_type_id = temp_dict['Progs_program_type_id']
