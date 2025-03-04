@@ -46,11 +46,8 @@ def oplan_material_list(program_type):
 
 def planner_material_list(dates):
     with connections['planner'].cursor() as cursor:
-        # dates = ('2025-03-01', '2025-03-02', '2025-03-03')
-
         channels = ('Кино +', 'Романтичный сериал', 'Крепкое', 'Советское родное кино')
         order = 'ASC'
-
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
                    ('Progs', 'duration'), ('Sched', 'schedule_name'), ('SchedDay', 'day_date'),

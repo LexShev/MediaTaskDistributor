@@ -61,7 +61,17 @@
 
       <div class="row m-2">
         <div class="col">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+          <div class="card text-center border-light p-0" style="width: 16rem;">
+            <div class="card-header border-info">
+              <h5>KPI отдела</h5>
+            </div>
+            <div class="card-body">
+              <h3 class="card-title">{{ summary_dict.total_kpi|floatformat:2 }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card text-center border-light p-0" style="width: 16rem;">
             <div class="card-header border-info">
               <h5>Всего задач в работе</h5>
             </div>
@@ -71,7 +81,7 @@
           </div>
         </div>
         <div class="col">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+          <div class="card text-center border-light p-0" style="width: 16rem;">
             <div class="card-header border-success">
               <h5>Завершено</h5>
             </div>
@@ -81,7 +91,7 @@
           </div>
         </div>
         <div class="col">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+          <div class="card text-center border-light p-0" style="width: 16rem;">
             <div class="card-header border-danger">
               <h5>Осталось</h5>
             </div>
@@ -91,22 +101,22 @@
           </div>
         </div>
         <div class="col">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+          <div class="card text-center border-light p-0" style="width: 16rem;">
             <div class="card-header border-primary">
               <h5>Общий хронометраж</h5>
             </div>
             <div class="card-body border-light">
-              <h3 class="card-title">{{ summary_dict.total_duration|convert_frames_to_time }}</h3>
+              <h3 class="card-title">{{ summary_dict.total_dur|convert_frames_to_time }}</h3>
             </div>
           </div>
         </div>
         <div class="col">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+          <div class="card text-center border-light p-0" style="width: 16rem;">
             <div class="card-header border-light">
               <h5>Сегодня</h5>
             </div>
             <div class="card-body border-light">
-              <h3 class="card-title">{{ summary_dict.date|date:'d:m:Y' }}</h3>
+              <h3 class="card-title">{{ today|date:'d:m:Y' }}</h3>
             </div>
           </div>
         </div>
@@ -150,7 +160,7 @@
                 <a href="{% url 'home' %}workers/{{ task.Task_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                   {{ task.Task_worker }}</a></td>
               <td>{{ task.Task_duration|convert_frames_to_time }}</td>
-              <td>{{ task.Task_work_date|date:'d:m:Y' }}</td>
+              <td>{{ task.Task_work_date|date:'d-m-Y' }}</td>
               <td>{{ task.Task_task_status }}</td>
             </tr>
           {% endfor %}

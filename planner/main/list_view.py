@@ -87,8 +87,12 @@ def make_full_material_list():
 def list_material_list(dates):
     material_list_sql, django_columns = planner_material_list(dates)
     material_list = []
+    program_id_list = []
     for program_info in material_list_sql:
         if not program_info:
+            continue
+        program_id = program_info[0]
+        if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
@@ -113,6 +117,7 @@ def list_material_list(dates):
                     ]
                 }
                 material_list.append(program_info_dict)
+                program_id_list.append(program_id)
             else:
                 material_list[repeat_index]['episode'].append(
                     {'Progs_program_id': temp_dict['Progs_program_id'],
@@ -125,6 +130,7 @@ def list_material_list(dates):
                     'status': temp_dict['Task_task_status'],
                     'worker_id': temp_dict['Task_worker_id'],
                     'worker': temp_dict['Task_worker']})
+                program_id_list.append(program_id)
         if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
             program_info_dict = {
                 'Progs_program_id': temp_dict['Progs_program_id'],
@@ -140,5 +146,6 @@ def list_material_list(dates):
                 'worker_id': temp_dict['Task_worker_id'],
                 'worker': temp_dict['Task_worker']}
             material_list.append(program_info_dict)
+            program_id_list.append(program_id)
     return material_list
 
