@@ -11,4 +11,7 @@ urlpatterns = [
     path("<int:program_id>", material_card),
     path("kpi_info", kpi_info),
     path("workers/<int:worker_id>", kpi_worker),
+    path("test_page", test_page),
+    path("my_view", my_view),
+
 ]

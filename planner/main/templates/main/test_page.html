@@ -1,0 +1,67 @@
+<!--
+  Forked from:
+  https://quasar.dev/vue-components/select#Example--New-value-mode
+-->
+
+<script>
+  new Vue({
+  el: '#q-app',
+  data () {
+    return {
+      dateHolder: '',
+      dates: []
+    }
+  },
+  methods: {
+    addDate(val) {
+      // comment conditional below if you want duplicates
+      // if(this.dates.find(v => v.includes(val))){
+      //   return
+      // }
+
+      // deselecting ability
+      if(this.dates.find(v => v.includes(val))){
+        let newDates = []
+        this.dates.forEach(v => {
+          if(v.includes(val)) {
+            return
+          }
+          newDates.push(v)
+        })
+
+        newDates.length >= 0 && (this.dates = newDates)
+        return
+      }
+
+      this.dates.push(val)
+      this.$refs.qDateProxy.hide()
+    },
+  }
+})
+</script>
+
+<div id="q-app">
+  <div class="q-pa-md">
+      <div class="q-gutter-y-md">
+        <q-select
+          label="Multiple Dates"
+          filled
+          v-model="dates"
+          use-chips
+          multiple
+          hide-dropdown-icon
+          input-debounce="0"
+        >
+          <template v-slot:append>
+          <q-icon name="event" class="cursor-pointer">
+            <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+              <q-date minimal @input="addDate" :events="dates" event-color="primary"></q-date>
+            </q-popup-proxy>
+          </q-icon>
+        </template>
+        </q-select>
+        </q-input>
+      </div>
+    </div>
+</div>
+

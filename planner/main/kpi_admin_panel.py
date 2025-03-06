@@ -64,6 +64,7 @@ def kpi_summary_calc(work_dates, workers):
     summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
+
     return {'task_list': task_list, 'summary_dict': summary_dict, 'today': datetime.datetime.today().date()}
 
 

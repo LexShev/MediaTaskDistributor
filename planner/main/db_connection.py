@@ -1,5 +1,6 @@
 from django.db import connections
 import datetime
+import ast
 
 
 def oplan_material_list(program_type):
@@ -44,7 +45,15 @@ def oplan_material_list(program_type):
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
 
-def planner_material_list(dates):
+def planner_material_list(worker_id, work_dates):
+    if isinstance(worker_id, str):
+        worker_id = tuple(ast.literal_eval(worker_id))
+        if len(worker_id) == 1:
+            worker_id = (worker_id[0], worker_id[0])
+
+
+    if isinstance(work_dates, str):
+        work_dates = (work_dates, work_dates)
     with connections['planner'].cursor() as cursor:
         channels = ('Кино +', 'Романтичный сериал', 'Крепкое', 'Советское родное кино')
         order = 'ASC'
@@ -70,9 +79,11 @@ def planner_material_list(dates):
                 AND Sched.[schedule_name] IN {channels}
         WHERE Progs.[deleted] = 0
         AND Progs.[program_id] > 0
-        AND Task.[work_date] IN {dates}
+        AND Task.[worker_id] IN {worker_id}
+        AND Task.[work_date] IN {work_dates}
         ORDER BY SchedProg.[DateTime] {order}
         '''
+        print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
