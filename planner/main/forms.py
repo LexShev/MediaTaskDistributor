@@ -29,20 +29,24 @@ class PostForm(forms.ModelForm):
                    (8, 'Олег Кашежев'),
                    (9, 'Марфа Тарусина'),
                    (10, 'Евгений Доманов')]
-        material_type = [(0, 'Фильм'), (1, 'Сериал')]
-        status = [(0, 'Не готов'), (1, 'Готов'), (2, 'На доработке')]
+        material_type = [((5, 6, 10, 11), 'Фильм'),
+                         ((4, 12), 'Сериал')]
+        task_status = [('not_ready', 'Не готов'),
+                       ('ready', 'Готов'),
+                       ('fix', 'На доработке')]
         model = ListFilter
-        fields = ('channels', 'workers', 'material_type', 'date', 'status')
+        fields = ('channels', 'workers', 'material_type', 'date', 'task_status')
+        initial = {'channels': 2}
 
         widgets = {
             'channels': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown gray', 'name': 'channels', 'id': 'channels'}, choices=channels),
+                attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
             'workers': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'name': 'workers', 'id': 'workers'}, choices=workers),
+                attrs={'class': 'ui selection dropdown', 'id': 'workers'}, choices=workers),
             'material_type': forms.Select(
-                attrs={'class': 'ui selection dropdown', 'name': 'material_type', 'id': 'material_type'}, choices=material_type),
+                attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
             'date': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date'}),
-            'status': forms.Select(
-                attrs={'class': 'ui selection dropdown', 'name': 'status', 'id': 'status'}, choices=status),
+            'task_status': forms.Select(
+                attrs={'class': 'ui selection dropdown', 'id': 'task_status'}, choices=task_status),
         }

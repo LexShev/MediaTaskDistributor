@@ -32,7 +32,7 @@ def oplan_material_list(program_type):
                     AND SchedDay.[day_date] IN {dates}
             JOIN [oplan3].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
-                    AND Sched.[schedule_name] IN {channels}
+                    AND Sched.[channel_id] IN {channels}
             WHERE Files.[Deleted] = 0
             AND Files.[PhysicallyDeleted] = 0
             AND Clips.[Deleted] = 0
@@ -45,17 +45,20 @@ def oplan_material_list(program_type):
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
 
-def planner_material_list(worker_id, work_dates):
+def planner_material_list(channels, worker_id, material_type, work_dates, task_status):
+    if isinstance(channels, str):
+        channels = tuple(ast.literal_eval(channels))
+        if len(channels) == 1:
+            channels = (channels[0], channels[0])
+
     if isinstance(worker_id, str):
         worker_id = tuple(ast.literal_eval(worker_id))
         if len(worker_id) == 1:
             worker_id = (worker_id[0], worker_id[0])
 
-
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
     with connections['planner'].cursor() as cursor:
-        channels = ('Кино +', 'Романтичный сериал', 'Крепкое', 'Советское родное кино')
         order = 'ASC'
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
@@ -76,11 +79,12 @@ def planner_material_list(worker_id, work_dates):
             ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
         JOIN [oplan3].[dbo].[schedule] AS Sched
             ON SchedDay.[schedule_id] = Sched.[schedule_id]
-                AND Sched.[schedule_name] IN {channels}
         WHERE Progs.[deleted] = 0
-        AND Progs.[program_id] > 0
+        AND Sched.[channel_id] IN {channels}
         AND Task.[worker_id] IN {worker_id}
+        AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] IN {work_dates}
+        AND Task.[task_status] = '{task_status}'
         ORDER BY SchedProg.[DateTime] {order}
         '''
         print(query)

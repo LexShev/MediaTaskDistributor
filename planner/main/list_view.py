@@ -84,8 +84,8 @@ def make_full_material_list():
             material_list.append(program_info_dict)
     return material_list
 
-def list_material_list(worker_id, dates):
-    material_list_sql, django_columns = planner_material_list(worker_id, dates)
+def list_material_list(channels, worker_id, material_type, dates, task_status):
+    material_list_sql, django_columns = planner_material_list(channels, worker_id, material_type, dates, task_status)
     material_list = []
     program_id_list = []
     for program_info in material_list_sql:

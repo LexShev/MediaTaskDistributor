@@ -19,11 +19,8 @@ def day(request):
     return render(request, 'main/day.html')
 
 def week(request):
-    # start_day = datetime.datetime.today() - datetime.timedelta(days=datetime.datetime.today().weekday())
     start_day = datetime.datetime.today()
     start_day.strftime('%Y/%U')
-    # data = week_material_list(start_day)
-    # return render(request, 'main/week.html', data)
     return redirect(week_date, start_day.year, start_day.isocalendar().week)
 
 def week_date(request, work_year, work_week):
@@ -35,30 +32,32 @@ def month(request):
 
 def full_list(request):
     # main_search = request.GET.get('search', None)
-
+    channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+    work_dates = datetime.datetime.today().date()
+    workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+    task_status = 'not_ready'
+    material_type = (4, 5, 6, 10, 11, 12)
     if request.method == 'POST':
         form = PostForm(request.POST)
-        print(form)
         if form.is_valid():
             channels = form.cleaned_data['channels']
             workers = form.cleaned_data['workers']
             material_type = form.cleaned_data['material_type']
             work_dates = form.cleaned_data['date']
-            status = form.cleaned_data['status']
+            task_status = form.cleaned_data['task_status']
 
             print('channels', channels)
             print('workers', workers)
             print('material_type', material_type)
             print('work_dates', work_dates)
-            print('status', status)
+            print('status', task_status)
 
     else:
         form = PostForm()
-        work_dates = datetime.datetime.today().date()
-        workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-    data = {'material_list': list_material_list(workers, str(work_dates)),
+        print(form)
+    data = {'material_list': list_material_list(channels, workers, material_type, str(work_dates), task_status),
             'form': form}
-    main_distribution()
+    # main_distribution()
     return render(request, 'main/list.html', data)
 
 def material_card(request, program_id):

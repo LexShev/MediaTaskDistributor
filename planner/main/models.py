@@ -6,5 +6,5 @@ class ListFilter(models.Model):
     channels = models.TextField()
     workers = models.TextField()
     material_type = models.TextField()
-    status = models.TextField()
+    task_status = models.TextField()
 
