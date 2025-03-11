@@ -4,8 +4,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'Semantic-UI-master/dist/semantic.min.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'css/ui_dropdown.css' %}">
 <link rel="stylesheet" href="{% static '/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
-
-<script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+<script
+  src="https://code.jquery.com/jquery-3.1.1.min.js"
+  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+  crossorigin="anonymous"></script>
 <script src="{% static 'Semantic-UI-master/dist/semantic.min.js' %}"></script>
 
 <style>
@@ -25,7 +27,7 @@
               <div class="col">{{ field }}</div>
             {% endfor %}
             <div class="col">
-                <button type="submit" class="btn register-button btn-outline-info">Применить</button>
+                <button type="submit" class="btn register-button btn-outline-light">Применить</button>
             </div>
         </div>
       </div>
@@ -47,15 +49,5 @@ $('#material_type')
 $('#task_status')
   .dropdown()
 ;
-
-
-<!--$('form')-->
-<!--  .form('set values', {-->
-<!--    channels     : ['2', '10'],-->
-<!--    workers   : '0',-->
-<!--    material_type   : 'Сериал',-->
-<!--    task_status : 'Не готов',-->
-<!--  })-->
-<!--;-->
 </script>
 

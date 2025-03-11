@@ -2,6 +2,25 @@ from django.db import connections
 import datetime
 import ast
 
+def check_param(param):
+    if isinstance(param, str):
+        param = tuple(ast.literal_eval(param))
+        if len(param) == 1:
+            return param[0], param[0],
+        else:
+            return param
+    else:
+        return param
+
+def check_mat_type(param):
+    if isinstance(param, str):
+        temp_list = [ast.literal_eval(mat) for mat in ast.literal_eval(param)]
+        param = []
+        for new in temp_list:
+            param.extend(new)
+        return tuple(param)
+    else:
+        return param
 
 def oplan_material_list(program_type):
     with connections['oplan3'].cursor() as cursor:
@@ -46,18 +65,14 @@ def oplan_material_list(program_type):
         return material_list_sql, django_columns
 
 def planner_material_list(channels, worker_id, material_type, work_dates, task_status):
-    if isinstance(channels, str):
-        channels = tuple(ast.literal_eval(channels))
-        if len(channels) == 1:
-            channels = (channels[0], channels[0])
-
-    if isinstance(worker_id, str):
-        worker_id = tuple(ast.literal_eval(worker_id))
-        if len(worker_id) == 1:
-            worker_id = (worker_id[0], worker_id[0])
+    channels = check_param(channels)
+    worker_id = check_param(worker_id)
+    material_type = check_mat_type(material_type)
+    task_status = check_param(task_status)
 
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
+
     with connections['planner'].cursor() as cursor:
         order = 'ASC'
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
@@ -84,7 +99,7 @@ def planner_material_list(channels, worker_id, material_type, work_dates, task_s
         AND Task.[worker_id] IN {worker_id}
         AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] IN {work_dates}
-        AND Task.[task_status] = '{task_status}'
+        AND Task.[task_status] IN {task_status}
         ORDER BY SchedProg.[DateTime] {order}
         '''
         print(query)

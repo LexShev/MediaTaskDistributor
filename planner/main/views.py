@@ -2,7 +2,7 @@ import datetime
 import ast
 
 from django.shortcuts import render, redirect
-from .forms import MyForm, PostForm
+from .forms import ListForm, WeekForm
 
 from .list_view import list_material_list
 from .week_view import week_material_list
@@ -24,7 +24,31 @@ def week(request):
     return redirect(week_date, start_day.year, start_day.isocalendar().week)
 
 def week_date(request, work_year, work_week):
-    data = week_material_list(work_year, work_week)
+    channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+    workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+    task_status = ('not_ready', 'ready', 'fix')
+    material_type = (4, 5, 6, 10, 11, 12)
+    if request.method == 'POST':
+        form = WeekForm(request.POST)
+        if form.is_valid():
+            channels = form.cleaned_data['channels']
+            workers = form.cleaned_data['workers']
+            material_type = form.cleaned_data['material_type']
+            task_status = form.cleaned_data['task_status']
+
+            print('channels', channels)
+            print('workers', workers)
+            print('material_type', material_type)
+            print('task_status', task_status)
+    else:
+        initial_dict = {'channels': channels,
+                        'workers': workers,
+                        'material_type': material_type,
+                        'task_status': task_status}
+        form = WeekForm(initial=initial_dict)
+        print(form)
+    material_list, service_dict = week_material_list(channels, workers, material_type, task_status, work_year, work_week)
+    data = {'week_material_list': material_list, 'service_dict': service_dict, 'form': form}
     return render(request, 'main/week.html', data)
 
 def month(request):
@@ -35,25 +59,29 @@ def full_list(request):
     channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
     work_dates = datetime.datetime.today().date()
     workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-    task_status = 'not_ready'
+    task_status = ('not_ready', 'ready', 'fix')
     material_type = (4, 5, 6, 10, 11, 12)
     if request.method == 'POST':
-        form = PostForm(request.POST)
+        form = ListForm(request.POST)
         if form.is_valid():
             channels = form.cleaned_data['channels']
             workers = form.cleaned_data['workers']
             material_type = form.cleaned_data['material_type']
-            work_dates = form.cleaned_data['date']
+            work_dates = form.cleaned_data['work_dates']
             task_status = form.cleaned_data['task_status']
 
             print('channels', channels)
             print('workers', workers)
             print('material_type', material_type)
             print('work_dates', work_dates)
-            print('status', task_status)
-
+            print('task_status', task_status)
     else:
-        form = PostForm()
+        initial_dict = {'channels': channels,
+                        'workers': workers,
+                        'material_type': material_type,
+                        'work_dates': str(datetime.datetime.today().date()),
+                        'task_status': task_status}
+        form = ListForm(initial=initial_dict)
         print(form)
     data = {'material_list': list_material_list(channels, workers, material_type, str(work_dates), task_status),
             'form': form}
@@ -84,7 +112,7 @@ def test_page(request):
 def my_view(request):
     print(list(request.POST.items()))
     if request.method == 'POST':
-        form = PostForm(request.POST)
+        form = ListForm(request.POST)
         print(form)
         if form.is_valid():
             selected_date = form.cleaned_data['date']
@@ -97,6 +125,6 @@ def my_view(request):
             # Process the selected values as a list
             # ...
     else:
-        form = PostForm()
+        form = ListForm()
 
     return render(request, 'main/list_filter.html', {'form': form})

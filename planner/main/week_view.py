@@ -11,7 +11,7 @@ def repeat_index_search(material_list, temp_dict):
         if temp_dict.get('Progs_parent_id') == program.get('Progs_parent_id'):
             return num
 
-def week_material_list(work_year, work_week):
+def week_material_list(channels, worker_id, material_type, task_status, work_year, work_week):
     start_day = datetime.date.fromisocalendar(work_year, work_week, 1)
 
     prev_mon = start_day - datetime.timedelta(7)
@@ -23,7 +23,7 @@ def week_material_list(work_year, work_week):
     next_year = next_mon.isocalendar().year
 
     dates = tuple((start_day + datetime.timedelta(day_num)).strftime('%Y-%m-%d') for day_num in range(7))
-    material_list_sql, django_columns = planner_material_list(dates)
+    material_list_sql, django_columns = planner_material_list(channels, worker_id, material_type, dates, task_status)
 
     service_dict = {'start_day': start_day, 'prev_year': prev_year, 'prev_week': prev_week,
                     'next_year': next_year, 'next_week': next_week, 'work_year': work_year,
@@ -98,4 +98,4 @@ def week_material_list(work_year, work_week):
                 'worker': temp_dict['Task_worker']}
             material_list[day_num].append(program_info_dict)
             program_id_list.append(program_id)
-    return {'week_material_list': material_list, 'service_dict': service_dict}
+    return material_list, service_dict

@@ -5,8 +5,18 @@
   <div class="container-xxl text-start px-0">
     <div class="row p-0">
       <div class="container-xxl text-start px-0">
-        <nav class="px-1 pb-2 bg-body sticky-top">
-          {% include 'main/list_filter.html' %}
+        <nav class="px-1 pb-2 text-center sticky-top">
+          <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">Filter</button>
+
+          <div class="offcanvas offcanvas-top" style='height: 400px;' tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel">
+            <div class="offcanvas-header">
+              <h5 class="offcanvas-title" id="offcanvasTopLabel"></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+              {% include 'main/list_filter.html' %}
+            </div>
+          </div>
         </nav>
 
         {% for material in material_list %}

@@ -2,61 +2,23 @@
 
 <main role="main">
 {% block body %}
+
   <nav class="container-xxl px-1 pb-2 bg-body">
     <div class="row px-1 pb-2 bg-body sticky-top">
       <div class="col">
-        <form method="post" class="container p-0 d-flex align-items-center justify-content-start">
-        {% csrf_token %}
-          <div class="form-floating ms-0 mx-1">
-            <select class="form-select" name="channel_filter" id="ChannelFilter" aria-label="ChannelFilter">
-              <option value="Все" selected>Все</option>
-              <option value="Романтический">Наше детство</option>
-              <option value="Крепкое">Крепкое</option>
-              <option value="Кино +">Кино +</option>
-            </select>
-            <label for="ChannelFilter">Канал</label>
+
+        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">Filter</button>
+
+          <div class="offcanvas offcanvas-top" style='height: 400px;' tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel">
+            <div class="offcanvas-header">
+              <h5 class="offcanvas-title" id="offcanvasTopLabel"></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+              {% include 'main/list_filter.html' %}
+            </div>
           </div>
 
-          <div class="form-floating mx-1">
-            <select class="form-select" name="worker_filter" id="WorkerFilter" aria-label="WorkerFilter">
-              <option value="Все" selected>Все</option>
-              <option value="Александр Кисляков">Александр Кисляков</option>
-              <option value="Ольга Кузовкина">Ольга Кузовкина</option>
-              <option value="Айнур Мингазов">Айнур Мингазов</option>
-            </select>
-            <label for="WorkerFilter">Выполняет</label>
-          </div>
-
-          <div class="form-floating mx-1" style="width: 150px">
-            <select class="form-select" name="material_filter" id="MaterialFilter" aria-label="MaterialFilter">
-              <option value="1" selected>Все</option>
-              <option value="2">Фильмы</option>
-              <option value="3">Сериалы</option>
-            </select>
-            <label for="MaterialFilter">Тип материала</label>
-          </div>
-
-          <div class="form-floating mx-1" style="width: 150px">
-            <select class="form-select" name="data_filter" id="DataFilter" aria-label="DataFilter">
-              <option value="1" selected>Все</option>
-              <option value="2">Сегодня</option>
-              <option value="3">Теущая неделя</option>
-              <option value="3">Месяц</option>
-            </select>
-            <label for="DataFilter">Дата</label>
-          </div>
-
-          <div class="form-floating mx-1 me-lg-auto">
-            <select class="form-select" name="status_filter" id="StatusFilter" aria-label="StatusFilter">
-              <option value="1" selected>Все</option>
-              <option value="2">Отсмотрено</option>
-              <option value="3">В работе</option>
-              <option value="3">Исправить</option>
-            </select>
-            <label for="StatusFilter">Статус</label>
-          </div>
-          <button type="submit" class="btn register-button btn-outline-secondary m-2">Применить</button>
-        </form>
       </div>
       <div class="col">
         <nav>
