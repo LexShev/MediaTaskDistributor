@@ -1,12 +1,12 @@
-from django import forms
+from django.forms import ModelForm, SelectMultiple, DateInput, MultipleChoiceField, Form
 from .models import MainFilter
 
-class MyForm(forms.Form):
+class MyForm(Form):
     choices = [('1', 'Канал+'), ('2', 'Советское'), ('3', 'Наше детство')]
-    selected_choices = forms.MultipleChoiceField(choices=choices, widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
+    selected_choices = MultipleChoiceField(choices=choices, widget=SelectMultiple(attrs={'class': 'form-control'}),
     )
 
-class ListForm(forms.ModelForm):
+class ListForm(ModelForm):
     class Meta:
         channels = [('', 'Телеканал'),
                     (2, 'Крепкое кино'),
@@ -32,8 +32,8 @@ class ListForm(forms.ModelForm):
                    (9, 'Марфа Тарусина'),
                    (10, 'Евгений Доманов')]
         material_type = [('', 'Тип материала'),
-                         ((5, 6, 10, 11), 'Фильм'),
-                         ((4, 12), 'Сериал')]
+                         ('film', 'Фильм'),
+                         ('season', 'Сериал')]
         task_status = [('', 'Статус'),
                        ('not_ready', 'Не готов'),
                        ('ready', 'Готов'),
@@ -42,21 +42,22 @@ class ListForm(forms.ModelForm):
         fields = ('channels', 'workers', 'material_type', 'work_dates', 'task_status')
 
         widgets = {
-            'channels': forms.SelectMultiple(
+            'channels': SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
-            'workers': forms.SelectMultiple(
+            'workers': SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'workers'}, choices=workers),
-            'material_type': forms.SelectMultiple(
+            'material_type': SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
-            'work_dates': forms.DateInput(
+            'work_dates': DateInput(
                 attrs={'class': 'form-control', 'type': 'date'}),
-            'task_status': forms.SelectMultiple(
+            'task_status': SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status', 'placeholder': 'test'}, choices=task_status),
         }
 
-class WeekForm(forms.ModelForm):
+class WeekForm(ModelForm):
     class Meta:
-        channels = [(2, 'Крепкое кино'),
+        channels = [('', 'Телеканал'),
+                    (2, 'Крепкое кино'),
                     (3, 'Семейное кино'),
                     (4, 'Мировой сериал'),
                     (5, 'Наше родное кино'),
@@ -66,7 +67,8 @@ class WeekForm(forms.ModelForm):
                     (9, 'Наше детство'),
                     (10, 'Советское родное кино'),
                     (12, 'Кино +')]
-        workers = [(0, 'Александр Кисляков'),
+        workers = [('', 'Выполняет'),
+                   (0, 'Александр Кисляков'),
                    (1, 'Ольга Кузовкина'),
                    (2, 'Дмитрий Гатенян'),
                    (3, 'Мария Сучкова'),
@@ -77,21 +79,22 @@ class WeekForm(forms.ModelForm):
                    (8, 'Олег Кашежев'),
                    (9, 'Марфа Тарусина'),
                    (10, 'Евгений Доманов')]
-        material_type = [((5, 6, 10, 11), 'Фильм'),
-                         ((4, 12), 'Сериал')]
-        task_status = [('not_ready', 'Не готов'),
+        material_type = [('', 'Тип материала'),
+                         ('film', 'Фильм'),
+                         ('season', 'Сериал')]
+        task_status = [('', 'Статус'),
+                       ('not_ready', 'Не готов'),
                        ('ready', 'Готов'),
                        ('fix', 'На доработке')]
         model = MainFilter
         fields = ('channels', 'workers', 'material_type', 'task_status')
-
         widgets = {
-            'channels': forms.SelectMultiple(
+            'channels': SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
-            'workers': forms.SelectMultiple(
+            'workers': SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'workers'}, choices=workers),
-            'material_type': forms.SelectMultiple(
+            'material_type': SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
-            'task_status': forms.SelectMultiple(
+            'task_status': SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status'}, choices=task_status),
         }

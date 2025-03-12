@@ -1,30 +1,35 @@
-from django.db import connections
 import datetime
-import ast
+from django.db import connections
 
 def check_param(param):
-    if isinstance(param, str):
-        param = tuple(ast.literal_eval(param))
-        if len(param) == 1:
-            return param[0], param[0],
-        else:
-            return param
+    if len(param) == 1:
+        return param[0], param[0],
     else:
-        return param
+        return tuple(param)
+
+# def check_mat_type_obsolete(param):
+#     if isinstance(param, str):
+#         temp_list = [ast.literal_eval(mat) for mat in ast.literal_eval(param)]
+#         param = []
+#         for new in temp_list:
+#             param.extend(new)
+#         return tuple(param)
+#     else:
+#         return param
 
 def check_mat_type(param):
-    if isinstance(param, str):
-        temp_list = [ast.literal_eval(mat) for mat in ast.literal_eval(param)]
-        param = []
-        for new in temp_list:
-            param.extend(new)
-        return tuple(param)
+    if param == ['film']:
+        return 5, 6, 10, 11
+    elif param == ['season']:
+        return 4, 12
     else:
-        return param
+        return 4, 5, 6, 10, 11, 12
+
 
 def oplan_material_list(program_type):
     with connections['oplan3'].cursor() as cursor:
-        dates = ('2025-03-01', '2025-03-02', '2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06', '2025-03-07', '2025-03-08', '2025-03-09', '2025-03-10', '2025-03-11', '2025-03-12', '2025-03-13', '2025-03-14', '2025-03-15', '2025-03-16', '2025-03-17', '2025-03-18', '2025-03-19', '2025-03-20', '2025-03-21', '2025-03-22', '2025-03-23', '2025-03-24', '2025-03-25', '2025-03-26', '2025-03-27', '2025-03-28', '2025-03-29')
+        dates = ('2025-04-01', '2025-04-02', '2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06', '2025-03-07', '2025-03-08', '2025-03-09', '2025-03-10', '2025-03-11', '2025-03-12', '2025-03-13', '2025-03-14', '2025-03-15', '2025-03-16', '2025-03-17', '2025-03-18', '2025-03-19', '2025-03-20', '2025-03-21', '2025-03-22', '2025-03-23', '2025-03-24', '2025-03-25', '2025-03-26', '2025-03-27', '2025-03-28', '2025-03-29')
+        channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
         # dates = ('2025-03-01', '2025-03-02', '2025-03-03')
 
         channels = ('Кино +', 'Романтичный сериал', 'Крепкое', 'Советское родное кино')
@@ -48,18 +53,19 @@ def oplan_material_list(program_type):
                 ON Progs.[program_id] = SchedProg.[program_id]
             JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-                    AND SchedDay.[day_date] IN {dates}
             JOIN [oplan3].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
-                    AND Sched.[channel_id] IN {channels}
             WHERE Files.[Deleted] = 0
             AND Files.[PhysicallyDeleted] = 0
             AND Clips.[Deleted] = 0
             AND Progs.[deleted] = 0
+            AND Sched.[channel_id] IN {channels_id}
+            AND SchedDay.[day_date] IN {dates}
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
                     '''
+        print('distr', query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
@@ -102,9 +108,15 @@ def planner_material_list(channels, worker_id, material_type, work_dates, task_s
         AND Task.[task_status] IN {task_status}
         ORDER BY SchedProg.[DateTime] {order}
         '''
-        print(query)
+        start = datetime.datetime.now()
+        print('start:', start)
+        # print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
+        print('sql total:', datetime.datetime.now()-start)
+
+        print('start_dict_creation:', datetime.datetime.now())
+        print('material_list_sql')
         return material_list_sql, django_columns
 
 def planner_task_list(program_id):

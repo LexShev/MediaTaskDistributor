@@ -98,4 +98,6 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
                 'worker': temp_dict['Task_worker']}
             material_list[day_num].append(program_info_dict)
             program_id_list.append(program_id)
+    print(datetime.datetime.now())
+    print('material_list')
     return material_list, service_dict

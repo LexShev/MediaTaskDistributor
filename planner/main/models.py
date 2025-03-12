@@ -1,10 +1,11 @@
-from django.db import models
+from django.db.models import Model, IntegerField, TextField, DateField
 
-class MainFilter(models.Model):
-    body = models.TextField()
-    work_dates = models.DateField()
-    channels = models.TextField()
-    workers = models.TextField()
-    material_type = models.TextField()
-    task_status = models.TextField()
+class MainFilter(Model):
+    owner = IntegerField('owner', primary_key=True, default=1)
+    channels = TextField()
+    workers = TextField()
+    material_type = TextField()
+    work_dates = DateField()
+    task_status = TextField()
+
 

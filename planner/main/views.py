@@ -3,6 +3,7 @@ import ast
 
 from django.shortcuts import render, redirect
 from .forms import ListForm, WeekForm
+from .models import MainFilter
 
 from .list_view import list_material_list
 from .week_view import week_material_list
@@ -24,29 +25,35 @@ def week(request):
     return redirect(week_date, start_day.year, start_day.isocalendar().week)
 
 def week_date(request, work_year, work_week):
-    channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
-    workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-    task_status = ('not_ready', 'ready', 'fix')
-    material_type = (4, 5, 6, 10, 11, 12)
+    init = MainFilter.objects.get(owner=request.user.id)
     if request.method == 'POST':
-        form = WeekForm(request.POST)
+        form = WeekForm(request.POST, instance=init)
         if form.is_valid():
-            channels = form.cleaned_data['channels']
-            workers = form.cleaned_data['workers']
-            material_type = form.cleaned_data['material_type']
-            task_status = form.cleaned_data['task_status']
+            form.save()
 
-            print('channels', channels)
-            print('workers', workers)
-            print('material_type', material_type)
-            print('task_status', task_status)
+            channels = ast.literal_eval(form.cleaned_data.get('channels'))
+            workers = ast.literal_eval(form.cleaned_data.get('workers'))
+            material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
+            task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
+
+        else:
+            channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+            workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+            task_status = ('not_ready', 'ready', 'fix')
+            material_type = ('film', 'season')
     else:
+        channels = ast.literal_eval(init.channels)
+        workers = ast.literal_eval(init.workers)
+        material_type = ast.literal_eval(init.material_type)
+        work_dates = str(init.work_dates)
+        task_status = ast.literal_eval(init.task_status)
+
         initial_dict = {'channels': channels,
                         'workers': workers,
                         'material_type': material_type,
+                        'work_dates': work_dates,
                         'task_status': task_status}
         form = WeekForm(initial=initial_dict)
-        print(form)
     material_list, service_dict = week_material_list(channels, workers, material_type, task_status, work_year, work_week)
     data = {'week_material_list': material_list, 'service_dict': service_dict, 'form': form}
     return render(request, 'main/week.html', data)
@@ -56,33 +63,49 @@ def month(request):
 
 def full_list(request):
     # main_search = request.GET.get('search', None)
-    channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
-    work_dates = datetime.datetime.today().date()
-    workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-    task_status = ('not_ready', 'ready', 'fix')
-    material_type = (4, 5, 6, 10, 11, 12)
+    init = MainFilter.objects.get(owner=request.user.id)
     if request.method == 'POST':
-        form = ListForm(request.POST)
+        form = ListForm(request.POST, instance=init)
         if form.is_valid():
-            channels = form.cleaned_data['channels']
-            workers = form.cleaned_data['workers']
-            material_type = form.cleaned_data['material_type']
-            work_dates = form.cleaned_data['work_dates']
-            task_status = form.cleaned_data['task_status']
+            form.save()
 
-            print('channels', channels)
-            print('workers', workers)
-            print('material_type', material_type)
-            print('work_dates', work_dates)
-            print('task_status', task_status)
+            # MainFilter.objects.filter(id=5).update(form)
+            # form.save()
+            # list_filter = form.save(commit=False)
+            # list_filter.owner = request.user.id
+            # print('request.user.id', request.user.id)
+
+            channels = ast.literal_eval(form.cleaned_data.get('channels'))
+            workers = ast.literal_eval(form.cleaned_data.get('workers'))
+            material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
+            work_dates = form.cleaned_data.get('work_dates')
+            task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
+
+        else:
+            channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+            work_dates = datetime.datetime.today().date()
+            workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+            task_status = ('not_ready', 'ready', 'fix')
+            material_type = ('film', 'season')
     else:
+        channels = ast.literal_eval(init.channels)
+        workers = ast.literal_eval(init.workers)
+        material_type = ast.literal_eval(init.material_type)
+        work_dates = str(init.work_dates)
+        task_status = ast.literal_eval(init.task_status)
+
+        # initial_dict = {'channels': channels,
+        #                 'workers': workers,
+        #                 'material_type': material_type,
+        #                 'work_dates': str(datetime.datetime.today().date()),
+        #                 'task_status': task_status}
         initial_dict = {'channels': channels,
                         'workers': workers,
                         'material_type': material_type,
-                        'work_dates': str(datetime.datetime.today().date()),
+                        'work_dates': work_dates,
                         'task_status': task_status}
         form = ListForm(initial=initial_dict)
-        print(form)
+
     data = {'material_list': list_material_list(channels, workers, material_type, str(work_dates), task_status),
             'form': form}
     # main_distribution()
