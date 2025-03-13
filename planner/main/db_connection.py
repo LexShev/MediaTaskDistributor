@@ -28,7 +28,8 @@ def check_mat_type(param):
 
 def oplan_material_list(program_type):
     with connections['oplan3'].cursor() as cursor:
-        dates = ('2025-04-01', '2025-04-02', '2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06', '2025-03-07', '2025-03-08', '2025-03-09', '2025-03-10', '2025-03-11', '2025-03-12', '2025-03-13', '2025-03-14', '2025-03-15', '2025-03-16', '2025-03-17', '2025-03-18', '2025-03-19', '2025-03-20', '2025-03-21', '2025-03-22', '2025-03-23', '2025-03-24', '2025-03-25', '2025-03-26', '2025-03-27', '2025-03-28', '2025-03-29')
+        dates = ('2025-03-01', '2025-04-02', '2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06', '2025-03-07', '2025-03-08', '2025-03-09', '2025-03-10', '2025-03-11', '2025-03-12', '2025-03-13', '2025-03-14', '2025-03-15', '2025-03-16', '2025-03-17', '2025-03-18', '2025-03-19', '2025-03-20', '2025-03-21', '2025-03-22', '2025-03-23', '2025-03-24', '2025-03-25', '2025-03-26', '2025-03-27', '2025-03-28', '2025-03-29')
+        dates = tuple(str(datetime.date(day=1, month=3, year=2025)+datetime.timedelta(day)) for day in range(21))
         channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
         # dates = ('2025-03-01', '2025-03-02', '2025-03-03')
 
@@ -40,7 +41,7 @@ def oplan_material_list(program_type):
                    ('Progs', 'duration'), ('Sched', 'schedule_name'), ('SchedDay', 'day_date')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
-        query = f'''
+        query = f"""
             SELECT {sql_columns}
             FROM [oplan3].[dbo].[File] AS Files
             JOIN [oplan3].[dbo].[Clip] AS Clips
@@ -64,8 +65,8 @@ def oplan_material_list(program_type):
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
-                    '''
-        print('distr', query)
+                    """
+        print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
@@ -108,15 +109,10 @@ def planner_material_list(channels, worker_id, material_type, work_dates, task_s
         AND Task.[task_status] IN {task_status}
         ORDER BY SchedProg.[DateTime] {order}
         '''
-        start = datetime.datetime.now()
-        print('start:', start)
         # print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
-        print('sql total:', datetime.datetime.now()-start)
 
-        print('start_dict_creation:', datetime.datetime.now())
-        print('material_list_sql')
         return material_list_sql, django_columns
 
 def planner_task_list(program_id):

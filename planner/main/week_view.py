@@ -1,10 +1,10 @@
-import datetime
+from datetime import date, timedelta
 
 from .db_connection import *
 
 #
 # def week_num(date):
-#     return datetime.datetime.strptime(date, '%Y-%m-%d').weekday()
+#     return datetime.strptime(date, '%Y-%m-%d').weekday()
 
 def repeat_index_search(material_list, temp_dict):
     for num, program in enumerate(material_list):
@@ -12,30 +12,30 @@ def repeat_index_search(material_list, temp_dict):
             return num
 
 def week_material_list(channels, worker_id, material_type, task_status, work_year, work_week):
-    start_day = datetime.date.fromisocalendar(work_year, work_week, 1)
+    start_day = date.fromisocalendar(work_year, work_week, 1)
 
-    prev_mon = start_day - datetime.timedelta(7)
-    next_mon = start_day + datetime.timedelta(7)
+    prev_mon = start_day - timedelta(7)
+    next_mon = start_day + timedelta(7)
 
     prev_week = prev_mon.isocalendar().week
     next_week = next_mon.isocalendar().week
     prev_year = prev_mon.isocalendar().year
     next_year = next_mon.isocalendar().year
 
-    dates = tuple((start_day + datetime.timedelta(day_num)).strftime('%Y-%m-%d') for day_num in range(7))
+    dates = tuple((start_day + timedelta(day_num)).strftime('%Y-%m-%d') for day_num in range(7))
     material_list_sql, django_columns = planner_material_list(channels, worker_id, material_type, dates, task_status)
 
     service_dict = {'start_day': start_day, 'prev_year': prev_year, 'prev_week': prev_week,
                     'next_year': next_year, 'next_week': next_week, 'work_year': work_year,
                     'work_week': work_week}
     material_list = [
-        [{'day_num': 1, 'date': start_day + datetime.timedelta(0), 'weekday': 'Понедельник'}],
-        [{'day_num': 2, 'date': start_day + datetime.timedelta(1), 'weekday': 'Вторник'}],
-        [{'day_num': 3, 'date': start_day + datetime.timedelta(2), 'weekday': 'Среда'}],
-        [{'day_num': 4, 'date': start_day + datetime.timedelta(3), 'weekday': 'Четверг'}],
-        [{'day_num': 5, 'date': start_day + datetime.timedelta(4), 'weekday': 'Пятница'}],
-        [{'day_num': 6, 'date': start_day + datetime.timedelta(5), 'weekday': 'Суббота'}],
-        [{'day_num': 7, 'date': start_day + datetime.timedelta(6), 'weekday': 'Воскресенье'}]
+        [{'day_num': 1, 'date': start_day + timedelta(0), 'weekday': 'Понедельник'}],
+        [{'day_num': 2, 'date': start_day + timedelta(1), 'weekday': 'Вторник'}],
+        [{'day_num': 3, 'date': start_day + timedelta(2), 'weekday': 'Среда'}],
+        [{'day_num': 4, 'date': start_day + timedelta(3), 'weekday': 'Четверг'}],
+        [{'day_num': 5, 'date': start_day + timedelta(4), 'weekday': 'Пятница'}],
+        [{'day_num': 6, 'date': start_day + timedelta(5), 'weekday': 'Суббота'}],
+        [{'day_num': 7, 'date': start_day + timedelta(6), 'weekday': 'Воскресенье'}]
     ]
     program_id_list = []
     for program_info in material_list_sql:
@@ -98,6 +98,4 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
                 'worker': temp_dict['Task_worker']}
             material_list[day_num].append(program_info_dict)
             program_id_list.append(program_id)
-    print(datetime.datetime.now())
-    print('material_list')
     return material_list, service_dict

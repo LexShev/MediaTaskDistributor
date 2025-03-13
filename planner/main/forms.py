@@ -1,12 +1,12 @@
-from django.forms import ModelForm, SelectMultiple, DateInput, MultipleChoiceField, Form
+from django import forms
 from .models import MainFilter
 
-class MyForm(Form):
+class MyForm(forms.Form):
     choices = [('1', 'Канал+'), ('2', 'Советское'), ('3', 'Наше детство')]
-    selected_choices = MultipleChoiceField(choices=choices, widget=SelectMultiple(attrs={'class': 'form-control'}),
+    selected_choices = forms.MultipleChoiceField(choices=choices, widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
     )
 
-class ListForm(ModelForm):
+class ListForm(forms.ModelForm):
     class Meta:
         channels = [('', 'Телеканал'),
                     (2, 'Крепкое кино'),
@@ -42,19 +42,19 @@ class ListForm(ModelForm):
         fields = ('channels', 'workers', 'material_type', 'work_dates', 'task_status')
 
         widgets = {
-            'channels': SelectMultiple(
+            'channels': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
-            'workers': SelectMultiple(
+            'workers': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'workers'}, choices=workers),
-            'material_type': SelectMultiple(
+            'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
-            'work_dates': DateInput(
+            'work_dates': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date'}),
-            'task_status': SelectMultiple(
+            'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status', 'placeholder': 'test'}, choices=task_status),
         }
 
-class WeekForm(ModelForm):
+class WeekForm(forms.ModelForm):
     class Meta:
         channels = [('', 'Телеканал'),
                     (2, 'Крепкое кино'),
@@ -89,12 +89,70 @@ class WeekForm(ModelForm):
         model = MainFilter
         fields = ('channels', 'workers', 'material_type', 'task_status')
         widgets = {
-            'channels': SelectMultiple(
+            'channels': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
-            'workers': SelectMultiple(
+            'workers': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'workers'}, choices=workers),
-            'material_type': SelectMultiple(
+            'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
-            'task_status': SelectMultiple(
+            'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status'}, choices=task_status),
         }
+
+class CenzFormText(forms.Form):
+    lgbt_form = forms.CharField(widget=forms.Textarea(
+        attrs={'class': "form-control", 'id': "lgbt_form", 'style': "height: 100px"}),
+        label='ЛГБТ', required=False)
+    sig_form = forms.CharField(widget=forms.Textarea(
+        attrs={'class': "form-control", 'id': "sig_form", 'style': "height: 100px"}),
+        label='Сигареты', required=False)
+    obnazh_form = forms.CharField(widget=forms.Textarea(
+        attrs={'class': "form-control", 'id': "obnazh_form", 'style': "height: 100px"}),
+        label='Обнаженка', required=False)
+    narc_form = forms.CharField(widget=forms.Textarea(
+        attrs={'class': "form-control", 'id': "narc_form", 'style': "height: 100px"}),
+        label='Наркотики', required=False)
+    mat_form = forms.CharField(widget=forms.Textarea(
+        attrs={'class': "form-control", 'id': "mat_form", 'style': "height: 100px"}),
+        label='Мат', required=False)
+    other_form = forms.CharField(widget=forms.Textarea(
+        attrs={'class': "form-control", 'id': "other_form", 'style': "height: 100px"}),
+        label='Другое', required=False)
+    editor_form = forms.CharField(widget=forms.Textarea(
+        attrs={'class': "form-control", 'id': "editor_form", 'style': "height: 100px"}),
+        label='Редакторские замечания', required=False)
+
+class CenzFormDropDown(forms.Form):
+    workers = [('', '-'),
+               ('Александр Кисляков', 'Александр Кисляков'),
+               ('Ольга Кузовкина', 'Ольга Кузовкина'),
+               ('Дмитрий Гатенян', 'Дмитрий Гатенян'),
+               ('Мария Сучкова', 'Мария Сучкова'),
+               ('Андрей Антипин', 'Андрей Антипин'),
+               ('Роман Рогачев', 'Роман Рогачев'),
+               ('Анастасия Чебакова', 'Анастасия Чебакова'),
+               ('Никита Кузаков', 'Никита Кузаков'),
+               ('Олег Кашежев', 'Олег Кашежев'),
+               ('Марфа Тарусина', 'Марфа Тарусина'),
+               ('Евгений Доманов', 'Евгений Доманов')]
+    rate = (('0+', '0+'), ('6+', '6+'), ('12+', '12+'), ('16+', '16+'), ('18+', '18+'))
+    meta_form = forms.BooleanField(widget=forms.CheckboxInput(
+        attrs={'class': 'form-check-input', 'type': 'checkbox', 'id': "meta_form"}),
+        label='Meta', required=False)
+    work_date_form = forms.DateField(widget=forms.DateInput(
+        attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
+        label='Дата отсмотра', required=False)
+    cenz_rate_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "cenz_rate_form"}),
+        label='Ценз отсмотра', choices=rate)
+    cenz_worker_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "cenz_worker_form"}),
+        label='Тайтл проверил', choices=workers, required=False)
+    tags_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "tags_form"}),
+        label='Теги', choices=((0, 'tag_1'), (6, 'tag_2')), required=False)
+    inoagent_form = forms.ChoiceField(
+        widget=forms.Select(attrs={'class': "form-select", 'id': "inoagent_form"}),
+        label='Иноагент', choices=((0, 'agent_1'), (6, 'agent_2')), required=False)
+
+

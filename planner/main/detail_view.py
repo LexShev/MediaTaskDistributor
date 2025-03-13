@@ -41,8 +41,8 @@ def full_info(program_id):
         full_info_list = cursor.fetchone()
         # [info.replace('\n', '') for info in full_info_list if isinstance(info, str)]
         full_info_dict = dict(zip(django_columns, full_info_list))
-        full_info_dict['custom_fields'] = cenz_info(program_id)
-        full_info_dict['schedule_info'] = schedule_info(program_id)
+        # full_info_dict['custom_fields'] = cenz_info(program_id)
+        # full_info_dict['schedule_info'] = schedule_info(program_id)
         return full_info_dict
 
 def cenz_info(program_id):

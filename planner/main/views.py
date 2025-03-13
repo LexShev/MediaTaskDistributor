@@ -1,15 +1,16 @@
 import datetime
 import ast
+import calendar
 
 from django.shortcuts import render, redirect
-from .forms import ListForm, WeekForm
+from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown
 from .models import MainFilter
 
 from .list_view import list_material_list
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
-from .detail_view import full_info
+from .detail_view import full_info, cenz_info, schedule_info
 from .distribution import main_distribution
 
 
@@ -59,7 +60,9 @@ def week_date(request, work_year, work_week):
     return render(request, 'main/week.html', data)
 
 def month(request):
-    return render(request, 'main/month.html')
+    calendar_dict = calendar.HTMLCalendar(0).formatyear(2025)
+    calendar_dict = calendar.HTMLCalendar(0).formatmonth(2025, 1)
+    return render(request, 'main/month.html', {'calendar_dict': calendar_dict})
 
 def full_list(request):
     # main_search = request.GET.get('search', None)
@@ -74,7 +77,6 @@ def full_list(request):
             # list_filter = form.save(commit=False)
             # list_filter.owner = request.user.id
             # print('request.user.id', request.user.id)
-
             channels = ast.literal_eval(form.cleaned_data.get('channels'))
             workers = ast.literal_eval(form.cleaned_data.get('workers'))
             material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
@@ -112,8 +114,45 @@ def full_list(request):
     return render(request, 'main/list.html', data)
 
 def material_card(request, program_id):
+    custom_fields = cenz_info(program_id)
+    if request.method == 'POST':
+        form_drop = CenzFormDropDown(request.POST)
+        form_text = CenzFormText(request.POST)
+        if form_text.is_valid():
+            lgbt_form = form_text.cleaned_data['lgbt_form']
+            print('lgbt_form', lgbt_form)
+        if form_drop.is_valid():
+            tags_form = form_drop.cleaned_data['cenz_rate_form']
+            print('tags_form', tags_form)
+            meta_form = form_drop.cleaned_data['meta_form']
+            print('meta_form', meta_form)
+
+    else:
+        print('no')
+        form_drop = CenzFormDropDown(
+            initial={'meta_form': custom_fields.get(17),
+            'work_date_form': custom_fields.get(7),
+            'cenz_rate_form': custom_fields.get(14),
+            'cenz_worker_form': custom_fields.get(15),
+            'tags_form': custom_fields.get(18),
+            'inoagent_form': custom_fields.get(19),
+            })
+        print('custom_fields.get(7)', custom_fields.get(7))
+        form_text = CenzFormText(
+            initial={'lgbt_form': custom_fields.get(8),
+            'sig_form': custom_fields.get(9),
+            'obnazh_form': custom_fields.get(10),
+            'narc_form': custom_fields.get(11),
+            'mat_form': custom_fields.get(12),
+            'other_form': custom_fields.get(13),
+            'editor_form': custom_fields.get(16)})
+
     data = {'full_info': full_info(program_id),
+            'custom_fields': custom_fields,
+            'schedule_info': schedule_info(program_id),
             'ffmpeg': ffmpeg_dict(program_id),
+            'form_text': form_text,
+            'form_drop': form_drop,
             }
     return render(request, 'main/full_info_card.html', data)
 

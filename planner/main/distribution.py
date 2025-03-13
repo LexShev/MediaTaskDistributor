@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from django.db import connections
 from .list_view import oplan_material_list
 
@@ -20,23 +20,26 @@ def main_distribution():
 
 
 def distribution_by_id(program_id, program_type_id, duration):
-    date = datetime.now()
+    work_date = datetime.today()
+    work_date = date(day=10, month=3, year=2025)
     planner_worker_id, planner_worker = planner_cenz_worker(program_id)
     oplan3_worker_id, oplan3_worker = oplan3_cenz_worker(program_id)
     if program_type_id in (4, 5, 6, 10, 11, 12) and not oplan3_worker:
         if not planner_worker:
             status = 'not_ready'
-            worker_id, worker, kpi, date = date_seek(date)
-            insert_film(program_id, worker_id, worker, duration, date, status)
+            worker_id, worker, kpi, work_date = date_seek(work_date)
+            insert_film(program_id, worker_id, worker, duration, work_date, status)
         else:
+            # ? update(program_id, worker_id, worker, duration, date, status)
             worker_id = planner_worker_id
             worker = planner_worker
             status = 'not_ready'
     else:
+        # ?
         worker_id = oplan3_worker_id
         worker = oplan3_worker
         status = 'ready'
-    return worker_id, worker, status, date
+    return worker_id, worker, status, work_date
 
 # def kpi_min(date):
 #     with connections['planner'].cursor() as cursor:
@@ -56,22 +59,22 @@ def distribution_by_id(program_id, program_type_id, duration):
 #         print('kpi_asc_list for date', date, '\n', kpi_asc_list)
 #     return kpi_asc_list
 
-def date_seek(date):
-    kpi_info = kpi_min(date)
+def date_seek(work_date):
+    kpi_info = kpi_min(work_date)
     if kpi_info and kpi_info[0][2] < 1:
         worker_id, worker, kpi = kpi_info[0]
-        return worker_id, worker, kpi, date
+        return worker_id, worker, kpi, work_date
     else:
-        date += timedelta(days=1)
-        return date_seek(date)
+        work_date += timedelta(days=1)
+        return date_seek(work_date)
 
-def kpi_min(date):
+def kpi_min(work_date):
     kpi_list = []
     with connections['planner'].cursor() as cursor:
         query_01 = f'''
         SELECT Worker.[worker_id], Worker.[worker]
         FROM [planner].[dbo].[worker_list] AS Worker
-        WHERE '{date}' NOT IN (SELECT day_off FROM [planner].[dbo].[days_off])
+        WHERE '{work_date}' NOT IN (SELECT day_off FROM [planner].[dbo].[days_off])
         AND Worker.[fired] = 'False'
         '''
         cursor.execute(query_01)
@@ -82,7 +85,7 @@ def kpi_min(date):
                 query_02 = f'''
                 SELECT Task.[worker_id], Task.[worker], Task.[duration]
                 FROM [planner].[dbo].[task_list] AS Task
-                WHERE Task.[work_date] = '{date}'
+                WHERE Task.[work_date] = '{work_date}'
                 AND Task.[worker_id] = '{worker_id}'
                 '''
                 cursor.execute(query_02)
@@ -90,12 +93,12 @@ def kpi_min(date):
                 kpi_list.append((worker_id, worker, kpi))
     return sorted(kpi_list, key=lambda x: x[2])
 
-def insert_film(program_id, worker_id, worker, duration, date, status):
+def insert_film(program_id, worker_id, worker, duration, work_date, status):
     with connections['planner'].cursor() as cursor:
         columns = '[program_id], [worker_id], [worker], [duration], [work_date], [task_status]'
         query = f'''
         INSERT INTO [planner].[dbo].[task_list] ({columns})
-        VALUES ({program_id}, {worker_id}, '{worker}', {duration}, '{date.strftime('%Y-%m-%d')}', '{status}')
+        VALUES ({program_id}, {worker_id}, '{worker}', {duration}, '{work_date.strftime('%Y-%m-%d')}', '{status}')
         '''
         cursor.execute(query)
         print(f'{program_id}, {worker} successfully added')

@@ -1,47 +1,76 @@
-<div class="row mx-1 my-2">
-  Дата отсмотра
-  <textarea>{{ full_info.custom_fields.7|date:"d.m.Y" }}</textarea>
-  Ценз отсмотра
-  <textarea>{{ full_info.custom_fields.14 }}</textarea>
-  Тайтл проверил
-  <textarea>{{ full_info.custom_fields.15 }}</textarea>
-  Meta
-  <textarea>{{ full_info.custom_fields.17 }}</textarea>
-  Теги
-  <textarea>{{ full_info.custom_fields.18 }}</textarea>
-  Иноагент
-  <textarea>{{ full_info.custom_fields.19 }}</textarea>
-</div>
+<!--<div class="row mx-1 my-2">-->
+<!--  Дата отсмотра-->
+<!--  <textarea>{{ custom_fields.7|date:"d.m.Y" }}</textarea>-->
+<!--  Ценз отсмотра-->
+<!--  <textarea>{{ custom_fields.14 }}</textarea>-->
+<!--  Тайтл проверил-->
+<!--  <textarea>{{ custom_fields.15 }}</textarea>-->
+<!--  Meta-->
+<!--  <textarea>{{ custom_fields.17 }}</textarea>-->
+<!--  Теги-->
+<!--  <textarea>{{ custom_fields.18 }}</textarea>-->
+<!--  Иноагент-->
+<!--  <textarea>{{ custom_fields.19 }}</textarea>-->
+<!--</div>-->
 
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="lgbt_form" style="height: 100px">{{ full_info.custom_fields.8 }}</textarea>
-  <label for="lgbt_form">ЛГБТ</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="sig_form" style="height: 100px">{{ full_info.custom_fields.9 }}</textarea>
-  <label for="sig_form">Сигареты</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="obnazh_form" style="height: 100px">{{ full_info.custom_fields.10 }}</textarea>
-  <label for="obnazh_form">Обнаженка</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="narc_form" style="height: 100px">{{ full_info.custom_fields.11 }}</textarea>
-  <label for="narc_form">Наркотики</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="mat_form" style="height: 100px">{{ full_info.custom_fields.12 }}</textarea>
-  <label for="mat_form">Мат</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="other_form" style="height: 100px">{{ full_info.custom_fields.13 }}</textarea>
-  <label for="other_form">Другое</label>
-</div>
-<div class="form-floating mx-1 my-2">
-  <textarea class="form-control" id="editor_form" style="height: 100px">{{ full_info.custom_fields.16 }}</textarea>
-  <label for="editor_form">Редакторские замечания</label>
-</div>
-<div class="text-end">
-  <button type="button" class="btn btn-outline-primary">Сохранить</button>
-  <button type="button" class="btn btn-outline-secondary">Отменить</button>
-</div>
+<form method="POST">
+  {% csrf_token %}
+  <div class="row">
+  {% for field in form_drop %}
+  <div class="col">
+    {% if field.id_for_label != 'meta_form' %}
+      <div class="form-floating mx-1 my-2">
+        {{ field }}
+        {{ field.label_tag }}
+      </div>
+    {% else %}
+      <div class="form-check mx-1 my-2">
+        {{ field }}
+        {{ field.label_tag }}
+      </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  </div>
+
+  {% for field in form_text %}
+    <div class="form-floating mx-1 my-2">
+      {{ field }}
+      {{ field.label_tag }}
+    </div>
+  {% endfor %}
+  <div class="text-end">
+    <button type="submit" class="btn btn-outline-primary">Сохранить</button>
+    <button type="button" class="btn btn-outline-secondary">Отменить</button>
+  </div>
+</form>
+
+
+<!--<div class="form-floating mx-1 my-2">-->
+<!--  <textarea class="form-control" id="lgbt_form" style="height: 100px">{{ custom_fields.8 }}</textarea>-->
+<!--  <label for="lgbt_form">ЛГБТ</label>-->
+<!--</div>-->
+<!--<div class="form-floating mx-1 my-2">-->
+<!--  <textarea class="form-control" id="sig_form" style="height: 100px">{{ custom_fields.9 }}</textarea>-->
+<!--  <label for="sig_form">Сигареты</label>-->
+<!--</div>-->
+<!--<div class="form-floating mx-1 my-2">-->
+<!--  <textarea class="form-control" id="obnazh_form" style="height: 100px">{{ custom_fields.10 }}</textarea>-->
+<!--  <label for="obnazh_form">Обнаженка</label>-->
+<!--</div>-->
+<!--<div class="form-floating mx-1 my-2">-->
+<!--  <textarea class="form-control" id="narc_form" style="height: 100px">{{ custom_fields.11 }}</textarea>-->
+<!--  <label for="narc_form">Наркотики</label>-->
+<!--</div>-->
+<!--<div class="form-floating mx-1 my-2">-->
+<!--  <textarea class="form-control" id="mat_form" style="height: 100px">{{ custom_fields.12 }}</textarea>-->
+<!--  <label for="mat_form">Мат</label>-->
+<!--</div>-->
+<!--<div class="form-floating mx-1 my-2">-->
+<!--  <textarea class="form-control" id="other_form" style="height: 100px">{{ custom_fields.13 }}</textarea>-->
+<!--  <label for="other_form">Другое</label>-->
+<!--</div>-->
+<!--<div class="form-floating mx-1 my-2">-->
+<!--  <textarea class="form-control" id="editor_form" style="height: 100px">{{ custom_fields.16 }}</textarea>-->
+<!--  <label for="editor_form">Редакторские замечания</label>-->
+<!--</div>-->
