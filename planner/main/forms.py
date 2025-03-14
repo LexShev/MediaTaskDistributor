@@ -1,6 +1,7 @@
 from django import forms
 from .models import MainFilter
 
+
 class MyForm(forms.Form):
     choices = [('1', 'Канал+'), ('2', 'Советское'), ('3', 'Наше детство')]
     selected_choices = forms.MultipleChoiceField(choices=choices, widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
@@ -101,25 +102,25 @@ class WeekForm(forms.ModelForm):
 
 class CenzFormText(forms.Form):
     lgbt_form = forms.CharField(widget=forms.Textarea(
-        attrs={'class': "form-control", 'id': "lgbt_form", 'style': "height: 100px"}),
+        attrs={'class': "form-control", 'id': "lgbt_form", 'style': "height: 130px"}),
         label='ЛГБТ', required=False)
     sig_form = forms.CharField(widget=forms.Textarea(
-        attrs={'class': "form-control", 'id': "sig_form", 'style': "height: 100px"}),
+        attrs={'class': "form-control", 'id': "sig_form", 'style': "height: 130px"}),
         label='Сигареты', required=False)
     obnazh_form = forms.CharField(widget=forms.Textarea(
-        attrs={'class': "form-control", 'id': "obnazh_form", 'style': "height: 100px"}),
+        attrs={'class': "form-control", 'id': "obnazh_form", 'style': "height: 130px"}),
         label='Обнаженка', required=False)
     narc_form = forms.CharField(widget=forms.Textarea(
-        attrs={'class': "form-control", 'id': "narc_form", 'style': "height: 100px"}),
+        attrs={'class': "form-control", 'id': "narc_form", 'style': "height: 130px"}),
         label='Наркотики', required=False)
     mat_form = forms.CharField(widget=forms.Textarea(
-        attrs={'class': "form-control", 'id': "mat_form", 'style': "height: 100px"}),
+        attrs={'class': "form-control", 'id': "mat_form", 'style': "height: 130px"}),
         label='Мат', required=False)
     other_form = forms.CharField(widget=forms.Textarea(
-        attrs={'class': "form-control", 'id': "other_form", 'style': "height: 100px"}),
+        attrs={'class': "form-control", 'id': "other_form", 'style': "height: 130px"}),
         label='Другое', required=False)
     editor_form = forms.CharField(widget=forms.Textarea(
-        attrs={'class': "form-control", 'id': "editor_form", 'style': "height: 100px"}),
+        attrs={'class': "form-control", 'id': "editor_form", 'style': "height: 130px"}),
         label='Редакторские замечания', required=False)
 
 class CenzFormDropDown(forms.Form):
@@ -136,9 +137,9 @@ class CenzFormDropDown(forms.Form):
                ('Марфа Тарусина', 'Марфа Тарусина'),
                ('Евгений Доманов', 'Евгений Доманов')]
     rate = (('0+', '0+'), ('6+', '6+'), ('12+', '12+'), ('16+', '16+'), ('18+', '18+'))
-    meta_form = forms.BooleanField(widget=forms.CheckboxInput(
-        attrs={'class': 'form-check-input', 'type': 'checkbox', 'id': "meta_form"}),
-        label='Meta', required=False)
+    meta_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': 'form-select', 'id': "meta_form"}),
+        label='Meta', choices=((0, 'Нет'), (1, 'Да')), required=False)
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
         label='Дата отсмотра', required=False)
@@ -156,3 +157,23 @@ class CenzFormDropDown(forms.Form):
         label='Иноагент', choices=((0, 'agent_1'), (6, 'agent_2')), required=False)
 
 
+class KpiForm(forms.Form):
+    workers = [('', '-'),
+               (0, 'Александр Кисляков'),
+               (1, 'Ольга Кузовкина'),
+               (2, 'Дмитрий Гатенян'),
+               (3, 'Мария Сучкова'),
+               (4, 'Андрей Антипин'),
+               (5, 'Роман Рогачев'),
+               (6, 'Анастасия Чебакова'),
+               (7, 'Никита Кузаков'),
+               (8, 'Олег Кашежев'),
+               (9, 'Марфа Тарусина'),
+               (10, 'Евгений Доманов')]
+
+    work_date_form = forms.DateField(widget=forms.DateInput(
+        attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
+        label='Дата отсмотра', required=False)
+    workers_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "cenz_worker_form"}),
+        label='Выполняет', choices=workers, required=False)

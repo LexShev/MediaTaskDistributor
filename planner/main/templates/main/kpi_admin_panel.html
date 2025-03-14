@@ -125,16 +125,19 @@
 
       <form method="post" class="container p-0 d-flex align-items-center justify-content-start">
         {% csrf_token %}
-          <div class="form-floating ms-0 mx-1">
-            <select class="form-select" name="work_date" id="WorkDate" aria-label="WorkDate">
-              <option value="2025-02-26" selected>Сегодня</option>
-              <option value="2025-02-27">Завтра</option>
-              <option value="2025-03-01">2025-03-01</option>
-              <option value="2025-03-02">2025-03-02</option>
-            </select>
-            <label for="WorkDate">Укажите дату</label>
-          </div>
+        <div class="row">
+          {% for field in form %}
+            <div class="col">
+              <div class="form-floating mx-1 my-2">
+                {{ field }}
+                {{ field.label_tag }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="col">
           <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+        </div>
       </form>
 
       <table class="table table-striped table-hover">

@@ -18,27 +18,25 @@
   <div class="row">
   {% for field in form_drop %}
   <div class="col">
-    {% if field.id_for_label != 'meta_form' %}
-      <div class="form-floating mx-1 my-2">
-        {{ field }}
-        {{ field.label_tag }}
-      </div>
-    {% else %}
-      <div class="form-check mx-1 my-2">
-        {{ field }}
-        {{ field.label_tag }}
-      </div>
-    {% endif %}
-  </div>
-  {% endfor %}
-  </div>
-
-  {% for field in form_text %}
     <div class="form-floating mx-1 my-2">
       {{ field }}
       {{ field.label_tag }}
     </div>
+  </div>
   {% endfor %}
+  </div>
+
+<div class="row row-cols-2">
+  {% for field in form_text %}
+  <div class="col">
+    <div class="form-floating mx-1 my-2">
+      {{ field }}
+      {{ field.label_tag }}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
   <div class="text-end">
     <button type="submit" class="btn btn-outline-primary">Сохранить</button>
     <button type="button" class="btn btn-outline-secondary">Отменить</button>

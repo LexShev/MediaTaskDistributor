@@ -1,4 +1,5 @@
-from django.db.models import Model, IntegerField, TextField, DateField
+from django.db.models import Model, Manager, IntegerField, TextField, DateField
+
 
 class MainFilter(Model):
     owner = IntegerField('owner', primary_key=True, default=1)

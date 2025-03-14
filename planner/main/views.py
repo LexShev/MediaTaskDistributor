@@ -3,7 +3,8 @@ import ast
 import calendar
 
 from django.shortcuts import render, redirect
-from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown
+from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm
+from .insert_history import insert_action
 from .models import MainFilter
 
 from .list_view import list_material_list
@@ -26,7 +27,10 @@ def week(request):
     return redirect(week_date, start_day.year, start_day.isocalendar().week)
 
 def week_date(request, work_year, work_week):
-    init = MainFilter.objects.get(owner=request.user.id)
+    if request.user.id:
+        init = MainFilter.objects.get(owner=request.user.id)
+    else:
+        init = MainFilter.objects.get(owner=0)
     if request.method == 'POST':
         form = WeekForm(request.POST, instance=init)
         if form.is_valid():
@@ -66,7 +70,11 @@ def month(request):
 
 def full_list(request):
     # main_search = request.GET.get('search', None)
-    init = MainFilter.objects.get(owner=request.user.id)
+    if request.user.id:
+        init = MainFilter.objects.get(owner=request.user.id)
+    else:
+        init = MainFilter.objects.get(owner=0)
+
     if request.method == 'POST':
         form = ListForm(request.POST, instance=init)
         if form.is_valid():
@@ -115,37 +123,140 @@ def full_list(request):
 
 def material_card(request, program_id):
     custom_fields = cenz_info(program_id)
+
+    old_meta = custom_fields.get(17)
+    old_work_date = custom_fields.get(7)
+    old_cenz_rate = custom_fields.get(14)
+    old_cenz_worker = custom_fields.get(15)
+    old_tags = custom_fields.get(18)
+    old_inoagent = custom_fields.get(19)
+
+    old_lgbt = custom_fields.get(8)
+    old_sig = custom_fields.get(9)
+    old_obnazh = custom_fields.get(10)
+    old_narc = custom_fields.get(11)
+    old_mat = custom_fields.get(12)
+    old_other = custom_fields.get(13)
+    old_editor = custom_fields.get(16)
+
     if request.method == 'POST':
         form_drop = CenzFormDropDown(request.POST)
         form_text = CenzFormText(request.POST)
-        if form_text.is_valid():
-            lgbt_form = form_text.cleaned_data['lgbt_form']
-            print('lgbt_form', lgbt_form)
-        if form_drop.is_valid():
-            tags_form = form_drop.cleaned_data['cenz_rate_form']
-            print('tags_form', tags_form)
-            meta_form = form_drop.cleaned_data['meta_form']
-            print('meta_form', meta_form)
+        if form_text.is_valid() and form_drop.is_valid():
+            new_meta = form_drop.cleaned_data.get('meta_form')
+            new_work_date = form_drop.cleaned_data.get('work_date_form')
+            new_cenz_rate = form_drop.cleaned_data.get('cenz_rate_form')
+            new_cenz_worker = form_drop.cleaned_data.get('cenz_worker_form')
+            new_tags = form_drop.cleaned_data.get('tags_form')
+            new_inoagent = form_drop.cleaned_data.get('inoagent_form')
+
+            new_lgbt = form_text.cleaned_data.get('lgbt_form')
+            new_sig = form_text.cleaned_data.get('sig_form')
+            new_obnazh = form_text.cleaned_data.get('obnazh_form')
+            new_narc = form_text.cleaned_data.get('narc_form')
+            new_mat = form_text.cleaned_data.get('mat_form')
+            new_other = form_text.cleaned_data.get('other_form')
+            new_editor = form_text.cleaned_data.get('editor_form')
+            # keys = (
+            #     ('old_meta', 'new_meta'),
+            #     ('old_work_date', 'new_work_date'),
+            #     ('old_cenz_rate', 'new_cenz_rate'),
+            #     ('old_cenz_worker', 'new_cenz_worker'),
+            #     ('old_tags', 'new_tags'),
+            #     ('old_inoagent', 'new_inoagent'),
+            #     ('old_lgbt', 'new_lgbt'),
+            #     ('old_sig', 'new_sig'),
+            #     ('old_obnazh', 'new_obnazh'),
+            #     ('old_narc', 'new_narc'),
+            #     ('old_mat', 'new_mat'),
+            #     ('old_other', 'new_other'),
+            #     ('old_editor', 'new_editor'))
+            # values = (
+            #     (old_meta, new_meta),
+            #     (old_work_date, new_work_date),
+            #     (old_cenz_rate, new_cenz_rate),
+            #     (old_cenz_worker, new_cenz_worker),
+            #     (old_tags, new_tags),
+            #     (old_inoagent, new_inoagent),
+            #     (old_lgbt, new_lgbt),
+            #     (old_sig, new_sig),
+            #     (old_obnazh, new_obnazh),
+            #     (old_narc, new_narc),
+            #     (old_mat, new_mat),
+            #     (old_other, new_other),
+            #     (old_editor, new_editor))
+            #
+            # insert_dict = {'worker_id': 'worker_id', 'worker': 'worker', 'date_of_change': datetime.datetime.now()}
+            # for key, val in zip(keys, values):
+            #     old_key, new_key = key
+            #     old_val, new_val = val
+            #     if old_val or new_val:
+            #         insert_dict[old_key] = old_val
+            #         insert_dict[new_key] = new_val
+
+            keys = (
+                'old_meta', 'new_meta',
+                'old_work_date', 'new_work_date',
+                'old_cenz_rate', 'new_cenz_rate',
+                'old_cenz_worker', 'new_cenz_worker',
+                'old_tags', 'new_tags',
+                'old_inoagent', 'new_inoagent',
+                'old_lgbt', 'new_lgbt',
+                'old_sig', 'new_sig',
+                'old_obnazh', 'new_obnazh',
+                'old_narc', 'new_narc',
+                'old_mat', 'new_mat',
+                'old_other', 'new_other',
+                'old_editor', 'new_editor')
+            values = (
+                old_meta, new_meta,
+                old_work_date, new_work_date,
+                old_cenz_rate, new_cenz_rate,
+                old_cenz_worker, new_cenz_worker,
+                old_tags, new_tags,
+                old_inoagent, new_inoagent,
+                old_lgbt, new_lgbt,
+                old_sig, new_sig,
+                old_obnazh, new_obnazh,
+                old_narc, new_narc,
+                old_mat, new_mat,
+                old_other, new_other,
+                old_editor, new_editor)
+
+            insert_dict = {'worker_id': 11, 'worker': 'Алексей Шевченко', 'date_of_change': str(datetime.datetime.now())}
+            # .strftime("%Y-%m-%d %H:%M:%S")
+            for key, val in zip(keys, values):
+                if val:
+                    if val == True:
+                        val = 1
+                    elif isinstance(val, datetime.date):
+                        val = val.strftime('%Y-%m-%d')
+                    insert_dict[key] = val
+
+            print('insert_dict', insert_dict)
+
+            insert_action(**insert_dict)
 
     else:
-        print('no')
         form_drop = CenzFormDropDown(
-            initial={'meta_form': custom_fields.get(17),
-            'work_date_form': custom_fields.get(7),
-            'cenz_rate_form': custom_fields.get(14),
-            'cenz_worker_form': custom_fields.get(15),
-            'tags_form': custom_fields.get(18),
-            'inoagent_form': custom_fields.get(19),
+            initial={
+                'meta_form': old_meta,
+                'work_date_form': old_work_date,
+                'cenz_rate_form': old_cenz_rate,
+                'cenz_worker_form': old_cenz_worker,
+                'tags_form': old_tags,
+                'inoagent_form': old_inoagent,
             })
-        print('custom_fields.get(7)', custom_fields.get(7))
         form_text = CenzFormText(
-            initial={'lgbt_form': custom_fields.get(8),
-            'sig_form': custom_fields.get(9),
-            'obnazh_form': custom_fields.get(10),
-            'narc_form': custom_fields.get(11),
-            'mat_form': custom_fields.get(12),
-            'other_form': custom_fields.get(13),
-            'editor_form': custom_fields.get(16)})
+            initial={
+                'lgbt_form': old_lgbt,
+                'sig_form': old_sig,
+                'obnazh_form': old_obnazh,
+                'narc_form': old_narc,
+                'mat_form': old_mat,
+                'other_form': old_other,
+                'editor_form': old_editor
+            })
 
     data = {'full_info': full_info(program_id),
             'custom_fields': custom_fields,
@@ -157,9 +268,28 @@ def material_card(request, program_id):
     return render(request, 'main/full_info_card.html', data)
 
 def kpi_info(request):
-    work_date = request.POST.get('work_date', str(datetime.datetime.today().date()))
-    workers = request.POST.get('workers', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
-    data = kpi_summary_calc(work_date, workers)
+    work_date = str(datetime.datetime.today().date())
+    workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+    if request.method == 'POST':
+        form = KpiForm(request.POST)
+        if form.is_valid():
+            work_date = str(form.cleaned_data.get('work_date_form'))
+            workers = form.cleaned_data.get('workers_form')
+            if not workers or workers == 'None':
+                print('no workers')
+                workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+    else:
+        form = KpiForm(initial={
+            'work_date_form': work_date,
+            'workers_form': workers})
+
+    # work_date = request.POST.get('work_date', str(datetime.datetime.today().date()))
+    # workers = request.POST.get('workers', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
+    task_list, summary_dict = kpi_summary_calc(work_date, workers)
+    data = {'task_list': task_list,
+            'summary_dict': summary_dict,
+            'today': datetime.datetime.today().date(),
+            'form': form}
     return render(request, 'main/kpi_admin_panel.html', data)
 
 def kpi_worker(request, worker_id):

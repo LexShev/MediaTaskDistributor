@@ -28,7 +28,7 @@ def summary_task_list(work_dates, workers):
     # work_dates = ('2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06')
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
-    if isinstance(workers, int):
+    if isinstance(workers, int) or isinstance(workers, str):
         workers = (workers, workers)
     with connections['planner'].cursor() as cursor:
         columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'worker'), ('Task', 'duration'),
@@ -44,6 +44,7 @@ def summary_task_list(work_dates, workers):
         WHERE Task.[work_date] IN {work_dates}
         AND Task.[worker_id] IN {workers}
         '''
+        print(query)
         cursor.execute(query)
         result = cursor.fetchall()
         # task_list = [dict(zip(django_columns, task)) for task in result]
@@ -65,7 +66,7 @@ def kpi_summary_calc(work_dates, workers):
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
 
-    return {'task_list': task_list, 'summary_dict': summary_dict, 'today': datetime.datetime.today().date()}
+    return task_list, summary_dict
 
 
 def personal_task_list(work_dates, worker_id):
