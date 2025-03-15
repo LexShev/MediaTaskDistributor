@@ -158,7 +158,7 @@ class CenzFormDropDown(forms.Form):
 
 
 class KpiForm(forms.Form):
-    workers = [('', '-'),
+    workers = [((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), '-'),
                (0, 'Александр Кисляков'),
                (1, 'Ольга Кузовкина'),
                (2, 'Дмитрий Гатенян'),
@@ -170,6 +170,10 @@ class KpiForm(forms.Form):
                (8, 'Олег Кашежев'),
                (9, 'Марфа Тарусина'),
                (10, 'Евгений Доманов')]
+    task_status = [(('not_ready', 'ready', 'fix'), '-'),
+                   ('not_ready', 'Не готов'),
+                   ('ready', 'Готов'),
+                   ('fix', 'На доработке')]
 
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
@@ -177,3 +181,6 @@ class KpiForm(forms.Form):
     workers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "cenz_worker_form"}),
         label='Выполняет', choices=workers, required=False)
+    task_status_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "task_status_form"}),
+        label='Статус задачи', choices=task_status, required=False)

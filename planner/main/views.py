@@ -270,22 +270,26 @@ def material_card(request, program_id):
 def kpi_info(request):
     work_date = str(datetime.datetime.today().date())
     workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+    task_status = ('not_ready', 'ready', 'fix')
     if request.method == 'POST':
         form = KpiForm(request.POST)
         if form.is_valid():
             work_date = str(form.cleaned_data.get('work_date_form'))
             workers = form.cleaned_data.get('workers_form')
+            task_status = form.cleaned_data.get('task_status_form')
+            print('task_status', task_status)
             if not workers or workers == 'None':
                 print('no workers')
                 workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
     else:
         form = KpiForm(initial={
             'work_date_form': work_date,
-            'workers_form': workers})
+            'workers_form': workers,
+            'task_status': task_status})
 
     # work_date = request.POST.get('work_date', str(datetime.datetime.today().date()))
     # workers = request.POST.get('workers', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
-    task_list, summary_dict = kpi_summary_calc(work_date, workers)
+    task_list, summary_dict = kpi_summary_calc(work_date, workers, task_status)
     data = {'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.datetime.today().date(),
@@ -293,8 +297,22 @@ def kpi_info(request):
     return render(request, 'main/kpi_admin_panel.html', data)
 
 def kpi_worker(request, worker_id):
-    work_date = request.POST.get('work_date', str(datetime.datetime.today().date()))
-    data = kpi_personal_calc(work_date, worker_id)
+    work_date = str(datetime.datetime.today().date())
+    task_status = ('not_ready', 'ready', 'fix')
+    if request.method == 'POST':
+        form = KpiForm(request.POST)
+        if form.is_valid():
+            work_date = str(form.cleaned_data.get('work_date_form'))
+            task_status = form.cleaned_data.get('task_status_form')
+    else:
+        form = KpiForm(initial={
+            'work_date_form': work_date,
+            'task_status': task_status})
+    task_list, summary_dict = kpi_personal_calc(work_date, worker_id, task_status)
+    data = {'task_list': task_list,
+            'summary_dict': summary_dict,
+            'today': datetime.datetime.today().date(),
+            'form': form}
     return render(request, 'main/kpi_worker.html', data)
 
 def test_page(request):

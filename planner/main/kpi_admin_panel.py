@@ -24,12 +24,9 @@ def convert_frames_to_time(frames, fps=25):
 #     sec = int(frames)/fps
 #     return datetime.timedelta(seconds=sec)
 
-def summary_task_list(work_dates, workers):
-    # work_dates = ('2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06')
+def summary_task_list(work_dates):
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
-    if isinstance(workers, int) or isinstance(workers, str):
-        workers = (workers, workers)
     with connections['planner'].cursor() as cursor:
         columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'worker'), ('Task', 'duration'),
                    ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
@@ -42,16 +39,16 @@ def summary_task_list(work_dates, workers):
         JOIN [oplan3].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
         WHERE Task.[work_date] IN {work_dates}
-        AND Task.[worker_id] IN {workers}
+        AND Task.[worker_id] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+        AND Task.[task_status] IN ('not_ready', 'ready', 'fix')
         '''
         print(query)
         cursor.execute(query)
         result = cursor.fetchall()
-        # task_list = [dict(zip(django_columns, task)) for task in result]
     return [dict(zip(django_columns, task)) for task in result]
 
-def kpi_summary_calc(work_dates, workers):
-    task_list = summary_task_list(work_dates, workers)
+def kpi_summary_calc(work_dates, workers, task_status):
+    task_list = summary_task_list(work_dates)
     count_dates = len(set(task.get('Task_work_date') for task in task_list))
     count_workers = len(set(task.get('Task_worker_id') for task in task_list))
     total_count = len(task_list)
@@ -60,8 +57,13 @@ def kpi_summary_calc(work_dates, workers):
     not_ready_tasks = len(list(filter(lambda x: x.get('Task_task_status') == 'not_ready', task_list)))
     ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'ready')
     not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'not_ready')
-    total_kpi = total_dur / (720000.0 * count_dates * count_workers)
-    ready_kpi = ready_dur / (720000.0 * count_dates * count_workers)
+    try:
+        total_kpi = total_dur / (720000.0 * count_dates * count_workers)
+        ready_kpi = ready_dur / (720000.0 * count_dates * count_workers)
+    except Exception as e:
+        total_kpi = 0
+        ready_kpi = 0
+        print(e)
     summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
@@ -91,7 +93,7 @@ def personal_task_list(work_dates, worker_id):
         result = cursor.fetchall()
     return [dict(zip(django_columns, task)) for task in result]
 
-def kpi_personal_calc(work_date, worker_id):
+def kpi_personal_calc(work_date, worker_id, task_status):
     task_list = personal_task_list(work_date, worker_id)
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
@@ -104,7 +106,7 @@ def kpi_personal_calc(work_date, worker_id):
     summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
-    return {'task_list': task_list, 'summary_dict': summary_dict, 'today': datetime.datetime.today().date()}
+    return task_list, summary_dict
 
 # def calc_task_list():
 #     real_dates = set(task['Task_work_date'] for task in task_list)
