@@ -106,7 +106,11 @@ def kpi_personal_calc(work_date, worker_id, task_status):
     summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
-    return task_list, summary_dict
+    if task_status == "('not_ready', 'ready', 'fix')":
+        filtered_task_list = task_list
+    else:
+        filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status)
+    return filtered_task_list, summary_dict
 
 # def calc_task_list():
 #     real_dates = set(task['Task_work_date'] for task in task_list)
