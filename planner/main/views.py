@@ -269,18 +269,18 @@ def material_card(request, program_id):
 
 def kpi_info(request):
     work_date = str(datetime.datetime.today().date())
-    workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-    task_status = ('not_ready', 'ready', 'fix')
+    workers = ''
+    task_status = ''
     if request.method == 'POST':
         form = KpiForm(request.POST)
         if form.is_valid():
             work_date = str(form.cleaned_data.get('work_date_form'))
             workers = form.cleaned_data.get('workers_form')
             task_status = form.cleaned_data.get('task_status_form')
-            print('task_status', task_status)
-            if not workers or workers == 'None':
-                print('no workers')
-                workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+            # if not workers or workers == 'None':
+            #     workers = '-'
+            # if not task_status or task_status == 'None':
+            #     task_status = '-'
     else:
         form = KpiForm(initial={
             'work_date_form': work_date,

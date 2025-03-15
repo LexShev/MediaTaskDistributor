@@ -158,7 +158,7 @@ class CenzFormDropDown(forms.Form):
 
 
 class KpiForm(forms.Form):
-    workers = [((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), '-'),
+    workers = [('', '-'),
                (0, 'Александр Кисляков'),
                (1, 'Ольга Кузовкина'),
                (2, 'Дмитрий Гатенян'),
@@ -170,7 +170,7 @@ class KpiForm(forms.Form):
                (8, 'Олег Кашежев'),
                (9, 'Марфа Тарусина'),
                (10, 'Евгений Доманов')]
-    task_status = [(('not_ready', 'ready', 'fix'), '-'),
+    task_status = [('', '-'),
                    ('not_ready', 'Не готов'),
                    ('ready', 'Готов'),
                    ('fix', 'На доработке')]

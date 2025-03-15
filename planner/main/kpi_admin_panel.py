@@ -48,9 +48,9 @@ def summary_task_list(work_dates):
     return [dict(zip(django_columns, task)) for task in result]
 
 def kpi_summary_calc(work_dates, workers, task_status):
+    print('task_status', task_status)
+    print('workers', workers)
     task_list = summary_task_list(work_dates)
-    print('workers', [task.get('Task_worker_id') for task in task_list])
-
     count_dates = len(set(task.get('Task_work_date') for task in task_list))
     count_workers = len(set(task.get('Task_worker_id') for task in task_list))
     total_count = len(task_list)
@@ -69,7 +69,15 @@ def kpi_summary_calc(work_dates, workers, task_status):
     summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
-    filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status and task.get('Task_worker_id') == int(workers))
+
+    if not task_status and workers:
+        filtered_task_list = (task for task in task_list if task.get('Task_worker_id') == int(workers))
+    elif task_status and not workers:
+        filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status)
+    elif task_status and workers:
+        filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status and task.get('Task_worker_id') == int(workers))
+    else:
+        filtered_task_list = task_list
     return filtered_task_list, summary_dict
 
 
