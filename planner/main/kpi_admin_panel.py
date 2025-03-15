@@ -49,6 +49,8 @@ def summary_task_list(work_dates):
 
 def kpi_summary_calc(work_dates, workers, task_status):
     task_list = summary_task_list(work_dates)
+    print('workers', [task.get('Task_worker_id') for task in task_list])
+
     count_dates = len(set(task.get('Task_work_date') for task in task_list))
     count_workers = len(set(task.get('Task_worker_id') for task in task_list))
     total_count = len(task_list)
@@ -67,8 +69,8 @@ def kpi_summary_calc(work_dates, workers, task_status):
     summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
-
-    return task_list, summary_dict
+    filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status and task.get('Task_worker_id') == int(workers))
+    return filtered_task_list, summary_dict
 
 
 def personal_task_list(work_dates, worker_id):
