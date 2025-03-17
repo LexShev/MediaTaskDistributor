@@ -1,4 +1,6 @@
 from django import forms
+
+from .db_connection import program_custom_fields
 from .models import MainFilter
 
 
@@ -137,6 +139,16 @@ class CenzFormDropDown(forms.Form):
                ('Олег Кашежев', 'Олег Кашежев'),
                ('Марфа Тарусина', 'Марфа Тарусина'),
                ('Евгений Доманов', 'Евгений Доманов')]
+
+    tags = program_custom_fields().get(18)
+    if tags:
+        tags = [tag for tag in enumerate(tags.split('\r\n'))]
+        tags.append(('', '-'))
+
+    inoagents = program_custom_fields().get(19)
+    if inoagents:
+        inoagents = [inoagent for inoagent in enumerate(inoagents.split('\r\n'))]
+        inoagents.append(('', '-'))
     rate = (('0+', '0+'), ('6+', '6+'), ('12+', '12+'), ('16+', '16+'), ('18+', '18+'))
     meta_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'form-select', 'id': "meta_form"}),
@@ -152,10 +164,10 @@ class CenzFormDropDown(forms.Form):
         label='Тайтл проверил', choices=workers, required=False)
     tags_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "tags_form"}),
-        label='Теги', choices=((0, 'tag_1'), (6, 'tag_2')), required=False)
+        label='Теги', choices=tags, required=False)
     inoagent_form = forms.ChoiceField(
         widget=forms.Select(attrs={'class': "form-select", 'id': "inoagent_form"}),
-        label='Иноагент', choices=((0, 'agent_1'), (6, 'agent_2')), required=False)
+        label='Иноагент', choices=inoagents, required=False)
 
 
 class KpiForm(forms.Form):

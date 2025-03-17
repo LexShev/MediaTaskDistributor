@@ -143,3 +143,18 @@ def oplan3_cenz_worker(program_id):
             return int_value, items_string.split('\r\n')[int_value]
         else:
             return None, None
+
+def program_custom_fields():
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        SELECT [CustomFieldID], [ItemsString]
+        FROM [oplan3].[dbo].[ProgramCustomFields]
+        WHERE [CustomFieldID] IN (15, 18, 19)
+        '''
+        cursor.execute(query)
+        fields_list = cursor.fetchall()
+        fields_dict = {}
+        if fields_list:
+            for field_id, items_string in fields_list:
+                fields_dict[field_id] = items_string
+        return fields_dict

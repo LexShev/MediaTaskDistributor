@@ -237,12 +237,9 @@ def material_card(request, program_id):
                         val = val.strftime('%Y-%m-%d')
                     insert_dict[key] = val
 
-            print('insert_dict', insert_dict)
-
             insert_action(**insert_dict)
 
     else:
-        print('old_work_date', old_work_date)
         form_drop = CenzFormDropDown(
             initial={
                 'meta_form': old_meta,
