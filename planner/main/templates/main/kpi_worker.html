@@ -4,10 +4,23 @@
 {% block body %}
 <div class="container-flex p-4">
   <div class="row">
-    <div class="col col-3 m-0 p-0">
-      <div class="row m-2">
-        <div class="col m-0 p-0">
-          <div class="card text-center border-light p-0" style="width: 28rem;">
+    <div class="col col-2">
+      <div class="row sticky-top">
+        <div class="col text-center m-2">
+          <h4>{{ task_list.0.Task_worker }}</h4>
+        </div>
+        <div class="col m-2">
+          <div class="card text-center border-light p-0" style="width: 18rem;">
+            <div class="card-header border-warning">
+              <h5>KPI</h5>
+            </div>
+            <div class="card-body">
+              <h3 class="card-title">{{ summary_dict.ready_kpi|floatformat:2 }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col m-2">
+          <div class="card text-center border-light p-0" style="width: 18rem;">
             <div class="card-header border-info">
               <h5>Всего задач в работе</h5>
             </div>
@@ -16,9 +29,8 @@
             </div>
           </div>
         </div>
-      <div class="row m-0 p-0">
-        <div class="col m-0 p-0">
-          <div class="card text-center border-light p-0" style="width: 14rem;">
+        <div class="col m-2">
+          <div class="card text-center border-light p-0" style="width: 18rem;">
             <div class="card-header border-success">
               <h5>Завершено</h5>
             </div>
@@ -27,8 +39,8 @@
             </div>
           </div>
         </div>
-        <div class="col m-0 p-0">
-          <div class="card text-center border-light p-0" style="width: 14rem;">
+        <div class="col m-2">
+          <div class="card text-center border-light p-0" style="width: 18rem;">
             <div class="card-header border-danger">
               <h5>Осталось</h5>
             </div>
@@ -37,22 +49,7 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="row m-0 p-0">
-        <div class="card text-center border-light p-0" style="width: 28rem;">
-          <div class="card-header border-success">
-            <h5>KPI</h5>
-          </div>
-          <div class="card-body">
-            <h3 class="card-title">{{ summary_dict.total_kpi|floatformat:2 }}</h3>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-    <div class="col col-9">
-      <div class="row">
-        <div class="col">
+        <div class="col m-2">
           <div class="card text-center border-light p-0" style="width: 18rem;">
             <div class="card-header border-primary">
               <h5>Общий хронометраж</h5>
@@ -62,47 +59,55 @@
             </div>
           </div>
         </div>
-        <div class="col">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
-            <div class="card-header border-light">
-              <h5>Сегодня</h5>
+<!--        <div class="col m-2">-->
+<!--          <div class="card text-center border-light p-0" style="width: 16rem;">-->
+<!--            <div class="card-header border-light">-->
+<!--              <h5>Сегодня</h5>-->
+<!--            </div>-->
+<!--            <div class="card-body border-light">-->
+<!--              <h3 class="card-title">{{ today|date:'d.m.Y' }}</h3>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+      </div>
+    </div>
+
+    <div class="col col-10 pe-5">
+      <form method="post" class="container p-0 m-0 d-flex align-items-center justify-content-start">
+        {% csrf_token %}
+        <div class="row ms-0 m-2 align-items-center">
+          <div class="col ps-0">
+            <div class="form-floating" style="width:200px;">
+              {{ form.work_date_form }}
+              {{ form.work_date_form.label_tag }}
             </div>
-            <div class="card-body border-light">
-              <h3 class="card-title">{{ today|date:'d.m.Y' }}</h3>
+          </div>
+          <div class="col ps-0">
+            <div class="form-floating" style="width:200px;">
+              {{ form.material_type_form }}
+              {{ form.material_type_form.label_tag }}
+            </div>
+          </div>
+          <div class="col ps-0">
+            <div class="form-floating" style="width:200px;">
+              {{ form.task_status_form }}
+              {{ form.task_status_form.label_tag }}
             </div>
           </div>
         </div>
-      </div>
-      <div class="row">
-        <form method="post" class="container p-0 d-flex align-items-center justify-content-start">
-          {% csrf_token %}
-          <div class="row">
-              <div class="col">
-                <div class="form-floating mx-1 my-2">
-                  {{ form.work_date_form }}
-                  {{ form.work_date_form.label_tag }}
-                </div>
-              </div>
-              <div class="col">
-                <div class="form-floating mx-1 my-2">
-                  {{ form.task_status_form }}
-                  {{ form.task_status_form.label_tag }}
-                </div>
-              </div>
-          </div>
-          <div class="col">
-            <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
-          </div>
-        </form>
+        <div class="col">
+          <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+        </div>
+      </form>
 
       <table class="table table-striped table-hover">
         <thead>
           <tr>
-            <th scope="col">Program_id</th>
-            <th scope="col">Название</th>
-            <th scope="col">Длительность</th>
-            <th scope="col">Дата отсмотра</th>
-            <th scope="col">Статус</th>
+            <th scope="col" class="col-1">Program_id</th>
+            <th scope="col" class="col-5">Название</th>
+            <th scope="col" class="col-1">Длительность</th>
+            <th scope="col" class="col-1">Дата отсмотра</th>
+            <th scope="col" class="col-1">Статус</th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
@@ -116,12 +121,15 @@
                   {{ task.Progs_name }}. ({{ task.Progs_production_year }})</a></td>
               <td>{{ task.Task_duration|convert_frames_to_time }}</td>
               <td>{{ task.Task_work_date|date:'d-m-Y' }}</td>
-              <td>{{ task.Task_task_status }}</td>
+              {% if task.Task_task_status == 'not_ready' %}
+                <td>Не готов</td>
+              {% elif task.Task_task_status == 'ready' %}
+                <td>Готов</td>
+              {% endif %}
             </tr>
           {% endfor %}
         </tbody>
       </table>
-      </div>
     </div>
   </div>
 </div>

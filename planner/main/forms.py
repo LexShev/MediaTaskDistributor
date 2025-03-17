@@ -51,6 +51,7 @@ class ListForm(forms.ModelForm):
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
             'work_dates': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date'}),
+                # , 'data-bs-theme': "light"
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status', 'placeholder': 'test'}, choices=task_status),
         }
@@ -175,12 +176,19 @@ class KpiForm(forms.Form):
                    ('ready', 'Готов'),
                    ('fix', 'На доработке')]
 
+    material_type = [('', '-'),
+                     ('film', 'Фильм'),
+                     ('season', 'Сериал')]
+
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
         label='Дата отсмотра', required=False)
     workers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "cenz_worker_form"}),
         label='Выполняет', choices=workers, required=False)
+    material_type_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "material_type_form"}),
+        label='Тип материала', choices=material_type, required=False)
     task_status_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "task_status_form"}),
         label='Статус задачи', choices=task_status, required=False)

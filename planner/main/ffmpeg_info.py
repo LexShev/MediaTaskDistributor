@@ -2,6 +2,9 @@ from django.db import connections
 import pymongo
 from django.template.defaulttags import register
 
+conn = pymongo.MongoClient("localhost", 27017)
+db = conn['planner_db']
+collection = db['mediainfo']
 
 @register.filter
 def convert_fps(data):
@@ -26,25 +29,26 @@ def convert_khz(data):
 
 @register.filter
 def convert_bytes(size, unit="bit/s"):
-    size = int(size)
-    power = (2 ** 10)
-    n = 0
-    labels = ['', 'K', 'M', 'G', 'T']
-    while size > power:
-        size /= power
-        n += 1
-    val = f'{round(size, 2)} {labels[n]}{unit}'
-    return val
+    if size:
+        size = int(size)
+        power = (2 ** 10)
+        n = 0
+        labels = ['', 'K', 'M', 'G', 'T']
+        while size > power:
+            size /= power
+            n += 1
+        return f'{round(size, 2)} {labels[n]}{unit}'
 
 @register.filter
 def convert_sec_to_time(sec, fps=25):
-    sec = float(sec)
-    hh = int(sec // 3600)
-    mm = int((sec % 3600) // 60)
-    ss = int((sec % 3600) % 60 // 1)
-    ff = int(sec % 1 * fps)
-    conv_date = f'{hh:02}:{mm:02}:{ss:02}.{ff:02}'
-    return conv_date
+    if sec:
+        sec = float(sec)
+        hh = int(sec // 3600)
+        mm = int((sec % 3600) // 60)
+        ss = int((sec % 3600) % 60 // 1)
+        ff = int(sec % 1 * fps)
+        return f'{hh:02}:{mm:02}:{ss:02}.{ff:02}'
+
 
 # @register.filter
 # def convert_sec_to_time(sec):
@@ -54,10 +58,6 @@ def convert_sec_to_time(sec, fps=25):
 def get_value(dictionary, key):
     return dictionary.get(key)
 
-
-conn = pymongo.MongoClient("localhost", 27017)
-db = conn['planner_db']
-collection = db['mediainfo']
 
 def ffmpeg_dict(program_id):
     cursor = collection.find({'_id': program_id})

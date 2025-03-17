@@ -24,6 +24,14 @@ def convert_frames_to_time(frames, fps=25):
 #     sec = int(frames)/fps
 #     return datetime.timedelta(seconds=sec)
 
+def check_mat_type(param):
+    if param == 'film':
+        return 5, 6, 10, 11
+    elif param == 'season':
+        return 4, 12
+    else:
+        return 4, 5, 6, 10, 11, 12
+
 def summary_task_list(work_dates):
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
@@ -47,9 +55,11 @@ def summary_task_list(work_dates):
         result = cursor.fetchall()
     return [dict(zip(django_columns, task)) for task in result]
 
-def kpi_summary_calc(work_dates, workers, task_status):
-    print('task_status', task_status)
-    print('workers', workers)
+def kpi_summary_calc(work_dates, workers, material_type, task_status):
+    print('material_type', material_type)
+    if workers:
+        workers = int(workers)
+
     task_list = summary_task_list(work_dates)
     count_dates = len(set(task.get('Task_work_date') for task in task_list))
     count_workers = len(set(task.get('Task_worker_id') for task in task_list))
@@ -70,21 +80,23 @@ def kpi_summary_calc(work_dates, workers, task_status):
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
 
-    if not task_status and workers:
-        filtered_task_list = (task for task in task_list if task.get('Task_worker_id') == int(workers))
-    elif task_status and not workers:
-        filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status)
-    elif task_status and workers:
-        filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status and task.get('Task_worker_id') == int(workers))
-    else:
-        filtered_task_list = task_list
+    filtered_task_list = filter(lambda task: task.get('Task_worker_id') == workers or not workers and workers != 0, task_list)
+    filtered_task_list = filter(lambda task: task.get('Progs_program_type_id') in check_mat_type(material_type) or not material_type, filtered_task_list)
+    filtered_task_list = filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list)
+    # if not task_status and workers:
+    #     filtered_task_list = (task for task in task_list if task.get('Task_worker_id') == int(workers))
+    # elif task_status and not workers:
+    #     filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status)
+    # elif task_status and workers:
+    #     filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status and task.get('Task_worker_id') == int(workers))
+    # else:
+    #     filtered_task_list = task_list
     return filtered_task_list, summary_dict
 
 
 def personal_task_list(work_dates, worker_id):
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
-    # work_dates = ('2025-03-03', '2025-03-04', '2025-03-05', '2025-03-06')
     with connections['planner'].cursor() as cursor:
         columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'worker'), ('Task', 'duration'),
                    ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
@@ -103,7 +115,7 @@ def personal_task_list(work_dates, worker_id):
         result = cursor.fetchall()
     return [dict(zip(django_columns, task)) for task in result]
 
-def kpi_personal_calc(work_date, worker_id, task_status):
+def kpi_personal_calc(work_date, worker_id, material_type, task_status):
     task_list = personal_task_list(work_date, worker_id)
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
@@ -116,10 +128,8 @@ def kpi_personal_calc(work_date, worker_id, task_status):
     summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
-    if task_status == "('not_ready', 'ready', 'fix')":
-        filtered_task_list = task_list
-    else:
-        filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status)
+    filtered_task_list = filter(lambda task: task.get('Progs_program_type_id') in check_mat_type(material_type) or not material_type, task_list)
+    filtered_task_list = filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list)
     return filtered_task_list, summary_dict
 
 # def calc_task_list():

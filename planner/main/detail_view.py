@@ -60,11 +60,42 @@ def cenz_info(program_id):
         custom_fields_dict = {}
         for cenz in cenz_info_sql:
             field_id, field_name, text_value, items_string, int_value, date_value = cenz
+            # Ценз отсмотра
             if field_id == 14:
                 custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
+            # Тайтл проверил
             elif field_id == 15:
                 custom_fields_dict['worker_id'] = int_value
                 custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
+            # Дата отсмотра
+            elif field_id == 7:
+                custom_fields_dict[field_id] = date_value
+            else:
+                custom_fields_dict[field_id] = text_value
+    return custom_fields_dict
+
+def insert_cenz_info(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        columns = 'Val.[ProgramCustomFieldId], Fields.[Name], Val.[TextValue], Fields.[ItemsString], Val.[IntValue], Val.[DateValue]'
+        query_test = f'''
+            UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
+            SET [TextValue], Val.[IntValue], Val.[DateValue]
+            WHERE Val.[ObjectId] = {program_id}
+            AND [ProgramCustomFieldId] = {field_id}
+                '''
+        cursor.execute(query_test)
+        cenz_info_sql = cursor.fetchall()
+        custom_fields_dict = {}
+        for cenz in cenz_info_sql:
+            field_id, field_name, text_value, items_string, int_value, date_value = cenz
+            # Ценз отсмотра
+            if field_id == 14:
+                custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
+            # Тайтл проверил
+            elif field_id == 15:
+                custom_fields_dict['worker_id'] = int_value
+                custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
+            # Дата отсмотра
             elif field_id == 7:
                 custom_fields_dict[field_id] = date_value
             else:

@@ -8,7 +8,7 @@
     </thead>
     <tbody>
       <tr>
-        {% for air in full_info.schedule_info|dictsort:"DateTime" %}
+        {% for air in schedule_info|dictsort:"DateTime" %}
             <td>{{ air.DateTime|date:"d.m.Y" }}</td>
             <td>{{ air.DateTime|date:"H:i:s" }}</td>
             <td>{{ air.ChannelName }}</td>

@@ -5,8 +5,8 @@
   <div class="container-xxl text-start px-0">
     <div class="row p-0">
       <div class="container-xxl text-start px-0">
-        <nav class="px-1 pb-2 text-center sticky-top">
-          <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">Filter</button>
+        <nav class="px-1 pb-2 text-center">
+          <button class="btn btn-outline-info" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">Filter</button>
 
           <div class="offcanvas offcanvas-top" style='height: 400px;' tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel">
             <div class="offcanvas-header">
@@ -24,6 +24,7 @@
             <div class="card border shadow mx-1 my-2 mt-0 p-0">
               <div class="card-header p-2">
                 <input class="form-check-input me-1" type="checkbox" value="" id="film_id">
+<!--                {% if material.Task_task_status == 'ready' %}checked{% endif %}-->
                   <label class="form-check-label" for="film_id">
                     <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                       <h6 class="my-0 mx-1">{{ material.Progs_name }} ({{ material.Progs_production_year }})</h6>

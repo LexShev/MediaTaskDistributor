@@ -122,6 +122,7 @@ def full_list(request):
     return render(request, 'main/list.html', data)
 
 def material_card(request, program_id):
+
     custom_fields = cenz_info(program_id)
 
     old_meta = custom_fields.get(17)
@@ -138,6 +139,9 @@ def material_card(request, program_id):
     old_mat = custom_fields.get(12)
     old_other = custom_fields.get(13)
     old_editor = custom_fields.get(16)
+
+    if old_work_date and not isinstance(old_work_date, str):
+        old_work_date = str(old_work_date.date())
 
     if request.method == 'POST':
         form_drop = CenzFormDropDown(request.POST)
@@ -238,6 +242,7 @@ def material_card(request, program_id):
             insert_action(**insert_dict)
 
     else:
+        print('old_work_date', old_work_date)
         form_drop = CenzFormDropDown(
             initial={
                 'meta_form': old_meta,
@@ -271,25 +276,24 @@ def kpi_info(request):
     work_date = str(datetime.datetime.today().date())
     workers = ''
     task_status = ''
+    material_type = ''
     if request.method == 'POST':
         form = KpiForm(request.POST)
         if form.is_valid():
             work_date = str(form.cleaned_data.get('work_date_form'))
             workers = form.cleaned_data.get('workers_form')
+            material_type = form.cleaned_data.get('material_type_form')
             task_status = form.cleaned_data.get('task_status_form')
-            # if not workers or workers == 'None':
-            #     workers = '-'
-            # if not task_status or task_status == 'None':
-            #     task_status = '-'
     else:
         form = KpiForm(initial={
             'work_date_form': work_date,
             'workers_form': workers,
+            'material_type_form': material_type,
             'task_status': task_status})
 
     # work_date = request.POST.get('work_date', str(datetime.datetime.today().date()))
     # workers = request.POST.get('workers', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
-    task_list, summary_dict = kpi_summary_calc(work_date, workers, task_status)
+    task_list, summary_dict = kpi_summary_calc(work_date, workers, material_type, task_status)
     data = {'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.datetime.today().date(),
@@ -298,17 +302,20 @@ def kpi_info(request):
 
 def kpi_worker(request, worker_id):
     work_date = str(datetime.datetime.today().date())
-    task_status = ('not_ready', 'ready', 'fix')
+    task_status = ''
+    material_type = ''
     if request.method == 'POST':
         form = KpiForm(request.POST)
         if form.is_valid():
             work_date = str(form.cleaned_data.get('work_date_form'))
+            material_type = form.cleaned_data.get('material_type_form')
             task_status = form.cleaned_data.get('task_status_form')
     else:
         form = KpiForm(initial={
             'work_date_form': work_date,
+            'material_type': material_type,
             'task_status': task_status})
-    task_list, summary_dict = kpi_personal_calc(work_date, worker_id, task_status)
+    task_list, summary_dict = kpi_personal_calc(work_date, worker_id, material_type, task_status)
     data = {'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.datetime.today().date(),
@@ -316,8 +323,7 @@ def kpi_worker(request, worker_id):
     return render(request, 'main/kpi_worker.html', data)
 
 def test_page(request):
-    print(list(request.POST.items()))
-    return render(request, 'main/test_page.html')
+    return render(request, 'main/dynamic_search.html')
 
 def my_view(request):
     print(list(request.POST.items()))
