@@ -21,7 +21,7 @@
         {{ init.0.channels }}
         {% for material in material_list %}
           {% if material.type == 'film' %}
-            <div class="card border shadow mx-1 my-2 mt-0 p-0">
+            <div class="card shadow mx-1 my-2 mt-0 p-0" style="border-color: {{ material.color }};">
               <div class="card-header p-2">
                 <input class="form-check-input me-1" type="checkbox" value="" id="film_id">
 <!--                {% if material.Task_task_status == 'ready' %}checked{% endif %}-->
@@ -55,7 +55,7 @@
               </div>
             </div>
           {% elif material.type == 'season' %}
-            <div class="card border shadow mx-1 my-2 mt-0 p-0">
+            <div class="card shadow mx-1 my-2 mt-0 p-0" style="border-color: {{ material.color }};">
               <div class="card-body p-2">
                 <input class="form-check-input me-1" type="checkbox" value="" id="season_id">
                   <label class="form-check-label" for="season_id">
@@ -71,7 +71,7 @@
                   <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
                 </div>
                 <div class="col">
-                  <div class="card border shadow mx-1 my-2 mt-0 p-0">
+                  <div class="card shadow mx-1 my-2 mt-0 p-0" style="border-color: {{ material.color }};">
                     <div class="card-header p-2">
                       <input class="form-check-input me-1" type="checkbox" value="" id="episode_id">
                         <label class="form-check-label" for="episode_id">
@@ -85,7 +85,7 @@
                         <div class="col">
                           <p class="card-text m-0"><small class="text-body-secondary">
                           Канал: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                          {{ episode.Sched_schedule_name }}</a></small>
+                          {{ material.Sched_schedule_name }}</a></small>
                           </p>
                         </div>
 
