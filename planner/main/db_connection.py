@@ -106,11 +106,16 @@ def planner_material_list(channels, worker_id, material_type, work_dates, task_s
         AND Task.[task_status] IN {task_status}
         ORDER BY SchedProg.[DateTime] {order}
         '''
-        # print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
-
         return material_list_sql, django_columns
+
+def parent_name(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'SELECT [name] FROM [oplan3].[dbo].[program] WHERE [program_id] = {program_id}'
+        cursor.execute(query)
+        for name in cursor.fetchone():
+            return name
 
 def planner_task_list(program_id):
     with connections['planner'].cursor() as cursor:

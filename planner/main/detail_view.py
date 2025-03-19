@@ -1,5 +1,8 @@
 from django.db import connections
 
+from .kinoroom_parser import search_movie
+from .db_connection import parent_name
+
 
 def full_info(program_id):
     with connections['oplan3'].cursor() as cursor:
@@ -43,6 +46,12 @@ def full_info(program_id):
         full_info_dict = dict(zip(django_columns, full_info_list))
         # full_info_dict['custom_fields'] = cenz_info(program_id)
         # full_info_dict['schedule_info'] = schedule_info(program_id)
+        name = full_info_dict['Progs_AnonsCaption']
+        if not name:
+            name = parent_name(full_info_dict.get('Progs_parent_id'))
+        poster_link = search_movie(full_info_dict.get('Progs_program_id'), name, full_info_dict.get('Progs_production_year'))
+        print('poster_link:', poster_link)
+        full_info_dict['poster_link'] = poster_link
         return full_info_dict
 
 def cenz_info(program_id):
