@@ -46,9 +46,10 @@ def full_info(program_id):
         full_info_dict = dict(zip(django_columns, full_info_list))
         # full_info_dict['custom_fields'] = cenz_info(program_id)
         # full_info_dict['schedule_info'] = schedule_info(program_id)
-        name = full_info_dict['Progs_AnonsCaption']
-        if not name:
+        if full_info_dict['Progs_program_type_id'] in (4, 8, 12):
             name = parent_name(full_info_dict.get('Progs_parent_id'))
+        else:
+            name = full_info_dict.get('Progs_AnonsCaption')
         poster_link = search_movie(full_info_dict.get('Progs_program_id'), name, full_info_dict.get('Progs_production_year'))
         print('poster_link:', poster_link)
         full_info_dict['poster_link'] = poster_link

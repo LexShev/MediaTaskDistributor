@@ -13,7 +13,7 @@
         <div class="row m-0">
           <div class="col col-2 p-0">
 <!--            <img src="/static/img/no_poster.jpg" class="img-fluid rounded mx-1 my-2" alt="..." style="height: 200px;">-->
-            <img src="{{ full_info.poster_link }}" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
+            <img src="{% if full_info.poster_link %}{{ full_info.poster_link }}{% else %}/static/img/no_poster.jpg{% endif%}" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
           </div>
           <div class="col p-0">
 

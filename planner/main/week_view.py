@@ -63,12 +63,9 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
             repeat_index = repeat_index_search(material_list[day_num], temp_dict)
             if not repeat_index and repeat_index != 0:
-                name = temp_dict['Progs_AnonsCaption']
-                if not name:
-                    name = parent_name(temp_dict.get('Progs_parent_id'))
                 program_info_dict = {
                     'Progs_parent_id': temp_dict.get('Progs_parent_id'),
-                    'Progs_AnonsCaption': name,
+                    'Progs_AnonsCaption': parent_name(temp_dict.get('Progs_parent_id')),
                     'Progs_production_year': temp_dict.get('Progs_production_year'),
                     'color': select_channel_color(temp_dict.get('Sched_schedule_id')),
                     'Sched_schedule_id': select_channel_color(temp_dict.get('Sched_schedule_id')),

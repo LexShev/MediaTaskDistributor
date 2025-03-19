@@ -10,13 +10,21 @@ headers = {
 def search_movie(program_id, program_name, year):
     program_name = program_name.replace('ё', 'е')
     program_name = program_name.replace('серия', '')
+    program_name = program_name.replace('сезон', '')
+    if '-' in year:
+        year = year.strip().split('-')[0]
+    elif '–' in year:
+        year = year.strip().split('–')[0]
     search_url = f'https://ru.kinorium.com/search/?q={program_name}%20{year}'
+    print(program_name, year, search_url, sep='\n')
 
     response = requests.get(search_url, headers=headers)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
         movie_list = soup.find_all('a', {'class': 'search-page__title-link'})
+        print(movie_list)
         movie_id = [movie.get('href') for movie in movie_list if movie.text.rstrip().startswith(program_name[:7])]
+        print(movie_id)
         # movie_id = [movie.get('href') for movie in movie_list if movie.text.rstrip()]
         if movie_id:
             movie_id = movie_id[0].replace('/', '')
