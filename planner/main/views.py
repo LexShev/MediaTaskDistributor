@@ -15,7 +15,8 @@ from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info
 from .distribution import main_distribution
-from .work_calendar import my_calendar
+from .report_calendar import my_report_calendar
+from .work_calendar import my_work_calendar
 
 
 def index(request):
@@ -69,7 +70,7 @@ def week_date(request, work_year, work_week):
 def month(request, cal_year, cal_month):
     # calendar_dict = calendar.HTMLCalendar(0).formatyear(2025)
     # calendar_dict = calendar.HTMLCalendar(0).formatmonth(2025, 1)
-    month_calendar, task_list, service_dict = my_calendar(cal_year, cal_month)
+    month_calendar, task_list, service_dict = my_report_calendar(cal_year, cal_month)
     data = {'month_calendar': month_calendar,
             'task_list': task_list,
             'service_dict': service_dict}
@@ -356,3 +357,7 @@ def my_view(request):
 def common_pool(request):
     data = {'pool_list': select_pool(), 'service_dict': service_pool_info()}
     return render(request, 'main/common_pool.html', data)
+
+def work_calendar(request, cal_year):
+    data = {'year_calendar': my_work_calendar(cal_year)}
+    return render(request, 'main/work_calendar.html', data)

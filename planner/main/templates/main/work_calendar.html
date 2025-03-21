@@ -1,0 +1,55 @@
+{% extends  'main/index.html' %}
+{% load static %}
+
+{% block body %}
+<link href="/static/css/dropdowns.css" rel="stylesheet">
+
+  <div class="container-flex px-lg-5">
+    <br><h3 class="text-center">Производственный календарь</h3><br>
+    <div class="row row-cols-4">
+      {% for month_calendar in year_calendar %}
+        {% for month_name, month in month_calendar.items %}
+          <div class="col p-1">
+            <div class="card p-2">
+              <h5 class="text-center">{{ month_name }}</h5>
+              <table cellpadding="5" class="month">
+                <thead class="text-center text-secondary">
+                  <tr>
+                    <th class="p-2"></th>
+                    <th class="mon p-2">Пн</th>
+                    <th class="tue p-2">Вт</th>
+                    <th class="wed p-2">Ср</th>
+                    <th class="thu p-2">Чт</th>
+                    <th class="fri p-2">Пт</th>
+                    <th class="sat p-2">Сб</th>
+                    <th class="sun p-2">Вс</th>
+                  </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                  {% for week in month %}
+                    <tr>
+                      <th class="text-secondary">{{ week.0.0|date:"W" }}</th>
+                      {% for day in week %}
+<!--                        month_number-->
+                        {% if day.0|date:"n" == service_dict.cal_month|stringformat:"s" %}
+                          <td style="width: 3rem;">
+                            <button class="btn cal-btn p-2 {{ day.4 }}" type="button" style="width: 3rem;" title="Рабочий" onclick="FilterTable('{{ day.0|date:'Y-m-d' }}')">
+                              {{ day.0|date:"j" }}
+                            </button></td>
+                        {% else %}
+                          <td style="width: 3rem;"><button class="btn cal-btn p-2" type="button" style="width: 3rem;" disabled>{{ day.0|date:"j" }}</button></td>
+                        {% endif %}
+                      {% endfor %}
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+
+
+{% endblock %}

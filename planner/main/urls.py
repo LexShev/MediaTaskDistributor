@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import*
+from .views import *
 
 urlpatterns = [
     path("", index, name='home'),
@@ -14,5 +14,5 @@ urlpatterns = [
     path("test_page", test_page),
     path("my_view", my_view),
     path("common_pool", common_pool),
-
+    path("work_calendar/<int:cal_year>", work_calendar),
 ]
