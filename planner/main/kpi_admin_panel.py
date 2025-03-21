@@ -65,8 +65,8 @@ def kpi_summary_calc(work_dates, workers, material_type, task_status):
     count_workers = len(set(task.get('Task_worker_id') for task in task_list))
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
-    ready_tasks = len(list(filter(lambda x: x.get('Task_task_status') == 'ready', task_list)))
-    not_ready_tasks = len(list(filter(lambda x: x.get('Task_task_status') == 'not_ready', task_list)))
+    ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
+    not_ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'not_ready', task_list)))
     ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'ready')
     not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'not_ready')
     try:
@@ -119,8 +119,8 @@ def kpi_personal_calc(work_date, worker_id, material_type, task_status):
     task_list = personal_task_list(work_date, worker_id)
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
-    ready_tasks = len(list(filter(lambda x: x.get('Task_task_status') == 'ready', task_list)))
-    not_ready_tasks = len(list(filter(lambda x: x.get('Task_task_status') == 'not_ready', task_list)))
+    ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
+    not_ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'not_ready', task_list)))
     ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'ready')
     not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'not_ready')
     total_kpi = total_dur / 720000.0

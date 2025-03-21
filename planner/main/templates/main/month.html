@@ -44,15 +44,15 @@
             <tbody class="table-group-divider">
               {% for week in month_calendar %}
                 <tr>
-                  <th class="text-secondary">{{ week.0|date:"W" }}</th>
+                  <th class="text-secondary">{{ week.0.0|date:"W" }}</th>
                   {% for day in week %}
-                    {% if day|date:"n" == service_dict.cal_month|stringformat:"s" %}
+                    {% if day.0|date:"n" == service_dict.cal_month|stringformat:"s" %}
                       <td style="width: 5rem;">
-                        <button class="btn cal-btn p-4" type="button" style="width: 5rem;" title="Осталось: 3" onclick="FilterTable('{{ day|date:'d.m.Y' }}')">
-                          {{ day|date:"j" }}
+                        <button class="btn cal-btn p-4 {{ day.4 }}" type="button" style="width: 5rem;" title="Осталось: 3" onclick="FilterTable('{{ day.0|date:'Y-m-d' }}')">
+                          {{ day.0|date:"j" }}
                         </button></td>
                     {% else %}
-                      <td style="width: 5rem;"><button class="btn cal-btn p-4" type="button" style="width: 5rem;" disabled>{{ day|date:"j" }}</button></td>
+                      <td style="width: 5rem;"><button class="btn cal-btn p-4" type="button" style="width: 5rem;" disabled>{{ day.0|date:"j" }}</button></td>
                     {% endif %}
                   {% endfor %}
                 </tr>
@@ -76,7 +76,7 @@
             {% for task in task_list|dictsort:"Progs_name" %}
               <tr>
                 <td hidden>
-                  {{ task.Task_work_date|date:'d.m.Y' }}
+                  {{ task.Task_work_date|date:'Y-m-d' }}
                 </td>
                 <td>
                 <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
@@ -85,7 +85,6 @@
                   <a href="{% url 'home' %}workers/{{ task.Task_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                     {{ task.Task_worker }}</a></td>
                 <td>{{ task.Task_duration|convert_frames_to_time }}</td>
-  <!--              <td>{{ task.Task_work_date|date:'d-m-Y' }}</td>-->
                 {% if task.Task_task_status == 'not_ready' %}
                   <td>Не готов</td>
                 {% elif task.Task_task_status == 'ready' %}

@@ -38,10 +38,42 @@ def calc_next_month(cal_year, cal_month):
         next_year = cal_year + 1
     return next_year, next_month
 
+def color_calendar(month_calendar, task_list):
+    colorized_calendar = []
+    for week in month_calendar:
+        colorized_weeks = []
+        for day in week:
+            total_tasks = len(list(task for task in task_list if task.get('Task_work_date') == day))
+            ready_tasks = len(list(task for task in task_list if task.get('Task_task_status') == 'ready' and task.get('Task_work_date') == day))
+            not_ready_tasks = len(list(task for task in task_list if task.get('Task_task_status') == 'not_ready' and task.get('Task_work_date') == day))
+            try:
+                ready_index = (ready_tasks * 100) / total_tasks
+            except Exception:
+                ready_index = 0.00001
+            #     проверка на отсутствие задач в текущий день
+            if ready_index == 0.00001:
+                color = ''
+            elif ready_index > 13:
+                color = 'btn-outline-success'
+            elif 10 < ready_index < 13:
+                color = 'btn-outline-warning'
+            else:
+                color = 'btn-outline-danger'
+            colorized_weeks.append((day, ready_tasks, not_ready_tasks, ready_index, color))
+        colorized_calendar.append(colorized_weeks)
+    print(colorized_calendar)
+    return colorized_calendar
 
 def my_calendar(cal_year, cal_month):
-    # for week in month.monthdatescalendar(2025, 3):
     month_calendar = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
+
+    work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
+    task_list = summary_task_list(work_dates)
+
+
+
+    colorized_calendar = color_calendar(month_calendar, task_list)
+
     cal_month_name = month_name(cal_month)
     prev_year, prev_month = calc_prev_month(cal_year, cal_month)
     next_year, next_month = calc_next_month(cal_year, cal_month)
@@ -53,11 +85,5 @@ def my_calendar(cal_year, cal_month):
                     'prev_month': prev_month,
                     'next_month': next_month
                     }
-    return month_calendar, service_dict
+    return colorized_calendar, task_list, service_dict
 
-def task_list(cal_year, cal_month):
-    work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
-    return summary_task_list(work_dates)
-# print()
-# print(list(month.itermonthdates(2025, 3)))
-# print([day for day in month.itermonthdates(2025, 3) if day.month == 3])

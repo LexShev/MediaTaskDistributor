@@ -15,7 +15,7 @@ from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info
 from .distribution import main_distribution
-from .work_calendar import my_calendar, task_list
+from .work_calendar import my_calendar
 
 
 def index(request):
@@ -69,9 +69,9 @@ def week_date(request, work_year, work_week):
 def month(request, cal_year, cal_month):
     # calendar_dict = calendar.HTMLCalendar(0).formatyear(2025)
     # calendar_dict = calendar.HTMLCalendar(0).formatmonth(2025, 1)
-    month_calendar, service_dict = my_calendar(cal_year, cal_month)
+    month_calendar, task_list, service_dict = my_calendar(cal_year, cal_month)
     data = {'month_calendar': month_calendar,
-            'task_list': task_list(cal_year, cal_month),
+            'task_list': task_list,
             'service_dict': service_dict}
     return render(request, 'main/month.html', data)
 
