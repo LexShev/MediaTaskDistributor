@@ -1,9 +1,60 @@
 {% extends  'main/index.html' %}
+{% load static %}
 
 {% block body %}
+<link href="/static/css/dropdowns.css" rel="stylesheet">
+
 <!--<h1>Month</h1>-->
-  <div class="container-fluid">
-    {% include 'main/calendar_widget.html' %}
-    {{ calendar_dict|safe }}
+  <div class="container-xxl">
+    <div class="card text-secondary p-4" style="max-width: 47rem;">
+      <div class="row align-items-center">
+        <div class="col d-flex justify-content-start">
+          <button class="btn cal-btn" type="button" style="width: 5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+            </svg>
+          </button>
+        </div>
+        <div class="col text-center">
+          <h4>{{ service_dict.cal_month_name }}</h4>
+        </div>
+        <div class="col d-flex justify-content-end">
+          <button class="btn cal-btn" type="button" style="width: 5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <table cellpadding="5" class="month">
+        <thead class="text-center">
+          <tr>
+            <th class="p-4"></th>
+            <th class="mon p-4">Пн</th>
+            <th class="tue p-4">Вт</th>
+            <th class="wed p-4">Ср</th>
+            <th class="thu p-4">Чт</th>
+            <th class="fri p-4">Пт</th>
+            <th class="sat p-4">Сб</th>
+            <th class="sun p-4">Вс</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for week in month_calendar %}
+            <tr>
+              <th>{{ week.0|date:"W" }}</th>
+              {% for day in week %}
+                {% if day|date:"n" == service_dict.cal_month %}
+                  <td style="width: 5rem;"><button class="btn btn-success cal-btn p-4" type="button" style="width: 5rem;" title="Осталось: 3">{{ day|date:"j" }}</button></td>
+                {% else %}
+                  <td style="width: 5rem;"><button class="btn cal-btn p-4" type="button" style="width: 5rem;" disabled>{{ day|date:"j" }}</button></td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 {% endblock %}

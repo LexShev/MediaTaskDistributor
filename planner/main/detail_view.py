@@ -1,6 +1,6 @@
 from django.db import connections
 
-from .kinoroom_parser import search_movie
+from .kinoroom_parser import locate_url
 from .db_connection import parent_name
 
 
@@ -46,13 +46,19 @@ def full_info(program_id):
         full_info_dict = dict(zip(django_columns, full_info_list))
         # full_info_dict['custom_fields'] = cenz_info(program_id)
         # full_info_dict['schedule_info'] = schedule_info(program_id)
-        if full_info_dict['Progs_program_type_id'] in (4, 8, 12):
-            name = parent_name(full_info_dict.get('Progs_parent_id'))
+        if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
+            poster_link = locate_url(
+                full_info_dict.get('Progs_parent_id'),
+                parent_name(full_info_dict.get('Progs_parent_id')),
+                full_info_dict.get('Progs_production_year'))
+            full_info_dict['poster_link'] = poster_link
         else:
-            name = full_info_dict.get('Progs_AnonsCaption')
-        poster_link = search_movie(full_info_dict.get('Progs_program_id'), name, full_info_dict.get('Progs_production_year'))
-        print('poster_link:', poster_link)
-        full_info_dict['poster_link'] = poster_link
+            poster_link = locate_url(
+                full_info_dict.get('Progs_program_id'),
+                full_info_dict.get('Progs_AnonsCaption'),
+                full_info_dict.get('Progs_production_year'))
+
+            full_info_dict['poster_link'] = poster_link
         return full_info_dict
 
 def cenz_info(program_id):

@@ -1,10 +1,12 @@
 import datetime
 import ast
-import calendar
+# import calendar
 
 from django.shortcuts import render, redirect
+
+from .full_material_list import select_pool, service_pool_info
 from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm
-from .insert_history import insert_action
+from .logs_and_history import insert_action, select_actions
 from .models import MainFilter
 
 from .list_view import list_material_list
@@ -13,6 +15,7 @@ from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info
 from .distribution import main_distribution
+from .work_calendar import my_calendar
 
 
 def index(request):
@@ -63,10 +66,13 @@ def week_date(request, work_year, work_week):
     data = {'week_material_list': material_list, 'service_dict': service_dict, 'form': form}
     return render(request, 'main/week.html', data)
 
-def month(request):
-    calendar_dict = calendar.HTMLCalendar(0).formatyear(2025)
-    calendar_dict = calendar.HTMLCalendar(0).formatmonth(2025, 1)
-    return render(request, 'main/month.html', {'calendar_dict': calendar_dict})
+def month(request, cal_year, cal_month):
+    # calendar_dict = calendar.HTMLCalendar(0).formatyear(2025)
+    # calendar_dict = calendar.HTMLCalendar(0).formatmonth(2025, 1)
+    month_calendar, service_dict = my_calendar(cal_year, cal_month)
+    data = {'month_calendar': month_calendar,
+            'service_dict': service_dict}
+    return render(request, 'main/month.html', data)
 
 def full_list(request):
     # main_search = request.GET.get('search', None)
@@ -227,7 +233,10 @@ def material_card(request, program_id):
                 old_other, new_other,
                 old_editor, new_editor)
 
-            insert_dict = {'worker_id': 11, 'worker': 'Алексей Шевченко', 'date_of_change': str(datetime.datetime.now())}
+            insert_dict = {'program_id': program_id,
+                           'worker_id': 11,
+                           'worker': 'Алексей Шевченко',
+                           'date_of_change': str(datetime.datetime.now())}
             # .strftime("%Y-%m-%d %H:%M:%S")
             for key, val in zip(keys, values):
                 if val:
@@ -263,6 +272,7 @@ def material_card(request, program_id):
     data = {'full_info': full_info(program_id),
             'custom_fields': custom_fields,
             'schedule_info': schedule_info(program_id),
+            'actions_list': select_actions(program_id),
             'ffmpeg': ffmpeg_dict(program_id),
             'form_text': form_text,
             'form_drop': form_drop,
@@ -341,3 +351,7 @@ def my_view(request):
         form = ListForm()
 
     return render(request, 'main/list_filter.html', {'form': form})
+
+def common_pool(request):
+    data = {'pool_list': select_pool(), 'service_dict': service_pool_info()}
+    return render(request, 'main/common_pool.html', data)

@@ -140,15 +140,27 @@ class CenzFormDropDown(forms.Form):
                ('Марфа Тарусина', 'Марфа Тарусина'),
                ('Евгений Доманов', 'Евгений Доманов')]
 
-    tags = program_custom_fields().get(18)
-    if tags:
-        tags = [tag for tag in enumerate(tags.split('\r\n'))]
-        tags.append(('', '-'))
+    workers_list = program_custom_fields().get(15)
+    workers = [(0, '-')]
+    if workers_list:
+        for worker in enumerate(workers_list.split('\r\n')):
+            if worker[1]:
+                workers.append(worker)
 
-    inoagents = program_custom_fields().get(19)
-    if inoagents:
-        inoagents = [inoagent for inoagent in enumerate(inoagents.split('\r\n'))]
-        inoagents.append(('', '-'))
+    tags_list = program_custom_fields().get(18)
+    tags = [(0, '-')]
+    if tags_list:
+        for tag in enumerate(tags_list.split('\r\n')):
+            if tag[1]:
+                tags.append(tag)
+
+    inoagents_list = program_custom_fields().get(19)
+    inoagents = [(0, '-')]
+    if inoagents_list:
+        for inoagent in enumerate(inoagents_list.split('\r\n')):
+            if inoagent[1]:
+                inoagents.append(inoagent)
+
     rate = (('0+', '0+'), ('6+', '6+'), ('12+', '12+'), ('16+', '16+'), ('18+', '18+'))
     meta_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'form-select', 'id': "meta_form"}),
