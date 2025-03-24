@@ -16,7 +16,7 @@ from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info
 from .distribution import main_distribution
 from .report_calendar import my_report_calendar
-from .work_calendar import my_work_calendar
+from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info
 
 
 def index(request):
@@ -67,9 +67,12 @@ def week_date(request, work_year, work_week):
     data = {'week_material_list': material_list, 'service_dict': service_dict, 'form': form}
     return render(request, 'main/week.html', data)
 
-def month(request, cal_year, cal_month):
-    # calendar_dict = calendar.HTMLCalendar(0).formatyear(2025)
-    # calendar_dict = calendar.HTMLCalendar(0).formatmonth(2025, 1)
+def month(request):
+    today = datetime.datetime.today()
+    cal_year, cal_month = today.year, today.month
+    return redirect(month_date, cal_year, cal_month)
+
+def month_date(request, cal_year, cal_month):
     month_calendar, task_list, service_dict = my_report_calendar(cal_year, cal_month)
     data = {'month_calendar': month_calendar,
             'task_list': task_list,
@@ -78,6 +81,7 @@ def month(request, cal_year, cal_month):
 
 def full_list(request):
     # main_search = request.GET.get('search', None)
+    # print('main_search', main_search)
     if request.user.id:
         init = MainFilter.objects.get(owner=request.user.id)
     else:
@@ -359,5 +363,16 @@ def common_pool(request):
     return render(request, 'main/common_pool.html', data)
 
 def work_calendar(request, cal_year):
-    data = {'year_calendar': my_work_calendar(cal_year)}
+    delete_day_off = request.POST.get('delete_day_off', None)
+    approve_day_off = request.POST.get('approve_day_off', None)
+
+    if delete_day_off:
+        drop_day_off(delete_day_off)
+    if approve_day_off:
+        insert_day_off(approve_day_off)
+    data = {'year_calendar': my_work_calendar(cal_year),
+            'prev_year': cal_year-1,
+            'year_num': cal_year,
+            'next_year': cal_year+1,
+            'vacation_list': vacation_info(cal_year)}
     return render(request, 'main/work_calendar.html', data)

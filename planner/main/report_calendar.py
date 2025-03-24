@@ -38,7 +38,7 @@ def calc_next_month(cal_year, cal_month):
         next_year = cal_year + 1
     return next_year, next_month
 
-def color_calendar(month_calendar, task_list):
+def tasks_info(month_calendar, task_list):
     colorized_calendar = []
     for week in month_calendar:
         colorized_weeks = []
@@ -49,9 +49,9 @@ def color_calendar(month_calendar, task_list):
             try:
                 ready_index = (ready_tasks * 100) / total_tasks
             except Exception:
-                ready_index = 0.00001
+                ready_index = 'day_off'
             #     проверка на отсутствие задач в текущий день
-            if ready_index == 0.00001:
+            if ready_index == 'day_off':
                 color = ''
             elif ready_index > 13:
                 color = 'btn-outline-success'
@@ -59,7 +59,11 @@ def color_calendar(month_calendar, task_list):
                 color = 'btn-outline-warning'
             else:
                 color = 'btn-outline-danger'
-            colorized_weeks.append((day, ready_tasks, not_ready_tasks, ready_index, color))
+            colorized_weeks.append({'day': day,
+                                    'ready_tasks': ready_tasks,
+                                    'not_ready_tasks': not_ready_tasks,
+                                    'ready_index': ready_index,
+                                    'color': color})
         colorized_calendar.append(colorized_weeks)
     print(colorized_calendar)
     return colorized_calendar
@@ -70,7 +74,7 @@ def my_report_calendar(cal_year, cal_month):
     work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
     task_list = summary_task_list(work_dates)
 
-    colorized_calendar = color_calendar(month_calendar, task_list)
+    colorized_calendar = tasks_info(month_calendar, task_list)
 
     cal_month_name = month_name(cal_month)
     prev_year, prev_month = calc_prev_month(cal_year, cal_month)

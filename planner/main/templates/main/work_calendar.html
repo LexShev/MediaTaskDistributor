@@ -4,52 +4,169 @@
 {% block body %}
 <link href="/static/css/dropdowns.css" rel="stylesheet">
 
-  <div class="container-flex px-lg-5">
-    <br><h3 class="text-center">Производственный календарь</h3><br>
-    <div class="row row-cols-4">
-      {% for month_calendar in year_calendar %}
-        {% for month_name, month in month_calendar.items %}
-          <div class="col p-1">
-            <div class="card p-2">
-              <h5 class="text-center">{{ month_name }}</h5>
-              <table cellpadding="5" class="month">
-                <thead class="text-center text-secondary">
-                  <tr>
-                    <th class="p-2"></th>
-                    <th class="mon p-2">Пн</th>
-                    <th class="tue p-2">Вт</th>
-                    <th class="wed p-2">Ср</th>
-                    <th class="thu p-2">Чт</th>
-                    <th class="fri p-2">Пт</th>
-                    <th class="sat p-2">Сб</th>
-                    <th class="sun p-2">Вс</th>
-                  </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                  {% for week in month %}
-                    <tr>
-                      <th class="text-secondary">{{ week.0.0|date:"W" }}</th>
-                      {% for day in week %}
-<!--                        month_number-->
-                        {% if day.0|date:"n" == service_dict.cal_month|stringformat:"s" %}
-                          <td style="width: 3rem;">
-                            <button class="btn cal-btn p-2 {{ day.4 }}" type="button" style="width: 3rem;" title="Рабочий" onclick="FilterTable('{{ day.0|date:'Y-m-d' }}')">
-                              {{ day.0|date:"j" }}
-                            </button></td>
-                        {% else %}
-                          <td style="width: 3rem;"><button class="btn cal-btn p-2" type="button" style="width: 3rem;" disabled>{{ day.0|date:"j" }}</button></td>
-                        {% endif %}
-                      {% endfor %}
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        {% endfor %}
-      {% endfor %}
+<form method="post">
+  {% csrf_token %}
+  <div class="modal fade" id="DeleteDayOff" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Удалить выходной?</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+          <button name="delete_day_off" id="delete_day_off" type="submit" class="btn btn-primary">Удалить</button>
+        </div>
+      </div>
     </div>
   </div>
+</form>
 
+<form method="post">
+  {% csrf_token %}
+  <div class="modal fade" id="ApproveDayOff" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Установить выходной?</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+          <button name="approve_day_off" id="approve_day_off" type="submit" class="btn btn-primary">Установить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+  <div class="container-flex px-lg-5">
+    <br><div class="row align-items-center">
+      <div class="col d-flex justify-content-end">
+        <a href="{% url 'home' %}work_calendar/{{ prev_year }}" class="btn cal-btn" type="button" style="width: 5rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+          </svg>
+        </a>
+      </div>
+      <div class="col text-center">
+        <h4 class="text-center">Производственный календарь на {{ year_num }} год</h4>
+      </div>
+      <div class="col d-flex justify-content-start">
+        <a href="{% url 'home' %}work_calendar/{{ next_year }}" class="btn cal-btn" type="button" style="width: 5rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+          </svg>
+        </a>
+      </div>
+    </div><br>
+
+    <div class="row row-cols-6">
+      {% for month_calendar in year_calendar %}
+        <div class="col p-1">
+          <div class="p-2">
+            {% with month_num=forloop.counter %}
+            <h6 class="text-center">{{ month_num|month_name }}</h6>
+            <table cellpadding="5" class="month">
+              <thead class="text-center text-secondary">
+                <tr>
+                  <th class="p-2"></th>
+                  <th class="mon p-2">Пн</th>
+                  <th class="tue p-2">Вт</th>
+                  <th class="wed p-2">Ср</th>
+                  <th class="thu p-2">Чт</th>
+                  <th class="fri p-2">Пт</th>
+                  <th class="sat p-2">Сб</th>
+                  <th class="sun p-2">Вс</th>
+                </tr>
+              </thead>
+              <tbody class="table-group-divider">
+                {% for week in month_calendar %}
+                  <tr>
+                    <th class="text-secondary">{{ week.0.day|date:"W" }}</th>
+                    {% for date in week %}
+                      {% if date.day|date:"n" == month_num|stringformat:"s" %}
+                        {% if date.day_off %}
+                          <td style="width: 2rem; height: 2rem">
+                            <button class="btn cal-btn btn-outline-warning p-2" type="button" style="width: 2rem; height: 2rem"
+                                    title="Выходной" data-bs-toggle="modal" data-bs-target="#DeleteDayOff"
+                                    data-bs-whatever="{{ date.day|date:'Y-m-d' }}">
+                              {{ date.day|date:"j" }}
+                            </button></td>
+                        {% else %}
+                          <td style="width: 2rem; height: 2rem">
+                            <button class="btn cal-btn p-2" type="button" style="width: 2rem; height: 2rem"
+                                    title="Рабочий" data-bs-toggle="modal" data-bs-target="#ApproveDayOff"
+                                    data-bs-whatever="{{ date.day|date:'Y-m-d' }}">
+                              {{ date.day|date:"j" }}
+                            </button></td>
+                        {% endif %}
+                      {% else %}
+                        <td style="width: 2rem; height: 2rem"><button class="btn cal-btn p-2" type="button" style="width: 2rem; height: 2rem" disabled></button></td>
+                      {% endif %}
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endwith %}
+      {% endfor %}
+    </div><br>
+
+
+  <form method="post">
+    {% csrf_token %}
+      <h4 class="text-center">График отпусков</h4><br>
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th scope="col" class="col-2">Сотрудник</th>
+            <th scope="col" class="col-1">Начало отпуска</th>
+            <th scope="col" class="col-1">Конец отпуска</th>
+            <th scope="col" class="col-1">Всего дней</th>
+            <th scope="col" class="col-3">Примечание</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          {% for vacation in vacation_list|dictsort:"start_date" %}
+            <tr>
+              <td hidden>{{ vacation.worker_id }}</td>
+              <td>{{ vacation.worker }}</td>
+              <td><input type="date"  class="form-control" value="{{ vacation.start_date|date:'Y-m-d' }}"></td>
+              <td><input type="date"  class="form-control" value="{{ vacation.end_date|date:'Y-m-d' }}"></td>
+              <td>{{ vacation.total }}</td>
+              <td>{% if vacation.description %}{{ vacation.description }}{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button name="change_vacation_schedule" id="change_vacation_schedule" type="submit" class="btn btn-primary">Обновить даты</button>
+  </form>
+
+  </div>
+
+<script>
+  const DelModal = document.getElementById('DeleteDayOff')
+  if (DelModal) {
+    DelModal.addEventListener('show.bs.modal', event => {
+    const button = event.relatedTarget
+    const recipient = button.getAttribute('data-bs-whatever')
+
+    const modalInput = DelModal.querySelector('#delete_day_off')
+    modalInput.value = recipient
+    })
+  };
+  const ApprModal = document.getElementById('ApproveDayOff')
+  if (ApprModal) {
+    ApprModal.addEventListener('show.bs.modal', event => {
+    const button = event.relatedTarget
+    const recipient = button.getAttribute('data-bs-whatever')
+
+    const modalInput = ApprModal.querySelector('#approve_day_off')
+    modalInput.value = recipient
+    })
+  };
+</script>
 
 {% endblock %}
