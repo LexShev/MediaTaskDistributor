@@ -136,9 +136,17 @@
               <td><input type="date"  class="form-control" value="{{ vacation.start_date|date:'Y-m-d' }}"></td>
               <td><input type="date"  class="form-control" value="{{ vacation.end_date|date:'Y-m-d' }}"></td>
               <td>{{ vacation.total }}</td>
-              <td>{% if vacation.description %}{{ vacation.description }}{% endif %}</td>
+              <td><textarea class="form-control">{% if vacation.description %}{{ vacation.description }}{% endif %}</textarea></td>
             </tr>
           {% endfor %}
+            <tr>
+              <td hidden><input type="text"></td>
+              <td><textarea class="form-control" placeholder="Добавить"></textarea></td>
+              <td><input type="date"  class="form-control"></td>
+              <td><input type="date"  class="form-control"></td>
+              <td>{{ vacation.total }}</td>
+              <td>{% if vacation.description %}{{ vacation.description }}{% endif %}</td>
+            </tr>
         </tbody>
       </table>
       <button name="change_vacation_schedule" id="change_vacation_schedule" type="submit" class="btn btn-primary">Обновить даты</button>
