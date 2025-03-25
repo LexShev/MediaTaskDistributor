@@ -116,8 +116,21 @@ def cenz_info(program_id):
                 custom_fields_dict[field_id] = text_value
     return custom_fields_dict
 
-def insert_cenz_info(**insert_cenz_info_dict):
+def insert_cenz_info(**kwargs):
     print(insert_cenz_info_dict)
+
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''DELETE FROM [oplan3].[dbo].[ProgramCustomFieldValues] WHERE [program_id] = {kwargs.get('program_id')}
+        INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]
+        ([worker_id], [worker], [start_date], [end_date], [description])
+        VALUES ({worker_id}, '{worker}', '{start_date}', '{end_date}', '{description}');
+        '''
+
+        ok = cursor.execute(query)
+        if ok:
+            # next
+            cursor.execute(query)
+
 
     # drop
     # insert
