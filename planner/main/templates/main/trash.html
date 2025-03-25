@@ -50,3 +50,54 @@
             </div>
             <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
           </form>
+
+<form method="post">
+    {% csrf_token %}
+      <h4 class="text-center">График отпусков</h4><br>
+      <table class="table table-striped table-hover align-middle">
+        <thead>
+          <tr>
+            <th scope="col" class="col-2">Сотрудник</th>
+            <th scope="col" class="col-1">Начало отпуска</th>
+            <th scope="col" class="col-1">Конец отпуска</th>
+            <th scope="col" class="col-1">Всего дней</th>
+            <th scope="col" class="col-3">Примечание</th>
+            <th scope="col" class="col-1"></th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          {% for vacation in vacation_list|dictsort:"start_date" %}
+            <tr>
+              <td hidden>{{ vacation.worker_id }}</td>
+              <td>{{ vacation.worker }}</td>
+              <td><input type="date"  class="form-control" value="{{ vacation.start_date|date:'Y-m-d' }}"></td>
+              <td><input type="date"  class="form-control" value="{{ vacation.end_date|date:'Y-m-d' }}"></td>
+              <td>{{ vacation.total }}</td>
+              <td><textarea class="form-control">{% if vacation.description %}{{ vacation.description }}{% endif %}</textarea></td>
+              <td><button name="delete_vacation" value="{{ vacation.vacation_id }}" type="submit" class="btn cal-btn" style="width: 32px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                  <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                </svg>
+              </button></td>
+            </tr>
+          {% endfor %}
+            <tr>
+              <td hidden><input type="text"></td>
+              <td>{{ form.workers_form }}</td>
+              <td>{{ form.start_date_form }}</td>
+              <td>{{ form.end_date_form }}</td>
+              <td>{{ vacation.total }}</td>
+              <td>{{ form.description_form }}</td>
+              <td><button name="add_vacation" type="submit" class="btn cal-btn" style="width: 32px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
+                </svg>
+              </button></td>
+
+            </tr>
+        </tbody>
+      </table>
+<!--      <button name="change_vacation_schedule" id="change_vacation_schedule" type="submit" class="btn btn-outline-light text-end">-->
+<!--        Обновить даты-->
+<!--      </button>-->
+  </form>

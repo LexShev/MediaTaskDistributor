@@ -4,6 +4,16 @@ from django.template.defaulttags import register
 from django.db import connections
 import calendar
 
+from .db_connection import program_custom_fields
+
+def workers_name(worker_id):
+    workers_list = program_custom_fields().get(15)
+    try:
+        return workers_list.split('\r\n')[int(worker_id)]
+    except Exception as e:
+        print(e)
+        return None
+
 
 @register.filter
 def month_name(cal_month):
@@ -62,7 +72,7 @@ def insert_day_off(work_date):
 
 def vacation_info(cal_year):
     with connections['planner'].cursor() as cursor:
-        columns = ('worker_id', 'worker', 'start_date', 'end_date', 'description')
+        columns = ('vacation_id', 'worker_id', 'worker', 'start_date', 'end_date', 'description')
         sql_columns = ', '.join([f'[{col}]' for col in columns])
         query = f'''
         SELECT {sql_columns}
@@ -79,3 +89,16 @@ def vacation_info(cal_year):
             vacation_dict['total'] = total
             vacation_list.append(vacation_dict)
         return vacation_list
+
+def insert_vacation(worker_id, start_date, end_date, description):
+    with connections['planner'].cursor() as cursor:
+        worker = workers_name(worker_id)
+        query = f'''INSERT INTO [planner].[dbo].[vacation_schedule]
+        ([worker_id], [worker], [start_date], [end_date], [description])
+        VALUES ({worker_id}, '{worker}', '{start_date}', '{end_date}', '{description}');'''
+        cursor.execute(query)
+
+def drop_vacation(vacation_id):
+    with connections['planner'].cursor() as cursor:
+        query = f"DELETE FROM [planner].[dbo].[vacation_schedule] WHERE [vacation_id] = {vacation_id}"
+        cursor.execute(query)

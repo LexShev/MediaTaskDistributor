@@ -48,7 +48,7 @@
                   {% for date in week %}
                     {% if date.day|date:"n" == service_dict.cal_month|stringformat:"s" %}
                       <td style="width: 5rem;">
-                        <button class="btn cal-btn p-4 {{ date.color }}" type="button" style="width: 5rem;" title="Осталось: 3" onclick="FilterTable('{{ day.0|date:'Y-m-d' }}')">
+                        <button class="btn cal-btn p-4 {{ date.color }}" type="button" style="width: 5rem;" title="Осталось: 3" onclick="FilterTable('{{ date.day|date:'Y-m-d' }}')">
                           {{ date.day|date:"j" }}
                         </button></td>
                     {% else %}

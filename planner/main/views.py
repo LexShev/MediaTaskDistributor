@@ -5,7 +5,7 @@ import ast
 from django.shortcuts import render, redirect
 
 from .full_material_list import select_pool, service_pool_info
-from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm
+from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .logs_and_history import insert_action, select_actions
 from .models import MainFilter
 
@@ -13,10 +13,10 @@ from .list_view import list_material_list
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
-from .detail_view import full_info, cenz_info, schedule_info
+from .detail_view import full_info, cenz_info, schedule_info, insert_cenz_info
 from .distribution import main_distribution
 from .report_calendar import my_report_calendar
-from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info
+from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 
 
 def index(request):
@@ -140,6 +140,7 @@ def material_card(request, program_id):
     old_meta = custom_fields.get(17)
     old_work_date = custom_fields.get(7)
     old_cenz_rate = custom_fields.get(14)
+    old_cenz_worker_id = custom_fields.get('worker_id')
     old_cenz_worker = custom_fields.get(15)
     old_tags = custom_fields.get(18)
     old_inoagent = custom_fields.get(19)
@@ -162,7 +163,7 @@ def material_card(request, program_id):
             new_meta = form_drop.cleaned_data.get('meta_form')
             new_work_date = form_drop.cleaned_data.get('work_date_form')
             new_cenz_rate = form_drop.cleaned_data.get('cenz_rate_form')
-            new_cenz_worker = form_drop.cleaned_data.get('cenz_worker_form')
+            new_cenz_worker_id = form_drop.cleaned_data.get('cenz_worker_form')
             new_tags = form_drop.cleaned_data.get('tags_form')
             new_inoagent = form_drop.cleaned_data.get('inoagent_form')
 
@@ -214,7 +215,7 @@ def material_card(request, program_id):
                 'old_meta', 'new_meta',
                 'old_work_date', 'new_work_date',
                 'old_cenz_rate', 'new_cenz_rate',
-                'old_cenz_worker', 'new_cenz_worker',
+                'old_cenz_worker_id', 'new_cenz_worker_id',
                 'old_tags', 'new_tags',
                 'old_inoagent', 'new_inoagent',
                 'old_lgbt', 'new_lgbt',
@@ -228,7 +229,7 @@ def material_card(request, program_id):
                 old_meta, new_meta,
                 old_work_date, new_work_date,
                 old_cenz_rate, new_cenz_rate,
-                old_cenz_worker, new_cenz_worker,
+                old_cenz_worker_id, new_cenz_worker_id,
                 old_tags, new_tags,
                 old_inoagent, new_inoagent,
                 old_lgbt, new_lgbt,
@@ -239,7 +240,7 @@ def material_card(request, program_id):
                 old_other, new_other,
                 old_editor, new_editor)
 
-            insert_dict = {'program_id': program_id,
+            insert_history_dict = {'program_id': program_id,
                            'worker_id': 11,
                            'worker': 'Алексей Шевченко',
                            'date_of_change': str(datetime.datetime.now())}
@@ -250,9 +251,15 @@ def material_card(request, program_id):
                         val = 1
                     elif isinstance(val, datetime.date):
                         val = val.strftime('%Y-%m-%d')
-                    insert_dict[key] = val
+                    insert_history_dict[key] = val
 
-            insert_action(**insert_dict)
+            insert_action(**insert_history_dict)
+            insert_cenz_info_dict = {'program_id': program_id, 'new_meta': new_meta, 'new_work_date': new_work_date,
+                                     'new_cenz_rate': new_cenz_rate, 'new_cenz_worker_id': new_cenz_worker_id,
+                                     'new_tags': new_tags, 'new_inoagent': new_inoagent, 'new_lgbt': new_lgbt,
+                                     'new_sig': new_sig, 'new_obnazh': new_obnazh, 'new_narc': new_narc,
+                                     'new_mat': new_mat, 'new_other': new_other, 'new_editor': new_editor}
+            insert_cenz_info(**insert_cenz_info_dict)
 
     else:
         form_drop = CenzFormDropDown(
@@ -260,7 +267,7 @@ def material_card(request, program_id):
                 'meta_form': old_meta,
                 'work_date_form': old_work_date,
                 'cenz_rate_form': old_cenz_rate,
-                'cenz_worker_form': old_cenz_worker,
+                'cenz_worker_form': old_cenz_worker_id,
                 'tags_form': old_tags,
                 'inoagent_form': old_inoagent,
             })
@@ -365,14 +372,32 @@ def common_pool(request):
 def work_calendar(request, cal_year):
     delete_day_off = request.POST.get('delete_day_off', None)
     approve_day_off = request.POST.get('approve_day_off', None)
+    delete_vacation = request.POST.get('delete_vacation', None)
+    if request.method == 'POST':
+        form = VacationForm(request.POST)
+        if form.is_valid():
+            worker_id = form.cleaned_data['workers_form']
+            start_date = form.cleaned_data['start_date_form']
+            end_date = form.cleaned_data['end_date_form']
+            description = form.cleaned_data['description_form']
+            insert_vacation(worker_id, start_date, end_date, description)
+        form = VacationForm()
+    else:
+        form = VacationForm()
+
 
     if delete_day_off:
         drop_day_off(delete_day_off)
     if approve_day_off:
         insert_day_off(approve_day_off)
+
+    if delete_vacation:
+        drop_vacation(delete_vacation)
+
     data = {'year_calendar': my_work_calendar(cal_year),
             'prev_year': cal_year-1,
             'year_num': cal_year,
             'next_year': cal_year+1,
-            'vacation_list': vacation_info(cal_year)}
+            'vacation_list': vacation_info(cal_year),
+            'form': form}
     return render(request, 'main/work_calendar.html', data)
