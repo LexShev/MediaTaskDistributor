@@ -1,5 +1,6 @@
 from django.db import connections
 
+from .ffmpeg_info import collection
 from .kinoroom_parser import locate_url
 from .db_connection import parent_name
 
@@ -88,7 +89,7 @@ def full_info(program_id):
         return full_info_dict
 
 def cenz_info(program_id):
-    with (connections['oplan3'].cursor() as cursor):
+    with connections['oplan3'].cursor() as cursor:
         columns = '[ProgramCustomFieldId], [TextValue], [IntValue], [DateValue]'
         query_test = f'''
             SELECT {columns}
@@ -109,7 +110,6 @@ def cenz_info(program_id):
                 # custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
                 custom_fields_dict[field_id] = int_value
                 # .split(';')
-        print(custom_fields_dict)
     return custom_fields_dict
 
 def insert_cenz_info():
@@ -129,27 +129,86 @@ def insert_cenz_info():
         18: 'Теги',
         19: 'Иноагент'}
 
-def insert_value():
-    query = f'INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]'
+def insert_value(field_id, program_id, new_value):
+    if field_id == 7:
+        columns = '[ProgramCustomFieldId], [ObjectId], [DateValue], [ObjectType]'
+    elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
+        columns = '[ProgramCustomFieldId], [ObjectId], [TextValue], [ObjectType]'
+    elif field_id in (14, 15, 17):
+        columns = '[ProgramCustomFieldId], [ObjectId], [IntValue], [ObjectType]'
+    else:
+        columns = ''
 
-def delete_value():
-    query = f'''DELETE FROM [oplan3].[dbo].[ProgramCustomFieldValues]
-    WHERE [program_id] = {fields_dict.get('program_id')}
-    AND [TextValue] = {fields_dict.get('old_field')}'''
+    if columns:
+        with connections['oplan3'].cursor() as cursor:
+            query = f'''
+            INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]
+            ({columns})
+            VALUES
+            ({field_id}, {program_id}, '{new_value}', 0)
+            '''
+            print('insert', query)
+            cursor.execute(query)
 
-def update_value():
-    pass
+def delete_value(field_id, program_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        DELETE FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+        WHERE [ObjectId] = {program_id}
+        AND [ProgramCustomFieldId] = {field_id}
+        '''
+        print('delete', query)
+        cursor.execute(query)
+
+def update_value(field_id, program_id, old_value, new_value):
+    if field_id == 7:
+        query = f'''
+        UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
+        SET [DateValue] = '{new_value}'
+        WHERE [ObjectId] = {program_id}
+        AND [ProgramCustomFieldId] = {field_id}
+        '''
+        print('upd date query', query)
+    elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
+        query = f'''
+        UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
+        SET [TextValue] = '{new_value}'
+        WHERE [ObjectId] = {program_id}
+        AND [ProgramCustomFieldId] = {field_id}
+        AND [TextValue] = '{old_value}'
+        '''
+        print('upd text query', query)
+    elif field_id in (14, 15, 17):
+        query = f'''
+        UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
+        SET [IntValue] = {new_value}
+        WHERE [ObjectId] = {program_id}
+        AND [ProgramCustomFieldId] = {field_id}
+        AND [IntValue] = {old_value}
+        '''
+        print('upd int query', query)
+    else:
+        query = ''
+
+    if query:
+        with connections['oplan3'].cursor() as cursor:
+            cursor.execute(query)
 
 def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
-
-    for old_field, new_field in zip(old_values_dict, new_values_dict):
-        old_value, new_value = old_values_dict.get(old_field), new_values_dict.get(new_field)
-        if not old_value and old_value != 0 and new_value:
-            insert_value()
-        elif old_value and not new_value and new_value != 0:
-            delete_value()
-        elif old_field and new_value and old_field != new_value:
-            update_value()
+    print('old_dict', old_values_dict, '\n', 'new_dict', new_values_dict)
+    program_id = service_info_dict.get('program_id')
+    for old_field_id, new_field_id in zip(old_values_dict, new_values_dict):
+        old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
+        if old_value == 0:
+            old_value = '0'
+        if new_value == 0:
+            new_value = '0'
+        if not old_value and new_value:
+            insert_value(new_field_id, program_id, new_value)
+        elif old_value and not new_value:
+            delete_value(old_field_id, program_id)
+        elif old_value and new_value and str(old_value) != str(new_value):
+            update_value(old_field_id, program_id, old_value, new_value)
 
     # with connections['oplan3'].cursor() as cursor:
     #     query = f'''

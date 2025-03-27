@@ -17,8 +17,9 @@
 
 <ul class="list-group list-group-flush">
 {% for action in actions_list %}
-  <li class="list-group-item list-group-item-action">{{ action.date_of_change|date:'d.m.Y' }} - {{ action.worker }}
-    <small class="text-body-secondary m-2">{% if action.action_description %}({{ action.action_description }}){% endif %}</small>
+  <li class="list-group-item list-group-item-action">{{ action.time_of_change|date:'d.m.Y H:m:s' }} - {{ action.worker_id }}
+    <small class="text-body-secondary m-2">{% if action.action_description != None %}({{ action.action_description }}){% endif %}</small>
+    <small class="text-body-secondary m-2">{{ action.old_value }} -> {{ action.new_value }}</small>
   </li>
 {% endfor %}
 </ul>

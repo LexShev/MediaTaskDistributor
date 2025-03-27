@@ -175,10 +175,10 @@ def material_card(request, program_id):
             service_info_dict = {
                 'program_id': program_id,
                 'worker_id': 11,
-                'date_of_change': str(datetime.datetime.now())}
+                'time_of_change': datetime.datetime.now()}
 
 
-            # insert_action(service_info_dict, old_values_dict, new_values_dict)
+            insert_action(service_info_dict, old_values_dict, new_values_dict)
             change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
 
     else:
