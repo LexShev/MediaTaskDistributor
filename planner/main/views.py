@@ -13,7 +13,7 @@ from .list_view import list_material_list
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
-from .detail_view import full_info, cenz_info, schedule_info, insert_cenz_info
+from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info
 from .distribution import main_distribution
 from .report_calendar import my_report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
@@ -136,150 +136,70 @@ def full_list(request):
 def material_card(request, program_id):
 
     custom_fields = cenz_info(program_id)
-
-    old_meta = custom_fields.get(17)
-    old_work_date = custom_fields.get(7)
-    old_cenz_rate = custom_fields.get(14)
-    old_cenz_worker_id = custom_fields.get('worker_id')
-    old_cenz_worker = custom_fields.get(15)
-    old_tags = custom_fields.get(18)
-    old_inoagent = custom_fields.get(19)
-
-    old_lgbt = custom_fields.get(8)
-    old_sig = custom_fields.get(9)
-    old_obnazh = custom_fields.get(10)
-    old_narc = custom_fields.get(11)
-    old_mat = custom_fields.get(12)
-    old_other = custom_fields.get(13)
-    old_editor = custom_fields.get(16)
-
-    if old_work_date and not isinstance(old_work_date, str):
-        old_work_date = str(old_work_date.date())
+    old_values_dict = {17: custom_fields.get(17),
+                       7: custom_fields.get(7),
+                       14: custom_fields.get(14),
+                       15: custom_fields.get(15),
+                       18: custom_fields.get(18),
+                       19: custom_fields.get(19),
+                       8: custom_fields.get(8),
+                       9: custom_fields.get(9),
+                       10: custom_fields.get(10),
+                       11: custom_fields.get(11),
+                       12: custom_fields.get(12),
+                       13: custom_fields.get(13),
+                       16: custom_fields.get(16)
+                       }
+    # work_date
+    if custom_fields.get(7) and not isinstance(custom_fields.get(7), str):
+        custom_fields[7] = str(custom_fields.get(7).date())
 
     if request.method == 'POST':
         form_drop = CenzFormDropDown(request.POST)
         form_text = CenzFormText(request.POST)
         if form_text.is_valid() and form_drop.is_valid():
-            new_meta = form_drop.cleaned_data.get('meta_form')
-            new_work_date = form_drop.cleaned_data.get('work_date_form')
-            new_cenz_rate = form_drop.cleaned_data.get('cenz_rate_form')
-            new_cenz_worker_id = form_drop.cleaned_data.get('cenz_worker_form')
-            new_tags = form_drop.cleaned_data.get('tags_form')
-            new_inoagent = form_drop.cleaned_data.get('inoagent_form')
+            new_values_dict = {17: form_drop.cleaned_data.get('meta_form'),
+                          7: form_drop.cleaned_data.get('work_date_form'),
+                          14: form_drop.cleaned_data.get('cenz_rate_form'),
+                          15: form_drop.cleaned_data.get('cenz_worker_form'),
+                          18: form_drop.cleaned_data.get('tags_form'),
+                          19: form_drop.cleaned_data.get('inoagent_form'),
+                          8: form_text.cleaned_data.get('lgbt_form'),
+                          9: form_text.cleaned_data.get('sig_form'),
+                          10: form_text.cleaned_data.get('obnazh_form'),
+                          11: form_text.cleaned_data.get('narc_form'),
+                          12: form_text.cleaned_data.get('mat_form'),
+                          13: form_text.cleaned_data.get('other_form'),
+                          16: form_text.cleaned_data.get('editor_form')}
 
-            new_lgbt = form_text.cleaned_data.get('lgbt_form')
-            new_sig = form_text.cleaned_data.get('sig_form')
-            new_obnazh = form_text.cleaned_data.get('obnazh_form')
-            new_narc = form_text.cleaned_data.get('narc_form')
-            new_mat = form_text.cleaned_data.get('mat_form')
-            new_other = form_text.cleaned_data.get('other_form')
-            new_editor = form_text.cleaned_data.get('editor_form')
-            # keys = (
-            #     ('old_meta', 'new_meta'),
-            #     ('old_work_date', 'new_work_date'),
-            #     ('old_cenz_rate', 'new_cenz_rate'),
-            #     ('old_cenz_worker', 'new_cenz_worker'),
-            #     ('old_tags', 'new_tags'),
-            #     ('old_inoagent', 'new_inoagent'),
-            #     ('old_lgbt', 'new_lgbt'),
-            #     ('old_sig', 'new_sig'),
-            #     ('old_obnazh', 'new_obnazh'),
-            #     ('old_narc', 'new_narc'),
-            #     ('old_mat', 'new_mat'),
-            #     ('old_other', 'new_other'),
-            #     ('old_editor', 'new_editor'))
-            # values = (
-            #     (old_meta, new_meta),
-            #     (old_work_date, new_work_date),
-            #     (old_cenz_rate, new_cenz_rate),
-            #     (old_cenz_worker, new_cenz_worker),
-            #     (old_tags, new_tags),
-            #     (old_inoagent, new_inoagent),
-            #     (old_lgbt, new_lgbt),
-            #     (old_sig, new_sig),
-            #     (old_obnazh, new_obnazh),
-            #     (old_narc, new_narc),
-            #     (old_mat, new_mat),
-            #     (old_other, new_other),
-            #     (old_editor, new_editor))
-            #
-            # insert_dict = {'worker_id': 'worker_id', 'worker': 'worker', 'date_of_change': datetime.datetime.now()}
-            # for key, val in zip(keys, values):
-            #     old_key, new_key = key
-            #     old_val, new_val = val
-            #     if old_val or new_val:
-            #         insert_dict[old_key] = old_val
-            #         insert_dict[new_key] = new_val
+            service_info_dict = {
+                'program_id': program_id,
+                'worker_id': 11,
+                'date_of_change': str(datetime.datetime.now())}
 
-            keys = (
-                'old_meta', 'new_meta',
-                'old_work_date', 'new_work_date',
-                'old_cenz_rate', 'new_cenz_rate',
-                'old_cenz_worker_id', 'new_cenz_worker_id',
-                'old_tags', 'new_tags',
-                'old_inoagent', 'new_inoagent',
-                'old_lgbt', 'new_lgbt',
-                'old_sig', 'new_sig',
-                'old_obnazh', 'new_obnazh',
-                'old_narc', 'new_narc',
-                'old_mat', 'new_mat',
-                'old_other', 'new_other',
-                'old_editor', 'new_editor')
-            values = (
-                old_meta, new_meta,
-                old_work_date, new_work_date,
-                old_cenz_rate, new_cenz_rate,
-                old_cenz_worker_id, new_cenz_worker_id,
-                old_tags, new_tags,
-                old_inoagent, new_inoagent,
-                old_lgbt, new_lgbt,
-                old_sig, new_sig,
-                old_obnazh, new_obnazh,
-                old_narc, new_narc,
-                old_mat, new_mat,
-                old_other, new_other,
-                old_editor, new_editor)
 
-            insert_history_dict = {'program_id': program_id,
-                           'worker_id': 11,
-                           'worker': 'Алексей Шевченко',
-                           'date_of_change': str(datetime.datetime.now())}
-            # .strftime("%Y-%m-%d %H:%M:%S")
-            for key, val in zip(keys, values):
-                if val:
-                    if val == True:
-                        val = 1
-                    elif isinstance(val, datetime.date):
-                        val = val.strftime('%Y-%m-%d')
-                    insert_history_dict[key] = val
-
-            insert_action(**insert_history_dict)
-            insert_cenz_info_dict = {'program_id': program_id, 'new_meta': new_meta, 'new_work_date': new_work_date,
-                                     'new_cenz_rate': new_cenz_rate, 'new_cenz_worker_id': new_cenz_worker_id,
-                                     'new_tags': new_tags, 'new_inoagent': new_inoagent, 'new_lgbt': new_lgbt,
-                                     'new_sig': new_sig, 'new_obnazh': new_obnazh, 'new_narc': new_narc,
-                                     'new_mat': new_mat, 'new_other': new_other, 'new_editor': new_editor}
-            insert_cenz_info(**insert_cenz_info_dict)
+            # insert_action(service_info_dict, old_values_dict, new_values_dict)
+            change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
 
     else:
         form_drop = CenzFormDropDown(
             initial={
-                'meta_form': old_meta,
-                'work_date_form': old_work_date,
-                'cenz_rate_form': old_cenz_rate,
-                'cenz_worker_form': old_cenz_worker_id,
-                'tags_form': old_tags,
-                'inoagent_form': old_inoagent,
+                'meta_form': custom_fields.get(17),
+                'work_date_form': custom_fields.get(7),
+                'cenz_rate_form': custom_fields.get(14),
+                'cenz_worker_form': custom_fields.get(15),
+                'tags_form': custom_fields.get(18),
+                'inoagent_form': custom_fields.get(19),
             })
         form_text = CenzFormText(
             initial={
-                'lgbt_form': old_lgbt,
-                'sig_form': old_sig,
-                'obnazh_form': old_obnazh,
-                'narc_form': old_narc,
-                'mat_form': old_mat,
-                'other_form': old_other,
-                'editor_form': old_editor
+                'lgbt_form': custom_fields.get(8),
+                'sig_form': custom_fields.get(9),
+                'obnazh_form': custom_fields.get(10),
+                'narc_form': custom_fields.get(11),
+                'mat_form': custom_fields.get(12),
+                'other_form': custom_fields.get(13),
+                'editor_form': custom_fields.get(16)
             })
 
     data = {'full_info': full_info(program_id),

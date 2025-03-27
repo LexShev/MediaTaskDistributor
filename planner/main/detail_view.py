@@ -70,10 +70,10 @@ def full_info(program_id):
             planner_status = full_info_dict.get('TaskInf_task_status')
 
             if oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and not planner_status:
-                full_info_dict['material_status'] = f'Материал отсмотрен в Oplan: {str(oplan3_work_date)}' # oplan3_ready
+                full_info_dict['material_status'] = f'Материал отсмотрен через Oplan: {oplan3_work_date.strftime('%d.%m.%Y')}' # oplan3_ready
                 full_info_dict['color'] = 'text-success'
             elif oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and planner_status:
-                full_info_dict['material_status'] = f'Материал отсмотрен: {str(planner_ready_date)}' # planner_ready
+                full_info_dict['material_status'] = f'Материал отсмотрен: {planner_ready_date.strftime('%d.%m.%Y')}' # planner_ready
                 full_info_dict['color'] = 'text-success'
             elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and planner_status =='not_ready':
                 full_info_dict['material_status'] = 'Материал не готов' # planner_not_ready
@@ -88,48 +88,82 @@ def full_info(program_id):
         return full_info_dict
 
 def cenz_info(program_id):
-    with connections['oplan3'].cursor() as cursor:
-        columns = 'Val.[ProgramCustomFieldId], Fields.[Name], Val.[TextValue], Fields.[ItemsString], Val.[IntValue], Val.[DateValue]'
+    with (connections['oplan3'].cursor() as cursor):
+        columns = '[ProgramCustomFieldId], [TextValue], [IntValue], [DateValue]'
         query_test = f'''
             SELECT {columns}
-            FROM [oplan3].[dbo].[ProgramCustomFields] AS Fields
-            JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Val
-                ON Fields.[CustomFieldID] = Val.[ProgramCustomFieldId]
-            WHERE Val.[ObjectId] = {program_id}
+            FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+            WHERE [ObjectId] = {program_id}
                 '''
         cursor.execute(query_test)
         cenz_info_sql = cursor.fetchall()
         custom_fields_dict = {}
         for cenz in cenz_info_sql:
-            field_id, field_name, text_value, items_string, int_value, date_value = cenz
-            # Ценз отсмотра
-            if field_id == 14:
-                custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
-            # Тайтл проверил
-            elif field_id == 15:
-                custom_fields_dict['worker_id'] = int_value
-                custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
+            field_id, text_value, int_value, date_value = cenz
             # Дата отсмотра
-            elif field_id == 7:
+            if field_id == 7:
                 custom_fields_dict[field_id] = date_value
-            else:
+            elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
                 custom_fields_dict[field_id] = text_value
+            elif field_id in (14, 15, 17):
+                # custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
+                custom_fields_dict[field_id] = int_value
+                # .split(';')
+        print(custom_fields_dict)
     return custom_fields_dict
 
-def insert_cenz_info(**kwargs):
-    print(insert_cenz_info_dict)
+def insert_cenz_info():
+    fields_id_dict = {
+        5: 'Краткое описание',
+        7: 'Дата отсмотра',
+        8: 'ЛГБТ',
+        9: 'Сигареты',
+        10: 'Обнаженка',
+        11: 'Наркотики',
+        12: 'Мат',
+        13: 'Другое',
+        14: 'Ценз отсмотра',
+        15: 'Тайтл проверил',
+        16: 'Редакторские замечания',
+        17: 'Meta',
+        18: 'Теги',
+        19: 'Иноагент'}
 
-    with connections['oplan3'].cursor() as cursor:
-        query = f'''DELETE FROM [oplan3].[dbo].[ProgramCustomFieldValues] WHERE [program_id] = {kwargs.get('program_id')}
-        INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]
-        ([worker_id], [worker], [start_date], [end_date], [description])
-        VALUES ({worker_id}, '{worker}', '{start_date}', '{end_date}', '{description}');
-        '''
+def insert_value():
+    query = f'INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]'
 
-        ok = cursor.execute(query)
-        if ok:
-            # next
-            cursor.execute(query)
+def delete_value():
+    query = f'''DELETE FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+    WHERE [program_id] = {fields_dict.get('program_id')}
+    AND [TextValue] = {fields_dict.get('old_field')}'''
+
+def update_value():
+    pass
+
+def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
+
+    for old_field, new_field in zip(old_values_dict, new_values_dict):
+        old_value, new_value = old_values_dict.get(old_field), new_values_dict.get(new_field)
+        if not old_value and old_value != 0 and new_value:
+            insert_value()
+        elif old_value and not new_value and new_value != 0:
+            delete_value()
+        elif old_field and new_value and old_field != new_value:
+            update_value()
+
+    # with connections['oplan3'].cursor() as cursor:
+    #     query = f'''
+    #     DELETE FROM [oplan3].[dbo].[ProgramCustomFieldValues] WHERE [program_id] = {kwargs.get('program_id')}
+    #
+    #     INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]
+    #     ([worker_id], [worker], [start_date], [end_date], [description])
+    #     VALUES ({worker_id}, '{worker}', '{start_date}', '{end_date}', '{description}');
+    #     '''
+    #
+    #     ok = cursor.execute(query)
+    #     if ok:
+    #         # next
+    #         cursor.execute(query)
 
 
     # drop

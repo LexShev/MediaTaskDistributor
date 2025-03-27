@@ -12,20 +12,20 @@ if workers_list:
             workers.append(worker)
 
 tags_list = program_custom_fields().get(18)
-tags = [(0, '-')]
+tags = [('', '-')]
 if tags_list:
     for tag in enumerate(tags_list.split('\r\n')):
         if tag[1]:
             tags.append(tag)
 
 inoagents_list = program_custom_fields().get(19)
-inoagents = [(0, '-')]
+inoagents = [('', '-')]
 if inoagents_list:
     for inoagent in enumerate(inoagents_list.split('\r\n')):
         if inoagent[1]:
             inoagents.append(inoagent)
 
-rate = (('0+', '0+'), ('6+', '6+'), ('12+', '12+'), ('16+', '16+'), ('18+', '18+'))
+rate = ((0, '0+'), (1, '6+'), (2, '12+'), (3, '16+'), (4, '18+'))
 
 channels = [('', 'Телеканал'),
                     (2, 'Крепкое кино'),
