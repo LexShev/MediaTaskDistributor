@@ -79,8 +79,8 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
                          'Task_work_date': temp_dict.get('Task_work_date'),
                          'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                          'status': temp_dict.get('Task_task_status'),
-                         'worker_id': temp_dict.get('Task_worker_id'),
-                         'worker': temp_dict.get('Task_worker')}
+                         'worker_id': temp_dict.get('Task_worker_id')
+                         }
                     ]
                 }
                 material_list[day_num].append(program_info_dict)
@@ -94,8 +94,8 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
                     'Task_work_date': temp_dict.get('Task_work_date'),
                     'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                     'status': temp_dict.get('Task_task_status'),
-                    'worker_id': temp_dict.get('Task_worker_id'),
-                    'worker': temp_dict.get('Task_worker')})
+                    'worker_id': temp_dict.get('Task_worker_id')
+                     })
                 program_id_list.append(program_id)
         if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
             program_info_dict = {
@@ -111,8 +111,8 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
                 'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                 'type': 'film',
                 'status': temp_dict.get('Task_task_status'),
-                'worker_id': temp_dict.get('Task_worker_id'),
-                'worker': temp_dict.get('Task_worker')}
+                'worker_id': temp_dict.get('Task_worker_id')
+            }
             material_list[day_num].append(program_info_dict)
             program_id_list.append(program_id)
     return material_list, service_dict

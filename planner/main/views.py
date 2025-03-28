@@ -13,7 +13,7 @@ from .list_view import list_material_list
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
-from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info
+from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, change_task_status
 from .distribution import main_distribution
 from .report_calendar import my_report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
@@ -182,6 +182,11 @@ def material_card(request, program_id):
 
             insert_action(service_info_dict, old_values_dict, new_values_dict)
             change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
+
+            cenz_worker = new_values_dict.get(15)
+            work_date = new_values_dict.get(7)
+            change_task_status(program_id, cenz_worker, work_date)
+
 
     else:
         form_drop = CenzFormDropDown(

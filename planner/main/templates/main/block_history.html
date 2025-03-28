@@ -1,31 +1,18 @@
-<ul class="list-group list-group-flush">
-  <li class="list-group-item">12.01.2023 - Ольга Кузовкина
-    <small class="text-body-secondary m-2">(Описание)</small>
-  </li>
-  <li class="list-group-item">13.01.2023 - Ольга Кузовкина
-    <small class="text-body-secondary m-2">(Описание, Цензура)</small>
-  </li>
-  <li class="list-group-item">25.01.2024 - Александр Кисляков
-    <small class="text-body-secondary m-2">(Цензура)</small>
-  </li>
-  <li class="list-group-item">26.01.2024 - Айнур Мингазов
-    <small class="text-body-secondary m-2">(ОТК)</small>
-  </li>
-</ul>
-
-<br>
-
-<ul class="list-group list-group-flush">
-{% for action in actions_list %}
-  <li class="list-group-item list-group-item-action">{{ action.time_of_change|date:'d.m.Y H:m:s' }} - {{ action.worker_id|worker_name }}
-    <small class="text-body-secondary m-2">({{ action.CustomFieldID|fields_name }})</small>
-    {% if action.CustomFieldID == 14 %}
-    <small class="text-body-secondary m-2">{{ action.old_value|cenz_name }} -> {{ action.new_value|cenz_name }}</small>
-    {% elif action.CustomFieldID == 15 %}
-    <small class="text-body-secondary m-2">{{ action.old_value|worker_name }} -> {{ action.new_value|worker_name }}</small>
-    {% else %}
-    <small class="text-body-secondary m-2">{% if action.new_value %}{{ action.old_value }} -> {{ action.new_value }}{% else %}поле очищено{% endif %}</small>
-    {% endif %}
-  </li>
-{% endfor %}
-</ul>
+{% if actions_list %}
+  <ul class="list-group list-group-flush">
+  {% for action in actions_list %}
+    <li class="list-group-item list-group-item-action">{{ action.time_of_change|date:'d.m.Y H:m:s' }} - {{ action.worker_id|worker_name }}
+      <small class="text-body-secondary m-2">({{ action.CustomFieldID|fields_name }})</small>
+      {% if action.CustomFieldID == 14 %}
+      <small class="text-body-secondary m-2">{{ action.old_value|cenz_name }} -> {{ action.new_value|cenz_name }}</small>
+      {% elif action.CustomFieldID == 15 %}
+      <small class="text-body-secondary m-2">{{ action.old_value|worker_name }} -> {{ action.new_value|worker_name }}</small>
+      {% else %}
+      <small class="text-body-secondary m-2">{% if action.new_value %}{{ action.old_value }} -> {{ action.new_value }}{% else %}поле очищено{% endif %}</small>
+      {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+{% else %}
+Нет данных
+{% endif %}

@@ -84,7 +84,7 @@ def full_info(program_id):
                    ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
                    ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'), ('Files', 'Name'), ('Files', 'Size'),
                    ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('TaskInf', 'work_date'),
-                   ('TaskInf', 'ready_date'), ('TaskInf', 'worker_id'), ('TaskInf', 'worker'), ('TaskInf', 'task_status')]
+                   ('TaskInf', 'ready_date'), ('TaskInf', 'worker_id'), ('TaskInf', 'task_status')]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -132,6 +132,7 @@ def find_out_status(program_id, full_info_dict):
     oplan3_cenz_worker = check_data_type(oplan3_cenz_info.get(15))
 
     planner_ready_date = full_info_dict.get('TaskInf_ready_date')
+    print(planner_ready_date, type(planner_ready_date))
     planner_status = full_info_dict.get('TaskInf_task_status')
     print('facts', oplan3_work_date, oplan3_cenz_rate, oplan3_cenz_worker, planner_status)
     if oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and not planner_status:
@@ -245,6 +246,26 @@ def update_value(field_id, program_id, new_value):
             print(query)
             cursor.execute(query)
 
+def change_task_status(program_id, cenz_worker, work_date):
+    with connections['planner'].cursor() as cursor:
+        select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
+        cursor.execute(select)
+        if cursor.fetchone():
+            update = f'''
+            UPDATE [planner].[dbo].[task_list]
+            SET [task_status] = 'ready',
+            [ready_date] = GETDATE()
+            WHERE [program_id] = {program_id}'''
+            print(update)
+            cursor.execute(update)
+        else:
+            print('insert')
+            columns = '[program_id], [worker_id], [duration], [work_date], [ready_date], [task_status]'
+            insert = f'''
+            INSERT INTO [planner].[dbo].[task_list] ({columns})
+            VALUES ({program_id}, {cenz_worker}, 126, '{work_date}', GETDATE(), 'ready')
+            '''
+            cursor.execute(insert)
 
 def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
     program_id = service_info_dict.get('program_id')

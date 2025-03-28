@@ -164,7 +164,7 @@
               {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
               <td>
                 <a href="{% url 'home' %}workers/{{ task.Task_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                  {{ task.Task_worker }}</a></td>
+                  {{ task.Task_worker_id|worker_name }}</a></td>
               <td>{{ task.Task_duration|convert_frames_to_time }}</td>
 <!--              <td>{{ task.Task_work_date|date:'d-m-Y' }}</td>-->
               {% if task.Task_task_status == 'not_ready' %}

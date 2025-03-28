@@ -26,9 +26,9 @@ def check_mat_type(param):
         return 4, 5, 6, 10, 11, 12
 
 
-def oplan_material_list(program_type):
+def oplan_material_list(work_date, program_type):
     with connections['oplan3'].cursor() as cursor:
-        dates = tuple(str(datetime.date(day=1, month=3, year=2025)+datetime.timedelta(day)) for day in range(21))
+        dates = tuple(str(work_date+datetime.timedelta(days=day)) for day in range(21))
         channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
 
         order = 'ASC'
@@ -82,7 +82,7 @@ def planner_material_list(channels, worker_id, material_type, work_dates, task_s
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
                    ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Sched', 'schedule_name'), ('SchedDay', 'day_date'),
-                   ('Task', 'worker_id'), ('Task', 'worker'), ('Task', 'work_date'), ('Task', 'task_status')]
+                   ('Task', 'worker_id'), ('Task', 'work_date'), ('Task', 'task_status')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''

@@ -36,7 +36,7 @@ def summary_task_list(work_dates):
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
     with connections['planner'].cursor() as cursor:
-        columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'worker'), ('Task', 'duration'),
+        columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
                    ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -55,10 +55,11 @@ def summary_task_list(work_dates):
         result = cursor.fetchall()
     return [dict(zip(django_columns, task)) for task in result]
 
-def kpi_summary_calc(work_dates, workers, material_type, task_status):
+def kpi_summary_calc(work_dates, worker_id, material_type, task_status):
     print('material_type', material_type)
-    if workers:
-        workers = int(workers)
+    if worker_id:
+        worker_id = int(worker_id)
+    print('!workers', worker_id)
 
     task_list = summary_task_list(work_dates)
     count_dates = len(set(task.get('Task_work_date') for task in task_list))
@@ -80,7 +81,7 @@ def kpi_summary_calc(work_dates, workers, material_type, task_status):
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
 
-    filtered_task_list = filter(lambda task: task.get('Task_worker_id') == workers or not workers and workers != 0, task_list)
+    filtered_task_list = filter(lambda task: task.get('Task_worker_id') == worker_id or not worker_id and worker_id != 0, task_list)
     filtered_task_list = filter(lambda task: task.get('Progs_program_type_id') in check_mat_type(material_type) or not material_type, filtered_task_list)
     filtered_task_list = filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list)
     # if not task_status and workers:
@@ -98,7 +99,7 @@ def personal_task_list(work_dates, worker_id):
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
     with connections['planner'].cursor() as cursor:
-        columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'worker'), ('Task', 'duration'),
+        columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
                    ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
