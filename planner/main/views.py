@@ -130,26 +130,27 @@ def full_list(request):
 
     data = {'material_list': list_material_list(channels, workers, material_type, str(work_dates), task_status),
             'form': form}
-    # main_distribution()
+    main_distribution()
     return render(request, 'main/list.html', data)
 
 def material_card(request, program_id):
 
     custom_fields = cenz_info(program_id)
-    old_values_dict = {17: custom_fields.get(17),
-                       7: custom_fields.get(7),
-                       14: custom_fields.get(14),
-                       15: custom_fields.get(15),
-                       18: custom_fields.get(18),
-                       19: custom_fields.get(19),
-                       8: custom_fields.get(8),
-                       9: custom_fields.get(9),
-                       10: custom_fields.get(10),
-                       11: custom_fields.get(11),
-                       12: custom_fields.get(12),
-                       13: custom_fields.get(13),
-                       16: custom_fields.get(16)
-                       }
+    old_values_dict = {
+        17: custom_fields.get(17),
+        7: custom_fields.get(7),
+        14: custom_fields.get(14),
+        15: custom_fields.get(15),
+        18: custom_fields.get(18),
+        19: custom_fields.get(19),
+        8: custom_fields.get(8),
+        9: custom_fields.get(9),
+        10: custom_fields.get(10),
+        11: custom_fields.get(11),
+        12: custom_fields.get(12),
+        13: custom_fields.get(13),
+        16: custom_fields.get(16)
+    }
     # work_date
     if custom_fields.get(7) and not isinstance(custom_fields.get(7), str):
         custom_fields[7] = str(custom_fields.get(7).date())
@@ -158,24 +159,25 @@ def material_card(request, program_id):
         form_drop = CenzFormDropDown(request.POST)
         form_text = CenzFormText(request.POST)
         if form_text.is_valid() and form_drop.is_valid():
-            new_values_dict = {17: form_drop.cleaned_data.get('meta_form'),
-                          7: form_drop.cleaned_data.get('work_date_form'),
-                          14: form_drop.cleaned_data.get('cenz_rate_form'),
-                          15: form_drop.cleaned_data.get('cenz_worker_form'),
-                          18: form_drop.cleaned_data.get('tags_form'),
-                          19: form_drop.cleaned_data.get('inoagent_form'),
-                          8: form_text.cleaned_data.get('lgbt_form'),
-                          9: form_text.cleaned_data.get('sig_form'),
-                          10: form_text.cleaned_data.get('obnazh_form'),
-                          11: form_text.cleaned_data.get('narc_form'),
-                          12: form_text.cleaned_data.get('mat_form'),
-                          13: form_text.cleaned_data.get('other_form'),
-                          16: form_text.cleaned_data.get('editor_form')}
-
+            new_values_dict = {
+                17: form_drop.cleaned_data.get('meta_form'),
+                7: form_drop.cleaned_data.get('work_date_form'),
+                14: form_drop.cleaned_data.get('cenz_rate_form'),
+                15: form_drop.cleaned_data.get('cenz_worker_form'),
+                18: form_drop.cleaned_data.get('tags_form'),
+                19: form_drop.cleaned_data.get('inoagent_form'),
+                8: form_text.cleaned_data.get('lgbt_form'),
+                9: form_text.cleaned_data.get('sig_form'),
+                10: form_text.cleaned_data.get('obnazh_form'),
+                11: form_text.cleaned_data.get('narc_form'),
+                12: form_text.cleaned_data.get('mat_form'),
+                13: form_text.cleaned_data.get('other_form'),
+                16: form_text.cleaned_data.get('editor_form')
+            }
             service_info_dict = {
                 'program_id': program_id,
-                'worker_id': 11,
-                'time_of_change': datetime.datetime.now()}
+                'worker_id': 11
+            }
 
 
             insert_action(service_info_dict, old_values_dict, new_values_dict)
@@ -282,7 +284,6 @@ def my_view(request):
             # ...
     else:
         form = ListForm()
-
     return render(request, 'main/list_filter.html', {'form': form})
 
 def common_pool(request):
@@ -304,7 +305,6 @@ def work_calendar(request, cal_year):
         form = VacationForm()
     else:
         form = VacationForm()
-
 
     if delete_day_off:
         drop_day_off(delete_day_off)

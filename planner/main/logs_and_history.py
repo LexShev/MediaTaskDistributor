@@ -1,5 +1,13 @@
 from django.db import connections
+from datetime import datetime, date
 
+def check_data_type(value):
+    if isinstance(value, datetime) or isinstance(value, date):
+        return value.strftime('%Y-%m-%d')
+    if value == None:
+        return ''
+    else:
+        return str(value)
 
 def insert_action(service_info_dict, old_values_dict, new_values_dict):
     # if val:
@@ -12,7 +20,6 @@ def insert_action(service_info_dict, old_values_dict, new_values_dict):
 
     program_id = service_info_dict.get('program_id')
     worker_id = service_info_dict.get('worker_id')
-    time_of_change = service_info_dict.get('time_of_change')
 
     columns = ('program_id', 'CustomFieldID', 'action_description', 'action_comment',
                'worker_id', 'time_of_change', 'old_value', 'new_value')
@@ -20,14 +27,7 @@ def insert_action(service_info_dict, old_values_dict, new_values_dict):
 
     for old_field_id, new_field_id in zip(old_values_dict, new_values_dict):
         old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
-        if old_value == 0:
-            old_value = '0'
-        if new_value == 0:
-            new_value = '0'
-        if old_value == None:
-            old_value = ''
-        if new_value == None:
-            new_value = ''
+        old_value, new_value = check_data_type(old_value), check_data_type(new_value)
         if str(old_value) != str(new_value):
             with connections['planner'].cursor() as cursor:
                 query = f'''

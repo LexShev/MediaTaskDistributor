@@ -1,9 +1,74 @@
+from datetime import datetime, date
+from types import NoneType
+
 from django.db import connections
+from django.template.defaulttags import register
 
 from .ffmpeg_info import collection
 from .kinoroom_parser import locate_url
 from .db_connection import parent_name
 
+@register.filter
+def cenz_name(cenz_id):
+    if cenz_id:
+        cenz_id = int(cenz_id)
+    cenz_dict = {
+        0: '0+',
+        1: '6+',
+        2: '12+',
+        3: '16+',
+        4: '18+'
+    }
+    return cenz_dict.get(cenz_id)
+
+@register.filter
+def worker_name(worker_id):
+    if worker_id:
+        worker_id = int(worker_id)
+    worker_dict = {
+        0: 'Александр Кисляков',
+        1: 'Ольга Кузовкина',
+        2: 'Дмитрий Гатенян',
+        3: 'Мария Сучкова',
+        4: 'Андрей Антипин',
+        5: 'Роман Рогачев',
+        6: 'Анастасия Чебакова',
+        7: 'Никита Кузаков',
+        8: 'Олег Кашежев',
+        9: 'Марфа Тарусина',
+        10: 'Евгений Доманов',
+        11: 'Алексей Шевченко'
+    }
+    return worker_dict.get(worker_id)
+
+@register.filter
+def fields_name(field_id):
+    if field_id:
+        field_id = int(field_id)
+    fields_dict = {
+        5: 'Краткое описание',
+        7: 'Дата отсмотра',
+        8: 'ЛГБТ',
+        9: 'Сигареты',
+        10: 'Обнаженка',
+        11: 'Наркотики',
+        12: 'Мат',
+        13: 'Другое',
+        14: 'Ценз отсмотра',
+        15: 'Тайтл проверил',
+        16: 'Редакторские замечания',
+        17: 'Meta',
+        18: 'Теги',
+        19: 'Иноагент'}
+    return fields_dict.get(field_id)
+
+def check_data_type(value):
+    if isinstance(value, NoneType):
+        return None
+    elif isinstance(value, datetime) or isinstance(value, date):
+        return value.strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        return str(value)
 
 def full_info(program_id):
     with connections['oplan3'].cursor() as cursor:
@@ -42,11 +107,9 @@ def full_info(program_id):
             AND Progs.[program_id] = {program_id}
                 '''
         cursor.execute(query)
-        full_info_list = cursor.fetchone()
-        # [info.replace('\n', '') for info in full_info_list if isinstance(info, str)]
-        full_info_dict = dict(zip(django_columns, full_info_list))
-        # full_info_dict['custom_fields'] = cenz_info(program_id)
-        # full_info_dict['schedule_info'] = schedule_info(program_id)
+        full_info_dict = dict(zip(django_columns, cursor.fetchone()))
+        full_info_dict['material_status'], full_info_dict['color'] = find_out_status(program_id, full_info_dict)
+
         if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
             poster_link = locate_url(
                 full_info_dict.get('Progs_parent_id'),
@@ -60,33 +123,41 @@ def full_info(program_id):
                 full_info_dict.get('Progs_production_year'))
 
             full_info_dict['poster_link'] = poster_link
-
-            oplan3_cenz_info = cenz_info(program_id)
-            oplan3_work_date = oplan3_cenz_info.get(7)
-            oplan3_cenz_rate = oplan3_cenz_info.get(14)
-            oplan3_cenz_worker_id = oplan3_cenz_info.get('worker_id')
-            oplan3_cenz_worker = oplan3_cenz_info.get(15)
-
-            planner_ready_date = full_info_dict.get('TaskInf_ready_date')
-            planner_status = full_info_dict.get('TaskInf_task_status')
-
-            if oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and not planner_status:
-                full_info_dict['material_status'] = f'Материал отсмотрен через Oplan: {oplan3_work_date.strftime('%d.%m.%Y')}' # oplan3_ready
-                full_info_dict['color'] = 'text-success'
-            elif oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and planner_status:
-                full_info_dict['material_status'] = f'Материал отсмотрен: {planner_ready_date.strftime('%d.%m.%Y')}' # planner_ready
-                full_info_dict['color'] = 'text-success'
-            elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and planner_status =='not_ready':
-                full_info_dict['material_status'] = 'Материал не готов' # planner_not_ready
-                full_info_dict['color'] = 'text-danger'
-            elif oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and planner_status == 'fix':
-                full_info_dict['material_status'] = 'Материал на доработке' # planner_fix
-                full_info_dict['color'] = 'text-warning'
-            elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and planner_status == 'fix':
-                full_info_dict['material_status'] = 'Материал на доработке' # planner_fix
-                full_info_dict['color'] = 'text-warning'
-            print('planner_status', planner_status)
         return full_info_dict
+
+def find_out_status(program_id, full_info_dict):
+    oplan3_cenz_info = cenz_info(program_id)
+    oplan3_work_date = oplan3_cenz_info.get(7)
+    oplan3_cenz_rate = check_data_type(oplan3_cenz_info.get(14))
+    oplan3_cenz_worker = check_data_type(oplan3_cenz_info.get(15))
+
+    planner_ready_date = full_info_dict.get('TaskInf_ready_date')
+    planner_status = full_info_dict.get('TaskInf_task_status')
+    print('facts', oplan3_work_date, oplan3_cenz_rate, oplan3_cenz_worker, planner_status)
+    if oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and not planner_status:
+        material_status = f'Отсмотрен через Oplan: {oplan3_work_date.strftime('%d.%m.%Y')}'  # oplan3_ready
+        color = 'text-success'
+    elif oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and planner_status == 'ready':
+        material_status = f'Отсмотрен: {planner_ready_date.strftime('%d.%m.%Y')}'  # planner_ready
+        color = 'text-success'
+    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and planner_status == 'not_ready':
+        material_status = 'Не готов'  # planner_not_ready
+        color = 'text-danger'
+    elif oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and planner_status == 'fix':
+        material_status = 'На доработке'  # planner_fix
+        color = 'text-warning'
+    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and planner_status == 'fix':
+        material_status = 'На доработке'  # planner_fix
+        color = 'text-warning'
+    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and not planner_status:
+        material_status = 'Материал из общего пула'  # planner_fix
+        color = 'text-info'
+    else:
+        material_status = 'Карточка материала заполнена неверно'  # planner_fix
+        color = 'text-danger'
+    print('material_status', full_info_dict.get('material_status'))
+    return material_status, color
+
 
 def cenz_info(program_id):
     with connections['oplan3'].cursor() as cursor:
@@ -110,24 +181,9 @@ def cenz_info(program_id):
                 # custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
                 custom_fields_dict[field_id] = int_value
                 # .split(';')
+        print(custom_fields_dict)
     return custom_fields_dict
 
-def insert_cenz_info():
-    fields_id_dict = {
-        5: 'Краткое описание',
-        7: 'Дата отсмотра',
-        8: 'ЛГБТ',
-        9: 'Сигареты',
-        10: 'Обнаженка',
-        11: 'Наркотики',
-        12: 'Мат',
-        13: 'Другое',
-        14: 'Ценз отсмотра',
-        15: 'Тайтл проверил',
-        16: 'Редакторские замечания',
-        17: 'Meta',
-        18: 'Теги',
-        19: 'Иноагент'}
 
 def insert_value(field_id, program_id, new_value):
     if field_id == 7:
@@ -157,10 +213,9 @@ def delete_value(field_id, program_id):
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
         '''
-        print('delete', query)
         cursor.execute(query)
 
-def update_value(field_id, program_id, old_value, new_value):
+def update_value(field_id, program_id, new_value):
     if field_id == 7:
         query = f'''
         UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
@@ -168,93 +223,42 @@ def update_value(field_id, program_id, old_value, new_value):
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
         '''
-        print('upd date query', query)
     elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
         query = f'''
         UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
         SET [TextValue] = '{new_value}'
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
-        AND [TextValue] = '{old_value}'
         '''
-        print('upd text query', query)
     elif field_id in (14, 15, 17):
         query = f'''
         UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
         SET [IntValue] = {new_value}
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
-        AND [IntValue] = {old_value}
         '''
-        print('upd int query', query)
     else:
         query = ''
 
     if query:
         with connections['oplan3'].cursor() as cursor:
+            print(query)
             cursor.execute(query)
 
+
 def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
-    print('old_dict', old_values_dict, '\n', 'new_dict', new_values_dict)
     program_id = service_info_dict.get('program_id')
     for old_field_id, new_field_id in zip(old_values_dict, new_values_dict):
         old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
-        if old_value == 0:
-            old_value = '0'
-        if new_value == 0:
-            new_value = '0'
+        old_value, new_value = check_data_type(old_value), check_data_type(new_value)
+        print('facts', old_value, type(old_value), new_value, type(new_value))
         if not old_value and new_value:
             insert_value(new_field_id, program_id, new_value)
         elif old_value and not new_value:
             delete_value(old_field_id, program_id)
         elif old_value and new_value and str(old_value) != str(new_value):
-            update_value(old_field_id, program_id, old_value, new_value)
+            update_value(old_field_id, program_id, new_value)
 
-    # with connections['oplan3'].cursor() as cursor:
-    #     query = f'''
-    #     DELETE FROM [oplan3].[dbo].[ProgramCustomFieldValues] WHERE [program_id] = {kwargs.get('program_id')}
-    #
-    #     INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]
-    #     ([worker_id], [worker], [start_date], [end_date], [description])
-    #     VALUES ({worker_id}, '{worker}', '{start_date}', '{end_date}', '{description}');
-    #     '''
-    #
-    #     ok = cursor.execute(query)
-    #     if ok:
-    #         # next
-    #         cursor.execute(query)
-
-
-    # drop
-    # insert
-
-
-    # with connections['oplan3'].cursor() as cursor:
-    #     columns = 'Val.[ProgramCustomFieldId], Fields.[Name], Val.[TextValue], Fields.[ItemsString], Val.[IntValue], Val.[DateValue]'
-    #     query_test = f'''
-    #         UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
-    #         SET [TextValue], Val.[IntValue], Val.[DateValue]
-    #         WHERE Val.[ObjectId] = {program_id}
-    #         AND [ProgramCustomFieldId] = {field_id}
-    #             '''
-    #     cursor.execute(query_test)
-    #     cenz_info_sql = cursor.fetchall()
-    #     custom_fields_dict = {}
-    #     for cenz in cenz_info_sql:
-    #         field_id, field_name, text_value, items_string, int_value, date_value = cenz
-    #         # Ценз отсмотра
-    #         if field_id == 14:
-    #             custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
-    #         # Тайтл проверил
-    #         elif field_id == 15:
-    #             custom_fields_dict['worker_id'] = int_value
-    #             custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
-    #         # Дата отсмотра
-    #         elif field_id == 7:
-    #             custom_fields_dict[field_id] = date_value
-    #         else:
-    #             custom_fields_dict[field_id] = text_value
-    # return custom_fields_dict
 
 def schedule_info(program_id):
     with connections['oplan3'].cursor() as cursor:
