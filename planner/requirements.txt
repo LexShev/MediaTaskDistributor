@@ -1,0 +1,6 @@
+pip install Django
+pip install bs4
+pip install requests
+pip install pyodbc
+pip install pymongo
+pip install mssql-django
