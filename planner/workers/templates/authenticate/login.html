@@ -1,0 +1,29 @@
+{% extends  'main/index.html' %}
+
+{% block body %}
+
+<div class="container-xxl text-start px-lg-5">
+  <main>
+    {% if messages %}
+      {% for message in messages %}
+        <br><div class="alert alert-warning" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+      <br><div class="mb-3">
+        <label for="inputEmail" class="form-label">Имя пользователя</label>
+        <input type="text" class="form-control" id="inputEmail" name="username">
+      </div>
+      <div class="mb-3">
+        <label for="inputPassword" class="form-label">Пароль</label>
+        <input type="password" class="form-control" id="inputPassword" name="password">
+      </div>
+      <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+  </main>
+</div>
+
+{% endblock %}

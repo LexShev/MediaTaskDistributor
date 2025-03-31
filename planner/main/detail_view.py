@@ -136,10 +136,10 @@ def find_out_status(program_id, full_info_dict):
     planner_status = full_info_dict.get('TaskInf_task_status')
     print('facts', oplan3_work_date, oplan3_cenz_rate, oplan3_cenz_worker, planner_status)
     if oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and not planner_status:
-        material_status = f'Отсмотрен через Oplan: {oplan3_work_date.strftime('%d.%m.%Y')}'  # oplan3_ready
+        material_status = f'Отсмотрен через Oplan: {oplan3_work_date.strftime("%d.%m.%Y")}'  # oplan3_ready
         color = 'text-success'
     elif oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and planner_status == 'ready':
-        material_status = f'Отсмотрен: {planner_ready_date.strftime('%d.%m.%Y')}'  # planner_ready
+        material_status = f'Отсмотрен: {planner_ready_date.strftime("%d.%m.%Y")}'  # planner_ready
         color = 'text-success'
     elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and planner_status == 'not_ready':
         material_status = 'Не готов'  # planner_not_ready

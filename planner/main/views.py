@@ -17,6 +17,7 @@ from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_inf
 from .distribution import main_distribution
 from .report_calendar import my_report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
+from django.contrib.auth.decorators import login_required
 
 
 def index(request):
@@ -25,11 +26,13 @@ def index(request):
 def day(request):
     return render(request, 'main/day.html')
 
+
 def week(request):
     start_day = datetime.datetime.today()
     start_day.strftime('%Y/%U')
     return redirect(week_date, start_day.year, start_day.isocalendar().week)
 
+@login_required()
 def week_date(request, work_year, work_week):
     if request.user.id:
         init = MainFilter.objects.get(owner=request.user.id)
@@ -67,11 +70,13 @@ def week_date(request, work_year, work_week):
     data = {'week_material_list': material_list, 'service_dict': service_dict, 'form': form}
     return render(request, 'main/week.html', data)
 
+
 def month(request):
     today = datetime.datetime.today()
     cal_year, cal_month = today.year, today.month
     return redirect(month_date, cal_year, cal_month)
 
+@login_required()
 def month_date(request, cal_year, cal_month):
     month_calendar, task_list, service_dict = my_report_calendar(cal_year, cal_month)
     data = {'month_calendar': month_calendar,
@@ -79,6 +84,7 @@ def month_date(request, cal_year, cal_month):
             'service_dict': service_dict}
     return render(request, 'main/month.html', data)
 
+@login_required()
 def full_list(request):
     # main_search = request.GET.get('search', None)
     # print('main_search', main_search)
@@ -130,9 +136,10 @@ def full_list(request):
 
     data = {'material_list': list_material_list(channels, workers, material_type, str(work_dates), task_status),
             'form': form}
-    main_distribution()
+    # main_distribution()
     return render(request, 'main/list.html', data)
 
+@login_required()
 def material_card(request, program_id):
 
     custom_fields = cenz_info(program_id)
