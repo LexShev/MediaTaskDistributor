@@ -22,10 +22,11 @@ def cenz_name(cenz_id):
     return cenz_dict.get(cenz_id)
 
 @register.filter
-def worker_name(worker_id):
-    if worker_id:
-        worker_id = int(worker_id)
-    worker_dict = {
+def engineer_name(engineer_id):
+    print('engineer_id', engineer_id)
+    if engineer_id:
+        engineer_id = int(engineer_id)
+    engineer_dict = {
         0: 'Александр Кисляков',
         1: 'Ольга Кузовкина',
         2: 'Дмитрий Гатенян',
@@ -39,7 +40,18 @@ def worker_name(worker_id):
         10: 'Евгений Доманов',
         11: 'Алексей Шевченко'
     }
-    return worker_dict.get(worker_id)
+    return engineer_dict.get(engineer_id)
+
+@register.filter
+def worker_name(worker_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'SELECT [user_name] FROM [oplan3].[dbo].[user] WHERE [user_id] = {worker_id}'
+        cursor.execute(query)
+        worker = cursor.fetchone()
+        if worker:
+            return worker[0]
+        else:
+            return 'Аноним'
 
 @register.filter
 def fields_name(field_id):
@@ -84,11 +96,11 @@ def full_info(program_id):
                    ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
                    ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'), ('Files', 'Name'), ('Files', 'Size'),
                    ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('TaskInf', 'work_date'),
-                   ('TaskInf', 'ready_date'), ('TaskInf', 'worker_id'), ('TaskInf', 'task_status')]
+                   ('TaskInf', 'ready_date'), ('TaskInf', 'engineer_id'), ('TaskInf', 'task_status')]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
-        query = f'''
+        movie_query = f'''
         SELECT {sql_columns}
         FROM [oplan3].[dbo].[File] AS Files
             JOIN [oplan3].[dbo].[Clip] AS Clips
@@ -106,51 +118,82 @@ def full_info(program_id):
             AND Progs.[program_type_id] NOT IN (3, 9, 13, 14, 15, 17, 18)
             AND Progs.[program_id] = {program_id}
                 '''
-        cursor.execute(query)
-        full_info_dict = dict(zip(django_columns, cursor.fetchone()))
-        full_info_dict['material_status'], full_info_dict['color'] = find_out_status(program_id, full_info_dict)
+        cursor.execute(movie_query)
+        movie_info = cursor.fetchone()
+        if movie_info:
+            full_info_dict = dict(zip(django_columns, movie_info))
+            full_info_dict['material_status'], full_info_dict['color'] = find_out_status(program_id, full_info_dict)
 
-        if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
-            poster_link = locate_url(
-                full_info_dict.get('Progs_parent_id'),
-                parent_name(full_info_dict.get('Progs_parent_id')),
-                full_info_dict.get('Progs_production_year'))
-            full_info_dict['poster_link'] = poster_link
+            if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
+                poster_link = locate_url(
+                    full_info_dict.get('Progs_parent_id'),
+                    parent_name(full_info_dict.get('Progs_parent_id')),
+                    full_info_dict.get('Progs_production_year'))
+                full_info_dict['poster_link'] = poster_link
+            else:
+                poster_link = locate_url(
+                    full_info_dict.get('Progs_program_id'),
+                    full_info_dict.get('Progs_AnonsCaption'),
+                    full_info_dict.get('Progs_production_year'))
+
+                full_info_dict['poster_link'] = poster_link
+            return full_info_dict
         else:
-            poster_link = locate_url(
-                full_info_dict.get('Progs_program_id'),
-                full_info_dict.get('Progs_AnonsCaption'),
-                full_info_dict.get('Progs_production_year'))
+            parent_columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'),
+                              ('Progs', 'name'),
+                              ('Progs', 'orig_name'), ('Progs', 'annotation'), ('Progs', 'duration'),
+                              ('Progs', 'comment'),
+                              ('Progs', 'keywords'), ('Progs', 'anounce_text'), ('Progs', 'episode_num'),
+                              ('Progs', 'last_edit_user_id'), ('Progs', 'last_edit_time'), ('Progs', 'authors'),
+                              ('Progs', 'producer'), ('Progs', 'production_year'), ('Progs', 'production_country'),
+                              ('Progs', 'subject'), ('Progs', 'SourceID'), ('Progs', 'AnonsCaption'),
+                              ('Progs', 'DisplayMediumName'), ('Progs', 'SourceFileMedium'), ('Progs', 'EpisodesTotal'),
+                              ('Progs', 'MaterialState'), ('Progs', 'SourceMedium'), ('Progs', 'HasSourceClip'),
+                              ('Progs', 'AnonsCaptionInherit'), ('Progs', 'AdultTypeID'), ('Progs', 'CreationDate'),
+                              ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
+                              ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation')]
 
-            full_info_dict['poster_link'] = poster_link
-        return full_info_dict
+            parent_sql_columns = ', '.join([f'{col}.[{val}]' for col, val in parent_columns])
+            django_parent_columns = [f'{col}_{val}' for col, val in parent_columns]
+            parent_query = f'''
+            SELECT {parent_sql_columns}
+            FROM [oplan3].[dbo].[program] AS Progs
+            WHERE Progs.[deleted] = 0
+            AND Progs.[program_type_id] NOT IN (3, 9, 13, 14, 15, 17, 18)
+            AND Progs.[program_id] = {program_id}
+            '''
+            cursor.execute(parent_query)
+            parent_info = cursor.fetchone()
+            full_info_dict = dict(zip(django_columns, parent_info))
+            full_info_dict['is_parent'] = 1
+            return full_info_dict
 
 def find_out_status(program_id, full_info_dict):
     oplan3_cenz_info = cenz_info(program_id)
     oplan3_work_date = oplan3_cenz_info.get(7)
     oplan3_cenz_rate = check_data_type(oplan3_cenz_info.get(14))
-    oplan3_cenz_worker = check_data_type(oplan3_cenz_info.get(15))
+    oplan3_engineer = check_data_type(oplan3_cenz_info.get(15))
 
     planner_ready_date = full_info_dict.get('TaskInf_ready_date')
     print(planner_ready_date, type(planner_ready_date))
     planner_status = full_info_dict.get('TaskInf_task_status')
-    print('facts', oplan3_work_date, oplan3_cenz_rate, oplan3_cenz_worker, planner_status)
-    if oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and not planner_status:
+    print('facts', oplan3_work_date, oplan3_cenz_rate, oplan3_engineer, planner_status)
+    if oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and not planner_status:
         material_status = f'Отсмотрен через Oplan: {oplan3_work_date.strftime("%d.%m.%Y")}'  # oplan3_ready
         color = 'text-success'
-    elif oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and planner_status == 'ready':
+    elif oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and planner_status == 'ready':
         material_status = f'Отсмотрен: {planner_ready_date.strftime("%d.%m.%Y")}'  # planner_ready
         color = 'text-success'
-    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and planner_status == 'not_ready':
+    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and planner_status == 'not_ready':
         material_status = 'Не готов'  # planner_not_ready
         color = 'text-danger'
-    elif oplan3_work_date and oplan3_cenz_rate and oplan3_cenz_worker and planner_status == 'fix':
+    elif oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and planner_status == 'fix':
         material_status = 'На доработке'  # planner_fix
         color = 'text-warning'
-    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and planner_status == 'fix':
+    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and planner_status == 'fix':
         material_status = 'На доработке'  # planner_fix
         color = 'text-warning'
-    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_cenz_worker and not planner_status:
+    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and not planner_status:
         material_status = 'Материал из общего пула'  # planner_fix
         color = 'text-info'
     else:
@@ -246,7 +289,7 @@ def update_value(field_id, program_id, new_value):
             print(query)
             cursor.execute(query)
 
-def change_task_status(program_id, cenz_worker, work_date):
+def change_task_status(program_id, engineer_id, work_date):
     with connections['planner'].cursor() as cursor:
         select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
         cursor.execute(select)
@@ -260,10 +303,10 @@ def change_task_status(program_id, cenz_worker, work_date):
             cursor.execute(update)
         else:
             print('insert')
-            columns = '[program_id], [worker_id], [duration], [work_date], [ready_date], [task_status]'
+            columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status]'
             insert = f'''
             INSERT INTO [planner].[dbo].[task_list] ({columns})
-            VALUES ({program_id}, {cenz_worker}, 126, '{work_date}', GETDATE(), 'ready')
+            VALUES ({program_id}, {engineer_id}, 126, '{work_date}', GETDATE(), 'ready')
             '''
             cursor.execute(insert)
 

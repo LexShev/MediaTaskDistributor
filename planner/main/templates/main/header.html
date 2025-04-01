@@ -44,26 +44,21 @@
 <!--          <img src="static/img/LOGO_VideoInfo_450x450_WB.svg" role="img" class="bi me-2" width="40" height="40" aria-label="TLTV">-->
       </a>
 
-      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+      <ul class="nav col-12 col-lg-auto me-lg-auto justify-content-center mb-lg-0 me-lg-3">
         <li><a href="/day" class="nav-link px-2 link-secondary">День</a></li>
         <li><a href="/week" class="nav-link px-2 link-body-emphasis">Неделя</a></li>
         <li><a href="/month" class="nav-link px-2 link-body-emphasis">Месяц</a></li>
         <li><a href="/list" class="nav-link px-2 link-body-emphasis">Список</a></li>
       </ul>
-<!--      <div class="dropdown">-->
-<!--        <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">-->
-<!--        </a>-->
-<!--          <ul class="dropdown-menu text-small shadow">-->
-<!--          <li><a href="/day" class="dropdown-item active">День</a></li>-->
-<!--          <li><a href="/week" class="dropdown-item">Неделя</a></li>-->
-<!--          <li><a href="/month" class="dropdown-item">Месяц</a></li>-->
-<!--          <li><a href="/list" class="dropdown-item">Список</a></li>-->
-<!--        </ul>-->
-<!--      </div>-->
 
-      <!-- Example split danger button -->
+      <a href="{% url 'distribution' %}" class="btn text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3 mb-lg-0 me-lg-3" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-collection-play" viewBox="0 0 16 16">
+          <path d="M2 3a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 0-1h-11A.5.5 0 0 0 2 3m2-2a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 0-1h-7A.5.5 0 0 0 4 1m2.765 5.576A.5.5 0 0 0 6 7v5a.5.5 0 0 0 .765.424l4-2.5a.5.5 0 0 0 0-.848z"/>
+          <path d="M1.5 14.5A1.5 1.5 0 0 1 0 13V6a1.5 1.5 0 0 1 1.5-1.5h13A1.5 1.5 0 0 1 16 6v7a1.5 1.5 0 0 1-1.5 1.5zm13-1a.5.5 0 0 0 .5-.5V6a.5.5 0 0 0-.5-.5h-13A.5.5 0 0 0 1 6v7a.5.5 0 0 0 .5.5z"/>
+        </svg>
+      </a>
 
-      <form method="get" class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-3" role="search">
+      <form method="get" class="col-12 col-lg-auto mb-lg-0 me-lg-3" role="search">
         <input type="search" name="search" class="form-control" placeholder="Поиск..." aria-label="Search">
       </form>
 

@@ -40,9 +40,9 @@ def make_full_material_list():
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
-        worker_id, worker, status, work_date = planner_task_list(program_id)
-        if not worker_id and not worker:
-            worker_id, worker = oplan3_cenz_worker(program_id)
+        engineer_id, engineer, status, work_date = planner_task_list(program_id)
+        if not engineer_id and not engineer:
+            engineer_id, engineer = oplan3_engineer(program_id)
             status, work_date = 'ready', None
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
             repeat_index = repeat_index_search(material_list, temp_dict)
@@ -63,8 +63,8 @@ def make_full_material_list():
                          'TaskInf_work_date': work_date,
                          'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                          'status': status,
-                         'worker_id': worker_id,
-                         'worker': worker}
+                         'engineer_id': engineer_id,
+                         'engineer': engineer}
                     ]
                 }
                 program_id_list.append(program_id)
@@ -78,8 +78,8 @@ def make_full_material_list():
                     'TaskInf_work_date': work_date,
                     'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                     'status': status,
-                    'worker_id': worker_id,
-                    'worker': worker})
+                    'engineer_id': engineer_id,
+                    'engineer': engineer})
                 program_id_list.append(program_id)
         if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
             program_info_dict = {
@@ -95,14 +95,14 @@ def make_full_material_list():
                 'SchedDay_day_date': temp_dict['SchedDay_day_date'],
                 'type': 'film',
                 'status': status,
-                'worker_id': worker_id,
-                'worker': worker}
+                'engineer_id': engineer_id,
+                'engineer': engineer}
             program_id_list.append(program_id)
             material_list.append(program_info_dict)
     return material_list
 
-def list_material_list(channels, worker_id, material_type, dates, task_status):
-    material_list_sql, django_columns = planner_material_list(channels, worker_id, material_type, dates, task_status)
+def list_material_list(channels, engineer_id, material_type, dates, task_status):
+    material_list_sql, django_columns = planner_material_list(channels, engineer_id, material_type, dates, task_status)
     material_list = []
     program_id_list = []
     for program_info in material_list_sql:
@@ -131,7 +131,7 @@ def list_material_list(channels, worker_id, material_type, dates, task_status):
                          'TaskInf_work_date': temp_dict.get('Task_work_date'),
                          'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                          'status': temp_dict.get('Task_task_status'),
-                         'worker_id': temp_dict.get('Task_worker_id')
+                         'engineer_id': temp_dict.get('Task_engineer_id')
                          }
                     ]
                 }
@@ -146,7 +146,7 @@ def list_material_list(channels, worker_id, material_type, dates, task_status):
                     'TaskInf_work_date': temp_dict.get('Task_work_date'),
                     'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                     'status': temp_dict.get('Task_task_status'),
-                    'worker_id': temp_dict.get('Task_worker_id')
+                    'engineer_id': temp_dict.get('Task_engineer_id')
                     })
                 program_id_list.append(program_id)
         if not temp_dict.get('Progs_program_type_id') in (4, 8, 12):
@@ -163,7 +163,7 @@ def list_material_list(channels, worker_id, material_type, dates, task_status):
                 'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                 'type': 'film',
                 'status': temp_dict.get('Task_task_status'),
-                'worker_id': temp_dict.get('Task_worker_id')
+                'engineer_id': temp_dict.get('Task_engineer_id')
                 }
             material_list.append(program_info_dict)
             program_id_list.append(program_id)

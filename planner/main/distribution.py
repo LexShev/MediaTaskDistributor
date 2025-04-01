@@ -4,7 +4,7 @@ from .list_view import oplan_material_list
 
 
 def main_distribution():
-    work_date = datetime.today()
+    # work_date = datetime.today().date()
     work_date = date(day=10, month=3, year=2025)
     material_list_sql, django_columns = oplan_material_list(work_date=work_date, program_type=(4, 5, 6, 10, 11, 12))
     program_id_list = []
@@ -23,23 +23,23 @@ def main_distribution():
 
 def distribution_by_id(work_date, program_id, program_type_id, duration):
     # !work_date продумать начало проверки
-    planner_worker_id = planner_cenz_worker(program_id)
-    oplan3_worker_id = oplan3_cenz_worker(program_id)
-    if program_type_id in (4, 5, 6, 10, 11, 12) and oplan3_worker_id != 0 and not oplan3_worker_id:
-        if planner_worker_id != 0 and not planner_worker_id:
+    planner_engineer_id = planner_engineer(program_id)
+    oplan3_engineer_id = oplan3_engineer(program_id)
+    if program_type_id in (4, 5, 6, 10, 11, 12) and oplan3_engineer_id != 0 and not oplan3_engineer_id:
+        if planner_engineer_id != 0 and not planner_engineer_id:
             status = 'not_ready'
-            worker_id, kpi, work_date = date_seek(work_date)
-            insert_film(program_id, worker_id, duration, work_date, status)
+            engineer_id, kpi, work_date = date_seek(work_date)
+            insert_film(program_id, engineer_id, duration, work_date, status)
         else:
             # print('skip', program_id)
-            # ? update(program_id, worker_id, duration, date, status)
-            worker_id = planner_worker_id
+            # ? update(program_id, engineer_id, duration, date, status)
+            engineer_id = planner_engineer_id
             status = 'not_ready'
     else:
         # ?
-        worker_id = oplan3_worker_id
+        engineer_id = oplan3_engineer_id
         status = 'ready'
-    return worker_id, status, work_date
+    return engineer_id, status, work_date
 
 # def kpi_min(date):
 #     with connections['planner'].cursor() as cursor:
@@ -62,9 +62,10 @@ def distribution_by_id(work_date, program_id, program_type_id, duration):
 def date_seek(work_date):
     kpi_info = kpi_min(work_date)
     if kpi_info and kpi_info[0][1] < 1:
-        worker_id, kpi = kpi_info[0]
-        return worker_id, kpi, work_date
+        engineer_id, kpi = kpi_info[0]
+        return engineer_id, kpi, work_date
     else:
+        print('work_date', work_date)
         work_date += timedelta(days=1)
         return date_seek(work_date)
 
@@ -78,46 +79,46 @@ def kpi_min(work_date):
         AND [fired] = 'False'
         '''
         cursor.execute(query_01)
-        worker_list = cursor.fetchall()
+        engineer_list = cursor.fetchall()
 
-        if worker_list:
-            for worker_id in worker_list:
-                worker_id = worker_id[0]
+        if engineer_list:
+            for engineer_id in engineer_list:
+                engineer_id = engineer_id[0]
                 query_02 = f'''
-                SELECT Task.[worker_id], Task.[duration]
+                SELECT Task.[engineer_id], Task.[duration]
                 FROM [planner].[dbo].[task_list] AS Task
                 WHERE Task.[work_date] = '{work_date}'
-                AND Task.[worker_id] = '{worker_id}'
+                AND Task.[engineer_id] = '{engineer_id}'
                 '''
                 cursor.execute(query_02)
                 kpi = sum([args[1] for args in cursor.fetchall()])/720000.0
-                kpi_list.append((worker_id, kpi))
+                kpi_list.append((engineer_id, kpi))
     return sorted(kpi_list, key=lambda x: x[1])
 
-def insert_film(program_id, worker_id, duration, work_date, status):
+def insert_film(program_id, engineer_id, duration, work_date, status):
     with connections['planner'].cursor() as cursor:
-        columns = '[program_id], [worker_id], [duration], [work_date], [task_status]'
+        columns = '[program_id], [engineer_id], [duration], [work_date], [task_status]'
         query = f'''
         INSERT INTO [planner].[dbo].[task_list] ({columns})
-        VALUES ({program_id}, {worker_id}, {duration}, '{work_date}', '{status}')
+        VALUES ({program_id}, {engineer_id}, {duration}, '{work_date}', '{status}')
         '''
         cursor.execute(query)
-        print(f'{program_id}, {worker_id} successfully added')
+        print(f'{program_id}, {engineer_id} successfully added')
 
-def planner_cenz_worker(program_id):
+def planner_engineer(program_id):
     with connections['planner'].cursor() as cursor:
         query_planner = f'''
-        SELECT worker_id
+        SELECT engineer_id
         FROM [planner].[dbo].[task_list]
         WHERE [program_id] = {program_id}'''
         cursor.execute(query_planner)
-        planner_worker_id = cursor.fetchone()
-        if planner_worker_id:
-            return planner_worker_id[0]
+        planner_engineer_id = cursor.fetchone()
+        if planner_engineer_id:
+            return planner_engineer_id[0]
         else:
             return None
 
-def oplan3_cenz_worker(program_id):
+def oplan3_engineer(program_id):
     with connections['oplan3'].cursor() as cursor:
         query_oplan3 = f'''
         SELECT [IntValue]
@@ -126,8 +127,8 @@ def oplan3_cenz_worker(program_id):
         AND [ProgramCustomFieldId] = 15
         '''
         cursor.execute(query_oplan3)
-        oplan3_worker_id = cursor.fetchone()
-        if oplan3_worker_id:
-            return oplan3_worker_id[0]
+        oplan3_engineer_id = cursor.fetchone()
+        if oplan3_engineer_id:
+            return oplan3_engineer_id[0]
         else:
             return None

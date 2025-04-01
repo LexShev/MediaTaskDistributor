@@ -25,7 +25,7 @@ def repeat_index_search(material_list, temp_dict):
         if temp_dict.get('Progs_parent_id') == program.get('Progs_parent_id'):
             return num
 
-def week_material_list(channels, worker_id, material_type, task_status, work_year, work_week):
+def week_material_list(channels, engineer_id, material_type, task_status, work_year, work_week):
     start_day = date.fromisocalendar(work_year, work_week, 1)
 
     prev_mon = start_day - timedelta(7)
@@ -37,7 +37,7 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
     next_year = next_mon.isocalendar().year
 
     dates = tuple((start_day + timedelta(day_num)).strftime('%Y-%m-%d') for day_num in range(7))
-    material_list_sql, django_columns = planner_material_list(channels, worker_id, material_type, dates, task_status)
+    material_list_sql, django_columns = planner_material_list(channels, engineer_id, material_type, dates, task_status)
 
     service_dict = {'start_day': start_day, 'prev_year': prev_year, 'prev_week': prev_week,
                     'next_year': next_year, 'next_week': next_week, 'work_year': work_year,
@@ -79,7 +79,7 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
                          'Task_work_date': temp_dict.get('Task_work_date'),
                          'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                          'status': temp_dict.get('Task_task_status'),
-                         'worker_id': temp_dict.get('Task_worker_id')
+                         'engineer_id': temp_dict.get('Task_engineer_id')
                          }
                     ]
                 }
@@ -94,7 +94,7 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
                     'Task_work_date': temp_dict.get('Task_work_date'),
                     'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                     'status': temp_dict.get('Task_task_status'),
-                    'worker_id': temp_dict.get('Task_worker_id')
+                    'engineer_id': temp_dict.get('Task_engineer_id')
                      })
                 program_id_list.append(program_id)
         if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
@@ -111,7 +111,7 @@ def week_material_list(channels, worker_id, material_type, task_status, work_yea
                 'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
                 'type': 'film',
                 'status': temp_dict.get('Task_task_status'),
-                'worker_id': temp_dict.get('Task_worker_id')
+                'engineer_id': temp_dict.get('Task_engineer_id')
             }
             material_list[day_num].append(program_info_dict)
             program_id_list.append(program_id)

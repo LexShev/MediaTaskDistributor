@@ -16,7 +16,10 @@ def login_worker(request):
             if next_request:
                 return redirect(next_request)
             else:
-                return redirect('home')
+                homepage_dict = {0: 'home',
+                                 1: 'month',
+                                 2: 'home'}
+                return redirect(homepage_dict.get(request.user.id, 0))
         else:
             messages.success(request, 'Неверный логин или пароль')
             return redirect('login_worker')

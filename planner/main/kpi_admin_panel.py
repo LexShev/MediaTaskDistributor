@@ -36,7 +36,7 @@ def summary_task_list(work_dates):
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
     with connections['planner'].cursor() as cursor:
-        columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
+        columns = [('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
                    ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -47,7 +47,7 @@ def summary_task_list(work_dates):
         JOIN [oplan3].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
         WHERE Task.[work_date] IN {work_dates}
-        AND Task.[worker_id] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+        AND Task.[engineer_id] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
         AND Task.[task_status] IN ('not_ready', 'ready', 'fix')
         '''
         print(query)
@@ -55,15 +55,15 @@ def summary_task_list(work_dates):
         result = cursor.fetchall()
     return [dict(zip(django_columns, task)) for task in result]
 
-def kpi_summary_calc(work_dates, worker_id, material_type, task_status):
+def kpi_summary_calc(work_dates, engineer_id, material_type, task_status):
     print('material_type', material_type)
-    if worker_id:
-        worker_id = int(worker_id)
-    print('!workers', worker_id)
+    if engineer_id:
+        engineer_id = int(engineer_id)
+    print('!engineers', engineer_id)
 
     task_list = summary_task_list(work_dates)
     count_dates = len(set(task.get('Task_work_date') for task in task_list))
-    count_workers = len(set(task.get('Task_worker_id') for task in task_list))
+    count_engineers = len(set(task.get('Task_engineer_id') for task in task_list))
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
     ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
@@ -71,8 +71,8 @@ def kpi_summary_calc(work_dates, worker_id, material_type, task_status):
     ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'ready')
     not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'not_ready')
     try:
-        total_kpi = total_dur / (720000.0 * count_dates * count_workers)
-        ready_kpi = ready_dur / (720000.0 * count_dates * count_workers)
+        total_kpi = total_dur / (720000.0 * count_dates * count_engineers)
+        ready_kpi = ready_dur / (720000.0 * count_dates * count_engineers)
     except Exception as e:
         total_kpi = 0
         ready_kpi = 0
@@ -81,25 +81,25 @@ def kpi_summary_calc(work_dates, worker_id, material_type, task_status):
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
 
-    filtered_task_list = filter(lambda task: task.get('Task_worker_id') == worker_id or not worker_id and worker_id != 0, task_list)
+    filtered_task_list = filter(lambda task: task.get('Task_engineer_id') == engineer_id or not engineer_id and engineer_id != 0, task_list)
     filtered_task_list = filter(lambda task: task.get('Progs_program_type_id') in check_mat_type(material_type) or not material_type, filtered_task_list)
     filtered_task_list = filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list)
-    # if not task_status and workers:
-    #     filtered_task_list = (task for task in task_list if task.get('Task_worker_id') == int(workers))
-    # elif task_status and not workers:
+    # if not task_status and engineers:
+    #     filtered_task_list = (task for task in task_list if task.get('Task_engineer_id') == int(engineers))
+    # elif task_status and not engineers:
     #     filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status)
-    # elif task_status and workers:
-    #     filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status and task.get('Task_worker_id') == int(workers))
+    # elif task_status and engineers:
+    #     filtered_task_list = (task for task in task_list if task.get('Task_task_status') == task_status and task.get('Task_engineer_id') == int(engineers))
     # else:
     #     filtered_task_list = task_list
     return filtered_task_list, summary_dict
 
 
-def personal_task_list(work_dates, worker_id):
+def personal_task_list(work_dates, engineer_id):
     if isinstance(work_dates, str):
         work_dates = (work_dates, work_dates)
     with connections['planner'].cursor() as cursor:
-        columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
+        columns = [('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
                    ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -110,14 +110,14 @@ def personal_task_list(work_dates, worker_id):
         JOIN [oplan3].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
         WHERE Task.[work_date] IN {work_dates}
-        AND Task.[worker_id] = {worker_id}
+        AND Task.[engineer_id] = {engineer_id}
         '''
         cursor.execute(query)
         result = cursor.fetchall()
     return [dict(zip(django_columns, task)) for task in result]
 
-def kpi_personal_calc(work_date, worker_id, material_type, task_status):
-    task_list = personal_task_list(work_date, worker_id)
+def kpi_personal_calc(work_date, engineer_id, material_type, task_status):
+    task_list = personal_task_list(work_date, engineer_id)
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
     ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))

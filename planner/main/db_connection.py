@@ -1,6 +1,7 @@
 import datetime
 from django.db import connections
 
+
 def check_param(param):
     if len(param) == 1:
         return param[0], param[0],
@@ -68,9 +69,9 @@ def oplan_material_list(work_date, program_type):
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
 
-def planner_material_list(channels, worker_id, material_type, work_dates, task_status):
+def planner_material_list(channels, engineer_id, material_type, work_dates, task_status):
     channels = check_param(channels)
-    worker_id = check_param(worker_id)
+    engineer_id = check_param(engineer_id)
     material_type = check_mat_type(material_type)
     task_status = check_param(task_status)
 
@@ -82,7 +83,7 @@ def planner_material_list(channels, worker_id, material_type, work_dates, task_s
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
                    ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Sched', 'schedule_name'), ('SchedDay', 'day_date'),
-                   ('Task', 'worker_id'), ('Task', 'work_date'), ('Task', 'task_status')]
+                   ('Task', 'engineer_id'), ('Task', 'work_date'), ('Task', 'task_status')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
@@ -100,7 +101,7 @@ def planner_material_list(channels, worker_id, material_type, work_dates, task_s
             ON SchedDay.[schedule_id] = Sched.[schedule_id]
         WHERE Progs.[deleted] = 0
         AND Sched.[channel_id] IN {channels}
-        AND Task.[worker_id] IN {worker_id}
+        AND Task.[engineer_id] IN {engineer_id}
         AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] IN {work_dates}
         AND Task.[task_status] IN {task_status}
@@ -120,7 +121,7 @@ def parent_name(program_id):
 def planner_task_list(program_id):
     with connections['planner'].cursor() as cursor:
         query_planner = f'''
-        SELECT worker_id, worker, work_date, task_status
+        SELECT engineer_id, engineer, work_date, task_status
         FROM [planner].[dbo].[task_list]
         WHERE [program_id] = {program_id}'''
         cursor.execute(query_planner)
@@ -130,7 +131,7 @@ def planner_task_list(program_id):
         else:
             return None, None, None, None
 
-def oplan3_cenz_worker(program_id):
+def oplan3_engineer(program_id):
     with connections['oplan3'].cursor() as cursor:
         columns = 'Val.[IntValue], Fields.[ItemsString]'
         query_oplan3 = f'''
@@ -142,9 +143,9 @@ def oplan3_cenz_worker(program_id):
         AND Val.[ProgramCustomFieldId] = 15
         '''
         cursor.execute(query_oplan3)
-        oplan3_worker_list = cursor.fetchone()
-        if oplan3_worker_list:
-            int_value, items_string = oplan3_worker_list
+        oplan3_engineer_list = cursor.fetchone()
+        if oplan3_engineer_list:
+            int_value, items_string = oplan3_engineer_list
             return int_value, items_string.split('\r\n')[int_value]
         else:
             return None, None

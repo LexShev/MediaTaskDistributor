@@ -38,9 +38,7 @@
     <!-- Custom styles for this template -->
 </head>
 
-{% if user.is_authenticated %}
-  {% include 'main/header.html' %}
-{% endif %}
+{% include 'main/header.html' %}
 
 <body>
 {% block body %}

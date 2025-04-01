@@ -2,176 +2,235 @@
 <main>
 {% block body %}
 <div class="container-md text-start px-0">
-  <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_sum_info">
-    <div class="accordion-item">
-      <h6 class="accordion-header">
-        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">
-          Описание
-        </button></h6>
-    <div id="collapseDescription" class="accordion-collapse collapse show" data-bs-parent="#accordion_sum_info">
-      <div class="accordion-body">
+  {% if not full_info.is_parent %}
+    <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_sum_info">
+      <div class="accordion-item">
+        <h6 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">
+            Описание
+          </button></h6>
+      <div id="collapseDescription" class="accordion-collapse collapse show" data-bs-parent="#accordion_sum_info">
+        <div class="accordion-body">
 
-        <div class="row m-0">
-          <div class="col col-2 p-0">
-            <img src="{% if full_info.poster_link %}{{ full_info.poster_link }}{% else %}/static/img/no_poster.jpg{% endif%}" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
-          </div>
-          <div class="col p-0">
-            <div class="row m-0">
-              <h6 class="{{ full_info.color }} text-end p-1">{{ full_info.material_status }}</h6>
+          <div class="row m-0">
+            <div class="col col-2 p-0">
+              <img src="{% if full_info.poster_link %}{{ full_info.poster_link }}{% else %}/static/img/no_poster.jpg{% endif%}" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
             </div>
+            <div class="col p-0">
+              <div class="row m-0">
+                <h6 class="{{ full_info.color }} text-end p-1">{{ full_info.material_status }}</h6>
+              </div>
 
-            <div class="row m-0">
-              <div class="col col-5 p-0">
-                <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">{{ full_info.Progs_name }}</h5>
+              <div class="row m-0">
+                <div class="col col-5 p-0">
+                  <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">{{ full_info.Progs_name }}</h5>
+                </div>
+                <div class="col col-7 p-0">
+                    <div class="row align-items-center text-end mx-1 p-0">
+                      <div class="col ms-0 m-0 p-0">
+                        <input type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle" value="{{ full_info.Files_Name }}" id="file_path">
+                      </div>
+                      <div class="col col-1 m-0 p-0">
+                        <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                              <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                              <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                            </svg>
+                        </button>
+                      </div>
+                    </div>
+                </div>
+              </div>
+              {% block scripts %}
+                <script>
+                  function CopyText() {
+                  var text = document.getElementById('file_path')
+                  text.focus()
+                  text.select()
+                  document.execCommand('copy');
+                }
+                </script>
+              {% endblock scripts %}
+              <div class="row m-0">
+                <div class="col col-5 p-0">
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="year_form" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
+                  <label for="year_form">Год</label>
+                </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="country_form" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
+                  <label for="country_form">Страна</label>
+                </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="director_form" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
+                  <label for="director_form">Режиссёр</label>
+                </div>
               </div>
               <div class="col col-7 p-0">
-                  <div class="row align-items-center text-end mx-1 p-0">
-                    <div class="col ms-0 m-0 p-0">
-                      <input type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle" value="{{ full_info.Files_Name }}" id="file_path">
-                    </div>
-                    <div class="col col-1 m-0 p-0">
-                      <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText()">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
-                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
-                            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
-                          </svg>
-                      </button>
-                    </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
+                  <label for="roles_form">В ролях</label>
+                </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
+                  <label for="theme_form">Тематика</label>
+                </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
+                  <label for="keywords_form">Ключевые слова</label>
+                </div>
+              </div>
+            </div>
+
+
+            </div>
+          </div>
+
+          <div class="form-floating mx-1 my-2">
+            <textarea class="form-control" id="short_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>
+            <label for="short_descript_form">Краткое описание</label>
+          </div>
+          <div class="form-floating mx-1 my-2">
+            <textarea class="form-control" id="full_descript_form" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
+            <label for="full_descript_form">Полное описание</label>
+          </div>
+        </div>
+      </div>
+      </div>
+      <!--  </div>-->
+
+      <!--  <div class="accordion shadow-lg ms-2 mb-2 mt-0 p-0" id="accordion_cenz">-->
+      <div class="accordion-item">
+      <h6 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCenz" aria-expanded="false" aria-controls="collapseCenz">
+          Цензура
+        </button></h6>
+      <div id="collapseCenz" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
+        <div class="accordion-body">
+          {% include 'main/block_cenz.html' %}
+        </div>
+      </div>
+      </div>
+
+      <div class="accordion-item">
+      <h6 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAirInfo" aria-expanded="false" aria-controls="collapseCenz">
+          История эфиров
+        </button></h6>
+      <div id="collapseAirInfo" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
+        <div class="accordion-body">
+          {% include 'main/block_airinfo_table.html' %}
+        </div>
+      </div>
+      </div>
+
+      <div class="accordion-item">
+      <h6 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory" aria-expanded="false" aria-controls="collapseCenz">
+          История изменений
+        </button></h6>
+      <div id="collapseHistory" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
+        <div class="accordion-body">
+          {% include 'main/block_history.html' %}
+        </div>
+      </div>
+      </div>
+
+      <div class="accordion-item">
+      <h6 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMediaInfo" aria-expanded="false" aria-controls="collapseCenz">
+          MediaInfo
+        </button></h6>
+      <div id="collapseMediaInfo" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
+        <div class="accordion-body">
+          {% include 'main/block_mediainfo_table.html' %}
+        </div>
+      </div>
+      </div>
+
+      <!--  <div class="accordion-item">-->
+      <!--    <h6 class="accordion-header">-->
+      <!--      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseScans" aria-expanded="false" aria-controls="collapseCenz">-->
+      <!--        Авто сканеры-->
+      <!--      </button></h6>-->
+      <!--    <div id="collapseScans" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">-->
+      <!--      <div class="accordion-body">-->
+      <!--        {% include 'main/block_scanners.html' %}-->
+      <!--      </div>-->
+      <!--    </div>-->
+      <!--  </div>-->
+
+      <!--  <div class="accordion-item">-->
+      <!--    <h6 class="accordion-header">-->
+      <!--      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAttachedFiles" aria-expanded="false" aria-controls="collapseCenz">-->
+      <!--        Прикреплённые файлы-->
+      <!--      </button></h6>-->
+      <!--    <div id="collapseAttachedFiles" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">-->
+      <!--      <div class="accordion-body">-->
+      <!--        {% include 'main/block_attached_files.html' %}-->
+      <!--      </div>-->
+      <!--    </div>-->
+      <!--  </div>-->
+    </div>
+  {% else %}
+      <div class="card">
+        <div class="card-header align-middle text-primary-emphasis bg-primary-subtle">
+          <h6>Описание</h6>
+        </div>
+        <div class="card-body">
+          <div class="row m-0">
+            <div class="col col-2 p-0">
+              <img src="/static/img/empty_poster.png" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
+            </div>
+            <div class="col p-0">
+              <div class="row m-0">
+                <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">{{ full_info.Progs_name }}</h5>
+              </div>
+              <div class="row m-0">
+                <div class="col col-5 p-0">
+                  <div class="form-floating mx-1 my-2">
+                    <textarea class="form-control" id="year_parent_form" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
+                    <label for="year_parent_form">Год</label>
                   </div>
-              </div>
-            </div>
-            {% block scripts %}
-              <script>
-                function CopyText() {
-                var text = document.getElementById('file_path')
-                text.focus()
-                text.select()
-                document.execCommand('copy');
-              }
-              </script>
-            {% endblock scripts %}
-            <div class="row m-0">
-              <div class="col col-5 p-0">
-              <div class="form-floating mx-1 my-2">
-                <textarea class="form-control" id="year_form" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
-                <label for="year_form">Год</label>
-              </div>
-              <div class="form-floating mx-1 my-2">
-                <textarea class="form-control" id="country_form" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
-                <label for="country_form">Страна</label>
-              </div>
-              <div class="form-floating mx-1 my-2">
-                <textarea class="form-control" id="director_form" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
-                <label for="director_form">Режиссёр</label>
-              </div>
-            </div>
-            <div class="col col-7 p-0">
-              <div class="form-floating mx-1 my-2">
-                <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
-                <label for="roles_form">В ролях</label>
-              </div>
-              <div class="form-floating mx-1 my-2">
-                <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
-                <label for="theme_form">Тематика</label>
-              </div>
-              <div class="form-floating mx-1 my-2">
-                <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
-                <label for="keywords_form">Ключевые слова</label>
+                  <div class="form-floating mx-1 my-2">
+                    <textarea class="form-control" id="country_parent_form" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
+                    <label for="country_parent_form">Страна</label>
+                  </div>
+                  <div class="form-floating mx-1 my-2">
+                    <textarea class="form-control" id="director_parent_form" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
+                    <label for="director_form">Режиссёр</label>
+                  </div>
+                </div>
+                <div class="col col-7 p-0">
+                  <div class="form-floating mx-1 my-2">
+                    <textarea class="form-control" id="roles_parent_form" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
+                    <label for="roles_parent_form">В ролях</label>
+                  </div>
+                  <div class="form-floating mx-1 my-2">
+                    <textarea class="form-control" id="theme_parent_form" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
+                    <label for="theme_parent_form">Тематика</label>
+                  </div>
+                  <div class="form-floating mx-1 my-2">
+                    <textarea class="form-control" id="keywords_parent_form" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
+                    <label for="keywords_parent_form">Ключевые слова</label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-
+          <div class="form-floating mx-1 my-2">
+            <textarea class="form-control" id="short_parent_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>
+            <label for="short_parent_descript_form">Краткое описание</label>
+          </div>
+          <div class="form-floating mx-1 my-2">
+            <textarea class="form-control" id="full_parent_descript_form" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
+            <label for="full_parent_descript_form">Полное описание</label>
           </div>
         </div>
-
-        <div class="form-floating mx-1 my-2">
-          <textarea class="form-control" id="short_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>
-          <label for="short_descript_form">Краткое описание</label>
-        </div>
-        <div class="form-floating mx-1 my-2">
-          <textarea class="form-control" id="full_descript_form" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
-          <label for="full_descript_form">Полное описание</label>
-        </div>
       </div>
-    </div>
-    </div>
-    <!--  </div>-->
-
-    <!--  <div class="accordion shadow-lg ms-2 mb-2 mt-0 p-0" id="accordion_cenz">-->
-    <div class="accordion-item">
-    <h6 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCenz" aria-expanded="false" aria-controls="collapseCenz">
-        Цензура
-      </button></h6>
-    <div id="collapseCenz" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
-      <div class="accordion-body">
-        {% include 'main/block_cenz.html' %}
-      </div>
-    </div>
-    </div>
-
-    <div class="accordion-item">
-    <h6 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAirInfo" aria-expanded="false" aria-controls="collapseCenz">
-        История эфиров
-      </button></h6>
-    <div id="collapseAirInfo" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
-      <div class="accordion-body">
-        {% include 'main/block_airinfo_table.html' %}
-      </div>
-    </div>
-    </div>
-
-    <div class="accordion-item">
-    <h6 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory" aria-expanded="false" aria-controls="collapseCenz">
-        История изменений
-      </button></h6>
-    <div id="collapseHistory" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
-      <div class="accordion-body">
-        {% include 'main/block_history.html' %}
-      </div>
-    </div>
-    </div>
-
-    <div class="accordion-item">
-    <h6 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMediaInfo" aria-expanded="false" aria-controls="collapseCenz">
-        MediaInfo
-      </button></h6>
-    <div id="collapseMediaInfo" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
-      <div class="accordion-body">
-        {% include 'main/block_mediainfo_table.html' %}
-      </div>
-    </div>
-    </div>
-
-    <!--  <div class="accordion-item">-->
-    <!--    <h6 class="accordion-header">-->
-    <!--      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseScans" aria-expanded="false" aria-controls="collapseCenz">-->
-    <!--        Авто сканеры-->
-    <!--      </button></h6>-->
-    <!--    <div id="collapseScans" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">-->
-    <!--      <div class="accordion-body">-->
-    <!--        {% include 'main/block_scanners.html' %}-->
-    <!--      </div>-->
-    <!--    </div>-->
-    <!--  </div>-->
-
-    <!--  <div class="accordion-item">-->
-    <!--    <h6 class="accordion-header">-->
-    <!--      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAttachedFiles" aria-expanded="false" aria-controls="collapseCenz">-->
-    <!--        Прикреплённые файлы-->
-    <!--      </button></h6>-->
-    <!--    <div id="collapseAttachedFiles" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">-->
-    <!--      <div class="accordion-body">-->
-    <!--        {% include 'main/block_attached_files.html' %}-->
-    <!--      </div>-->
-    <!--    </div>-->
-    <!--  </div>-->
+  {% endif %}
   </div>
-</div>
 {% endblock %}
 
 </main>

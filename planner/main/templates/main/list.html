@@ -2,11 +2,23 @@
 
 <main>
 {% block body %}
+  {% if permissions.month %}
+    agree
+  {% else %}
+    not agree
+  {% endif %}
+    {{ permissions }}
+
+
   <div class="container-xxl text-start px-0">
     <div class="row p-0">
       <div class="container-xxl text-start px-0">
         <nav class="px-1 pb-2 text-center">
-          <button class="btn btn-outline-info" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">Filter</button>
+          <button class="btn btn-outline-info" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+              <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+            </svg>
+          </button>
 
           <div class="offcanvas offcanvas-top" style='height: 400px;' tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel">
             <div class="offcanvas-header">
@@ -47,8 +59,8 @@
                   </div>
                   <div class="col">
                     <p class="card-text m-0"><small class="text-body-secondary">
-                    Выполняет: <a href="{% url 'home' %}workers/{{ material.worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ material.worker_id|worker_name }}</a></small>
+                    Выполняет: <a href="{% url 'home' %}workers/{{ material.engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ material.engineer_id|engineer_name }}</a></small>
                     </p>
                   </div>
                 </div>
@@ -97,8 +109,8 @@
                         </div>
                         <div class="col">
                           <p class="card-text m-0"><small class="text-body-secondary">
-                          Выполняет: <a href="{% url 'home' %}workers/{{ episode.worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                          {{ episode.worker_id|worker_name }}</a></small>
+                          Выполняет: <a href="{% url 'home' %}workers/{{ episode.engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                          {{ episode.engineer_id|engineer_name }}</a></small>
                           </p>
                         </div>
                       </div>

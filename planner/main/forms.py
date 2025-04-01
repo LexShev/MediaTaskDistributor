@@ -1,15 +1,15 @@
 from django import forms
 
 from .db_connection import program_custom_fields
-from .models import MainFilter
+from .models import ModelFilter
 
 
-workers_list = program_custom_fields().get(15)
-workers = [('', '-')]
-if workers_list:
-    for worker in enumerate(workers_list.split('\r\n')):
-        if worker[1]:
-            workers.append(worker)
+engineers_list = program_custom_fields().get(15)
+engineers = [('', '-')]
+if engineers_list:
+    for engineer in enumerate(engineers_list.split('\r\n')):
+        if engineer[1]:
+            engineers.append(engineer)
 
 tags_list = program_custom_fields().get(18)
 tags = [('', '-')]
@@ -55,14 +55,14 @@ class ListForm(forms.ModelForm):
                        ('not_ready', 'Не готов'),
                        ('ready', 'Готов'),
                        ('fix', 'На доработке')]
-        model = MainFilter
-        fields = ('channels', 'workers', 'material_type', 'work_dates', 'task_status')
+        model = ModelFilter
+        fields = ('channels', 'engineers', 'material_type', 'work_dates', 'task_status')
 
         widgets = {
             'channels': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
-            'workers': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'id': 'workers'}, choices=workers),
+            'engineers': forms.SelectMultiple(
+                attrs={'class': 'ui selection dropdown', 'id': 'engineers'}, choices=engineers),
             'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
             'work_dates': forms.DateInput(
@@ -81,13 +81,13 @@ class WeekForm(forms.ModelForm):
                        ('not_ready', 'Не готов'),
                        ('ready', 'Готов'),
                        ('fix', 'На доработке')]
-        model = MainFilter
-        fields = ('channels', 'workers', 'material_type', 'task_status')
+        model = ModelFilter
+        fields = ('channels', 'engineers', 'material_type', 'task_status')
         widgets = {
             'channels': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
-            'workers': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'id': 'workers'}, choices=workers),
+            'engineers': forms.SelectMultiple(
+                attrs={'class': 'ui selection dropdown', 'id': 'engineers'}, choices=engineers),
             'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
             'task_status': forms.SelectMultiple(
@@ -118,7 +118,7 @@ class CenzFormText(forms.Form):
         label='Редакторские замечания', required=False)
 
 class CenzFormDropDown(forms.Form):
-    # workers = [(0, '-'), (0, 'Александр Кисляков'), (1, 'Ольга Кузовкина'), (2, 'Дмитрий Гатенян'), (3, 'Мария Сучкова'), (4, 'Андрей Антипин'), (
+    # engineers = [(0, '-'), (0, 'Александр Кисляков'), (1, 'Ольга Кузовкина'), (2, 'Дмитрий Гатенян'), (3, 'Мария Сучкова'), (4, 'Андрей Антипин'), (
     # 5, 'Роман Рогачев'), (6, 'Анастасия Чебакова'), (7, 'Никита Кузаков'), (8, 'Олег Кашежев'), (9, 'Марфа Тарусина'), (10, 'Евгений Доманов')]
 
     meta_form = forms.ChoiceField(widget=forms.Select(
@@ -130,9 +130,9 @@ class CenzFormDropDown(forms.Form):
     cenz_rate_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "cenz_rate_form"}),
         label='Ценз отсмотра', choices=rate)
-    cenz_worker_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': "form-select", 'id': "cenz_worker_form"}),
-        label='Тайтл проверил', choices=workers, required=False)
+    engineers_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "engineers_form"}),
+        label='Тайтл проверил', choices=engineers, required=False)
     tags_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "tags_form"}),
         label='Теги', choices=tags, required=False)
@@ -155,9 +155,9 @@ class KpiForm(forms.Form):
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
         label='Дата отсмотра', required=False)
-    workers_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': "form-select", 'id': "cenz_worker_form"}),
-        label='Выполняет', choices=workers, required=False)
+    engineers_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "engineers_form"}),
+        label='Выполняет', choices=engineers, required=False)
     material_type_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "material_type_form"}),
         label='Тип материала', choices=material_type, required=False)
@@ -166,9 +166,9 @@ class KpiForm(forms.Form):
         label='Статус задачи', choices=task_status, required=False)
 
 class VacationForm(forms.Form):
-    workers_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': "form-select", 'id': "workers_form"}),
-        label='Сотрудник', choices=workers, required=True)
+    engineers_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "engineers_form"}),
+        label='Сотрудник', choices=engineers, required=True)
     start_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "start_date_form"}),
         label='Начало отпуска', required=True)
