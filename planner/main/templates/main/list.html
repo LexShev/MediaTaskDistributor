@@ -2,14 +2,7 @@
 
 <main>
 {% block body %}
-  {% if permissions.month %}
-    agree
-  {% else %}
-    not agree
-  {% endif %}
-    {{ permissions }}
-
-
+  {% if permissions.list %}
   <div class="container-xxl text-start px-0">
     <div class="row p-0">
       <div class="container-xxl text-start px-0">
@@ -124,5 +117,8 @@
       </div>
     </div>
   </div>
+  {% else %}
+  <h4 class="text-center">forbidden</h4>
+  {% endif %}
 {% endblock %}
 </main>

@@ -23,7 +23,6 @@ def cenz_name(cenz_id):
 
 @register.filter
 def engineer_name(engineer_id):
-    print('engineer_id', engineer_id)
     if engineer_id:
         engineer_id = int(engineer_id)
     engineer_dict = {

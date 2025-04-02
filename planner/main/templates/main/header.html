@@ -45,10 +45,18 @@
       </a>
 
       <ul class="nav col-12 col-lg-auto me-lg-auto justify-content-center mb-lg-0 me-lg-3">
-        <li><a href="/day" class="nav-link px-2 link-secondary">День</a></li>
-        <li><a href="/week" class="nav-link px-2 link-body-emphasis">Неделя</a></li>
-        <li><a href="/month" class="nav-link px-2 link-body-emphasis">Месяц</a></li>
-        <li><a href="/list" class="nav-link px-2 link-body-emphasis">Список</a></li>
+        {% if permissions.day %}
+          <li><a href="/day" class="nav-link px-2 link-secondary">День</a></li>
+        {% endif %}
+        {% if permissions.week %}
+          <li><a href="/week" class="nav-link px-2 link-body-emphasis">Неделя</a></li>
+        {% endif %}
+        {% if permissions.month %}
+          <li><a href="/month" class="nav-link px-2 link-body-emphasis">Месяц</a></li>
+        {% endif %}
+        {% if permissions.list %}
+          <li><a href="/list" class="nav-link px-2 link-body-emphasis">Список</a></li>
+        {% endif %}
       </ul>
 
       <a href="{% url 'distribution' %}" class="btn text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3 mb-lg-0 me-lg-3" type="button">
