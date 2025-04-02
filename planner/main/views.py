@@ -10,7 +10,7 @@ from .logs_and_history import insert_action, select_actions
 from .models import ModelFilter
 
 from .list_view import list_material_list
-from .permission_pannel import ask_permissions
+from .permission_pannel import ask_permissions, ask_db_permissions
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
@@ -35,6 +35,7 @@ def day(request):
 def week(request):
     start_day = datetime.datetime.today()
     start_day.strftime('%Y/%U')
+
     return redirect(week_date, start_day.year, start_day.isocalendar().week)
 
 @login_required()
@@ -141,9 +142,9 @@ def full_list(request):
         form = ListForm(initial=initial_dict)
 
 
-    permissions = ask_permissions(worker_id)
+    # permissions = ask_permissions(worker_id)
     data = {'material_list': list_material_list(channels, engineers, material_type, str(work_dates), task_status),
-            'form': form, 'permissions': permissions}
+            'form': form, 'permission': ask_db_permissions('list', worker_id)}
     return render(request, 'main/list.html', data)
 
 @login_required()

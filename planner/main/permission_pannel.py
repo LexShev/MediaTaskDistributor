@@ -1,12 +1,34 @@
-
+from django.db import connections
 
 def ask_permissions(worker_id):
-    admin_group = [0, 1]
-    editors_group = [2, 3, 4, 5]
+    admin = [0, 1]
+    preparation_engineer = []
+    broadcast_engineer = []
+    otk = []
+    editor = [2, 3, 4, 5]
 
-    if worker_id in admin_group:
-        return {'day': True, 'week': True, 'month': False, 'list': True}
-    elif worker_id in editors_group:
-        return {'list': True, 'month': False, 'week': True}
+    if worker_id in admin:
+        return ['day', 'week', 'month', 'list']
+    elif worker_id in preparation_engineer:
+        return ['day', 'week', 'list', 'full_info_card', 'common_pool']
+    elif worker_id in broadcast_engineer:
+        return ['month', 'full_info_card']
+    elif worker_id in otk:
+        return ['month', 'full_info_card']
+    elif worker_id in editor:
+        return ['month', 'full_info_card']
     else:
-        return {'list': False, 'month': False, 'week': False}
+        return []
+
+def ask_db_permissions(perm, worker_id):
+    with connections['planner'].cursor() as cursor:
+        query = f'''
+        SELECT {perm} FROM [planner].[dbo].[worker_list] AS Worker
+        JOIN [planner].[dbo].[permission_list] AS Perm
+            ON Worker.[permission_group] = Perm.[permission_group]
+        WHERE Worker.[worker_id] = {worker_id}
+        '''
+        cursor.execute(query)
+        answer = cursor.fetchone()
+        if answer:
+            return answer[0]
