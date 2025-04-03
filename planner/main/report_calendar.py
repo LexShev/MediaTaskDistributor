@@ -1,24 +1,17 @@
 import calendar
-import datetime
+import os
+from django.template.defaulttags import register
 
 from .kpi_admin_panel import summary_task_list
 
+@register.filter
+def file_name(full_path):
+    return os.path.basename(full_path)
 
-def month_name(cal_month):
-    month_dict = {
-        1: "Январь",
-        2: "Февраль",
-        3: "Март",
-        4: "Апрель",
-        5: "Май",
-        6: "Июнь",
-        7: "Июль",
-        8: "Август",
-        9: "Сентябрь",
-        10: "Октябрь",
-        11: "Ноябрь",
-        12: "Декабрь"}
-    return month_dict.get(cal_month)
+@register.filter
+def dir_name(full_path):
+    return os.path.dirname(full_path).replace('\\\\192.168.80.3\\', "")
+
 
 def calc_prev_month(cal_year, cal_month):
     if cal_month > 1:
@@ -65,7 +58,6 @@ def tasks_info(month_calendar, task_list):
                                     'ready_index': ready_index,
                                     'color': color})
         colorized_calendar.append(colorized_weeks)
-    print(colorized_calendar)
     return colorized_calendar
 
 def my_report_calendar(cal_year, cal_month):
@@ -76,12 +68,10 @@ def my_report_calendar(cal_year, cal_month):
 
     colorized_calendar = tasks_info(month_calendar, task_list)
 
-    cal_month_name = month_name(cal_month)
     prev_year, prev_month = calc_prev_month(cal_year, cal_month)
     next_year, next_month = calc_next_month(cal_year, cal_month)
     service_dict = {'cal_year': cal_year,
                     'cal_month': cal_month,
-                    'cal_month_name': cal_month_name,
                     'prev_year': prev_year,
                     'next_year': next_year,
                     'prev_month': prev_month,

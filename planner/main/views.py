@@ -40,8 +40,9 @@ def week(request):
 
 @login_required()
 def week_date(request, work_year, work_week):
-    if request.user.id:
-        init = ModelFilter.objects.get(owner=request.user.id)
+    worker_id = request.user.id
+    if worker_id:
+        init = ModelFilter.objects.get(owner=worker_id)
     else:
         init = ModelFilter.objects.get(owner=0)
     if request.method == 'POST':
@@ -73,7 +74,10 @@ def week_date(request, work_year, work_week):
                         'task_status': task_status}
         form = WeekForm(initial=initial_dict)
     material_list, service_dict = week_material_list(channels, engineers, material_type, task_status, work_year, work_week)
-    data = {'week_material_list': material_list, 'service_dict': service_dict, 'form': form}
+    data = {'week_material_list': material_list,
+            'service_dict': service_dict,
+            'permissions': ask_db_permissions(worker_id),
+            'form': form}
     return render(request, 'main/week.html', data)
 
 @login_required()
@@ -84,10 +88,12 @@ def month(request):
 
 @login_required()
 def month_date(request, cal_year, cal_month):
+    worker_id = request.user.id
     month_calendar, task_list, service_dict = my_report_calendar(cal_year, cal_month)
     data = {'month_calendar': month_calendar,
             'task_list': task_list,
-            'service_dict': service_dict}
+            'service_dict': service_dict,
+            'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/month.html', data)
 
 @login_required()
@@ -144,12 +150,12 @@ def full_list(request):
 
     # permissions = ask_permissions(worker_id)
     data = {'material_list': list_material_list(channels, engineers, material_type, str(work_dates), task_status),
-            'form': form, 'permission': ask_db_permissions('list', worker_id)}
+            'form': form, 'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/list.html', data)
 
 @login_required()
 def material_card(request, program_id):
-
+    worker_id = request.user.id
     custom_fields = cenz_info(program_id)
     old_values_dict = {
         17: custom_fields.get(17),
@@ -191,10 +197,8 @@ def material_card(request, program_id):
             }
             service_info_dict = {
                 'program_id': program_id,
-                'worker_id': 11
+                'worker_id': worker_id
             }
-
-
             insert_action(service_info_dict, old_values_dict, new_values_dict)
             change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
 
@@ -231,6 +235,7 @@ def material_card(request, program_id):
             'ffmpeg': ffmpeg_dict(program_id),
             'form_text': form_text,
             'form_drop': form_drop,
+            'permissions': ask_db_permissions(worker_id)
             }
     return render(request, 'main/full_info_card.html', data)
 
@@ -287,7 +292,7 @@ def kpi_engineer(request, engineer_id):
     return render(request, 'main/kpi_engineer.html', data)
 
 def test_page(request):
-    return render(request, 'main/dynamic_search.html')
+    return render(request, 'main/test_page.html')
 
 def my_view(request):
     print(list(request.POST.items()))
