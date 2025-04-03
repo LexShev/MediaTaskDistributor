@@ -3,12 +3,11 @@
 
 <main role="main">
 {% block body %}
+  {% if permissions.week %}
+  <nav class="container-fluid px-lg-5">
+    <div class="d-flex justify-content-end">
 
-  <nav class="container-xxl px-1 pb-2 bg-body">
-    <div class="row px-1 pb-2 bg-body">
-      <div class="col">
-
-        <button class="btn btn-outline-info" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">
+        <button class="btn btn-outline-light mx-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
             <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
           </svg>
@@ -24,29 +23,26 @@
             </div>
           </div>
 
-      </div>
-      <div class="col">
-        <ul class="pagination justify-content-end">
+        <ul class="pagination m-0">
           <li class="page-item">
-            <a class="page-link link-info border-info" title="Назад" href="{% url 'home' %}week/{{ service_dict.prev_year }}/{{ service_dict.prev_week }}" aria-label="Previous">
+            <a class="page-link link-light border-light" title="Назад" href="{% url 'home' %}week/{{ service_dict.prev_year }}/{{ service_dict.prev_week }}" aria-label="Previous">
               <span aria-hidden="true">&laquo;</span>
             </a>
           </li>
-          <li class="page-item"><a class="page-link link-info border-info" href="{% url 'home' %}week/{{ service_dict.work_year }}/{{ service_dict.work_week }}">{{ service_dict.work_week }}</a></li>
+          <li class="page-item"><a class="page-link link-light border-light" href="{% url 'home' %}week/{{ service_dict.work_year }}/{{ service_dict.work_week }}">{{ service_dict.work_week }}</a></li>
           <li class="page-item">
-            <a class="page-link link-info border-info" title="Вперёд" href="{% url 'home' %}week/{{ service_dict.next_year }}/{{ service_dict.next_week }}" aria-label="Next">
+            <a class="page-link link-light border-light" title="Вперёд" href="{% url 'home' %}week/{{ service_dict.next_year }}/{{ service_dict.next_week }}" aria-label="Next">
               <span aria-hidden="true">&raquo;</span>
             </a>
           </li>
         </ul>
-      </div>
     </div>
   </nav>
   <div class="container-fluid text-start px-lg-5">
     <div class="row p-0">
       {% for day in week_material_list %}
       {% if day.1 %}
-        <div class="col p-0 mx-1" style="max-width:25rem">
+        <div class="col p-0 mx-1" style="max-width:26rem">
           <div class="sticky-top text-center bg-body p-2">{{ day.0.weekday }}, {{ day.0.date|date:"d E" }}</div>
           {% for material in day %}
             {% if material.type == 'film' %}
@@ -149,5 +145,8 @@
       {% endfor %}
     </div>
   </div>
+  {% else %}
+  <h4 class="text-center">forbidden</h4>
+  {% endif %}
 {% endblock %}
 </main>
