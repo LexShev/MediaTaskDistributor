@@ -48,7 +48,7 @@ def service_pool_info():
                 (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
             
-            SELECT COUNT(Progs.[program_id]) AS film_count
+            SELECT COUNT(Progs.[program_id]) AS film_count, SUM(Progs.[duration]) AS film_dur
             FROM [oplan3].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
@@ -60,8 +60,9 @@ def service_pool_info():
             AND Progs.[program_id] NOT IN
                 (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
+                
             
-            SELECT COUNT(Progs.[program_id]) AS season_count
+            SELECT COUNT(Progs.[program_id]) AS season_count, SUM(Progs.[duration]) AS season_dur
             FROM [oplan3].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
@@ -79,12 +80,16 @@ def service_pool_info():
         if total_count_cur:
             total_count = total_count_cur[0]
         cursor.nextset()
-        film_count_cur = cursor.fetchone()
-        if film_count_cur:
-            film_count = film_count_cur[0]
+        film_cur = cursor.fetchone()
+        if film_cur:
+            film_count, film_dur = film_cur
         cursor.nextset()
-        season_count_cur = cursor.fetchone()
-        if season_count_cur:
-            season_count = season_count_cur[0]
+        season_cur = cursor.fetchone()
+        if season_cur:
+            season_count, season_dur = season_cur
 
-    return {'total_count': total_count, 'film_count': film_count, 'season_count': season_count}
+    return {'total_count': total_count,
+            'film_count': film_count,
+            'film_dur': film_dur,
+            'season_count': season_count,
+            'season_dur': season_dur}

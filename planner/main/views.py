@@ -140,7 +140,6 @@ def full_list(request):
                         'work_dates': work_dates,
                         'task_status': task_status}
         form = ListForm(initial=initial_dict)
-        print(form)
 
 
     # permissions = ask_permissions(worker_id)

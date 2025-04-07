@@ -11,7 +11,7 @@
     </tr>
   </thead>
   <tbody class="table-group-divider" id="tableBody">
-    {% for task in task_list|dictsort:"Progs_name" %}
+    {% for task in task_list %}
       <tr>
         <td hidden>
           {{ task.Task_work_date|date:'Y-m-d' }}

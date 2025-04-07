@@ -19,7 +19,7 @@
               <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
-              {% include 'main/list_filter.html' %}
+              {% include 'main/main_modelfilter.html' %}
             </div>
           </div>
         </nav>
@@ -45,9 +45,13 @@
                     </p>
                   </div>
                   <div class="col">
-                    <p class="card-text m-0"><small class="text-body-secondary">
-                    Дата эфира: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ material.SchedDay_day_date|date:"d E Y" }}</a></small>
+                    <p class="card-text m-0"><small class="text-body-secondary">Возрастная категория:</small>
+                      <small class="text-body-primary"> {{ material.Adult_Name }}</small>
+                    </p>
+                  </div>
+                  <div class="col">
+                    <p class="card-text m-0"><small class="text-body-secondary">Крайний срок:</small>
+                      <small class="text-body-primary"> {{ material.SchedDay_day_date|date:"d E Y" }}</small>
                     </p>
                   </div>
                   <div class="col">
@@ -93,13 +97,17 @@
                           {{ material.Sched_schedule_name }}</a></small>
                           </p>
                         </div>
-
                         <div class="col">
-                          <p class="card-text m-0"><small class="text-body-secondary">
-                          Дата эфира: <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                         {{ episode.SchedDay_day_date|date:"d E Y" }}</a></small>
+                          <p class="card-text m-0"><small class="text-body-secondary">Возрастная категория:</small>
+                            <small class="text-body-primary"> {{ episode.Adult_Name }}</small>
                           </p>
                         </div>
+                        <div class="col">
+                          <p class="card-text m-0"><small class="text-body-secondary">Крайний срок:</small>
+                            <small class="text-body-primary"> {{ episode.SchedDay_day_date|date:"d E Y" }}</small>
+                          </p>
+                        </div>
+
                         <div class="col">
                           <p class="card-text m-0"><small class="text-body-secondary">
                           Выполняет: <a href="{% url 'home' %}worker/{{ episode.engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">

@@ -6,18 +6,24 @@ from django.template.defaulttags import register
 
 @register.filter
 def convert_frames_to_time(frames, fps=25):
-    sec = int(frames)/fps
-    dd = int((sec // 3600) // 24)
+    sec = int(frames) / fps
+    yy = int((sec // 3600) // 24) // 365
+    dd = int((sec // 3600) // 24) % 365
     hh = int((sec // 3600) % 24)
     mm = int((sec % 3600) // 60)
     ss = int((sec % 3600) % 60 // 1)
     ff = int(sec % 1 * fps)
     tf = f'{hh:02}:{mm:02}:{ss:02}.{ff:02}'
-    if dd < 1:
-        tf = f'{hh:02}:{mm:02}:{ss:02}'
+    if yy < 1:
+        if dd < 1:
+            return f'{hh:02}:{mm:02}:{ss:02}'
+        else:
+            return f'{dd:02}д. {hh:02}:{mm:02}:{ss:02}'
     else:
-        tf = f'{dd:02}д. {hh:02}:{mm:02}:{ss:02}'
-    return tf
+        if 0 < yy % 10 < 5:
+            return f'{yy:02}г. {dd:02}д. {hh:02}:{mm:02}:{ss:02}'
+        else:
+            return f'{yy:02}л. {dd:02}д. {hh:02}:{mm:02}:{ss:02}'
 
 # @register.filter
 # def convert_frames_to_time(frames, fps=25):
@@ -39,7 +45,7 @@ def summary_task_list(work_dates):
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
             ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Progs', 'program_type_id'), ('Progs', 'name'),
-            ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year'),
+            ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year'), ('Progs', 'episode_num'),
             ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
         ]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -60,7 +66,7 @@ def summary_task_list(work_dates):
         AND Progs.[deleted] = 0
         AND Task.[engineer_id] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
         AND Task.[task_status] IN ('not_ready', 'ready', 'fix')
-        ORDER BY Progs.[name], Progs.[episode_num]
+        ORDER BY Progs.[name];
         '''
         print(query)
         cursor.execute(query)
@@ -96,6 +102,8 @@ def kpi_summary_calc(work_dates, engineer_id, material_type, task_status):
     filtered_task_list = filter(lambda task: task.get('Task_engineer_id') == engineer_id or not engineer_id and engineer_id != 0, task_list)
     filtered_task_list = filter(lambda task: task.get('Progs_program_type_id') in check_mat_type(material_type) or not material_type, filtered_task_list)
     filtered_task_list = filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list)
+
+    # filtered_task_list = sorted(filtered_task_list, key=lambda task: (task.get('Progs_name'), task.get('Progs_episode_num'), 0), reverse=False)
     # if not task_status and engineers:
     #     filtered_task_list = (task for task in task_list if task.get('Task_engineer_id') == int(engineers))
     # elif task_status and not engineers:
