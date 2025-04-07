@@ -4,7 +4,7 @@ import ast
 
 from django.shortcuts import render, redirect
 
-from .full_material_list import select_pool, service_pool_info
+from .common_pool import select_pool, service_pool_info
 from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .logs_and_history import insert_action, select_actions
 from .models import ModelFilter
@@ -14,7 +14,7 @@ from .permission_pannel import ask_permissions, ask_db_permissions
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
-from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, change_task_status
+from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, change_task_status, update_file_path
 from .distribution import main_distribution
 from .report_calendar import my_report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
@@ -35,18 +35,17 @@ def day(request):
 def week(request):
     start_day = datetime.datetime.today()
     start_day.strftime('%Y/%U')
-
     return redirect(week_date, start_day.year, start_day.isocalendar().week)
 
 @login_required()
 def week_date(request, work_year, work_week):
     worker_id = request.user.id
     if worker_id:
-        init = ModelFilter.objects.get(owner=worker_id)
+        init_dict = ModelFilter.objects.get(owner=worker_id)
     else:
-        init = ModelFilter.objects.get(owner=0)
+        init_dict = ModelFilter.objects.get(owner=0)
     if request.method == 'POST':
-        form = WeekForm(request.POST, instance=init)
+        form = WeekForm(request.POST, instance=init_dict)
         if form.is_valid():
             form.save()
 
@@ -61,16 +60,14 @@ def week_date(request, work_year, work_week):
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
     else:
-        channels = ast.literal_eval(init.channels)
-        engineers = ast.literal_eval(init.engineers)
-        material_type = ast.literal_eval(init.material_type)
-        work_dates = str(init.work_dates)
-        task_status = ast.literal_eval(init.task_status)
+        channels = ast.literal_eval(init_dict.channels)
+        engineers = ast.literal_eval(init_dict.engineers)
+        material_type = ast.literal_eval(init_dict.material_type)
+        task_status = ast.literal_eval(init_dict.task_status)
 
         initial_dict = {'channels': channels,
                         'engineers': engineers,
                         'material_type': material_type,
-                        'work_dates': work_dates,
                         'task_status': task_status}
         form = WeekForm(initial=initial_dict)
     material_list, service_dict = week_material_list(channels, engineers, material_type, task_status, work_year, work_week)
@@ -80,7 +77,6 @@ def week_date(request, work_year, work_week):
             'form': form}
     return render(request, 'main/week.html', data)
 
-@login_required()
 def month(request):
     today = datetime.datetime.today()
     cal_year, cal_month = today.year, today.month
@@ -102,38 +98,36 @@ def full_list(request):
     # print('main_search', main_search)
     worker_id = request.user.id
     if worker_id:
-        init = ModelFilter.objects.get(owner=worker_id)
+        init_dict = ModelFilter.objects.get(owner=worker_id)
     else:
-        init = ModelFilter.objects.get(owner=0)
+        init_dict = ModelFilter.objects.get(owner=0)
 
     if request.method == 'POST':
-        form = ListForm(request.POST, instance=init)
+        form = ListForm(request.POST, instance=init_dict)
         if form.is_valid():
             form.save()
 
-            # MainFilter.objects.filter(id=5).update(form)
-            # form.save()
-            # list_filter = form.save(commit=False)
-            # list_filter.owner = request.user.id
-            # print('request.user.id', request.user.id)
             channels = ast.literal_eval(form.cleaned_data.get('channels'))
             engineers = ast.literal_eval(form.cleaned_data.get('engineers'))
             material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
             work_dates = form.cleaned_data.get('work_dates')
             task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
 
+
         else:
             channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
             work_dates = datetime.datetime.today().date()
+            start_date = datetime.datetime.today().strftime('%d/%m/%Y')
+            work_dates = f'{start_date} - {start_date}'
             engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
     else:
-        channels = ast.literal_eval(init.channels)
-        engineers = ast.literal_eval(init.engineers)
-        material_type = ast.literal_eval(init.material_type)
-        work_dates = str(init.work_dates)
-        task_status = ast.literal_eval(init.task_status)
+        channels = ast.literal_eval(init_dict.channels)
+        engineers = ast.literal_eval(init_dict.engineers)
+        material_type = ast.literal_eval(init_dict.material_type)
+        work_dates = init_dict.work_dates
+        task_status = ast.literal_eval(init_dict.task_status)
 
         # initial_dict = {'channels': channels,
         #                 'engineers': engineers,
@@ -146,6 +140,7 @@ def full_list(request):
                         'work_dates': work_dates,
                         'task_status': task_status}
         form = ListForm(initial=initial_dict)
+        print(form)
 
 
     # permissions = ask_permissions(worker_id)
@@ -179,6 +174,10 @@ def material_card(request, program_id):
     if request.method == 'POST':
         form_drop = CenzFormDropDown(request.POST)
         form_text = CenzFormText(request.POST)
+
+        upload_ready_file = request.POST.get('upload_ready_file_form')
+        update_file_path(program_id, upload_ready_file)
+        print('upload_ready_file_form', upload_ready_file)
         if form_text.is_valid() and form_drop.is_valid():
             new_values_dict = {
                 17: form_drop.cleaned_data.get('meta_form'),
@@ -213,7 +212,7 @@ def material_card(request, program_id):
                 'meta_form': custom_fields.get(17),
                 'work_date_form': custom_fields.get(7),
                 'cenz_rate_form': custom_fields.get(14),
-                'engineer_form': custom_fields.get(15),
+                'engineers_form': custom_fields.get(15),
                 'tags_form': custom_fields.get(18),
                 'inoagent_form': custom_fields.get(19),
             })
@@ -241,6 +240,7 @@ def material_card(request, program_id):
 
 @login_required()
 def kpi_info(request):
+    worker_id = request.user.id
     work_date = str(datetime.datetime.today().date())
     engineers = ''
     task_status = ''
@@ -265,11 +265,13 @@ def kpi_info(request):
     data = {'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.datetime.today().date(),
-            'form': form}
+            'form': form,
+            'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/kpi_admin_panel.html', data)
 
 @login_required()
-def kpi_engineer(request, engineer_id):
+def engineer_profile(request, engineer_id):
+    worker_id = request.user.id
     work_date = str(datetime.datetime.today().date())
     task_status = ''
     material_type = ''
@@ -288,41 +290,32 @@ def kpi_engineer(request, engineer_id):
     data = {'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.datetime.today().date(),
+            'permissions': ask_db_permissions(worker_id),
             'form': form}
     return render(request, 'main/kpi_engineer.html', data)
 
 def test_page(request):
-    return render(request, 'main/test_page.html')
-
-def my_view(request):
-    print(list(request.POST.items()))
-    if request.method == 'POST':
-        form = ListForm(request.POST)
-        print(form)
-        if form.is_valid():
-            selected_date = form.cleaned_data['date']
-            selected_channels = form.cleaned_data['channels']
-            selected_engineers = form.cleaned_data['engineers']
-            print('selected_date', selected_date)
-            print('selected_channels', selected_channels)
-            print('selected_engineers', selected_engineers)
-
-            # Process the selected values as a list
-            # ...
-    else:
-        form = ListForm()
-    return render(request, 'main/list_filter.html', {'form': form})
+    return render(request, 'main/daterange_picker.html')
 
 @login_required()
 def common_pool(request):
-    data = {'pool_list': select_pool(), 'service_dict': service_pool_info()}
+    worker_id = request.user.id
+    data = {'pool_list': select_pool(),
+            'service_dict': service_pool_info(),
+            'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/common_pool.html', data)
 
 @login_required()
-def work_calendar(request, cal_year):
-    delete_day_off = request.POST.get('delete_day_off', None)
+def work_year_calendar(request, cal_year):
+    worker_id = request.user.id
+
     approve_day_off = request.POST.get('approve_day_off', None)
-    delete_vacation = request.POST.get('delete_vacation', None)
+    if approve_day_off:
+        insert_day_off(approve_day_off)
+    delete_day_off = request.POST.get('delete_day_off', None)
+    if delete_day_off:
+        drop_day_off(delete_day_off)
+
     if request.method == 'POST':
         form = VacationForm(request.POST)
         if form.is_valid():
@@ -334,12 +327,7 @@ def work_calendar(request, cal_year):
         form = VacationForm()
     else:
         form = VacationForm()
-
-    if delete_day_off:
-        drop_day_off(delete_day_off)
-    if approve_day_off:
-        insert_day_off(approve_day_off)
-
+    delete_vacation = request.POST.get('delete_vacation', None)
     if delete_vacation:
         drop_vacation(delete_vacation)
 
@@ -348,5 +336,10 @@ def work_calendar(request, cal_year):
             'year_num': cal_year,
             'next_year': cal_year+1,
             'vacation_list': vacation_info(cal_year),
+            'permissions': ask_db_permissions(worker_id),
             'form': form}
     return render(request, 'main/work_calendar.html', data)
+
+def work_calendar(request):
+    start_year = datetime.datetime.today().year
+    return redirect(work_year_calendar, start_year)

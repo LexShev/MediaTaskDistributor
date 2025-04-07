@@ -29,14 +29,15 @@ def check_mat_type(param):
 
 def oplan_material_list(work_date, program_type):
     with connections['oplan3'].cursor() as cursor:
-        dates = tuple(str(work_date+datetime.timedelta(days=day)) for day in range(21))
+        dates = tuple(str(work_date+datetime.timedelta(days=day)) for day in range(23))
         channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
 
         order = 'ASC'
 
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Sched', 'schedule_name'), ('SchedDay', 'day_date')]
+                   ('Progs', 'duration'), ('Files', 'Name'), ('Sched', 'schedule_id'),
+                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""
@@ -69,6 +70,22 @@ def oplan_material_list(work_date, program_type):
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
 
+def date_generator(work_dates):
+    start_date, end_date = work_dates.split(' - ')
+    start_date = datetime.datetime.strptime(start_date, '%d/%m/%Y')
+    end_date = datetime.datetime.strptime(end_date, '%d/%m/%Y')
+    if start_date != end_date:
+        delta = datetime.timedelta(days=1)
+        dates_list = []
+        while start_date <= end_date:
+            dates_list.append(str(start_date.date()))
+            start_date += delta
+        return tuple(dates_list)
+    else:
+        return str(start_date.date()), str(start_date.date())
+
+
+
 def planner_material_list(channels, engineer_id, material_type, work_dates, task_status):
     channels = check_param(channels)
     engineer_id = check_param(engineer_id)
@@ -76,7 +93,7 @@ def planner_material_list(channels, engineer_id, material_type, work_dates, task
     task_status = check_param(task_status)
 
     if isinstance(work_dates, str):
-        work_dates = (work_dates, work_dates)
+        work_dates = date_generator(work_dates)
 
     with connections['planner'].cursor() as cursor:
         order = 'ASC'
@@ -107,6 +124,7 @@ def planner_material_list(channels, engineer_id, material_type, work_dates, task
         AND Task.[task_status] IN {task_status}
         ORDER BY SchedProg.[DateTime] {order}
         '''
+        print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns

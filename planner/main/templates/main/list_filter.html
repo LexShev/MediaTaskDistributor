@@ -1,12 +1,14 @@
-
 {% load static %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'Semantic-UI-master/dist/semantic.min.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'css/ui_dropdown.css' %}">
-<link rel="stylesheet" href="{% static '/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static '/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/daterangepicker.css' %}"/>
 
-<script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
-<script src="{% static 'Semantic-UI-master/dist/semantic.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/moment-2.30.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/daterangepicker-3.1.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'Semantic-UI-master/dist/semantic.min.js' %}"></script>
 
 <style>
 .ui.dropdown {
@@ -48,14 +50,58 @@ $('#task_status')
   .dropdown()
 ;
 
-
-<!--$('form')-->
-<!--  .form('set values', {-->
-<!--    channels     : ['2', '10'],-->
-<!--    workers   : '0',-->
-<!--    material_type   : 'Сериал',-->
-<!--    task_status : 'Не готов',-->
-<!--  })-->
-<!--;-->
 </script>
 
+<script type="text/javascript">
+$(function() {
+
+  $('input[name="work_dates"]').daterangepicker({
+      "showWeekNumbers": true,
+    "autoApply": true,
+    "locale": {
+        "format": "DD/MM/YYYY",
+        "separator": " - ",
+        "applyLabel": "Выбрать",
+        "cancelLabel": "Отмена",
+        "fromLabel": "От",
+        "toLabel": "До",
+        "customRangeLabel": "Другое",
+        "weekLabel": "Н",
+        "daysOfWeek": [
+            "Вс",
+            "Пн",
+            "Вт",
+            "Ср",
+            "Чт",
+            "Пт",
+            "Сб"
+        ],
+        "monthNames": [
+            "Январь",
+            "Февраль",
+            "Март",
+            "Апрель",
+            "Май",
+            "Июнь",
+            "Июль",
+            "Август",
+            "Сентябрь",
+            "Октябрь",
+            "Ноябрь",
+            "Декабрь"
+        ],
+        "firstDay": 1
+    },
+
+  });
+
+  $('input[name="work_dates"]').on('apply.daterangepicker', function(ev, picker) {
+      $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+  });
+
+  $('input[name="work_dates"]').on('cancel.daterangepicker', function(ev, picker) {
+      $(this).val('');
+  });
+
+});
+</script>

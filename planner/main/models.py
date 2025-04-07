@@ -7,7 +7,7 @@ class ModelFilter(Model):
     channels = TextField()
     engineers = TextField()
     material_type = TextField()
-    work_dates = DateField()
+    work_dates = TextField()
     task_status = TextField()
 
 

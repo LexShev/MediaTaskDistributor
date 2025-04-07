@@ -66,7 +66,7 @@ class ListForm(forms.ModelForm):
             'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'}, choices=material_type),
             'work_dates': forms.DateInput(
-                attrs={'class': 'form-control', 'type': 'date'}),
+                attrs={'class': 'form-control', 'data-bs-theme': 'light', 'type': 'text'}),
                 # , 'data-bs-theme': "light"
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status', 'placeholder': 'test'}, choices=task_status),
@@ -120,7 +120,6 @@ class CenzFormText(forms.Form):
 class CenzFormDropDown(forms.Form):
     # engineers = [(0, '-'), (0, 'Александр Кисляков'), (1, 'Ольга Кузовкина'), (2, 'Дмитрий Гатенян'), (3, 'Мария Сучкова'), (4, 'Андрей Антипин'), (
     # 5, 'Роман Рогачев'), (6, 'Анастасия Чебакова'), (7, 'Никита Кузаков'), (8, 'Олег Кашежев'), (9, 'Марфа Тарусина'), (10, 'Евгений Доманов')]
-
     meta_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'form-select', 'id': "meta_form"}),
         label='Meta', choices=((0, 'Нет'), (1, 'Да')), required=False)
@@ -133,9 +132,9 @@ class CenzFormDropDown(forms.Form):
     engineers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "engineers_form"}),
         label='Тайтл проверил', choices=engineers, required=False)
-    tags_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': "form-select", 'id': "tags_form"}),
-        label='Теги', choices=tags, required=False)
+    # tags_form = forms.ChoiceField(widget=forms.Select(
+    #     attrs={'class': "form-select", 'id': "tags_form"}),
+    #     label='Теги', choices=tags, required=False)
     inoagent_form = forms.ChoiceField(
         widget=forms.Select(attrs={'class': "form-select", 'id': "inoagent_form"}),
         label='Иноагент', choices=inoagents, required=False)

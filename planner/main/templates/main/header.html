@@ -45,7 +45,7 @@
 <!--    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">-->
       <div class="me-auto">
         <nav class="navbar navbar-expand-lg">
-            <a class="navbar-brand" href="{% url 'home' %}kpi_info">
+            <a class="navbar-brand" href="{% url 'home' %}">
               <svg width="32" height="32" class="bi me-2"><use xlink:href="#table"/></svg>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,16 +57,25 @@
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-lg-auto justify-content-center mb-lg-0 me-lg-3"  id="navBar">
               {% if permissions.day %}
-                <li class="nav-item"><a href="/day" class="nav-link px-2">День</a></li>
+                <li class="nav-item"><a href="{% url 'home' %}day" class="nav-link px-2">День</a></li>
               {% endif %}
               {% if permissions.week %}
-                <li class="nav-item"><a href="/week" class="nav-link px-2">Неделя</a></li>
+                <li class="nav-item"><a href="{% url 'home' %}week" class="nav-link px-2">Неделя</a></li>
               {% endif %}
               {% if permissions.month %}
-                <li class="nav-item"><a href="/month" class="nav-link px-2">Месяц</a></li>
+                <li class="nav-item"><a href="{% url 'home' %}month" class="nav-link px-2">Месяц</a></li>
               {% endif %}
               {% if permissions.list %}
-                <li class="nav-item"><a href="/list" class="nav-link px-2">Список</a></li>
+                <li class="nav-item"><a href="{% url 'home' %}list" class="nav-link px-2">Список</a></li>
+              {% endif %}
+              {% if permissions.kpi_info %}
+                <li class="nav-item"><a href="{% url 'home' %}kpi_info" class="nav-link px-2">KPI</a></li>
+              {% endif %}
+              {% if permissions.work_calendar %}
+                <li class="nav-item"><a href="{% url 'home' %}work_calendar" class="nav-link px-2">Календарь</a></li>
+              {% endif %}
+              {% if permissions.common_pool %}
+                <li class="nav-item"><a href="{% url 'home' %}common_pool" class="nav-link px-2">Общий пул</a></li>
               {% endif %}
             </ul>
           </div>
@@ -101,7 +110,7 @@
         </a>
         <ul class="dropdown-menu text-small">
           <li><a class="dropdown-item" href="#">Настройки</a></li>
-          <li><a class="dropdown-item" href="#">Профиль</a></li>
+          <li><a class="dropdown-item" href="{% url 'home' %}worker/{{ user.id }}">Профиль</a></li>
           <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item" href="{% url 'home' %}authorize/logout_worker/">Выйти</a></li>
         </ul>

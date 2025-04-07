@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+
 from django.db import connections
 from .list_view import oplan_material_list
 
@@ -15,13 +16,14 @@ def main_distribution():
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
-        program_type_id = temp_dict['Progs_program_type_id']
-        duration = temp_dict['Progs_duration']
-        distribution_by_id(work_date, program_id, program_type_id, duration)
+        program_type_id = temp_dict.get('Progs_program_type_id')
+        duration = temp_dict.get('Progs_duration')
+        file_path = temp_dict.get('Files_Name')
+        distribution_by_id(work_date, program_id, program_type_id, file_path, duration)
         program_id_list.append(program_id)
 
 
-def distribution_by_id(work_date, program_id, program_type_id, duration):
+def distribution_by_id(work_date, program_id, program_type_id, file_path, duration):
     # !work_date продумать начало проверки
     planner_engineer_id = planner_engineer(program_id)
     oplan3_engineer_id = oplan3_engineer(program_id)
@@ -29,7 +31,7 @@ def distribution_by_id(work_date, program_id, program_type_id, duration):
         if planner_engineer_id != 0 and not planner_engineer_id:
             status = 'not_ready'
             engineer_id, kpi, work_date = date_seek(work_date)
-            insert_film(program_id, engineer_id, duration, work_date, status)
+            insert_film(program_id, engineer_id, file_path, duration, work_date, status)
         else:
             # print('skip', program_id)
             # ? update(program_id, engineer_id, duration, date, status)
@@ -95,14 +97,15 @@ def kpi_min(work_date):
                 kpi_list.append((engineer_id, kpi))
     return sorted(kpi_list, key=lambda x: x[1])
 
-def insert_film(program_id, engineer_id, duration, work_date, status):
+def insert_film(program_id, engineer_id, file_path, duration, work_date, status):
     with connections['planner'].cursor() as cursor:
-        columns = '[program_id], [engineer_id], [duration], [work_date], [task_status]'
+        columns = '[program_id], [engineer_id], [file_path], [duration], [work_date], [task_status]'
+        values = (program_id, engineer_id, file_path, duration, work_date, status)
         query = f'''
         INSERT INTO [planner].[dbo].[task_list] ({columns})
-        VALUES ({program_id}, {engineer_id}, {duration}, '{work_date}', '{status}')
+        VALUES (%s, %s, %s, %s, %s, %s)
         '''
-        cursor.execute(query)
+        cursor.execute(query, values)
         print(f'{program_id}, {engineer_id} successfully added')
 
 def planner_engineer(program_id):
