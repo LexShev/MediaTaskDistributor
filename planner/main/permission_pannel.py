@@ -35,7 +35,7 @@ def ask_permissions(worker_id):
 
 def ask_db_permissions(worker_id):
     with connections['planner'].cursor() as cursor:
-        perm_list = 'day', 'week', 'list',  'full_info_card', 'common_pool'
+        perm_list = 'day', 'month', 'week', 'list', 'kpi_info', 'work_calendar', 'common_pool', 'full_info_card'
         columns = ', '.join([f'[{perm}]' for perm in perm_list])
         query = f'''
         SELECT {columns} FROM [planner].[dbo].[worker_list] AS Worker

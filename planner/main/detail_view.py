@@ -43,14 +43,18 @@ def engineer_name(engineer_id):
 
 @register.filter
 def worker_name(worker_id):
-    with connections['oplan3'].cursor() as cursor:
-        query = f'SELECT [user_name] FROM [oplan3].[dbo].[user] WHERE [user_id] = {worker_id}'
-        cursor.execute(query)
-        worker = cursor.fetchone()
-        if worker:
-            return worker[0]
-        else:
-            return 'Аноним'
+    if worker_id:
+        with connections['oplan3'].cursor() as cursor:
+            query = f'SELECT [user_name] FROM [oplan3].[dbo].[user] WHERE [user_id] = {worker_id}'
+            print(query)
+            cursor.execute(query)
+            worker = cursor.fetchone()
+            if worker:
+                return worker[0]
+            else:
+                return 'Аноним'
+    else:
+        return ''
 
 @register.filter
 def fields_name(field_id):
@@ -287,6 +291,15 @@ def update_value(field_id, program_id, new_value):
         with connections['oplan3'].cursor() as cursor:
             print(query)
             cursor.execute(query)
+
+def update_file_path(program_id, file_path):
+    with connections['planner'].cursor() as cursor:
+        query = f'''
+        UPDATE [planner].[dbo].[task_list]
+        SET [file_path] = '{file_path}'
+        WHERE [program_id] = {program_id}
+        '''
+        cursor.execute(query)
 
 def change_task_status(program_id, engineer_id, work_date):
     with connections['planner'].cursor() as cursor:

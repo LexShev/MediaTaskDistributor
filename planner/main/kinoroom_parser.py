@@ -12,6 +12,7 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
 }
 
+
 def locate_url(program_id, program_name, year):
     if check_db(program_id):
         print('local')
@@ -26,17 +27,24 @@ def search_movie(program_id, program_name, year):
     program_name = program_name.replace('`', '')
     program_name = program_name.replace('’', '')
     program_name = program_name.replace('сезон', '')
+    program_name = program_name.replace(' ', '%20')
     if '-' in year:
         year = year.strip().split('-')[0]
     elif '–' in year:
         year = year.strip().split('–')[0]
     search_url = f'https://ru.kinorium.com/search/?q={program_name}%20{year}'
     response = requests.get(search_url, headers=headers)
+
+
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
         movie_list = soup.find_all('a', {'class': 'search-page__title-link'})
+        # scripts = soup.find_all("script", string=True)
+        # for script in scripts:
+        #     print('script', script.string)
         movie_id = [movie.get('href') for movie in movie_list if movie.text.rstrip().startswith(program_name[:7])]
         # movie_id = [movie.get('href') for movie in movie_list if movie.text.rstrip()]
+
         if movie_id:
             movie_id = movie_id[0].replace('/', '')
             poster_url = 'https://ru-images.kinorium.com/movie/400/' + movie_id + '.jpg'

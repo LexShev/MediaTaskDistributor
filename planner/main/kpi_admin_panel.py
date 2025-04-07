@@ -38,7 +38,7 @@ def summary_task_list(work_dates):
     with connections['planner'].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
-            ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
+            ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Progs', 'program_type_id'), ('Progs', 'name'),
             ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year'),
             ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
         ]

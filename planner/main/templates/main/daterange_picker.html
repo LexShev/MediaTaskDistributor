@@ -1,0 +1,74 @@
+{% extends  'main/index.html' %}
+
+{% load static %}
+{% block body %}
+
+
+<script type="text/javascript" src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/moment-2.30.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/daterangepicker-3.1.0.min.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'css/daterangepicker.css' %}"/>
+
+
+
+<div class="container-fluid text-start px-lg-5">
+  <main>
+    <input class='form-control' type="text" name="datefilter" value="" />
+
+<script type="text/javascript">
+$(function() {
+
+  $('input[name="datefilter"]').daterangepicker({
+      "showWeekNumbers": true,
+    "autoApply": true,
+    "locale": {
+        "format": "DD/MM/YYYY",
+        "separator": " - ",
+        "applyLabel": "Выбрать",
+        "cancelLabel": "Отмена",
+        "fromLabel": "От",
+        "toLabel": "До",
+        "customRangeLabel": "Другое",
+        "weekLabel": "Н",
+        "daysOfWeek": [
+            "Вс",
+            "Пн",
+            "Вт",
+            "Ср",
+            "Чт",
+            "Пт",
+            "Сб"
+        ],
+        "monthNames": [
+            "Январь",
+            "Февраль",
+            "Март",
+            "Апрель",
+            "Май",
+            "Июнь",
+            "Июль",
+            "Август",
+            "Сентябрь",
+            "Октябрь",
+            "Ноябрь",
+            "Декабрь"
+        ],
+        "firstDay": 1
+    },
+    "startDate": "04/01/2025",
+    "endDate": "07/01/2025"
+  });
+
+  $('input[name="datefilter"]').on('apply.daterangepicker', function(ev, picker) {
+      $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+  });
+
+  $('input[name="datefilter"]').on('cancel.daterangepicker', function(ev, picker) {
+      $(this).val('');
+  });
+
+});
+</script>
+  </main>
+</div>
+{% endblock %}
