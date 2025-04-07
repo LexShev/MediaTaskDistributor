@@ -99,8 +99,9 @@ def planner_material_list(channels, engineer_id, material_type, work_dates, task
         order = 'ASC'
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Sched', 'schedule_name'), ('SchedDay', 'day_date'),
-                   ('Task', 'engineer_id'), ('Task', 'work_date'), ('Task', 'task_status')]
+                   ('Progs', 'duration'), ('Adult', 'Name'), ('Sched', 'schedule_id'),
+                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date'), ('Task', 'engineer_id'),
+                   ('Task', 'work_date'), ('Task', 'task_status')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
@@ -110,6 +111,8 @@ def planner_material_list(channels, engineer_id, material_type, work_dates, task
             ON Task.[program_id] = Progs.[program_id]
         JOIN [oplan3].[dbo].[program_type] AS Types
             ON Progs.[program_type_id] = Types.[program_type_id]
+        JOIN [oplan3].[dbo].[AdultType] AS Adult
+            ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
             ON Progs.[program_id] = SchedProg.[program_id]
         JOIN [oplan3].[dbo].[schedule_day] AS SchedDay

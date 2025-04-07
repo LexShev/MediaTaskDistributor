@@ -7,14 +7,14 @@
 <div class="container-xxl text-start p-0">
     <br><h3>Общий пул</h3>
     <h6>Материалов в базе не отсмотрено: {{ service_dict.total_count }}</h6>
-    <h6>Из них фильмов: {{ service_dict.film_count }}</h6>
-    <h6>Из них сериалов: {{ service_dict.season_count }}</h6>
+    <h6>Из них фильмов: {{ service_dict.film_count }} - ({{ service_dict.film_dur|convert_frames_to_time }})</h6>
+    <h6>Из них сериалов: {{ service_dict.season_count }} - ({{ service_dict.season_dur|convert_frames_to_time }})</h6>
     <br>
     <div class="input-group mb-3">
-        <label class="input-group-text" for="inputGroupSelect01">Поиск по</label>
-        <select class="form-select" id="inputGroupSelect01">
-            <option value="1" selected>странице</option>
-            <option value="2">всей базе</option>
+        <label class="input-group-text" for="searchSettings">Поиск по</label>
+        <select class="form-select" id="searchSettings">
+            <option value="0">id</option>
+            <option value="1" selected>названию</option>
         </select>
         <input class="form-control" id="tableFilter" type="text" placeholder="введите название передачи ..." style="width: 70rem;">
     </div>
@@ -48,11 +48,12 @@
         // Get the table body and rows
         let tableBody = document.getElementById('tableBody');
         let rows = tableBody.getElementsByTagName('tr');
+        let searchSettings = document.getElementById('searchSettings').value;
 
         // Loop through all table rows
         for (let i = 0; i < rows.length; i++) {
             // Get the first cell in the row (the 'Name' column)
-            let nameCell = rows[i].getElementsByTagName('td')[1];
+            let nameCell = rows[i].getElementsByTagName('td')[searchSettings];
             // Check if the cell exists and compares the value
             if (nameCell) {
                 let textValue = nameCell.textContent || nameCell.innerText;

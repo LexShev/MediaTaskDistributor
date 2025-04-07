@@ -95,9 +95,9 @@ def full_info(program_id):
                    ('Progs', 'subject'), ('Progs', 'SourceID'), ('Progs', 'AnonsCaption'),
                    ('Progs', 'DisplayMediumName'), ('Progs', 'SourceFileMedium'), ('Progs', 'EpisodesTotal'),
                    ('Progs', 'MaterialState'), ('Progs', 'SourceMedium'), ('Progs', 'HasSourceClip'),
-                   ('Progs', 'AnonsCaptionInherit'), ('Progs', 'AdultTypeID'), ('Progs', 'CreationDate'),
+                   ('Progs', 'AnonsCaptionInherit'), ('Progs', 'CreationDate'),
                    ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
-                   ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'), ('Files', 'Name'), ('Files', 'Size'),
+                   ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'), ('Adult', 'Name'), ('Files', 'Name'), ('Files', 'Size'),
                    ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('TaskInf', 'work_date'),
                    ('TaskInf', 'ready_date'), ('TaskInf', 'engineer_id'), ('TaskInf', 'task_status')]
 
@@ -110,6 +110,8 @@ def full_info(program_id):
                 ON Files.[ClipID] = Clips.[ClipID]
             JOIN [oplan3].[dbo].[program] AS Progs
                 ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+            JOIN [oplan3].[dbo].[AdultType] AS Adult
+                ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
             JOIN [oplan3].[dbo].[program_type] AS Types
                 ON Progs.[program_type_id] = Types.[program_type_id]
             LEFT JOIN [planner].[dbo].[task_list] AS TaskInf
