@@ -1,0 +1,30 @@
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col" class="col-4">Название</th>
+<!--      <th scope="col" class="col-1">Номер серии</th>-->
+      <th scope="col" class="col-1">Длительность</th>
+      <th scope="col" class="col-5">Имя файла</th>
+      <th scope="col" class="col-1">Статус</th>
+    </tr>
+  </thead>
+  <tbody class="table-group-divider" id="tableBody">
+    {% for episode in full_info.episodes %}
+      <tr>
+        <td>
+        <a href="{% url 'home' %}{{ episode.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+        {{ episode.Progs_name }}</a></td>
+<!--        <td>{{ episode.Progs_episode_num }}</td>-->
+        <td>{{ episode.Progs_duration|convert_frames_to_time }}</td>
+        <td>{{ episode.Progs_DisplayMediumName }}</td>
+        {% if episode.Task_task_status == 'not_ready' %}
+          <td>Не готов</td>
+        {% elif episode.Task_task_status == 'ready' %}
+          <td>Готов</td>
+        {% else %}
+          <td> - </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

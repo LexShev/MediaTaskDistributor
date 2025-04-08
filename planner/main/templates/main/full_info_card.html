@@ -173,11 +173,72 @@
       <!--  </div>-->
     </div>
   {% else %}
-      <div class="card">
-        <div class="card-header align-middle text-primary-emphasis bg-primary-subtle">
-          <h6>Описание</h6>
-        </div>
-        <div class="card-body">
+<!--      <div class="card">-->
+<!--        <div class="card-header align-middle text-primary-emphasis bg-primary-subtle">-->
+<!--          <h6>Описание</h6>-->
+<!--        </div>-->
+<!--        <div class="card-body">-->
+<!--          <div class="row m-0">-->
+<!--            <div class="col col-2 p-0">-->
+<!--              <img src="/static/img/empty_poster.png" class="img-fluid rounded mx-1 my-2" style="height: 230px;">-->
+<!--            </div>-->
+<!--            <div class="col p-0">-->
+<!--              <div class="row m-0">-->
+<!--                <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">{{ full_info.Progs_name }}. {{ full_info.Adult_Name }}</h5>-->
+<!--              </div>-->
+<!--              <div class="row m-0">-->
+<!--                <div class="col col-5 p-0">-->
+<!--                  <div class="form-floating mx-1 my-2">-->
+<!--                    <textarea class="form-control" id="year_parent_form" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>-->
+<!--                    <label for="year_parent_form">Год</label>-->
+<!--                  </div>-->
+<!--                  <div class="form-floating mx-1 my-2">-->
+<!--                    <textarea class="form-control" id="country_parent_form" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>-->
+<!--                    <label for="country_parent_form">Страна</label>-->
+<!--                  </div>-->
+<!--                  <div class="form-floating mx-1 my-2">-->
+<!--                    <textarea class="form-control" id="director_parent_form" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>-->
+<!--                    <label for="director_form">Режиссёр</label>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                <div class="col col-7 p-0">-->
+<!--                  <div class="form-floating mx-1 my-2">-->
+<!--                    <textarea class="form-control" id="roles_parent_form" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>-->
+<!--                    <label for="roles_parent_form">В ролях</label>-->
+<!--                  </div>-->
+<!--                  <div class="form-floating mx-1 my-2">-->
+<!--                    <textarea class="form-control" id="theme_parent_form" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>-->
+<!--                    <label for="theme_parent_form">Тематика</label>-->
+<!--                  </div>-->
+<!--                  <div class="form-floating mx-1 my-2">-->
+<!--                    <textarea class="form-control" id="keywords_parent_form" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>-->
+<!--                    <label for="keywords_parent_form">Ключевые слова</label>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+
+<!--          <div class="form-floating mx-1 my-2">-->
+<!--            <textarea class="form-control" id="short_parent_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>-->
+<!--            <label for="short_parent_descript_form">Краткое описание</label>-->
+<!--          </div>-->
+<!--          <div class="form-floating mx-1 my-2">-->
+<!--            <textarea class="form-control" id="full_parent_descript_form" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>-->
+<!--            <label for="full_parent_descript_form">Полное описание</label>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+
+  <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_folder_info">
+      <div class="accordion-item">
+        <h6 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFolder" aria-expanded="true" aria-controls="collapseFolder">
+            Описание сезона
+          </button></h6>
+      <div id="collapseFolder" class="accordion-collapse collapse show" data-bs-parent="#accordion_folder_info">
+        <div class="accordion-body">
+
           <div class="row m-0">
             <div class="col col-2 p-0">
               <img src="/static/img/empty_poster.png" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
@@ -186,49 +247,65 @@
               <div class="row m-0">
                 <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">{{ full_info.Progs_name }}. {{ full_info.Adult_Name }}</h5>
               </div>
+
               <div class="row m-0">
                 <div class="col col-5 p-0">
-                  <div class="form-floating mx-1 my-2">
-                    <textarea class="form-control" id="year_parent_form" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
-                    <label for="year_parent_form">Год</label>
-                  </div>
-                  <div class="form-floating mx-1 my-2">
-                    <textarea class="form-control" id="country_parent_form" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
-                    <label for="country_parent_form">Страна</label>
-                  </div>
-                  <div class="form-floating mx-1 my-2">
-                    <textarea class="form-control" id="director_parent_form" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
-                    <label for="director_form">Режиссёр</label>
-                  </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="year_folder" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
+                  <label for="year_folder">Год</label>
                 </div>
-                <div class="col col-7 p-0">
-                  <div class="form-floating mx-1 my-2">
-                    <textarea class="form-control" id="roles_parent_form" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
-                    <label for="roles_parent_form">В ролях</label>
-                  </div>
-                  <div class="form-floating mx-1 my-2">
-                    <textarea class="form-control" id="theme_parent_form" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
-                    <label for="theme_parent_form">Тематика</label>
-                  </div>
-                  <div class="form-floating mx-1 my-2">
-                    <textarea class="form-control" id="keywords_parent_form" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
-                    <label for="keywords_parent_form">Ключевые слова</label>
-                  </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="country_folder" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
+                  <label for="country_folder">Страна</label>
+                </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="director_folder" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
+                  <label for="director_folder">Режиссёр</label>
                 </div>
               </div>
+              <div class="col col-7 p-0">
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="roles_folder" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
+                  <label for="roles_folder">В ролях</label>
+                </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="theme_folder" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
+                  <label for="theme_folder">Тематика</label>
+                </div>
+                <div class="form-floating mx-1 my-2">
+                  <textarea class="form-control" id="keywords_folder" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
+                  <label for="keywords_folder">Ключевые слова</label>
+                </div>
+              </div>
+            </div>
             </div>
           </div>
 
           <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="short_parent_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>
-            <label for="short_parent_descript_form">Краткое описание</label>
+            <textarea class="form-control" id="short_descript_folder" style="height: 100px">{{ custom_fields.5 }}</textarea>
+            <label for="short_descript_folder">Краткое описание</label>
           </div>
           <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="full_parent_descript_form" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
-            <label for="full_parent_descript_form">Полное описание</label>
+            <textarea class="form-control" id="full_descript_folder" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
+            <label for="full_descript_folder">Полное описание</label>
           </div>
         </div>
       </div>
+      </div>
+
+
+      <div class="accordion-item">
+        <h6 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEpisodes" aria-expanded="false" aria-controls="collapseEpisodes">
+            Список всех серий
+          </button></h6>
+        <div id="collapseEpisodes" class="accordion-collapse collapse" data-bs-parent="#accordion_folder_info">
+          <div class="accordion-body">
+            {% include 'main/episodes_table.html' %}
+          </div>
+        </div>
+      </div>
+    </div>
   {% endif %}
   </div>
 {% endblock %}

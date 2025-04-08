@@ -64,7 +64,7 @@ def oplan_material_list(work_date, program_type):
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
-                    """
+            """
         print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
@@ -99,9 +99,8 @@ def planner_material_list(channels, engineer_id, material_type, work_dates, task
         order = 'ASC'
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Progs', 'duration'), ('Adult', 'Name'), ('Sched', 'schedule_id'),
-                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date'), ('Task', 'engineer_id'),
-                   ('Task', 'work_date'), ('Task', 'task_status')]
+                   ('Progs', 'duration'), ('Adult', 'Name'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
+                   ('Sched', 'schedule_name'), ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
@@ -111,23 +110,18 @@ def planner_material_list(channels, engineer_id, material_type, work_dates, task
             ON Task.[program_id] = Progs.[program_id]
         JOIN [oplan3].[dbo].[program_type] AS Types
             ON Progs.[program_type_id] = Types.[program_type_id]
-        JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
-            ON Progs.[program_id] = SchedProg.[program_id]
-        JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
-            ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
         JOIN [oplan3].[dbo].[schedule] AS Sched
-            ON SchedDay.[schedule_id] = Sched.[schedule_id]
+            ON Task.[sched_id] = Sched.[schedule_id]
         WHERE Progs.[deleted] = 0
-        AND Sched.[channel_id] IN {channels}
+        AND Task.[sched_id] IN {channels}
         AND Task.[engineer_id] IN {engineer_id}
         AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] IN {work_dates}
         AND Task.[task_status] IN {task_status}
-        ORDER BY SchedProg.[DateTime] {order}
+        ORDER BY Task.[sched_date] {order}
         '''
-        print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
@@ -185,3 +179,17 @@ def program_custom_fields():
             for field_id, items_string in fields_list:
                 fields_dict[field_id] = items_string
         return fields_dict
+
+def parent_adult_name(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        SELECT Adult.[Name]
+        FROM [oplan3].[dbo].[program] AS Progs
+        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+            ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
+        WHERE Progs.[program_id] = {program_id}
+        '''
+        cursor.execute(query)
+        adult_name = cursor.fetchone()
+        if adult_name:
+            return adult_name[0]
