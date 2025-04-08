@@ -87,19 +87,20 @@ def check_data_type(value):
 
 def full_info(program_id):
     with connections['oplan3'].cursor() as cursor:
-        columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
-                   ('Progs', 'orig_name'), ('Progs', 'annotation'), ('Progs', 'duration'), ('Progs', 'comment'),
-                   ('Progs', 'keywords'), ('Progs', 'anounce_text'), ('Progs', 'episode_num'),
-                   ('Progs', 'last_edit_user_id'), ('Progs', 'last_edit_time'), ('Progs', 'authors'),
-                   ('Progs', 'producer'), ('Progs', 'production_year'), ('Progs', 'production_country'),
-                   ('Progs', 'subject'), ('Progs', 'SourceID'), ('Progs', 'AnonsCaption'),
-                   ('Progs', 'DisplayMediumName'), ('Progs', 'SourceFileMedium'), ('Progs', 'EpisodesTotal'),
-                   ('Progs', 'MaterialState'), ('Progs', 'SourceMedium'), ('Progs', 'HasSourceClip'),
-                   ('Progs', 'AnonsCaptionInherit'), ('Progs', 'CreationDate'),
-                   ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
-                   ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'), ('Adult', 'Name'), ('Files', 'Name'), ('Files', 'Size'),
-                   ('Files', 'CreationTime'), ('Files', 'ModificationTime'), ('TaskInf', 'work_date'),
-                   ('TaskInf', 'ready_date'), ('TaskInf', 'engineer_id'), ('TaskInf', 'task_status')]
+        columns = [
+            ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
+            ('Progs', 'orig_name'), ('Progs', 'annotation'), ('Progs', 'duration'), ('Progs', 'comment'),
+            ('Progs', 'keywords'), ('Progs', 'anounce_text'), ('Progs', 'episode_num'),
+            ('Progs', 'last_edit_user_id'), ('Progs', 'last_edit_time'), ('Progs', 'authors'),
+            ('Progs', 'producer'), ('Progs', 'production_year'), ('Progs', 'production_country'),
+            ('Progs', 'subject'), ('Progs', 'SourceID'), ('Progs', 'AnonsCaption'),
+            ('Progs', 'DisplayMediumName'), ('Progs', 'SourceFileMedium'), ('Progs', 'EpisodesTotal'),
+            ('Progs', 'MaterialState'), ('Progs', 'SourceMedium'), ('Progs', 'HasSourceClip'),
+            ('Progs', 'AnonsCaptionInherit'), ('Progs', 'CreationDate'), ('Progs', 'Subtitled'), ('Progs', 'Season'),
+            ('Progs', 'Director'), ('Progs', 'Cast'), ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'),
+            ('Adult', 'Name'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
+            ('Files', 'ModificationTime'), ('TaskInf', 'work_date'), ('TaskInf', 'ready_date'),
+            ('TaskInf', 'engineer_id'), ('TaskInf', 'task_status')]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -110,7 +111,7 @@ def full_info(program_id):
                 ON Files.[ClipID] = Clips.[ClipID]
             JOIN [oplan3].[dbo].[program] AS Progs
                 ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-            JOIN [oplan3].[dbo].[AdultType] AS Adult
+            LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
                 ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
             JOIN [oplan3].[dbo].[program_type] AS Types
                 ON Progs.[program_type_id] = Types.[program_type_id]
@@ -144,33 +145,54 @@ def full_info(program_id):
                 full_info_dict['poster_link'] = poster_link
             return full_info_dict
         else:
-            parent_columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'),
-                              ('Progs', 'name'),
-                              ('Progs', 'orig_name'), ('Progs', 'annotation'), ('Progs', 'duration'),
-                              ('Progs', 'comment'),
-                              ('Progs', 'keywords'), ('Progs', 'anounce_text'), ('Progs', 'episode_num'),
-                              ('Progs', 'last_edit_user_id'), ('Progs', 'last_edit_time'), ('Progs', 'authors'),
-                              ('Progs', 'producer'), ('Progs', 'production_year'), ('Progs', 'production_country'),
-                              ('Progs', 'subject'), ('Progs', 'SourceID'), ('Progs', 'AnonsCaption'),
-                              ('Progs', 'DisplayMediumName'), ('Progs', 'SourceFileMedium'), ('Progs', 'EpisodesTotal'),
-                              ('Progs', 'MaterialState'), ('Progs', 'SourceMedium'), ('Progs', 'HasSourceClip'),
-                              ('Progs', 'AnonsCaptionInherit'), ('Progs', 'AdultTypeID'), ('Progs', 'CreationDate'),
-                              ('Progs', 'Subtitled'), ('Progs', 'Season'), ('Progs', 'Director'), ('Progs', 'Cast'),
-                              ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation')]
+            parent_columns = [
+                ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'),
+                ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'annotation'), ('Progs', 'duration'),
+                ('Progs', 'comment'), ('Progs', 'keywords'), ('Progs', 'anounce_text'),
+                ('Progs', 'episode_num'), ('Progs', 'last_edit_user_id'), ('Progs', 'last_edit_time'),
+                ('Progs', 'authors'), ('Progs', 'producer'), ('Progs', 'production_year'),
+                ('Progs', 'production_country'), ('Progs', 'subject'), ('Progs', 'SourceID'),
+                ('Progs', 'AnonsCaption'), ('Progs', 'DisplayMediumName'), ('Progs', 'SourceFileMedium'),
+                ('Progs', 'EpisodesTotal'), ('Progs', 'MaterialState'), ('Progs', 'SourceMedium'),
+                ('Progs', 'HasSourceClip'), ('Progs', 'AnonsCaptionInherit'), ('Adult', 'Name'),
+                ('Progs', 'CreationDate'), ('Progs', 'Subtitled'), ('Progs', 'Season'),
+                ('Progs', 'Director'), ('Progs', 'Cast'), ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation')]
 
             parent_sql_columns = ', '.join([f'{col}.[{val}]' for col, val in parent_columns])
             django_parent_columns = [f'{col}_{val}' for col, val in parent_columns]
             parent_query = f'''
             SELECT {parent_sql_columns}
             FROM [oplan3].[dbo].[program] AS Progs
+            LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+                ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
             WHERE Progs.[deleted] = 0
             AND Progs.[program_type_id] NOT IN (3, 9, 13, 14, 15, 17, 18)
             AND Progs.[program_id] = {program_id}
             '''
             cursor.execute(parent_query)
             parent_info = cursor.fetchone()
-            full_info_dict = dict(zip(django_columns, parent_info))
+            full_info_dict = dict(zip(django_parent_columns, parent_info))
             full_info_dict['is_parent'] = 1
+
+            episodes_columns = [
+                ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'name'), ('Progs', 'orig_name'),
+                ('Progs', 'DisplayMediumName'), ('Progs', 'duration'), ('Progs', 'episode_num'), ('Task', 'task_status')]
+            episodes_sql_columns = ', '.join([f'{col}.[{val}]' for col, val in episodes_columns])
+            django_episodes_columns = [f'{col}_{val}' for col, val in episodes_columns]
+            episodes_query = f'''
+            SELECT {episodes_sql_columns}
+            FROM [oplan3].[dbo].[program] AS Progs
+            LEFT JOIN [planner].[dbo].[task_list] AS Task
+                ON Progs.[program_id] = Task.[program_id]
+            WHERE Progs.[deleted] = 0
+            AND Progs.[program_type_id] NOT IN (3, 9, 13, 14, 15, 17, 18)
+            AND Progs.[parent_id] = {program_id}
+            ORDER BY Progs.[episode_num]
+            '''
+            cursor.execute(episodes_query)
+            episodes_info = cursor.fetchall()
+            full_episodes_list = [dict(zip(django_episodes_columns, episodes)) for episodes in episodes_info]
+            full_info_dict['episodes'] = full_episodes_list
             return full_info_dict
 
 def find_out_status(program_id, full_info_dict):
@@ -204,7 +226,6 @@ def find_out_status(program_id, full_info_dict):
     else:
         material_status = 'Карточка материала заполнена неверно'  # planner_fix
         color = 'text-danger'
-    print('material_status', full_info_dict.get('material_status'))
     return material_status, color
 
 
@@ -230,7 +251,6 @@ def cenz_info(program_id):
                 # custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
                 custom_fields_dict[field_id] = int_value
                 # .split(';')
-        print(custom_fields_dict)
     return custom_fields_dict
 
 

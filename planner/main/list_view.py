@@ -51,8 +51,8 @@ def make_full_material_list():
                     'Progs_parent_id': temp_dict['Progs_parent_id'],
                     'Progs_AnonsCaption': temp_dict['Progs_AnonsCaption'],
                     'Progs_production_year': temp_dict['Progs_production_year'],
-                    'color': select_channel_color(temp_dict['Sched_schedule_id']),
-                    'Sched_schedule_id': select_channel_color(temp_dict['Sched_schedule_id']),
+                    'color': select_channel_color(temp_dict['Task_sched_id']),
+                    'Task_sched_id': select_channel_color(temp_dict['Task_sched_id']),
                     'Sched_schedule_name': temp_dict['Sched_schedule_name'],
                     'type': 'season',
                     'episode': [
@@ -61,7 +61,7 @@ def make_full_material_list():
                          'Progs_episode_num': temp_dict['Progs_episode_num'],
                          'Progs_duration': temp_dict['Progs_duration'],
                          'TaskInf_work_date': work_date,
-                         'SchedDay_day_date': temp_dict['SchedDay_day_date'],
+                         'Task_sched_date': temp_dict['Task_sched_date'],
                          'status': status,
                          'engineer_id': engineer_id,
                          'engineer': engineer}
@@ -76,7 +76,7 @@ def make_full_material_list():
                     'Progs_episode_num': temp_dict['Progs_episode_num'],
                     'Progs_duration': temp_dict['Progs_duration'],
                     'TaskInf_work_date': work_date,
-                    'SchedDay_day_date': temp_dict['SchedDay_day_date'],
+                    'Task_sched_date': temp_dict['Task_sched_date'],
                     'status': status,
                     'engineer_id': engineer_id,
                     'engineer': engineer})
@@ -89,10 +89,10 @@ def make_full_material_list():
                 'Progs_production_year': temp_dict['Progs_production_year'],
                 'Progs_duration': temp_dict['Progs_duration'],
                 'TaskInf_work_date': work_date,
-                'color': select_channel_color(temp_dict['Sched_schedule_id']),
-                'Sched_schedule_id': select_channel_color(temp_dict['Sched_schedule_id']),
+                'color': select_channel_color(temp_dict['Task_sched_id']),
+                'Task_sched_id': select_channel_color(temp_dict['Task_sched_id']),
                 'Sched_schedule_name': temp_dict['Sched_schedule_name'],
-                'SchedDay_day_date': temp_dict['SchedDay_day_date'],
+                'Task_sched_date': temp_dict['Task_sched_date'],
                 'type': 'film',
                 'status': status,
                 'engineer_id': engineer_id,
@@ -112,6 +112,8 @@ def list_material_list(channels, engineer_id, material_type, dates, task_status)
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
+        if not temp_dict.get('Adult_Name'):
+            temp_dict['Adult_Name'] = parent_adult_name(temp_dict.get('Progs_parent_id'))
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
             repeat_index = repeat_index_search(material_list, temp_dict)
             if not repeat_index and repeat_index != 0:
@@ -119,8 +121,8 @@ def list_material_list(channels, engineer_id, material_type, dates, task_status)
                     'Progs_parent_id': temp_dict.get('Progs_parent_id'),
                     'Progs_AnonsCaption': parent_name(temp_dict.get('Progs_parent_id')),
                     'Progs_production_year': temp_dict.get('Progs_production_year'),
-                    'color': select_channel_color(temp_dict.get('Sched_schedule_id')),
-                    'Sched_schedule_id': select_channel_color(temp_dict.get('Sched_schedule_id')),
+                    'color': select_channel_color(temp_dict.get('Task_sched_id')),
+                    'Task_sched_id': temp_dict.get('Task_sched_id'),
                     'Sched_schedule_name': temp_dict.get('Sched_schedule_name'),
                     'type': 'season',
                     'episode': [
@@ -130,7 +132,7 @@ def list_material_list(channels, engineer_id, material_type, dates, task_status)
                          'Progs_duration': temp_dict.get('Progs_duration'),
                          'Adult_Name': temp_dict.get('Adult_Name'),
                          'TaskInf_work_date': temp_dict.get('Task_work_date'),
-                         'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
+                         'Task_sched_date': temp_dict.get('Task_sched_date'),
                          'status': temp_dict.get('Task_task_status'),
                          'engineer_id': temp_dict.get('Task_engineer_id')
                          }
@@ -146,7 +148,7 @@ def list_material_list(channels, engineer_id, material_type, dates, task_status)
                     'Progs_duration': temp_dict.get('Progs_duration'),
                     'Adult_Name': temp_dict.get('Adult_Name'),
                     'TaskInf_work_date': temp_dict.get('Task_work_date'),
-                    'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
+                    'Task_sched_date': temp_dict.get('Task_sched_date'),
                     'status': temp_dict.get('Task_task_status'),
                     'engineer_id': temp_dict.get('Task_engineer_id')
                     })
@@ -160,10 +162,10 @@ def list_material_list(channels, engineer_id, material_type, dates, task_status)
                 'Progs_duration': temp_dict.get('Progs_duration'),
                 'Adult_Name': temp_dict.get('Adult_Name'),
                 'TaskInf_work_date': temp_dict.get('Task_work_date'),
-                'color': select_channel_color(temp_dict.get('Sched_schedule_id')),
-                'Sched_schedule_id': select_channel_color(temp_dict.get('Sched_schedule_id')),
+                'color': select_channel_color(temp_dict.get('Task_sched_id')),
+                'Task_sched_id': temp_dict.get('Task_sched_id'),
                 'Sched_schedule_name': temp_dict.get('Sched_schedule_name'),
-                'SchedDay_day_date': temp_dict.get('SchedDay_day_date'),
+                'Task_sched_date': temp_dict.get('Task_sched_date'),
                 'type': 'film',
                 'status': temp_dict.get('Task_task_status'),
                 'engineer_id': temp_dict.get('Task_engineer_id')

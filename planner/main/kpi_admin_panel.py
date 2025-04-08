@@ -74,10 +74,8 @@ def summary_task_list(work_dates):
     return [dict(zip(django_columns, task)) for task in result]
 
 def kpi_summary_calc(work_dates, engineer_id, material_type, task_status):
-    print('material_type', material_type)
     if engineer_id:
         engineer_id = int(engineer_id)
-    print('!engineers', engineer_id)
 
     task_list = summary_task_list(work_dates)
     count_dates = len(set(task.get('Task_work_date') for task in task_list))
@@ -132,12 +130,16 @@ def personal_task_list(work_dates, engineer_id):
         WHERE Task.[work_date] IN {work_dates}
         AND Task.[engineer_id] = {engineer_id}
         '''
+        print(query)
         cursor.execute(query)
         result = cursor.fetchall()
     return [dict(zip(django_columns, task)) for task in result]
 
 def kpi_personal_calc(work_date, engineer_id, material_type, task_status):
     task_list = personal_task_list(work_date, engineer_id)
+    for task in task_list:
+        print(task)
+
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
     ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
