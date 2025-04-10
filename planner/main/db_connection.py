@@ -27,17 +27,18 @@ def check_mat_type(param):
         return 4, 5, 6, 10, 11, 12
 
 
-def oplan_material_list(work_date, program_type):
+def oplan_material_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
     with connections['oplan3'].cursor() as cursor:
-        dates = tuple(str(work_date+datetime.timedelta(days=day)) for day in range(23))
         channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
-
+        schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         order = 'ASC'
 
-        columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
-                   ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Progs', 'duration'), ('Files', 'Name'), ('Sched', 'schedule_id'),
-                   ('Sched', 'schedule_name'), ('SchedDay', 'day_date')]
+        columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
+                   ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
+                   ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
+                   ('Progs', 'duration'), ('Files', 'Name'), ('SchedDay', 'day_date'),
+                   ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+                   ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""
@@ -55,11 +56,13 @@ def oplan_material_list(work_date, program_type):
                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
             JOIN [oplan3].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
+            LEFT JOIN [planner].[dbo].[task_list] AS Task
+                ON Progs.[program_id] = Task.[program_id]
             WHERE Files.[Deleted] = 0
             AND Files.[PhysicallyDeleted] = 0
             AND Clips.[Deleted] = 0
             AND Progs.[deleted] = 0
-            AND Sched.[channel_id] IN {channels_id}
+            AND SchedDay.[schedule_id] IN {schedules_id}
             AND SchedDay.[day_date] IN {dates}
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
@@ -86,8 +89,8 @@ def date_generator(work_dates):
 
 
 
-def planner_material_list(channels, engineer_id, material_type, work_dates, task_status):
-    channels = check_param(channels)
+def planner_material_list(schedules_id, engineer_id, material_type, work_dates, task_status):
+    schedules_id = check_param(schedules_id)
     engineer_id = check_param(engineer_id)
     material_type = check_mat_type(material_type)
     task_status = check_param(task_status)
@@ -115,7 +118,7 @@ def planner_material_list(channels, engineer_id, material_type, work_dates, task
         JOIN [oplan3].[dbo].[schedule] AS Sched
             ON Task.[sched_id] = Sched.[schedule_id]
         WHERE Progs.[deleted] = 0
-        AND Task.[sched_id] IN {channels}
+        AND Task.[sched_id] IN {schedules_id}
         AND Task.[engineer_id] IN {engineer_id}
         AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] IN {work_dates}
@@ -148,22 +151,18 @@ def planner_task_list(program_id):
 
 def oplan3_engineer(program_id):
     with connections['oplan3'].cursor() as cursor:
-        columns = 'Val.[IntValue], Fields.[ItemsString]'
         query_oplan3 = f'''
-        SELECT {columns}
-        FROM [oplan3].[dbo].[ProgramCustomFields] AS Fields
-        JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Val
-            ON Fields.[CustomFieldID] = Val.[ProgramCustomFieldId]
-        WHERE Val.[ObjectId] = {program_id}
-        AND Val.[ProgramCustomFieldId] = 15
+        SELECT [IntValue]
+        FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+        WHERE [ObjectId] = {program_id}
+        AND [ProgramCustomFieldId] = 15
         '''
         cursor.execute(query_oplan3)
-        oplan3_engineer_list = cursor.fetchone()
-        if oplan3_engineer_list:
-            int_value, items_string = oplan3_engineer_list
-            return int_value, items_string.split('\r\n')[int_value]
+        int_value = cursor.fetchone()
+        if int_value:
+            return int_value[0]
         else:
-            return None, None
+            return None
 
 def program_custom_fields():
     with connections['oplan3'].cursor() as cursor:

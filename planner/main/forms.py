@@ -27,17 +27,29 @@ if inoagents_list:
 
 rate = (('', '-'), (0, '0+'), (1, '6+'), (2, '12+'), (3, '16+'), (4, '18+'))
 
-channels = [('', 'Телеканал'),
-                    (2, 'Крепкое кино'),
-                    (3, 'Семейное кино'),
-                    (4, 'Мировой сериал'),
-                    (5, 'Наше родное кино'),
-                    (6, 'Мужской сериал'),
-                    (7, 'Романтичный сериал'),
-                    (8, 'Планета дети'),
-                    (9, 'Наше детство'),
-                    (10, 'Советское родное кино'),
-                    (12, 'Кино +')]
+# channels = [('', 'Телеканал'),
+#             (2, 'Крепкое кино'),
+#             (3, 'Семейное кино'),
+#             (4, 'Мировой сериал'),
+#             (5, 'Наше родное кино'),
+#             (6, 'Мужской сериал'),
+#             (7, 'Романтичный сериал'),
+#             (8, 'Планета дети'),
+#             (9, 'Наше детство'),
+#             (10, 'Советское родное кино'),
+#             (12, 'Кино +')]
+schedules = [
+    (3, 'Крепкое'),
+    (5, 'Планета дети'),
+    (6, 'Мировой сериал'),
+    (7, 'Мужской сериал'),
+    (8, 'Наше детство'),
+    (9, 'Романтичный сериал'),
+    (10, 'Наше родное кино'),
+    (11, 'Семейное кино'),
+    (12, 'Советское родное кино'),
+    (20, 'Кино +')
+]
 
 class MyForm(forms.Form):
     choices = [('1', 'Канал+'), ('2', 'Советское'), ('3', 'Наше детство')]
@@ -56,11 +68,11 @@ class ListForm(forms.ModelForm):
                        ('ready', 'Готов'),
                        ('fix', 'На доработке')]
         model = ModelFilter
-        fields = ('channels', 'engineers', 'material_type', 'work_dates', 'task_status')
+        fields = ('schedules', 'engineers', 'material_type', 'work_dates', 'task_status')
 
         widgets = {
-            'channels': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
+            'schedules': forms.SelectMultiple(
+                attrs={'class': 'ui selection dropdown', 'id': 'schedules'}, choices=schedules),
             'engineers': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'engineers'}, choices=engineers),
             'material_type': forms.SelectMultiple(
@@ -82,10 +94,10 @@ class WeekForm(forms.ModelForm):
                        ('ready', 'Готов'),
                        ('fix', 'На доработке')]
         model = ModelFilter
-        fields = ('channels', 'engineers', 'material_type', 'task_status')
+        fields = ('schedules', 'engineers', 'material_type', 'task_status')
         widgets = {
-            'channels': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'id': 'channels'}, choices=channels),
+            'schedules': forms.SelectMultiple(
+                attrs={'class': 'ui selection dropdown', 'id': 'schedules'}, choices=schedules),
             'engineers': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'engineers'}, choices=engineers),
             'material_type': forms.SelectMultiple(

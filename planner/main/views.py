@@ -1,11 +1,11 @@
 import datetime
 import ast
-# import calendar
 
 from django.shortcuts import render, redirect
 
 from .common_pool import select_pool, service_pool_info
 from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
+from .header_search import fast_search
 from .logs_and_history import insert_action, select_actions
 from .models import ModelFilter
 
@@ -20,6 +20,14 @@ from .report_calendar import my_report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 from django.contrib.auth.decorators import login_required
 
+
+@login_required()
+def main_search(request):
+    worker_id = request.user.id
+    search_query = request.GET.get('main_search', None)
+    data = {'search_list': fast_search(search_query),
+            'permissions': ask_db_permissions(worker_id)}
+    return render(request, 'main/advanced_search.html', data)
 
 def distribution(request):
     main_distribution()
@@ -49,28 +57,29 @@ def week_date(request, work_year, work_week):
         if form.is_valid():
             form.save()
 
-            channels = ast.literal_eval(form.cleaned_data.get('channels'))
+            schedules = ast.literal_eval(form.cleaned_data.get('schedules'))
             engineers = ast.literal_eval(form.cleaned_data.get('engineers'))
             material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
             task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
 
         else:
-            channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+            # channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+            schedules = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
             engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
     else:
-        channels = ast.literal_eval(init_dict.channels)
+        schedules = ast.literal_eval(init_dict.schedules)
         engineers = ast.literal_eval(init_dict.engineers)
         material_type = ast.literal_eval(init_dict.material_type)
         task_status = ast.literal_eval(init_dict.task_status)
 
-        initial_dict = {'channels': channels,
+        initial_dict = {'schedules': schedules,
                         'engineers': engineers,
                         'material_type': material_type,
                         'task_status': task_status}
         form = WeekForm(initial=initial_dict)
-    material_list, service_dict = week_material_list(channels, engineers, material_type, task_status, work_year, work_week)
+    material_list, service_dict = week_material_list(schedules, engineers, material_type, task_status, work_year, work_week)
     data = {'week_material_list': material_list,
             'service_dict': service_dict,
             'permissions': ask_db_permissions(worker_id),
@@ -85,9 +94,9 @@ def month(request):
 @login_required()
 def month_date(request, cal_year, cal_month):
     worker_id = request.user.id
-    month_calendar, task_list, service_dict = my_report_calendar(cal_year, cal_month)
+    month_calendar, channels_list, service_dict = my_report_calendar(cal_year, cal_month)
     data = {'month_calendar': month_calendar,
-            'task_list': task_list,
+            'channels_list': channels_list,
             'service_dict': service_dict,
             'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/month.html', data)
@@ -107,7 +116,7 @@ def full_list(request):
         if form.is_valid():
             form.save()
 
-            channels = ast.literal_eval(form.cleaned_data.get('channels'))
+            schedules = ast.literal_eval(form.cleaned_data.get('schedules'))
             engineers = ast.literal_eval(form.cleaned_data.get('engineers'))
             material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
             work_dates = form.cleaned_data.get('work_dates')
@@ -115,7 +124,8 @@ def full_list(request):
 
 
         else:
-            channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+            # channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+            schedules = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
             work_dates = datetime.datetime.today().date()
             start_date = datetime.datetime.today().strftime('%d/%m/%Y')
             work_dates = f'{start_date} - {start_date}'
@@ -123,18 +133,18 @@ def full_list(request):
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
     else:
-        channels = ast.literal_eval(init_dict.channels)
+        schedules = ast.literal_eval(init_dict.schedules)
         engineers = ast.literal_eval(init_dict.engineers)
         material_type = ast.literal_eval(init_dict.material_type)
         work_dates = init_dict.work_dates
         task_status = ast.literal_eval(init_dict.task_status)
 
-        # initial_dict = {'channels': channels,
+        # initial_dict = {'schedules': schedules,
         #                 'engineers': engineers,
         #                 'material_type': material_type,
         #                 'work_dates': str(datetime.datetime.today().date()),
         #                 'task_status': task_status}
-        initial_dict = {'channels': channels,
+        initial_dict = {'schedules': schedules,
                         'engineers': engineers,
                         'material_type': material_type,
                         'work_dates': work_dates,
@@ -143,7 +153,7 @@ def full_list(request):
 
 
     # permissions = ask_permissions(worker_id)
-    data = {'material_list': list_material_list(channels, engineers, material_type, str(work_dates), task_status),
+    data = {'material_list': list_material_list(schedules, engineers, material_type, str(work_dates), task_status),
             'form': form, 'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/list.html', data)
 
@@ -286,7 +296,8 @@ def engineer_profile(request, engineer_id):
             'material_type': material_type,
             'task_status': task_status})
     task_list, summary_dict = kpi_personal_calc(work_date, engineer_id, material_type, task_status)
-    data = {'task_list': task_list,
+    data = {'engineer_id': engineer_id,
+            'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.datetime.today().date(),
             'permissions': ask_db_permissions(worker_id),

@@ -44,9 +44,10 @@ def summary_task_list(work_dates):
     with connections['planner'].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
-            ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Progs', 'program_type_id'), ('Progs', 'name'),
-            ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year'), ('Progs', 'episode_num'),
-            ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
+            ('Task', 'work_date'), ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
+            ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
+            ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Files', 'Name'), ('Files', 'Size'),
+            ('Files', 'CreationTime'), ('Files', 'ModificationTime')
         ]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -64,8 +65,6 @@ def summary_task_list(work_dates):
         AND Files.[PhysicallyDeleted] = 0
         AND Clips.[Deleted] = 0
         AND Progs.[deleted] = 0
-        AND Task.[engineer_id] IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-        AND Task.[task_status] IN ('not_ready', 'ready', 'fix')
         ORDER BY Progs.[name];
         '''
         print(query)
@@ -137,8 +136,6 @@ def personal_task_list(work_dates, engineer_id):
 
 def kpi_personal_calc(work_date, engineer_id, material_type, task_status):
     task_list = personal_task_list(work_date, engineer_id)
-    for task in task_list:
-        print(task)
 
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)

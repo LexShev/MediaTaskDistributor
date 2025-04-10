@@ -7,7 +7,8 @@ from .list_view import oplan_material_list
 def main_distribution():
     # work_date = datetime.today().date()
     work_date = date(day=10, month=3, year=2025)
-    material_list_sql, django_columns = oplan_material_list(work_date=work_date, program_type=(4, 5, 6, 10, 11, 12))
+    dates = tuple(str(work_date + timedelta(days=day)) for day in range(23))
+    material_list_sql, django_columns = oplan_material_list(dates=dates)
     program_id_list = []
     for program_info in material_list_sql:
         if not program_info:
@@ -16,7 +17,9 @@ def main_distribution():
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
-        sched_id = temp_dict.get('Sched_schedule_id')
+        sched_id = temp_dict.get('SchedDay_schedule_id')
+        # if sched_id in (11, 20):
+        #     print(temp_dict.get('Progs_program_id'), temp_dict.get('Files_Name'))
         sched_date = temp_dict.get('SchedDay_day_date')
         program_type_id = temp_dict.get('Progs_program_type_id')
         duration = temp_dict.get('Progs_duration')
@@ -29,11 +32,15 @@ def distribution_by_id(program_id, duration, sched_id, sched_date, work_date, pr
     # !work_date продумать начало проверки
     planner_engineer_id = planner_engineer(program_id)
     oplan3_engineer_id = oplan3_engineer(program_id)
+    if sched_id in (11, 20):
+        print(program_id, sched_id, file_path)
     if program_type_id in (4, 5, 6, 10, 11, 12) and oplan3_engineer_id != 0 and not oplan3_engineer_id:
+
         if planner_engineer_id != 0 and not planner_engineer_id:
             status = 'not_ready'
             engineer_id, kpi, work_date = date_seek(work_date)
             insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
+
         else:
             # print('skip', program_id)
             # ? update(program_id, engineer_id, duration, date, status)
@@ -108,7 +115,7 @@ def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_da
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
         cursor.execute(query, values)
-        print(f'{program_id}, {engineer_id} successfully added')
+        # print(f'{program_id}, {engineer_id} successfully added')
 
 def planner_engineer(program_id):
     with connections['planner'].cursor() as cursor:
