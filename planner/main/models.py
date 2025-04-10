@@ -4,7 +4,7 @@ from django.db.models import Model, Manager, IntegerField, TextField, DateField
 class ModelFilter(Model):
     owner = IntegerField('owner', primary_key=True, default=1)
     # channels = TextField(blank=True)
-    channels = TextField()
+    schedules = TextField()
     engineers = TextField()
     material_type = TextField()
     work_dates = TextField()
