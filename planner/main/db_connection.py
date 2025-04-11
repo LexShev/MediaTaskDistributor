@@ -26,19 +26,13 @@ def check_mat_type(param):
     else:
         return 4, 5, 6, 10, 11, 12
 
-
-def oplan_material_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
+def oplan_task_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
     with connections['oplan3'].cursor() as cursor:
         channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
         schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         order = 'ASC'
 
-        columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
-                   ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
-                   ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Progs', 'duration'), ('Files', 'Name'), ('SchedDay', 'day_date'),
-                   ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-                   ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')]
+        columns = [('Progs', 'program_id'), ('SchedDay', 'day_date'), ('Task', 'task_status')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""
@@ -62,6 +56,53 @@ def oplan_material_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
             AND Files.[PhysicallyDeleted] = 0
             AND Clips.[Deleted] = 0
             AND Progs.[deleted] = 0
+            AND SchedDay.[schedule_id] IN {schedules_id}
+            AND SchedDay.[day_date] IN {dates}
+            AND Progs.[program_type_id] IN {program_type}
+            AND Progs.[program_id] > 0
+            ORDER BY SchedProg.[DateTime] {order}
+            """
+        print(query)
+        cursor.execute(query)
+        material_list_sql = cursor.fetchall()
+        return material_list_sql, django_columns
+
+def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
+    with connections['oplan3'].cursor() as cursor:
+        channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+        schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+        order = 'ASC'
+
+        # columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
+        #            ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
+        #            ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
+        #            ('Progs', 'duration'), ('Files', 'Name'), ('SchedDay', 'day_date'),
+        #            ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        #            ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')]
+        sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+        django_columns = [f'{col}_{val}' for col, val in columns]
+        query = f"""
+            SELECT {sql_columns}
+            FROM [oplan3].[dbo].[File] AS Files
+            JOIN [oplan3].[dbo].[Clip] AS Clips
+                ON Files.[ClipID] = Clips.[ClipID]
+            JOIN [oplan3].[dbo].[program] AS Progs
+                ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+            JOIN [oplan3].[dbo].[program_type] AS Types
+                ON Progs.[program_type_id] = Types.[program_type_id]
+            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+                ON Progs.[program_id] = SchedProg.[program_id]
+            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+                ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
+            JOIN [oplan3].[dbo].[schedule] AS Sched
+                ON SchedDay.[schedule_id] = Sched.[schedule_id]
+            LEFT JOIN [planner].[dbo].[task_list] AS Task
+                ON Progs.[program_id] = Task.[program_id]
+            WHERE Files.[Deleted] = 0
+            AND Files.[PhysicallyDeleted] = 0
+            AND Clips.[Deleted] = 0
+            AND Progs.[deleted] = 0
+            AND SchedProg.[Deleted] = 0
             AND SchedDay.[schedule_id] IN {schedules_id}
             AND SchedDay.[day_date] IN {dates}
             AND Progs.[program_type_id] IN {program_type}
@@ -161,8 +202,7 @@ def oplan3_engineer(program_id):
         int_value = cursor.fetchone()
         if int_value:
             return int_value[0]
-        else:
-            return None
+
 
 def program_custom_fields():
     with connections['oplan3'].cursor() as cursor:

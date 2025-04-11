@@ -2,7 +2,9 @@ import calendar
 import os
 from django.template.defaulttags import register
 
-from .db_connection import oplan_material_list
+from .db_connection import oplan_material_list, oplan_task_list
+from .distribution import oplan3_engineer
+
 
 @register.filter
 def file_name(full_path):
@@ -54,9 +56,18 @@ def tasks_info(month_calendar, task_list):
     for week in month_calendar:
         colorized_weeks = []
         for day in week:
-            total_tasks = len(list(task for task in task_list if task.get('Task_sched_date') == day))
-            ready_tasks = len(list(task for task in task_list if task.get('Task_task_status') == 'ready' and task.get('Task_sched_date') == day))
-            not_ready_tasks = len(list(task for task in task_list if task.get('Task_task_status') == 'not_ready' and task.get('Task_sched_date') == day))
+            program_id_list = []
+            total_task_list = []
+            for task in task_list:
+                if task.get('Progs_program_id') in program_id_list:
+                    continue
+                if task.get('SchedDay_day_date').date() == day:
+                    total_task_list.append(task)
+                    program_id_list.append(task.get('Progs_program_id'))
+
+            total_tasks = len(total_task_list)
+            ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status') == 'ready' and task.get('SchedDay_day_date').date() == day))
+            not_ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status') == 'not_ready' and task.get('SchedDay_day_date').date() == day))
             try:
                 ready_index = (ready_tasks * 100) / total_tasks
             except Exception:
@@ -78,40 +89,56 @@ def tasks_info(month_calendar, task_list):
         colorized_calendar.append(colorized_weeks)
     return colorized_calendar
 
-def my_report_calendar(cal_year, cal_month):
+def report_calendar(cal_year, cal_month, cal_day):
     month_calendar = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
+    columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
+               ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
+               ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
+               ('Progs', 'duration'), ('Files', 'Name'), ('SchedDay', 'day_date'),
+               ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+               ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')]
+    program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
+    material_list, django_columns = oplan_material_list(columns=columns, dates=(str(cal_day), str(cal_day)), program_type=program_type)
+
+    schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+    channels_list = []
+    for schedule_id in schedules_id:
+        program_id_list = []
+        channel = {schedule_id: []}
+        for material in material_list:
+            if material[2] == schedule_id:
+                if material[0] in program_id_list:
+                    continue
+                temp_dict = dict(zip(django_columns, material))
+                if not temp_dict.get('Task_engineer_id'):
+                    temp_dict['Task_engineer_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
+                channel[schedule_id].append(temp_dict)
+                program_id_list.append(material[0])
+        channels_list.append(channel)
+
+    # channels_list = []
+    # schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+    # for schedule_id in schedules_id:
+    #     channels_list.append([task for task in task_list if task.get('SchedDay_schedule_id') == schedule_id])
 
     work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
-    material_list, django_columns = oplan_material_list(work_dates)
-    task_list = [dict(zip(django_columns, material)) for material in material_list]
-    # task_list = []
-    # for material in material_list:
-    #     task_list.append(dict(zip(django_columns, material)))
-    # print(task_list)
-    # channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
+    columns = [('Progs', 'program_id'), ('SchedDay', 'day_date'), ('Task', 'task_status')]
 
-    # print(list(filter(lambda task: task.get('SchedDay_schedule_id') == 20, task_list)))
-    # channels_list = []
-    # for material in material_list:
-    #     for schedule_id in schedules_id:
-    #         if material[2] == schedule_id:
-    #             channels_list.append({schedule_id: dict(zip(django_columns, material))})
-    # print(channels_list)
-    channels_list = []
-    schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
-    for schedule_id in schedules_id:
-        channels_list.append([task for task in task_list if task.get('SchedDay_schedule_id') == schedule_id])
-
+    material_task_list, django_task_columns = oplan_material_list(columns=columns, dates=work_dates, program_type=program_type)
+    task_list = [dict(zip(django_task_columns, material)) for material in material_task_list]
     colorized_calendar = tasks_info(month_calendar, task_list)
 
     prev_year, prev_month = calc_prev_month(cal_year, cal_month)
     next_year, next_month = calc_next_month(cal_year, cal_month)
     service_dict = {'cal_year': cal_year,
                     'cal_month': cal_month,
+                    'cal_day': cal_day,
                     'prev_year': prev_year,
                     'next_year': next_year,
                     'prev_month': prev_month,
                     'next_month': next_month
                     }
     return colorized_calendar, channels_list, service_dict
+
+
 
