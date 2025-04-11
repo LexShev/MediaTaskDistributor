@@ -110,16 +110,11 @@ def report_calendar(cal_year, cal_month, cal_day):
                 if material[0] in program_id_list:
                     continue
                 temp_dict = dict(zip(django_columns, material))
-                if not temp_dict.get('Task_engineer_id'):
+                if not temp_dict.get('Task_engineer_id') and temp_dict.get('Task_engineer_id') != 0:
                     temp_dict['Task_engineer_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
                 channel[schedule_id].append(temp_dict)
                 program_id_list.append(material[0])
         channels_list.append(channel)
-
-    # channels_list = []
-    # schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
-    # for schedule_id in schedules_id:
-    #     channels_list.append([task for task in task_list if task.get('SchedDay_schedule_id') == schedule_id])
 
     work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
     columns = [('Progs', 'program_id'), ('SchedDay', 'day_date'), ('Task', 'task_status')]

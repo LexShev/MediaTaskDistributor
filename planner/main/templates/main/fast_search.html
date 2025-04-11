@@ -1,0 +1,85 @@
+{% extends  'main/index.html' %}
+
+<main>
+{% block body %}
+  <div class="container-xxl text-start px-0">
+    <br><h4>Быстрый поиск по распределённым задачам:</h4>
+    <hr width="100%" size="2"><br>
+    {% if search_list %}
+      {% for material in search_list %}
+        <div class="card shadow mx-1 my-2 mt-0 p-0" style="border-color: {{ material.color }};">
+          <div class="card-header p-2">
+            <div class="d-flex flex-wrap align-items-start">
+              <div class="mx-0">
+                <a href="{% url 'home' %}" class="mb-lg-0 me-lg-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-left-square" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm10.096 8.803a.5.5 0 1 0 .707-.707L6.707 6h2.768a.5.5 0 1 0 0-1H5.5a.5.5 0 0 0-.5.5v3.975a.5.5 0 0 0 1 0V6.707z"/>
+                  </svg>
+                </a>
+              </div>
+              <div class="text-start">
+                <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                  <h6 class="my-0 mx-1">{{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-2">
+            <div class="row">
+              <div class="col">
+                <p class="card-text m-0"><small class="text-body-secondary">Канал: </small>
+                  <small class="text-body-primary">{{ material.Sched_schedule_name }}</small>
+                </p>
+              </div>
+              <div class="col">
+                <p class="card-text m-0"><small class="text-body-secondary">Возрастная категория: </small>
+                  <small class="text-body-primary">{{ material.Adult_Name }}</small>
+                </p>
+              </div>
+              <div class="col">
+                <p class="card-text m-0"><small class="text-body-secondary">Дата отсмотра: </small>
+                  <small class="text-body-primary">{{ material.Task_work_date|date:"d E Y" }}</small>
+                </p>
+              </div>
+              <div class="col">
+                <p class="card-text m-0"><small class="text-body-secondary">Крайний срок: </small>
+                  <small class="text-body-primary">{{ material.Task_deadline|date:"d E Y" }}</small>
+                </p>
+              </div>
+              <div class="col">
+                <p class="card-text m-0"><small class="text-body-secondary">Дата эфира: </small>
+                  <small class="text-body-primary">{{ material.Task_sched_date|date:"d E Y" }}</small>
+                </p>
+              </div>
+              <div class="col">
+                <p class="card-text m-0"><small class="text-body-secondary">
+                Выполняет: <a href="{% url 'home' %}worker/{{ material.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                {{ material.Task_engineer_id|engineer_name }}</a></small>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      Нет результатов
+    {% endif %}
+    <br><br><h4>Расширенный поиск:</h4>
+    <hr width="100%" size="2"><br>
+    <form method="get" action="{% url 'advanced_search' %}" class="mb-lg-0 me-lg-3" role="search">
+      <div class="input-group mb-3">
+          <label class="input-group-text" for="searchSettings">Поиск по</label>
+          <select class="form-select" id="searchSettings">
+            <option value="0">id</option>
+            <option value="1" selected>названию</option>
+            <option value="2">имени файла</option>
+            <option value="3">исполнителю</option>
+            <option value="4">дате эфира</option>
+            <option value="5">крайнему сроку</option>
+          </select>
+          <input class="form-control" id="tableFilter" type="text" placeholder="введите запрос ..." style="width: 70rem;">
+      </div>
+    </form>
+  </div>
+{% endblock %}
+</main>
