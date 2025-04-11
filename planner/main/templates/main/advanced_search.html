@@ -38,12 +38,17 @@
               </div>
               <div class="col">
                 <p class="card-text m-0"><small class="text-body-secondary">Дата отсмотра: </small>
-                  <small class="text-body-primary">{{ material.Task_sched_date|date:"d E Y" }}</small>
+                  <small class="text-body-primary">{{ material.Task_work_date|date:"d E Y" }}</small>
                 </p>
               </div>
               <div class="col">
                 <p class="card-text m-0"><small class="text-body-secondary">Крайний срок: </small>
                   <small class="text-body-primary">{{ material.Task_deadline|date:"d E Y" }}</small>
+                </p>
+              </div>
+              <div class="col">
+                <p class="card-text m-0"><small class="text-body-secondary">Дата эфира: </small>
+                  <small class="text-body-primary">{{ material.Task_sched_date|date:"d E Y" }}</small>
                 </p>
               </div>
               <div class="col">

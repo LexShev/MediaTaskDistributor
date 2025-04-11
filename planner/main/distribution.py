@@ -8,7 +8,13 @@ def main_distribution():
     # work_date = datetime.today().date()
     work_date = date(day=10, month=3, year=2025)
     dates = tuple(str(work_date + timedelta(days=day)) for day in range(23))
-    material_list_sql, django_columns = oplan_material_list(dates=dates)
+    columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
+               ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
+               ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
+               ('Progs', 'duration'), ('Files', 'Name'), ('SchedDay', 'day_date'),
+               ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+               ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')]
+    material_list_sql, django_columns = oplan_material_list(columns=columns, dates=dates)
     program_id_list = []
     for program_info in material_list_sql:
         if not program_info:
@@ -142,5 +148,4 @@ def oplan3_engineer(program_id):
         oplan3_engineer_id = cursor.fetchone()
         if oplan3_engineer_id:
             return oplan3_engineer_id[0]
-        else:
-            return None
+

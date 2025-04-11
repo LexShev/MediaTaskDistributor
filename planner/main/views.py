@@ -2,13 +2,13 @@ import datetime
 import ast
 
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
 from .common_pool import select_pool, service_pool_info
 from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .header_search import fast_search
 from .logs_and_history import insert_action, select_actions
 from .models import ModelFilter
-
 from .list_view import list_material_list
 from .permission_pannel import ask_permissions, ask_db_permissions
 from .week_view import week_material_list
@@ -16,9 +16,8 @@ from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, change_task_status, update_file_path
 from .distribution import main_distribution
-from .report_calendar import my_report_calendar
+from .month import report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
-from django.contrib.auth.decorators import login_required
 
 
 @login_required()
@@ -94,7 +93,12 @@ def month(request):
 @login_required()
 def month_date(request, cal_year, cal_month):
     worker_id = request.user.id
-    month_calendar, channels_list, service_dict = my_report_calendar(cal_year, cal_month)
+
+    cal_day = request.POST.get('cal_day', None)
+    if cal_day:
+        month_calendar, channels_list, service_dict = report_calendar(cal_year, cal_month, cal_day)
+    else:
+        month_calendar, channels_list, service_dict = report_calendar(cal_year, cal_month, datetime.datetime.today().date())
     data = {'month_calendar': month_calendar,
             'channels_list': channels_list,
             'service_dict': service_dict,
