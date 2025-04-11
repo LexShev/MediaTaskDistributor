@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 
 from .common_pool import select_pool, service_pool_info
 from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
-from .header_search import fast_search
+from .header_search import fast_search, advanced_search
 from .logs_and_history import insert_action, select_actions
 from .models import ModelFilter
 from .list_view import list_material_list
@@ -25,6 +25,15 @@ def main_search(request):
     worker_id = request.user.id
     search_query = request.GET.get('main_search', None)
     data = {'search_list': fast_search(search_query),
+            'permissions': ask_db_permissions(worker_id)}
+    return render(request, 'main/fast_search.html', data)
+
+@login_required()
+def dop_search(request):
+    worker_id = request.user.id
+    search_query = request.GET.get('dop_search', None)
+    print(search_query)
+    data = {'search_list': advanced_search(search_query),
             'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/advanced_search.html', data)
 
@@ -96,9 +105,10 @@ def month_date(request, cal_year, cal_month):
 
     cal_day = request.POST.get('cal_day', None)
     if cal_day:
+        cal_day = datetime.datetime.strptime(cal_day, '%Y-%m-%d')
         month_calendar, channels_list, service_dict = report_calendar(cal_year, cal_month, cal_day)
     else:
-        month_calendar, channels_list, service_dict = report_calendar(cal_year, cal_month, datetime.datetime.today().date())
+        month_calendar, channels_list, service_dict = report_calendar(cal_year, cal_month, datetime.date(cal_year, cal_month, day=1))
     data = {'month_calendar': month_calendar,
             'channels_list': channels_list,
             'service_dict': service_dict,

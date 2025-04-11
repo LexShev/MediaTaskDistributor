@@ -46,7 +46,6 @@ def worker_name(worker_id):
     if worker_id:
         with connections['oplan3'].cursor() as cursor:
             query = f'SELECT [user_name] FROM [oplan3].[dbo].[user] WHERE [user_id] = {worker_id}'
-            print(query)
             cursor.execute(query)
             worker = cursor.fetchone()
             if worker:
