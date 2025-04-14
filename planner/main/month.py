@@ -17,6 +17,11 @@ def dir_name(full_path):
         return os.path.dirname(full_path).replace('\\\\192.168.80.3\\', "")
 
 @register.filter
+def dir_no_host_name(full_path):
+    if full_path:
+        return full_path.replace('\\\\192.168.80.3\\', "")
+
+@register.filter
 def schedule_name(schedule_id):
     schedules = {
         3: 'Крепкое',

@@ -2,12 +2,13 @@
 
 <main>
 {% block body %}
-  <div class="container-xxl text-start px-0">
+  <div class="container-fluid text-start px-lg-5">
     <br><h4>Быстрый поиск по распределённым задачам:</h4>
+    <h5>Результатов: {{ search_list|length }}</h5>
     <hr width="100%" size="2"><br>
     {% if search_list %}
       {% for material in search_list %}
-        <div class="card shadow mx-1 my-2 mt-0 p-0" style="border-color: {{ material.color }};">
+        <div class="card shadow  mx-lg-3 my-2 mt-0">
           <div class="card-header p-2">
             <div class="d-flex flex-wrap align-items-start">
               <div class="mx-0">
@@ -57,29 +58,19 @@
                 {{ material.Task_engineer_id|engineer_name }}</a></small>
                 </p>
               </div>
+              <div class="col">
+                <p class="card-text m-0"><small class="text-body-secondary">Продолжительность: </small>
+                  <small class="text-body-primary">{{ material.Progs_duration|convert_frames_to_time }}</small>
+                </p>
+              </div>
             </div>
           </div>
         </div>
       {% endfor %}
-    {% else %}
-      Нет результатов
     {% endif %}
-    <br><br><h4>Расширенный поиск:</h4>
+    <br><h4>Расширенный поиск:</h4><br>
+    {% include 'main/advanced_search_block.html' %}
     <hr width="100%" size="2"><br>
-    <form method="get" action="{% url 'advanced_search' %}" class="mb-lg-0 me-lg-3" role="search">
-      <div class="input-group mb-3">
-          <label class="input-group-text" for="searchSettings">Поиск по</label>
-          <select class="form-select" id="searchSettings">
-            <option value="0">id</option>
-            <option value="1" selected>названию</option>
-            <option value="2">имени файла</option>
-            <option value="3">исполнителю</option>
-            <option value="4">дате эфира</option>
-            <option value="5">крайнему сроку</option>
-          </select>
-          <input class="form-control" id="tableFilter" type="text" placeholder="введите запрос ..." style="width: 70rem;">
-      </div>
-    </form>
   </div>
 {% endblock %}
 </main>

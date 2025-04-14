@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, date
 
 from django.db import connections
-from .list_view import oplan_material_list
+from .db_connection import oplan_material_list
 
 
 def main_distribution():
@@ -46,7 +46,6 @@ def distribution_by_id(program_id, duration, sched_id, sched_date, work_date, pr
             status = 'not_ready'
             engineer_id, kpi, work_date = date_seek(work_date)
             insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
-
         else:
             # print('skip', program_id)
             # ? update(program_id, engineer_id, duration, date, status)

@@ -6,7 +6,8 @@ from django.template.defaulttags import register
 
 from .ffmpeg_info import collection
 from .kinoroom_parser import locate_url
-from .db_connection import parent_name
+from .db_connection import parent_name, parent_adult_name
+
 
 @register.filter
 def cenz_name(cenz_id):
@@ -39,7 +40,7 @@ def engineer_name(engineer_id):
         10: 'Евгений Доманов',
         11: 'Алексей Шевченко'
     }
-    return engineer_dict.get(engineer_id)
+    return engineer_dict.get(engineer_id, 'Не назначен')
 
 @register.filter
 def worker_name(worker_id):
@@ -75,6 +76,7 @@ def fields_name(field_id):
         18: 'Теги',
         19: 'Иноагент'}
     return fields_dict.get(field_id)
+
 
 def check_data_type(value):
     if isinstance(value, NoneType):
@@ -127,6 +129,8 @@ def full_info(program_id):
         movie_info = cursor.fetchone()
         if movie_info:
             full_info_dict = dict(zip(django_columns, movie_info))
+            if not full_info_dict.get('Adult_Name'):
+                full_info_dict['Adult_Name'] = parent_adult_name(full_info_dict.get('Progs_parent_id'))
             full_info_dict['material_status'], full_info_dict['color'] = find_out_status(program_id, full_info_dict)
 
             if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
@@ -201,9 +205,7 @@ def find_out_status(program_id, full_info_dict):
     oplan3_engineer = check_data_type(oplan3_cenz_info.get(15))
 
     planner_ready_date = full_info_dict.get('TaskInf_ready_date')
-    print(planner_ready_date, type(planner_ready_date))
     planner_status = full_info_dict.get('TaskInf_task_status')
-    print('facts', oplan3_work_date, oplan3_cenz_rate, oplan3_engineer, planner_status)
     if oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and not planner_status:
         material_status = f'Отсмотрен через Oplan: {oplan3_work_date.strftime("%d.%m.%Y")}'  # oplan3_ready
         color = 'text-success'
@@ -231,25 +233,25 @@ def find_out_status(program_id, full_info_dict):
 def cenz_info(program_id):
     with connections['oplan3'].cursor() as cursor:
         columns = '[ProgramCustomFieldId], [TextValue], [IntValue], [DateValue]'
-        query_test = f'''
+        query = f'''
             SELECT {columns}
             FROM [oplan3].[dbo].[ProgramCustomFieldValues]
             WHERE [ObjectId] = {program_id}
-                '''
-        cursor.execute(query_test)
+            '''
+        cursor.execute(query)
         cenz_info_sql = cursor.fetchall()
-        custom_fields_dict = {}
-        for cenz in cenz_info_sql:
-            field_id, text_value, int_value, date_value = cenz
-            # Дата отсмотра
-            if field_id == 7:
-                custom_fields_dict[field_id] = date_value
-            elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
-                custom_fields_dict[field_id] = text_value
-            elif field_id in (14, 15, 17):
-                # custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
-                custom_fields_dict[field_id] = int_value
-                # .split(';')
+    custom_fields_dict = {}
+    for cenz in cenz_info_sql:
+        field_id, text_value, int_value, date_value = cenz
+        # Дата отсмотра
+        if field_id == 7:
+            custom_fields_dict[field_id] = date_value
+        elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
+            custom_fields_dict[field_id] = text_value
+        elif field_id in (14, 15, 17):
+            # custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
+            custom_fields_dict[field_id] = int_value
+            # .split(';')
     return custom_fields_dict
 
 
@@ -332,10 +334,8 @@ def change_task_status(program_id, engineer_id, work_date):
             SET [task_status] = 'ready',
             [ready_date] = GETDATE()
             WHERE [program_id] = {program_id}'''
-            print(update)
             cursor.execute(update)
         else:
-            print('insert')
             columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status]'
             insert = f'''
             INSERT INTO [planner].[dbo].[task_list] ({columns})
@@ -348,7 +348,6 @@ def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
     for old_field_id, new_field_id in zip(old_values_dict, new_values_dict):
         old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
         old_value, new_value = check_data_type(old_value), check_data_type(new_value)
-        print('facts', old_value, type(old_value), new_value, type(new_value))
         if not old_value and new_value:
             insert_value(new_field_id, program_id, new_value)
         elif old_value and not new_value:
@@ -356,14 +355,15 @@ def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
         elif old_value and new_value and str(old_value) != str(new_value):
             update_value(old_field_id, program_id, new_value)
 
-
 def schedule_info(program_id):
     with connections['oplan3'].cursor() as cursor:
         columns = ['ChannelId', 'ChannelName', 'DateTime']
         sql_columns = ', '.join(columns)
-        query = f'''SELECT {sql_columns}
-          FROM [oplan3].[dbo].[ScheduledInfo]
-          WHERE [ProgramId] = {program_id}'''
+        query = f'''
+        SELECT {sql_columns}
+        FROM [oplan3].[dbo].[ScheduledInfo]
+        WHERE [ProgramId] = {program_id}
+        '''
         cursor.execute(query)
         schedule_dict = [dict(zip(columns, schedule)) for schedule in cursor.fetchall()]
     return schedule_dict

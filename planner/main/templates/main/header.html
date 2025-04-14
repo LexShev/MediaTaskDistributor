@@ -77,6 +77,9 @@
               {% if permissions.common_pool %}
                 <li class="nav-item"><a href="{% url 'home' %}common_pool" class="nav-link px-2">Общий пул</a></li>
               {% endif %}
+              {% if permissions.advanced_search %}
+                <li class="nav-item"><a href="{% url 'home' %}advanced_search" class="nav-link px-2">Расширенный поиск</a></li>
+              {% endif %}
             </ul>
           </div>
         </nav>
@@ -90,10 +93,10 @@
       </a>
 
       <form method="get" action="{% url 'fast_search' %}" class="mb-lg-0 me-lg-3" role="search">
-        <input type="search" name="main_search" id="main_search" class="form-control" placeholder="Поиск..." aria-label="Search" style="width: 250px">
+        <input type="search" name="fast_search" id="fast_search" class="form-control" placeholder="Поиск..." aria-label="Search" style="width: 250px">
       </form>
       <script>
-        var input = document.getElementById('main_search');
+        var input = document.getElementById('fast_search');
         input.addEventListener('focus', function() {
           this.style.width = 450 + "px";
         });

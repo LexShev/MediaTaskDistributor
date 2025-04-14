@@ -18,9 +18,12 @@ def locate_url(program_id, program_name, year):
         print('local')
         return f'/static/banners/{program_id}.jpg'
     else:
-        url = search_movie(program_id, program_name, year)
-        print('url', url)
-        return url
+        try:
+            url = search_movie(program_id, program_name, year)
+            print('url', url)
+            return url
+        except Exception as e:
+            print(e)
 
 def search_movie(program_id, program_name, year):
     program_name = program_name.replace('ё', 'е')

@@ -222,7 +222,7 @@ def program_custom_fields():
 def parent_adult_name(program_id):
     with connections['oplan3'].cursor() as cursor:
         query = f'''
-        SELECT Adult.[Name]
+        SELECT Progs.[program_id], Progs.[parent_id], Adult.[Name]
         FROM [oplan3].[dbo].[program] AS Progs
         LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
@@ -230,5 +230,8 @@ def parent_adult_name(program_id):
         '''
         cursor.execute(query)
         adult_name = cursor.fetchone()
-        if adult_name:
-            return adult_name[0]
+    if adult_name:
+        if adult_name[2]:
+            return adult_name[2]
+        elif not adult_name[2] and adult_name[1]:
+            return parent_adult_name(adult_name[1])
