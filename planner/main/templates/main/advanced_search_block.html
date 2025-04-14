@@ -1,0 +1,14 @@
+<form method="get" action="{% url 'advanced_search' %}" class="mx-lg-3" role="search">
+<div class="input-group mb-3">
+    <label class="input-group-text" for="searchSettings">Поиск по</label>
+    <select class="form-select" id="searchSettings" name="search_id">
+      <option value="0">id</option>
+      <option value="1" selected>названию</option>
+      <option value="2">имени файла</option>
+      <option value="3">исполнителю</option>
+      <option value="4">дате эфира</option>
+      <option value="5">крайнему сроку</option>
+    </select>
+    <input class="form-control" name="search_query" id="tableFilter" type="text" placeholder="введите запрос ..." style="width: 100rem;">
+</div>
+</form><br>

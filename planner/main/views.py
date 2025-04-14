@@ -10,7 +10,7 @@ from .header_search import fast_search, advanced_search
 from .logs_and_history import insert_action, select_actions
 from .models import ModelFilter
 from .list_view import list_material_list
-from .permission_pannel import ask_permissions, ask_db_permissions
+from .permission_pannel import ask_db_permissions
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
@@ -23,7 +23,7 @@ from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacat
 @login_required()
 def main_search(request):
     worker_id = request.user.id
-    search_query = request.GET.get('main_search', None)
+    search_query = request.GET.get('fast_search', None)
     data = {'search_list': fast_search(search_query),
             'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/fast_search.html', data)
@@ -31,9 +31,9 @@ def main_search(request):
 @login_required()
 def dop_search(request):
     worker_id = request.user.id
-    search_query = request.GET.get('dop_search', None)
-    print(search_query)
-    data = {'search_list': advanced_search(search_query),
+    search_id = request.GET.get('search_id', 1)
+    search_query = request.GET.get('search_query', None)
+    data = {'search_list': advanced_search(int(search_id), search_query),
             'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/advanced_search.html', data)
 
