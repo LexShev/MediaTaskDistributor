@@ -113,7 +113,7 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
         print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
-        return material_list_sql, django_columns
+    return material_list_sql, django_columns
 
 def date_generator(work_dates):
     start_date, end_date = work_dates.split(' - ')
@@ -169,7 +169,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
         '''
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
-        return material_list_sql, django_columns
+    return material_list_sql, django_columns
 
 def parent_name(program_id):
     with connections['oplan3'].cursor() as cursor:
