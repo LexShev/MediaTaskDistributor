@@ -70,8 +70,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                     'Progs_AnonsCaption': parent_name(temp_dict.get('Progs_parent_id')),
                     'Progs_production_year': temp_dict.get('Progs_production_year'),
                     'color': select_channel_color(temp_dict.get('Task_sched_id')),
-                    'Task_sched_id': select_channel_color(temp_dict.get('Task_sched_id')),
-                    'Sched_schedule_name': temp_dict.get('Sched_schedule_name'),
+                    'Task_sched_id': temp_dict.get('Task_sched_id'),
                     'type': 'season',
                     'episode': [
                         {'Progs_program_id': temp_dict.get('Progs_program_id'),
@@ -82,7 +81,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                          'Task_work_date': temp_dict.get('Task_work_date'),
                          'Task_sched_date': temp_dict.get('Task_sched_date'),
                          'status': temp_dict.get('Task_task_status'),
-                         'engineer_id': temp_dict.get('Task_engineer_id')
+                         'Task_engineer_id': temp_dict.get('Task_engineer_id')
                          }
                     ]
                 }
@@ -98,7 +97,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                     'Task_work_date': temp_dict.get('Task_work_date'),
                     'Task_sched_date': temp_dict.get('Task_sched_date'),
                     'status': temp_dict.get('Task_task_status'),
-                    'engineer_id': temp_dict.get('Task_engineer_id')
+                    'Task_engineer_id': temp_dict.get('Task_engineer_id')
                      })
                 program_id_list.append(program_id)
         if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
@@ -112,11 +111,10 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                 'Task_work_date': temp_dict.get('Task_work_date'),
                 'color': select_channel_color(temp_dict.get('Task_sched_id')),
                 'Task_sched_id': temp_dict.get('Task_sched_id'),
-                'Sched_schedule_name': temp_dict.get('Sched_schedule_name'),
                 'Task_sched_date': temp_dict.get('Task_sched_date'),
                 'type': 'film',
                 'status': temp_dict.get('Task_task_status'),
-                'engineer_id': temp_dict.get('Task_engineer_id')
+                'Task_engineer_id': temp_dict.get('Task_engineer_id')
             }
             material_list[day_num].append(program_info_dict)
             program_id_list.append(program_id)
