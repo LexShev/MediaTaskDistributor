@@ -18,7 +18,7 @@
                 </a>
               </div>
               <div class="text-end">
-                <h6 class="my-0 mx-1">{{ material.Files_Name|dir_no_host_name }} - {{ material.Files_Size|convert_bytes:'b' }} - {{ material.Files_ModificationTime|date:"d.m.Y" }}</h6>
+                <small class="text-body-secondary my-0 mx-1">{{ material.Files_Name|dir_no_host_name }} - {{ material.Files_Size|convert_bytes:'b' }} - {{ material.Files_ModificationTime|date:"d.m.Y" }}</small>
               </div>
             </div>
           </div>
@@ -26,7 +26,7 @@
             <div class="row">
               <div class="col">
                 <p class="card-text m-0"><small class="text-body-secondary">Канал: </small>
-                  <small class="text-body-primary">{{ material.Sched_schedule_name }}</small>
+                  <small class="text-body-primary">{{ material.SchedDay_schedule_id|schedule_name }}</small>
                 </p>
               </div>
               <div class="col">

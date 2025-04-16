@@ -75,9 +75,9 @@
       </div>
       <div class="row row-cols-1">
         {% for channel in channels_list %}
-          {% for channel_id, task_list in channel.items %}
+          {% for schedule_id, task_list in channel.items %}
           <div class="col">
-            <h5>{{ channel_id|schedule_name }}</h5>
+            <h5>{{ schedule_id|schedule_name }}</h5>
             <div class="card p-2">
               <table class="table table-hover">
                 <thead>

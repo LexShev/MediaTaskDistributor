@@ -102,6 +102,7 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
             AND Files.[PhysicallyDeleted] = 0
             AND Clips.[Deleted] = 0
             AND Progs.[deleted] = 0
+            AND Progs.[DeletedIncludeParent] = 0
             AND SchedProg.[Deleted] = 0
             AND SchedDay.[schedule_id] IN {schedules_id}
             AND SchedDay.[day_date] IN {dates}
@@ -144,7 +145,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
                    ('Progs', 'duration'), ('Adult', 'Name'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
-                   ('Sched', 'schedule_name'), ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status')]
+                   ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''

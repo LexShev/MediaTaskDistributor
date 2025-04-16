@@ -1,20 +1,14 @@
 from datetime import datetime, timedelta, date
 
 from django.db import connections
-from .db_connection import oplan_material_list
 
 
 def main_distribution():
     # work_date = datetime.today().date()
     work_date = date(day=10, month=3, year=2025)
     dates = tuple(str(work_date + timedelta(days=day)) for day in range(23))
-    columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
-               ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
-               ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-               ('Progs', 'duration'), ('Files', 'Name'), ('SchedDay', 'day_date'),
-               ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-               ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')]
-    material_list_sql, django_columns = oplan_material_list(columns=columns, dates=dates)
+
+    material_list_sql, django_columns = oplan_material_list(dates=dates)
     program_id_list = []
     for program_info in material_list_sql:
         if not program_info:
@@ -22,58 +16,89 @@ def main_distribution():
         program_id = program_info[0]
         if program_id in program_id_list:
             continue
-        temp_dict = dict(zip(django_columns, program_info))
-        sched_id = temp_dict.get('SchedDay_schedule_id')
-        # if sched_id in (11, 20):
-        #     print(temp_dict.get('Progs_program_id'), temp_dict.get('Files_Name'))
-        sched_date = temp_dict.get('SchedDay_day_date')
-        program_type_id = temp_dict.get('Progs_program_type_id')
-        duration = temp_dict.get('Progs_duration')
-        file_path = temp_dict.get('Files_Name')
-        distribution_by_id(program_id, duration, sched_id, sched_date, work_date, program_type_id, file_path)
         program_id_list.append(program_id)
+        temp_dict = dict(zip(django_columns, program_info))
 
+        planner_engineer_id = planner_engineer(program_id)
+        oplan3_engineer_id = oplan3_engineer(program_id)
 
-def distribution_by_id(program_id, duration, sched_id, sched_date, work_date, program_type_id, file_path):
-    # !work_date продумать начало проверки
-    planner_engineer_id = planner_engineer(program_id)
-    oplan3_engineer_id = oplan3_engineer(program_id)
-    if sched_id in (11, 20):
-        print(program_id, sched_id, file_path)
-    if program_type_id in (4, 5, 6, 10, 11, 12) and oplan3_engineer_id != 0 and not oplan3_engineer_id:
+        if oplan3_engineer_id or oplan3_engineer_id == 0:
+            continue
+        if planner_engineer_id or planner_engineer_id == 0:
+            continue
+        engineer_id, kpi, work_date = date_seek(work_date)
 
-        if planner_engineer_id != 0 and not planner_engineer_id:
+        sched_id = temp_dict.get('SchedDay_schedule_id')
+        sched_date = temp_dict.get('SchedDay_day_date')
+        duration = temp_dict.get('Progs_duration')
+
+        suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
+        if suitable_material:
+            file_path = temp_dict.get('Files_Name')
             status = 'not_ready'
-            engineer_id, kpi, work_date = date_seek(work_date)
-            insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
         else:
-            # print('skip', program_id)
-            # ? update(program_id, engineer_id, duration, date, status)
-            engineer_id = planner_engineer_id
-            status = 'not_ready'
-    else:
-        # ?
-        engineer_id = oplan3_engineer_id
-        status = 'ready'
-    return engineer_id, status, work_date
+            file_path = ''
+            status = 'no_material'
 
-# def kpi_min(date):
-#     with connections['planner'].cursor() as cursor:
-#         query = f'''SELECT
-#         Worker.[worker_id], Worker.[worker], COALESCE(SUM(Task.[duration])/720000.0, 0) AS KPI
-#         FROM [planner].[dbo].[worker_list] AS Worker
-#         LEFT JOIN [planner].[dbo].[task_list] AS Task
-#             ON Worker.[worker_id] = Task.[worker_id]
-#             AND Task.[work_date] = '{date.strftime('%Y-%m-%d')}'
-#         WHERE Worker.[holidays] != '{date.strftime('%Y-%m-%d')}'
-#         AND Worker.[fired] = 'False'
-#         GROUP BY Worker.[worker_id], Worker.[worker]'''
-#         cursor.execute(query)
-#         kpi_list = cursor.fetchall()
-#         kpi_asc_list = sorted(kpi_list, key=lambda x: x[2])
-#         # min(kpi_list, key=lambda x: x[2])
-#         print('kpi_asc_list for date', date, '\n', kpi_asc_list)
-#     return kpi_asc_list
+        insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
+
+
+
+# def distribution_by_id(program_id, duration, sched_id, sched_date, work_date, file_path):
+#     planner_engineer_id = planner_engineer(program_id)
+#     oplan3_engineer_id = oplan3_engineer(program_id)
+#     if oplan3_engineer_id != 0 and not oplan3_engineer_id:
+#
+#         if planner_engineer_id != 0 and not planner_engineer_id:
+#             status = 'not_ready'
+#             engineer_id, kpi, work_date = date_seek(work_date)
+#             insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
+#         else:
+#             # print('skip', program_id)
+#             # ? update(program_id, engineer_id, duration, date, status)
+#             engineer_id = planner_engineer_id
+#             status = 'not_ready'
+#     return engineer_id, status, work_date
+
+def oplan_material_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
+    columns = [
+        ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
+        ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
+        ('Progs', 'duration'), ('Progs', 'SuitableMaterialForScheduleID'), ('SchedDay', 'day_date'),
+        ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'), ('Task', 'work_date'),
+        ('Task', 'task_status'), ('Task', 'file_path')
+    ]
+    with connections['oplan3'].cursor() as cursor:
+        schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+        order = 'ASC'
+        sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+        django_columns = [f'{col}_{val}' for col, val in columns]
+        query = f"""
+            SELECT {sql_columns}
+            FROM [oplan3].[dbo].[program] AS Progs
+            JOIN [oplan3].[dbo].[program_type] AS Types
+                ON Progs.[program_type_id] = Types.[program_type_id]
+            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+                ON Progs.[program_id] = SchedProg.[program_id]
+            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+                ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
+            JOIN [oplan3].[dbo].[schedule] AS Sched
+                ON SchedDay.[schedule_id] = Sched.[schedule_id]
+            LEFT JOIN [planner].[dbo].[task_list] AS Task
+                ON Progs.[program_id] = Task.[program_id]
+            WHERE Progs.[deleted] = 0
+            AND Progs.[DeletedIncludeParent] = 0
+            AND SchedProg.[Deleted] = 0
+            AND SchedDay.[schedule_id] IN {schedules_id}
+            AND SchedDay.[day_date] IN {dates}
+            AND Progs.[program_type_id] IN {program_type}
+            AND Progs.[program_id] > 0
+            ORDER BY SchedProg.[DateTime] {order}
+            """
+        print(query)
+        cursor.execute(query)
+        material_list_sql = cursor.fetchall()
+        return material_list_sql, django_columns
 
 def date_seek(work_date):
     kpi_info = kpi_min(work_date)

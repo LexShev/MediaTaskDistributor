@@ -47,25 +47,31 @@ import datetime
 # print([day for day in month.itermonthdates(2025, 3) if day.month == 3])
 
 
-def convert_frames_to_time(frames, fps=25):
-    sec = int(frames) / fps
-    yy = int((sec // 3600) // 24) // 365
-    dd = int((sec // 3600) // 24) % 365
-    hh = int((sec // 3600) % 24)
-    mm = int((sec % 3600) // 60)
-    ss = int((sec % 3600) % 60 // 1)
-    ff = int(sec % 1 * fps)
-    tf = f'{hh:02}:{mm:02}:{ss:02}.{ff:02}'
-    if dd < 1 and yy < 1:
-        return f'{hh:02}:{mm:02}:{ss:02}'
-    elif 0 < yy%10 < 5:
-        return f'{yy:02}г. {dd:02}д. {hh:02}:{mm:02}:{ss:02}'
-    else:
-        return f'{yy:02}л. {dd:02}д. {hh:02}:{mm:02}:{ss:02}'
-print(datetime.timedelta(seconds=60*60*24*366))
-print(datetime.datetime.fromtimestamp(15).strftime("%A, %B %d, %Y %I:%M:%S"))
-print(convert_frames_to_time((25*60*60*24*365*24)+(25*60*60*24*365)))
-print(int((((788400026/25)//3600)//24)+1)%365)
-print(convert_frames_to_time(25*60*60*24*367))
-print(0%10)
-print(int(False))
+# def convert_frames_to_time(frames, fps=25):
+#     sec = int(frames) / fps
+#     yy = int((sec // 3600) // 24) // 365
+#     dd = int((sec // 3600) // 24) % 365
+#     hh = int((sec // 3600) % 24)
+#     mm = int((sec % 3600) // 60)
+#     ss = int((sec % 3600) % 60 // 1)
+#     ff = int(sec % 1 * fps)
+#     tf = f'{hh:02}:{mm:02}:{ss:02}.{ff:02}'
+#     if dd < 1 and yy < 1:
+#         return f'{hh:02}:{mm:02}:{ss:02}'
+#     elif 0 < yy%10 < 5:
+#         return f'{yy:02}г. {dd:02}д. {hh:02}:{mm:02}:{ss:02}'
+#     else:
+#         return f'{yy:02}л. {dd:02}д. {hh:02}:{mm:02}:{ss:02}'
+# print(datetime.timedelta(seconds=60*60*24*366))
+# print(datetime.datetime.fromtimestamp(15).strftime("%A, %B %d, %Y %I:%M:%S"))
+# print(convert_frames_to_time((25*60*60*24*365*24)+(25*60*60*24*365)))
+# print(int((((788400026/25)//3600)//24)+1)%365)
+# print(convert_frames_to_time(25*60*60*24*367))
+# print(0%10)
+# print(int(False))
+# d=5
+# print(f'{d:05}')
+eng_list = [0, 1, 2, 3, 4, 5, None, 6, False, 7]
+for engineer_id in eng_list:
+    if engineer_id or engineer_id == 0:
+        print(engineer_id)
