@@ -17,31 +17,28 @@ def main_distribution():
         if program_id in program_id_list:
             continue
         program_id_list.append(program_id)
-        temp_dict = dict(zip(django_columns, program_info))
 
-        planner_engineer_id = planner_engineer(program_id)
         oplan3_engineer_id = oplan3_engineer(program_id)
-
         if oplan3_engineer_id or oplan3_engineer_id == 0:
             continue
+        planner_engineer_id = planner_engineer(program_id)
         if planner_engineer_id or planner_engineer_id == 0:
             continue
         engineer_id, kpi, work_date = date_seek(work_date)
 
+        temp_dict = dict(zip(django_columns, program_info))
         sched_id = temp_dict.get('SchedDay_schedule_id')
         sched_date = temp_dict.get('SchedDay_day_date')
         duration = temp_dict.get('Progs_duration')
-
         suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
+
         if suitable_material:
-            file_path = temp_dict.get('Files_Name')
+            file_path = find_file_path(program_id)
             status = 'not_ready'
         else:
             file_path = ''
             status = 'no_material'
-
         insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
-
 
 
 # def distribution_by_id(program_id, duration, sched_id, sched_date, work_date, file_path):
@@ -98,7 +95,28 @@ def oplan_material_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
         print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
-        return material_list_sql, django_columns
+    return material_list_sql, django_columns
+
+def find_file_path(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        SELECT Files.[Name]
+        FROM [oplan3].[dbo].[File] AS Files
+        JOIN [oplan3].[dbo].[Clip] AS Clips
+            ON Files.[ClipID] = Clips.[ClipID]
+        JOIN [oplan3].[dbo].[program] AS Progs
+            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        WHERE Files.[Deleted] = 0
+        AND Files.[PhysicallyDeleted] = 0
+        AND Clips.[Deleted] = 0
+        AND Progs.[deleted] = 0
+        AND Progs.[DeletedIncludeParent] = 0
+        AND Progs.[program_id] = {program_id}
+        '''
+        cursor.execute(query)
+        file_path = cursor.fetchone()
+    if file_path:
+        return file_path[0]
 
 def date_seek(work_date):
     kpi_info = kpi_min(work_date)
@@ -136,7 +154,7 @@ def kpi_min(work_date):
                 kpi_list.append((engineer_id, kpi))
     return sorted(kpi_list, key=lambda x: x[1])
 
-def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path):
+def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path=''):
     with connections['planner'].cursor() as cursor:
         columns = '[program_id], [engineer_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path]'
         values = (program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path)

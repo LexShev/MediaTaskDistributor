@@ -86,6 +86,15 @@ def check_data_type(value):
     else:
         return str(value)
 
+def check_planner_status(planner_status):
+    status_dict = {
+        'not_ready': 'Не готов'
+    }
+    color_dict = {
+        'not_ready': 'text-danger'
+    }
+    return status_dict.get(planner_status), color_dict.get(planner_status)
+
 def full_info(program_id):
     with connections['oplan3'].cursor() as cursor:
         columns = [
@@ -100,38 +109,38 @@ def full_info(program_id):
             ('Progs', 'AnonsCaptionInherit'), ('Progs', 'CreationDate'), ('Progs', 'Subtitled'), ('Progs', 'Season'),
             ('Progs', 'Director'), ('Progs', 'Cast'), ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'),
             ('Adult', 'Name'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
-            ('Files', 'ModificationTime'), ('TaskInf', 'work_date'), ('TaskInf', 'ready_date'),
-            ('TaskInf', 'engineer_id'), ('TaskInf', 'task_status')]
+            ('Files', 'ModificationTime'), ('Task', 'work_date'), ('Task', 'ready_date'),
+            ('Task', 'engineer_id'), ('Task', 'task_status')]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         movie_query = f'''
         SELECT {sql_columns}
         FROM [oplan3].[dbo].[File] AS Files
-            JOIN [oplan3].[dbo].[Clip] AS Clips
-                ON Files.[ClipID] = Clips.[ClipID]
-            JOIN [oplan3].[dbo].[program] AS Progs
-                ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-            LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
-                ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-            JOIN [oplan3].[dbo].[program_type] AS Types
-                ON Progs.[program_type_id] = Types.[program_type_id]
-            LEFT JOIN [planner].[dbo].[task_list] AS TaskInf
-                ON Progs.[program_id] = TaskInf.[program_id]
-            WHERE Files.[Deleted] = 0
-            AND Files.[PhysicallyDeleted] = 0
-            AND Clips.[Deleted] = 0
-            AND Progs.[deleted] = 0
-            AND Progs.[program_type_id] NOT IN (3, 9, 13, 14, 15, 17, 18)
-            AND Progs.[program_id] = {program_id}
-                '''
+        JOIN [oplan3].[dbo].[Clip] AS Clips
+            ON Files.[ClipID] = Clips.[ClipID]
+        JOIN [oplan3].[dbo].[program] AS Progs
+            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+            ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
+        JOIN [oplan3].[dbo].[program_type] AS Types
+            ON Progs.[program_type_id] = Types.[program_type_id]
+        LEFT JOIN [planner].[dbo].[task_list] AS Task
+            ON Progs.[program_id] = Task.[program_id]
+        WHERE Files.[Deleted] = 0
+        AND Files.[PhysicallyDeleted] = 0
+        AND Clips.[Deleted] = 0
+        AND Progs.[deleted] = 0
+        AND Progs.[program_type_id] NOT IN (3, 9, 13, 14, 15, 17, 18)
+        AND Progs.[program_id] = {program_id}
+        '''
         cursor.execute(movie_query)
         movie_info = cursor.fetchone()
         if movie_info:
             full_info_dict = dict(zip(django_columns, movie_info))
             if not full_info_dict.get('Adult_Name'):
                 full_info_dict['Adult_Name'] = parent_adult_name(full_info_dict.get('Progs_parent_id'))
-            full_info_dict['material_status'], full_info_dict['color'] = find_out_status(program_id, full_info_dict)
+            full_info_dict['material_status'], full_info_dict['color'], full_info_dict['oplan3_work_date'] = find_out_status(program_id, full_info_dict)
 
             if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
                 poster_link = locate_url(
@@ -204,30 +213,43 @@ def find_out_status(program_id, full_info_dict):
     oplan3_cenz_rate = check_data_type(oplan3_cenz_info.get(14))
     oplan3_engineer = check_data_type(oplan3_cenz_info.get(15))
 
-    planner_ready_date = full_info_dict.get('TaskInf_ready_date')
-    planner_status = full_info_dict.get('TaskInf_task_status')
-    if oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and not planner_status:
-        material_status = f'Отсмотрен через Oplan: {oplan3_work_date.strftime("%d.%m.%Y")}'  # oplan3_ready
-        color = 'text-success'
-    elif oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and planner_status == 'ready':
-        material_status = f'Отсмотрен: {planner_ready_date.strftime("%d.%m.%Y")}'  # planner_ready
-        color = 'text-success'
-    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and planner_status == 'not_ready':
-        material_status = 'Не готов'  # planner_not_ready
-        color = 'text-danger'
-    elif oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and planner_status == 'fix':
-        material_status = 'На доработке'  # planner_fix
-        color = 'text-warning'
-    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and planner_status == 'fix':
-        material_status = 'На доработке'  # planner_fix
-        color = 'text-warning'
-    elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and not planner_status:
-        material_status = 'Материал из общего пула'  # planner_fix
-        color = 'text-info'
+    # planner_ready_date = full_info_dict.get('Task_ready_date')
+    planner_status = full_info_dict.get('Task_task_status')
+    if planner_status:
+        material_status, color = check_planner_status(planner_status)
     else:
-        material_status = 'Карточка материала заполнена неверно'  # planner_fix
-        color = 'text-danger'
-    return material_status, color
+        if oplan3_engineer or oplan3_work_date:
+            material_status = 'Отсмотрен через Oplan'
+            color = 'text-success'
+        elif not oplan3_engineer and not oplan3_cenz_rate and not oplan3_work_date:
+            material_status = 'Материал из общего пула'
+            color = 'text-info'
+        else:
+            material_status = 'Карточка материала заполнена неверно'
+            color = 'text-danger'
+
+    # if oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and not planner_status:
+    #     material_status = f'Отсмотрен через Oplan: {oplan3_work_date.strftime("%d.%m.%Y")}'  # oplan3_ready
+    #     color = 'text-success'
+    # elif oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and planner_status == 'ready':
+    #     material_status = f'Отсмотрен: {planner_ready_date.strftime("%d.%m.%Y")}'  # planner_ready
+    #     color = 'text-success'
+    # elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and planner_status == 'not_ready':
+    #     material_status = 'Не готов'  # planner_not_ready
+    #     color = 'text-danger'
+    # elif oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and planner_status == 'fix':
+    #     material_status = 'На доработке'  # planner_fix
+    #     color = 'text-warning'
+    # elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and planner_status == 'fix':
+    #     material_status = 'На доработке'  # planner_fix
+    #     color = 'text-warning'
+    # elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and not planner_status:
+    #     material_status = 'Материал из общего пула'  # planner_fix
+    #     color = 'text-info'
+    # else:
+    #     material_status = 'Карточка материала заполнена неверно'  # planner_fix
+    #     color = 'text-danger'
+    return material_status, color, oplan3_work_date
 
 
 def cenz_info(program_id):
