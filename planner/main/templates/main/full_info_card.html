@@ -1,8 +1,9 @@
 {% extends  'main/index.html' %}
+
 <main>
 {% block body %}
 <div class="container-md text-start px-0">
-  {% if not full_info.is_parent %}
+  {% if full_info.Progs_program_kind != 1 and full_info.Progs_program_kind != 4 %}
     <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_sum_info">
       <div class="accordion-item">
         <h6 class="accordion-header">
@@ -309,5 +310,4 @@
   {% endif %}
   </div>
 {% endblock %}
-
 </main>
