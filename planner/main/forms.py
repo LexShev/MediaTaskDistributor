@@ -132,6 +132,9 @@ class CenzFormText(forms.Form):
 class CenzFormDropDown(forms.Form):
     # engineers = [(0, '-'), (0, 'Александр Кисляков'), (1, 'Ольга Кузовкина'), (2, 'Дмитрий Гатенян'), (3, 'Мария Сучкова'), (4, 'Андрей Антипин'), (
     # 5, 'Роман Рогачев'), (6, 'Анастасия Чебакова'), (7, 'Никита Кузаков'), (8, 'Олег Кашежев'), (9, 'Марфа Тарусина'), (10, 'Евгений Доманов')]
+    narc_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': 'form-select', 'id': "narc_form"}),
+        label='Наркотики', choices=((0, 'Нет'), (1, 'Да')), required=False)
     meta_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'form-select', 'id': "meta_form"}),
         label='Meta', choices=((0, 'Нет'), (1, 'Да')), required=False)

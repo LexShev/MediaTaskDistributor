@@ -73,8 +73,6 @@ def oplan_material_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
         query = f"""
             SELECT {sql_columns}
             FROM [oplan3].[dbo].[program] AS Progs
-            JOIN [oplan3].[dbo].[program_type] AS Types
-                ON Progs.[program_type_id] = Types.[program_type_id]
             JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
                 ON Progs.[program_id] = SchedProg.[program_id]
             JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
