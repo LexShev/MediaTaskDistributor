@@ -163,3 +163,6 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = '/authorize/login_worker/'
+
+# DATE_INPUT_FORMATS = ["%d.%m.%Y", "%d-%m-%Y"]
+# USE_L10N = False
