@@ -51,10 +51,6 @@ schedules = [
     (20, 'Кино +')
 ]
 
-class MyForm(forms.Form):
-    choices = [('1', 'Канал+'), ('2', 'Советское'), ('3', 'Наше детство')]
-    selected_choices = forms.MultipleChoiceField(choices=choices, widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
-    )
 
 class ListForm(forms.ModelForm):
     class Meta:

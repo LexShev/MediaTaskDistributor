@@ -1,14 +1,13 @@
-from django.db.models import Model, Manager, IntegerField, TextField, DateField
+from django.db.models import Model, Manager, IntegerField, TextField, DateField, CharField
 
 
 class ModelFilter(Model):
     owner = IntegerField('owner', primary_key=True, default=1)
-    # channels = TextField(blank=True)
-    schedules = TextField()
-    engineers = TextField()
-    material_type = TextField()
-    work_dates = TextField()
-    task_status = TextField()
+    schedules = CharField(max_length=100)
+    engineers = CharField(max_length=100)
+    material_type = CharField(max_length=100)
+    work_dates = CharField(max_length=100)
+    task_status = CharField(max_length=100)
 
 
 # class ProgramCustomFields(Model):
