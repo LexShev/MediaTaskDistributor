@@ -4,7 +4,7 @@ def ask_permissions(worker_id):
     admin = [0, 1]
     preparation_engineer = []
     broadcast_engineer = []
-    otk = []
+    otk_engineer = []
     editor = [2, 3, 4, 5]
 
     if worker_id in admin:
@@ -13,7 +13,7 @@ def ask_permissions(worker_id):
         return ['day', 'week', 'list', 'full_info_card', 'common_pool']
     elif worker_id in broadcast_engineer:
         return ['month', 'full_info_card']
-    elif worker_id in otk:
+    elif worker_id in otk_engineer:
         return ['month', 'full_info_card']
     elif worker_id in editor:
         return ['month', 'full_info_card']
@@ -36,7 +36,7 @@ def ask_permissions(worker_id):
 def ask_db_permissions(worker_id):
     with (connections['planner'].cursor() as cursor):
         perm_list = ('day', 'month', 'week', 'list', 'kpi_info', 'work_calendar',
-                     'common_pool', 'full_info_card', 'advanced_search')
+                     'common_pool', 'full_info_card', 'otk', 'advanced_search')
         columns = ', '.join([f'[{perm}]' for perm in perm_list])
         query = f'''
         SELECT {columns} FROM [planner].[dbo].[worker_list] AS Worker
