@@ -77,6 +77,9 @@
               {% if permissions.common_pool %}
                 <li class="nav-item"><a href="{% url 'home' %}common_pool" class="nav-link px-2">Общий пул</a></li>
               {% endif %}
+              {% if permissions.otk %}
+                <li class="nav-item"><a href="{% url 'otk' %}" class="nav-link px-2">ОТК</a></li>
+              {% endif %}
               {% if permissions.advanced_search %}
                 <li class="nav-item"><a href="{% url 'home' %}advanced_search" class="nav-link px-2">Расширенный поиск</a></li>
               {% endif %}

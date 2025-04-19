@@ -1,5 +1,6 @@
 from django.db import connections
 
+
 def program_custom_fields():
     with connections['oplan3'].cursor() as cursor:
         query = f'''
@@ -7,6 +8,7 @@ def program_custom_fields():
         FROM [oplan3].[dbo].[ProgramCustomFields]
         WHERE [CustomFieldID] IN (15, 18, 19)
         '''
+        print(query)
         cursor.execute(query)
         fields_list = cursor.fetchall()
         fields_dict = {}
@@ -16,55 +18,64 @@ def program_custom_fields():
         return fields_dict
 
 
-class Engineers:
-    engineers_list = program_custom_fields().get(15)
-    choices = [('', '-')]
-    if engineers_list:
-        for engineer in enumerate(engineers_list.split('\r\n')):
-            if engineer[1]:
-                choices.append(engineer)
 
-class Tags:
-    tags_list = program_custom_fields().get(18)
-    choices = [('', '-')]
-    if tags_list:
-        for tag in enumerate(tags_list.split('\r\n')):
-            if tag[1]:
-                choices.append(tag)
+class Choices:
+    def __init__(self):
+        # self.custom_fields = {15: 'Александр Кисляков\r\nОльга Кузовкина\r\nДмитрий Гатенян\r\nМария Сучкова\r\nАндрей Антипин\r\nРоман Рогачев\r\nАнастасия Чебакова\r\nНикита Кузаков\r\nОлег Кашежев\r\nМарфа Тарусина\r\nЕвгений Доманов\r\n',
+        #                       18: 'Мужская драма\r\nРомантическая комедия\r\nКомедия 18+\r\nТрагикомедия\r\nАрт-хаус\r\nКомедийный боевик\r\nКлассический боевик\r\nПриключенческий боевик\r\nВоенная драма',
+        #                       19: 'Галкина Максима Александровича\r\nПонасенкова Евгения Николаевича\r\nДрёмина Ивана Тимофеевича\r\nДудя Юрия Александровича'}
 
-class Inoagents:
-    inoagents_list = program_custom_fields().get(19)
-    choices = [('', '-')]
-    if inoagents_list:
-        for inoagent in enumerate(inoagents_list.split('\r\n')):
-            if inoagent[1]:
-                choices.append(inoagent)
+        self.custom_fields = program_custom_fields()
 
-class Rate:
-    choices = (('', '-'), (0, '0+'), (1, '6+'), (2, '12+'), (3, '16+'), (4, '18+'))
+    def tags(self, label='-'):
+        tags = self.custom_fields.get(18)
+        tags_list = [('', label)]
+        if tags:
+            for tag in enumerate(tags.split('\r\n')):
+                if tag[1]:
+                    tags_list.append(tag)
+        return tags_list
 
-class Schedules:
-    choices = [
-        ('', '-'),
-        (3, 'Крепкое'),
-        (5, 'Планета дети'),
-        (6, 'Мировой сериал'),
-        (7, 'Мужской сериал'),
-        (8, 'Наше детство'),
-        (9, 'Романтичный сериал'),
-        (10, 'Наше родное кино'),
-        (11, 'Семейное кино'),
-        (12, 'Советское родное кино'),
-        (20, 'Кино +')
-    ]
+    def inoagents(self, label='-'):
+        inoagents = self.custom_fields.get(19)
+        inoagents_list = [('', label)]
+        if inoagents:
+            for inoagent in enumerate(inoagents.split('\r\n')):
+                if inoagent[1]:
+                    inoagents_list.append(inoagent)
+        return inoagents_list
 
-class TaskStatus:
-    def __init__(self, label='-'):
-        self.label = label
+    def engineers(self, label='-'):
+        engineers = self.custom_fields.get(15)
+        engineers_list = [('', label)]
+        if engineers:
+            for engineer in enumerate(engineers.split('\r\n')):
+                # print(engineer)
+                if engineer[1]:
+                    engineers_list.append(engineer)
+        return engineers_list
 
-    def choices(self):
-        choices_list = [
-            ('', self.label),
+    def rate(self, label='-'):
+        return (('', label), (0, '0+'), (1, '6+'), (2, '12+'), (3, '16+'), (4, '18+'))
+
+    def schedules(self, label='-'):
+        return [
+            ('', label),
+            (3, 'Крепкое'),
+            (5, 'Планета дети'),
+            (6, 'Мировой сериал'),
+            (7, 'Мужской сериал'),
+            (8, 'Наше детство'),
+            (9, 'Романтичный сериал'),
+            (10, 'Наше родное кино'),
+            (11, 'Семейное кино'),
+            (12, 'Советское родное кино'),
+            (20, 'Кино +')
+        ]
+
+    def task_status(self, label='-'):
+        return [
+            ('', label),
             ('no_material', 'Материал отсутствует'),
             ('not_ready', 'Не готов'),
             ('fix', 'На доработке'),
@@ -74,13 +85,10 @@ class TaskStatus:
             ('final', 'Готов к эфиру'),
             ('ready_fail', 'На пересмотр')
         ]
-        return choices_list
 
-
-class MaterialType:
-    choices = [
-        ('', '-'),
-        ('film', 'Фильм'),
-        ('season', 'Сериал')
-    ]
-    
+    def material_type(self, label='-'):
+        return [
+            ('', label),
+            ('film', 'Фильм'),
+            ('season', 'Сериал')
+        ]

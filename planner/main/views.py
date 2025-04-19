@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from .common_pool import select_pool, service_pool_info
-from .forms import ListForm, WeekForm, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
+from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .header_search import fast_search, advanced_search
 from .logs_and_history import insert_action, select_actions
 from .models import ModelFilter
@@ -61,7 +61,7 @@ def week_date(request, work_year, work_week):
     else:
         init_dict = ModelFilter.objects.get(owner=0)
     if request.method == 'POST':
-        form = WeekForm(request.POST, instance=init_dict)
+        form = WeekFilter(request.POST, instance=init_dict)
         if form.is_valid():
             form.save()
 
@@ -86,7 +86,7 @@ def week_date(request, work_year, work_week):
                         'engineers': engineers,
                         'material_type': material_type,
                         'task_status': task_status}
-        form = WeekForm(initial=initial_dict)
+        form = WeekFilter(initial=initial_dict)
     material_list, service_dict = week_material_list(schedules, engineers, material_type, task_status, work_year, work_week)
     data = {'week_material_list': material_list,
             'service_dict': service_dict,
@@ -117,8 +117,6 @@ def month_date(request, cal_year, cal_month):
 
 @login_required()
 def full_list(request):
-    # main_search = request.GET.get('search', None)
-    # print('main_search', main_search)
     worker_id = request.user.id
     if worker_id:
         init_dict = ModelFilter.objects.get(owner=worker_id)
@@ -126,7 +124,7 @@ def full_list(request):
         init_dict = ModelFilter.objects.get(owner=0)
 
     if request.method == 'POST':
-        form = ListForm(request.POST, instance=init_dict)
+        form = ListFilter(request.POST, instance=init_dict)
         if form.is_valid():
             form.save()
 
@@ -138,7 +136,6 @@ def full_list(request):
 
 
         else:
-            # channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
             schedules = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
             work_dates = datetime.datetime.today().date()
             start_date = datetime.datetime.today().strftime('%d/%m/%Y')
@@ -153,17 +150,12 @@ def full_list(request):
         work_dates = init_dict.work_dates
         task_status = ast.literal_eval(init_dict.task_status)
 
-        # initial_dict = {'schedules': schedules,
-        #                 'engineers': engineers,
-        #                 'material_type': material_type,
-        #                 'work_dates': str(datetime.datetime.today().date()),
-        #                 'task_status': task_status}
         initial_dict = {'schedules': schedules,
                         'engineers': engineers,
                         'material_type': material_type,
                         'work_dates': work_dates,
                         'task_status': task_status}
-        form = ListForm(initial=initial_dict)
+        form = ListFilter(initial=initial_dict)
 
 
     # permissions = ask_permissions(worker_id)
