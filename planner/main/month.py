@@ -12,11 +12,15 @@ from .distribution import oplan3_engineer
 def file_name(full_path):
     if full_path:
         return os.path.basename(full_path)
+    else:
+        return '-'
 
 @register.filter
 def dir_name(full_path):
     if full_path:
         return os.path.dirname(full_path).replace('\\\\192.168.80.3\\', "")
+    else:
+        return '-'
 
 @register.filter
 def dir_no_host_name(full_path):

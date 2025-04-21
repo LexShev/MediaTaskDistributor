@@ -16,7 +16,7 @@ CREATE TABLE permission_list
 );
 
 INSERT INTO [planner].[dbo].[permission_list]
-([permission_group], [day], [month], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [advanced_search])
+([permission_group], [day], [month], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search])
 VALUES 
 ('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 ('preparation_engineer', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),

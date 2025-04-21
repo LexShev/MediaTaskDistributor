@@ -3,64 +3,103 @@
 <main role="main">
 {% block body %}
 <div class="container-flex p-4">
-  <form method="post" class="d-flex p-0 m-0 align-items-center justify-content-start">
+  <form method="post">
     {% csrf_token %}
-    <div class="row ms-0 m-2 align-items-center">
-      {% for field in form %}
-        <div class="col ps-0">
-          <div class="form-floating" style="width:200px;">
-            {{ field }}
-            {{ field.label_tag }}
+
+    <div class="modal fade" id="ApproveOTK" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5">Утвердить выбранные задачи?</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-footer">
+            <button name="approve_otk" id="approve_otk" value="True" type="submit" class="btn btn-success">Утвердить</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
           </div>
         </div>
-      {% endfor %}
-      <div class="col ps-0 m-0">
-        <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+      </div>
+    </div>
+    <div class="modal fade" id="FixOTK" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5">Отправить на доработку выбранные задачи?</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-footer">
+            <button name="fix_otk" id="fix_otk" value="True" type="submit" class="btn btn-warning">На доработку</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex p-0 m-0 align-items-center justify-content-start">
+      <div class="row ms-0 m-2 align-items-center">
+        {% for field in form %}
+          <div class="col ps-0">
+            <div class="form-floating" style="width:200px;">
+              {{ field }}
+              {{ field.label_tag }}
+            </div>
+          </div>
+        {% endfor %}
+        <div class="col ps-0 m-0">
+          <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="d-flex">
+      <h6 class="pe-5">Всего: {{ service_dict.total_count }}</h6>
+      <h6>Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
+    </div><br>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select"></th>
+          <th style="width: 25%;">Название</th>
+          <th style="width: 5%;">Директория</th>
+          <th style="width: 35%;">Имя файла</th>
+          <th style="width: 10%;">Исполнитель</th>
+          <th style="width: 10%;">Дата эфира</th>
+          <th style="width: 7%;">Длительность</th>
+          <th style="width: 7%;">Статус</th>
+        </tr>
+      </thead>
+      <tbody class="table-group-divider" id="tableBody">
+        {% for task in task_list %}
+          <tr>
+            <td><input class="form-check-input me-1" type="checkbox" value="{{ task.Task_program_id }}" name="program_id" id="program_id"></td>
+            <td>
+            <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+            {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
+            <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
+            <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
+            <td>
+              <a href="{% url 'home' %}worker/{{ task.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                {{ task.Task_engineer_id|engineer_name }}</a></td>
+            <td>{{ task.Task_sched_date|date:'Y-m-d' }}</td>
+            <td>{{ task.Task_duration|convert_frames_to_time }}</td>
+            {% if task.Task_task_status == 'not_ready' %}
+              <td>Не готов</td>
+            {% elif task.Task_task_status == 'ready' %}
+              <td>Отсмотрен</td>
+            {% elif task.Task_task_status == 'no_material' %}
+              <td>Нет материала</td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="row">
+      <div class="col">
+        <button type="button" data-bs-toggle="modal" data-bs-target="#ApproveOTK" class="btn me-auto register-button btn-outline-success mx-2">Утвердить</button>
+        <button type="button" data-bs-toggle="modal" data-bs-target="#FixOTK" class="btn me-auto register-button btn-outline-danger mx-2">На доработку</button>
       </div>
     </div>
   </form>
-
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th scope="col" class="col-1"><input class="form-check-input me-1" type="checkbox" value="" id="full_select"></th>
-        <th scope="col" class="col-3">Название</th>
-        <th scope="col" class="col-1">Директория</th>
-        <th scope="col" class="col-3">Имя файла</th>
-        <th scope="col" class="col-1">Исполнитель</th>
-        <th scope="col" class="col-1">Длительность</th>
-        <th scope="col" class="col-1">Дата отсмотра</th>
-        <th scope="col" class="col-1">Статус</th>
-      </tr>
-    </thead>
-    <tbody class="table-group-divider" id="tableBody">
-      {% for task in task_list %}
-        <tr>
-          <td><input class="form-check-input me-1" type="checkbox" value="" id="film_id"></td>
-          <td>
-          <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-          {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
-          <td>{{ task.Files_Name|dir_name }}</td>
-          <td>{{ task.Task_file_path|file_name }}</td>
-          <td>
-            <a href="{% url 'home' %}worker/{{ task.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-              {{ task.Task_engineer_id|engineer_name }}</a></td>
-          <td>{{ task.Task_duration|convert_frames_to_time }}</td>
-          <td>{{ task.Task_sched_date|date:'Y-m-d' }}</td>
-          {% if task.Task_task_status == 'not_ready' %}
-            <td>Не готов</td>
-          {% elif task.Task_task_status == 'ready' %}
-            <td>Отсмотрен</td>
-          {% endif %}
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <div class="row d-flex">
-    <div class="col">
-      <button type="submit" class="btn me-auto register-button btn-outline-primary">Утвердить</button>
-    </div>
-  </div>
 </div>
 {% endblock %}
 </main>
