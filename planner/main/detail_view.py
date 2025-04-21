@@ -171,7 +171,8 @@ def full_info(program_id):
         return full_info_dict
 
 def find_file_path(program_id):
-    columns = ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
+    columns = (('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
+               ('Files', 'ModificationTime'), ('Progs', 'duration'))
     sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
     django_columns = [f'{col}_{val}' for col, val in columns]
     with connections['oplan3'].cursor() as cursor:
@@ -355,24 +356,28 @@ def update_file_path(program_id, file_path):
         '''
         cursor.execute(query)
 
-def change_task_status(program_id, engineer_id, work_date):
+def change_task_status(program_id, engineer_id, work_date, task_status):
     with connections['planner'].cursor() as cursor:
         select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
         cursor.execute(select)
         if cursor.fetchone():
             update = f'''
             UPDATE [planner].[dbo].[task_list]
-            SET [task_status] = 'ready',
-            [ready_date] = GETDATE()
+            SET [task_status] = {task_status}, [ready_date] = GETDATE()
             WHERE [program_id] = {program_id}'''
             cursor.execute(update)
         else:
-            columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status]'
-            insert = f'''
+            file_path_dict = find_file_path(program_id)
+            file_path = file_path_dict.get('Files_Name')
+            duration = file_path_dict.get('Progs_duration')
+
+            columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
+            values = (program_id, engineer_id, duration, work_date, 'GETDATE()', task_status, file_path)
+            query = f'''
             INSERT INTO [planner].[dbo].[task_list] ({columns})
-            VALUES ({program_id}, {engineer_id}, 126, '{work_date}', GETDATE(), 'ready')
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             '''
-            cursor.execute(insert)
+            cursor.execute(query, values)
 
 def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
     program_id = service_info_dict.get('program_id')

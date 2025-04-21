@@ -218,7 +218,7 @@ def material_card(request, program_id):
 
             engineer = new_values_dict.get(15)
             work_date = new_values_dict.get(7)
-            change_task_status(program_id, engineer, work_date)
+            change_task_status(program_id, engineer, work_date, 'ready')
 
 
     else:
