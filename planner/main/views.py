@@ -3,11 +3,12 @@ import ast
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 from .common_pool import select_pool, service_pool_info
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .header_search import fast_search, advanced_search
-from .logs_and_history import insert_action, select_actions
+from .logs_and_history import insert_history, select_actions
 from .models import ModelFilter
 from .list_view import list_material_list
 from .permission_pannel import ask_db_permissions
@@ -46,7 +47,6 @@ def index(request):
 
 def day(request):
     return render(request, 'main/day.html')
-
 
 def week(request):
     start_day = datetime.datetime.today()
@@ -192,7 +192,6 @@ def material_card(request, program_id):
 
         upload_ready_file = request.POST.get('upload_ready_file_form')
         update_file_path(program_id, upload_ready_file)
-        print('upload_ready_file_form', upload_ready_file)
         if form_text.is_valid() and form_drop.is_valid():
             new_values_dict = {
                 17: form_drop.cleaned_data.get('meta_form'),
@@ -213,13 +212,14 @@ def material_card(request, program_id):
                 'program_id': program_id,
                 'worker_id': worker_id
             }
-            insert_action(service_info_dict, old_values_dict, new_values_dict)
+            insert_history(service_info_dict, old_values_dict, new_values_dict)
             change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
 
-            engineer = new_values_dict.get(15)
+            engineer_id = new_values_dict.get(15)
             work_date = new_values_dict.get(7)
-            change_task_status(program_id, engineer, work_date, 'ready')
-
+            text_message = change_task_status(program_id, engineer_id, work_date, 'ready')
+            insert_history(service_info_dict, {99: 'not_ready'}, {99: 'ready'})
+            messages.success(request, text_message)
 
     else:
         form_drop = CenzFormDropDown(
@@ -274,8 +274,6 @@ def kpi_info(request):
             'material_type_form': material_type,
             'task_status': task_status})
 
-    # work_date = request.POST.get('work_date', str(datetime.datetime.today().date()))
-    # engineers = request.POST.get('engineers', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
     task_list, summary_dict = kpi_summary_calc(work_date, engineers, material_type, task_status)
     data = {'task_list': task_list,
             'summary_dict': summary_dict,

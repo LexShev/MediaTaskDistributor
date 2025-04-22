@@ -9,15 +9,7 @@ def check_data_type(value):
     else:
         return str(value)
 
-def insert_action(service_info_dict, old_values_dict, new_values_dict):
-    # if val:
-    #     if val == True:
-    #         val = 1
-    #     if val = 0:
-    #         val = '0'
-    #     elif isinstance(val, datetime.date):
-    #         val = val.strftime('%Y-%m-%d')
-
+def insert_history(service_info_dict, old_values_dict, new_values_dict):
     program_id = service_info_dict.get('program_id')
     worker_id = service_info_dict.get('worker_id')
 
@@ -32,7 +24,7 @@ def insert_action(service_info_dict, old_values_dict, new_values_dict):
             with connections['planner'].cursor() as cursor:
                 query = f'''
                 INSERT INTO [planner].[dbo].[history_list] ({sql_columns})
-                VALUES ({program_id}, {old_field_id}, 'NULL', 'NULL', {worker_id}, GETDATE(), '{old_value}', '{new_value}');
+                VALUES ({program_id}, {old_field_id}, '', '', {worker_id}, GETDATE(), '{old_value}', '{new_value}');
                 '''
                 print(query)
                 cursor.execute(query)
