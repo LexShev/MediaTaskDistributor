@@ -363,21 +363,25 @@ def change_task_status(program_id, engineer_id, work_date, task_status):
         if cursor.fetchone():
             update = f'''
             UPDATE [planner].[dbo].[task_list]
-            SET [task_status] = {task_status}, [ready_date] = GETDATE()
+            SET [task_status] = '{task_status}', [ready_date] = GETDATE()
             WHERE [program_id] = {program_id}'''
             cursor.execute(update)
+            return 'Изменения успешно внесены!'
         else:
             file_path_dict = find_file_path(program_id)
             file_path = file_path_dict.get('Files_Name')
             duration = file_path_dict.get('Progs_duration')
-
+            if not file_path:
+                return 'Ошибка! Изменения не были внесены. Медиафайл отсутствует.'
             columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
             values = (program_id, engineer_id, duration, work_date, 'GETDATE()', task_status, file_path)
             query = f'''
             INSERT INTO [planner].[dbo].[task_list] ({columns})
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             '''
+            print(query, values)
             cursor.execute(query, values)
+            return 'Новая задача была добавлена в базу!'
 
 def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
     program_id = service_info_dict.get('program_id')

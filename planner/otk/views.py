@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
 from .models import OtkModel
-from .otk_materials_list import task_info
+from .otk_materials_list import task_info, change_task_status_batch
 from .forms import OtkForm
 
 
@@ -21,12 +21,15 @@ def work_list(request):
     if request.method == 'POST':
         approve = request.POST.get('approve_otk')
         fix_otk = request.POST.get('fix_otk')
+        program_id_list = request.POST.getlist('program_id')
+
         if approve:
-            program_id = request.POST.getlist('program_id')
-            print('approve', program_id)
+            change_task_status_batch(program_id_list, 'otk')
+            # insert_history(service_info_dict, {99: 'not_ready'}, {99: 'ready'})
+            print('approve', program_id_list)
         if fix_otk:
-            program_id = request.POST.getlist('program_id')
-            print('fix', program_id)
+            change_task_status_batch(program_id_list, 'otk_fail')
+            print('fix', program_id_list)
         form = OtkForm(request.POST, instance=init_dict)
         if form.is_valid():
             field_vals = [form.cleaned_data.get(field_key) for field_key in form.fields.keys()]
