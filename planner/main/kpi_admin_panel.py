@@ -1,29 +1,7 @@
 import datetime
 
 from django.db import connections
-from django.template.defaulttags import register
 
-
-@register.filter
-def convert_frames_to_time(frames, fps=25):
-    sec = int(frames) / fps
-    yy = int((sec // 3600) // 24) // 365
-    dd = int((sec // 3600) // 24) % 365
-    hh = int((sec // 3600) % 24)
-    mm = int((sec % 3600) // 60)
-    ss = int((sec % 3600) % 60 // 1)
-    ff = int(sec % 1 * fps)
-    tf = f'{hh:02}:{mm:02}:{ss:02}.{ff:02}'
-    if yy < 1:
-        if dd < 1:
-            return f'{hh:02}:{mm:02}:{ss:02}'
-        else:
-            return f'{dd:02}д. {hh:02}:{mm:02}:{ss:02}'
-    else:
-        if 0 < yy % 10 < 5:
-            return f'{yy:02}г. {dd:02}д. {hh:02}:{mm:02}:{ss:02}'
-        else:
-            return f'{yy:02}л. {dd:02}д. {hh:02}:{mm:02}:{ss:02}'
 
 # @register.filter
 # def convert_frames_to_time(frames, fps=25):

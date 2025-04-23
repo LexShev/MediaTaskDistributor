@@ -1,47 +1,9 @@
 import calendar
-import os
 import datetime
 
-from django.template.defaulttags import register
 from django.db import connections
 
 from .distribution import oplan3_engineer
-
-
-@register.filter
-def file_name(full_path):
-    if full_path:
-        return os.path.basename(full_path)
-    else:
-        return '-'
-
-@register.filter
-def dir_name(full_path):
-    if full_path:
-        return os.path.dirname(full_path).replace('\\\\192.168.80.3\\', "")
-    else:
-        return '-'
-
-@register.filter
-def dir_no_host_name(full_path):
-    if full_path:
-        return full_path.replace('\\\\192.168.80.3\\', "")
-
-@register.filter
-def schedule_name(schedule_id):
-    schedules = {
-        3: 'Крепкое',
-        5: 'Планета дети',
-        6: 'Мировой сериал',
-        7: 'Мужской сериал',
-        8: 'Наше детство',
-        9: 'Романтичный сериал',
-        10: 'Наше родное кино',
-        11: 'Семейное кино',
-        12: 'Советское родное кино',
-        20: 'Кино +'
-    }
-    return schedules.get(schedule_id)
 
 
 def calc_prev_month(cal_year, cal_month):

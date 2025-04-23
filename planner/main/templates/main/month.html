@@ -114,6 +114,8 @@
                         <td class="table-success">Готов</td>
                       {% elif not task.Task_task_status %}
                         <td class="table-info">Oplan</td>
+                      {% else %}
+                        <td class="table-info">{{ task.Task_task_status|status_name }}</td>
                       {% endif %}
                     </tr>
                   {% endfor %}

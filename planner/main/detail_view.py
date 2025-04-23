@@ -1,81 +1,11 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from types import NoneType
 
 from django.db import connections
-from django.template.defaulttags import register
 
-from .ffmpeg_info import collection
 from .kinoroom_parser import locate_url
 from .db_connection import parent_name, parent_adult_name
-
-
-@register.filter
-def cenz_name(cenz_id):
-    if cenz_id:
-        cenz_id = int(cenz_id)
-    cenz_dict = {
-        0: '0+',
-        1: '6+',
-        2: '12+',
-        3: '16+',
-        4: '18+'
-    }
-    return cenz_dict.get(cenz_id)
-
-@register.filter
-def engineer_name(engineer_id):
-    if engineer_id:
-        engineer_id = int(engineer_id)
-    engineer_dict = {
-        0: 'Александр Кисляков',
-        1: 'Ольга Кузовкина',
-        2: 'Дмитрий Гатенян',
-        3: 'Мария Сучкова',
-        4: 'Андрей Антипин',
-        5: 'Роман Рогачев',
-        6: 'Анастасия Чебакова',
-        7: 'Никита Кузаков',
-        8: 'Олег Кашежев',
-        9: 'Марфа Тарусина',
-        10: 'Евгений Доманов',
-        11: 'Алексей Шевченко'
-    }
-    return engineer_dict.get(engineer_id, 'Не назначен')
-
-@register.filter
-def worker_name(worker_id):
-    if worker_id:
-        with connections['oplan3'].cursor() as cursor:
-            query = f'SELECT [user_name] FROM [oplan3].[dbo].[user] WHERE [user_id] = {worker_id}'
-            cursor.execute(query)
-            worker = cursor.fetchone()
-            if worker:
-                return worker[0]
-            else:
-                return 'Аноним'
-    else:
-        return ''
-
-@register.filter
-def fields_name(field_id):
-    if field_id:
-        field_id = int(field_id)
-    fields_dict = {
-        5: 'Краткое описание',
-        7: 'Дата отсмотра',
-        8: 'ЛГБТ',
-        9: 'Сигареты',
-        10: 'Обнаженка',
-        11: 'Наркотики',
-        12: 'Мат',
-        13: 'Другое',
-        14: 'Ценз отсмотра',
-        15: 'Тайтл проверил',
-        16: 'Редакторские замечания',
-        17: 'Meta',
-        18: 'Теги',
-        19: 'Иноагент'}
-    return fields_dict.get(field_id)
+from .settings.main_set import MainSettings
 
 
 def check_data_type(value):
@@ -86,29 +16,14 @@ def check_data_type(value):
     else:
         return str(value)
 
-def check_planner_status(planner_status):
-    status_dict = {
-        'no_material': 'Материал отсутствует',
-        'not_ready': 'Не готов',
-        'fix': 'На доработке',
-        'ready': 'Отсмотрен',
-        'otk': 'Прошёл ОТК',
-        'otk_fail': 'НЕ прошёл ОТК',
-        'final': 'Готов к эфиру',
-        'ready_fail': 'На пересмотр'
-    }
-    color_dict = {
-        'no_material': 'text-danger',
-        'not_ready': 'text-primary',
-        'fix': 'text-warning',
-        'ready': 'text-success',
-        'otk': 'text-success',
-        'otk_fail': 'text-danger',
-        'final': 'text-success',
-        'ready_fail': 'text-danger'
 
-    }
-    return status_dict.get(planner_status), color_dict.get(planner_status)
+def check_planner_status(planner_status):
+    status_dict = MainSettings.status_dict
+    return status_dict.get(planner_status)
+
+def check_color_status(planner_status):
+    color_dict = MainSettings.color_dict
+    return color_dict.get(planner_status)
 
 def full_info(program_id):
     with connections['oplan3'].cursor() as cursor:
@@ -124,7 +39,8 @@ def full_info(program_id):
             ('Progs', 'AnonsCaptionInherit'), ('Progs', 'CreationDate'), ('Progs', 'Subtitled'), ('Progs', 'Season'),
             ('Progs', 'Director'), ('Progs', 'Cast'), ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'),
             ('Adult', 'Name'), ('Task', 'work_date'), ('Task', 'ready_date'),
-            ('Task', 'engineer_id'), ('Task', 'task_status')]
+            ('Task', 'engineer_id'), ('Task', 'task_status')
+        ]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -226,7 +142,8 @@ def find_out_status(program_id, full_info_dict):
     # planner_ready_date = full_info_dict.get('Task_ready_date')
     planner_status = full_info_dict.get('Task_task_status')
     if planner_status:
-        material_status, color = check_planner_status(planner_status)
+        material_status = check_planner_status(planner_status)
+        color = check_color_status(planner_status)
     else:
         if oplan3_engineer or oplan3_work_date:
             material_status = 'Отсмотрен через Oplan'
@@ -305,7 +222,6 @@ def insert_value(field_id, program_id, new_value):
             VALUES
             ({field_id}, {program_id}, '{new_value}', 0)
             '''
-            print('insert', query)
             cursor.execute(query)
 
 def delete_value(field_id, program_id):
@@ -316,6 +232,7 @@ def delete_value(field_id, program_id):
         AND [ProgramCustomFieldId] = {field_id}
         '''
         cursor.execute(query)
+        return cursor.rowcount
 
 def update_value(field_id, program_id, new_value):
     if field_id == 7:
@@ -346,6 +263,7 @@ def update_value(field_id, program_id, new_value):
         with connections['oplan3'].cursor() as cursor:
             print(query)
             cursor.execute(query)
+            return cursor.rowcount
 
 def update_file_path(program_id, file_path):
     with connections['planner'].cursor() as cursor:
@@ -355,33 +273,7 @@ def update_file_path(program_id, file_path):
         WHERE [program_id] = {program_id}
         '''
         cursor.execute(query)
-
-def change_task_status(program_id, engineer_id, work_date, task_status):
-    with connections['planner'].cursor() as cursor:
-        select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
-        cursor.execute(select)
-        if cursor.fetchone():
-            update = f'''
-            UPDATE [planner].[dbo].[task_list]
-            SET [task_status] = '{task_status}', [ready_date] = GETDATE()
-            WHERE [program_id] = {program_id}'''
-            cursor.execute(update)
-            return 'Изменения успешно внесены!'
-        else:
-            file_path_dict = find_file_path(program_id)
-            file_path = file_path_dict.get('Files_Name')
-            duration = file_path_dict.get('Progs_duration')
-            if not file_path:
-                return 'Ошибка! Изменения не были внесены. Медиафайл отсутствует.'
-            columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
-            values = (program_id, engineer_id, duration, work_date, 'GETDATE()', task_status, file_path)
-            query = f'''
-            INSERT INTO [planner].[dbo].[task_list] ({columns})
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            '''
-            print(query, values)
-            cursor.execute(query, values)
-            return 'Новая задача была добавлена в базу!'
+        return cursor.rowcount
 
 def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
     program_id = service_info_dict.get('program_id')
@@ -389,11 +281,11 @@ def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
         old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
         old_value, new_value = check_data_type(old_value), check_data_type(new_value)
         if not old_value and new_value:
-            insert_value(new_field_id, program_id, new_value)
+            return insert_value(new_field_id, program_id, new_value)
         elif old_value and not new_value:
-            delete_value(old_field_id, program_id)
+            return delete_value(old_field_id, program_id)
         elif old_value and new_value and str(old_value) != str(new_value):
-            update_value(old_field_id, program_id, new_value)
+            return update_value(old_field_id, program_id, new_value)
 
 def schedule_info(program_id):
     with connections['oplan3'].cursor() as cursor:
@@ -407,3 +299,13 @@ def schedule_info(program_id):
         cursor.execute(query)
         schedule_dict = [dict(zip(columns, schedule)) for schedule in cursor.fetchall()]
     return schedule_dict
+
+def calc_otk_deadline():
+    # with connections['planner'].cursor() as cursor:
+    #     cursor.execute(f'SELECT day_off FROM [planner].[dbo].[days_off] WHERE day_off = "{work_day}"')
+    #     day_off = cursor.fetchone()
+    # deadline = date.today()
+    # for day in range(5):
+    #     if deadline != day_off:
+    #         deadline += timedelta(days=1)
+    return date.today() + timedelta(days=5)

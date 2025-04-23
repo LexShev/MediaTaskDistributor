@@ -8,14 +8,14 @@ from django.contrib import messages
 from .common_pool import select_pool, service_pool_info
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .header_search import fast_search, advanced_search
-from .logs_and_history import insert_history, select_actions
+from .logs_and_history import insert_history, select_actions, change_task_status
 from .models import ModelFilter
 from .list_view import list_material_list
 from .permission_pannel import ask_db_permissions
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
-from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, change_task_status, update_file_path
+from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline
 from .distribution import main_distribution
 from .month import report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
@@ -212,14 +212,28 @@ def material_card(request, program_id):
                 'program_id': program_id,
                 'worker_id': worker_id
             }
-            insert_history(service_info_dict, old_values_dict, new_values_dict)
-            change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
-
             engineer_id = new_values_dict.get(15)
             work_date = new_values_dict.get(7)
-            text_message = change_task_status(program_id, engineer_id, work_date, 'ready')
-            insert_history(service_info_dict, {99: 'not_ready'}, {99: 'ready'})
-            messages.success(request, text_message)
+            text_message = ''
+            cenz_approve = request.POST.get('cenz_approve')
+            ask_fix = request.POST.get('ask_fix')
+            print('cenz_approve', cenz_approve)
+
+            if cenz_approve:
+                cenz_comment = request.POST.get('cenz_comment')
+                insert_history(service_info_dict, old_values_dict, new_values_dict)
+                change_info = change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
+                text_message = change_task_status(program_id, engineer_id, worker_id, work_date, 'ready', cenz_comment)
+                if not change_info and not text_message:
+                    text_message = 'Без изменений'
+            if ask_fix:
+                fix_comment = request.POST.get('fix_comment')
+                deadline = request.POST.get('deadline')
+                print('deadline', deadline)
+                text_message = change_task_status(program_id, engineer_id, worker_id, work_date, 'fix', fix_comment)
+
+            if text_message:
+                messages.success(request, text_message)
 
     else:
         form_drop = CenzFormDropDown(
@@ -244,6 +258,7 @@ def material_card(request, program_id):
 
     data = {'full_info': full_info(program_id),
             'custom_fields': custom_fields,
+            'deadline': calc_otk_deadline(),
             'schedule_info': schedule_info(program_id),
             'actions_list': select_actions(program_id),
             'ffmpeg': ffmpeg_dict(program_id),

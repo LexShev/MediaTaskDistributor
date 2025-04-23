@@ -63,9 +63,9 @@
           <th style="width: 5%;">Директория</th>
           <th style="width: 35%;">Имя файла</th>
           <th style="width: 10%;">Исполнитель</th>
-          <th style="width: 10%;">Дата эфира</th>
+          <th style="width: 7%;">Дата эфира</th>
           <th style="width: 7%;">Длительность</th>
-          <th style="width: 7%;">Статус</th>
+          <th style="width: 10%;">Статус</th>
         </tr>
       </thead>
       <tbody class="table-group-divider" id="tableBody">
@@ -82,13 +82,7 @@
                 {{ task.Task_engineer_id|engineer_name }}</a></td>
             <td>{{ task.Task_sched_date|date:'Y-m-d' }}</td>
             <td>{{ task.Task_duration|convert_frames_to_time }}</td>
-            {% if task.Task_task_status == 'not_ready' %}
-              <td>Не готов</td>
-            {% elif task.Task_task_status == 'ready' %}
-              <td>Отсмотрен</td>
-            {% elif task.Task_task_status == 'no_material' %}
-              <td>Нет материала</td>
-            {% endif %}
+            <td>{{ task.Task_task_status|status_name }}</td>
           </tr>
         {% endfor %}
       </tbody>
