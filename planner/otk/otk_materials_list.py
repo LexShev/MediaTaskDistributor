@@ -113,5 +113,4 @@ def change_task_status_batch(file_list, task_status):
             SET [task_status] = '{task_status}', [ready_date] = GETDATE()
             WHERE [program_id] = {program_id}'''
             cursor.execute(update)
-            # return f'Изменения в {program_id} успешно внесены!'
-    return 'Задача завершена'
+    return 'Изменения успешно внесены'

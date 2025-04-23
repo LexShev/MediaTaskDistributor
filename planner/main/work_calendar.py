@@ -1,6 +1,5 @@
 from datetime import timedelta, datetime
 
-from django.template.defaulttags import register
 from django.db import connections
 import calendar
 
@@ -14,23 +13,6 @@ def workers_name(worker_id):
         print(e)
         return None
 
-
-@register.filter
-def month_name(cal_month):
-    month_dict = {
-        1: "Январь",
-        2: "Февраль",
-        3: "Март",
-        4: "Апрель",
-        5: "Май",
-        6: "Июнь",
-        7: "Июль",
-        8: "Август",
-        9: "Сентябрь",
-        10: "Октябрь",
-        11: "Ноябрь",
-        12: "Декабрь"}
-    return month_dict.get(cal_month)
 
 def check_holidays(month_calendar):
     holidays = holidays_list()

@@ -6,7 +6,7 @@ from django.db import connections
 def main_distribution():
     # work_date = datetime.today().date()
     work_date = date(day=10, month=3, year=2025)
-    dates = tuple(str(work_date + timedelta(days=day)) for day in range(23))
+    dates = tuple(str(work_date + timedelta(days=day)) for day in range(25))
 
     material_list_sql, django_columns = oplan_material_list(dates=dates)
     program_id_list = []
@@ -161,6 +161,7 @@ def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_da
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
         cursor.execute(query, values)
+        print(query, values)
         # print(f'{program_id}, {engineer_id} successfully added')
 
 def planner_engineer(program_id):

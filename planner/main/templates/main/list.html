@@ -69,7 +69,7 @@
                 <input class="form-check-input me-1" type="checkbox" value="" id="season_id">
                   <label class="form-check-label" for="season_id">
                     <a href="{% url 'home' %}{{ material.Progs_parent_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                      <h6 class="my-0 mx-1">{{ material.Progs_AnonsCaption|truncatechars:40 }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
+                      <h6 class="my-0 mx-1">{{ material.Progs_AnonsCaption|truncatechars:60 }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
                     </a>
                   </label>
               </div>

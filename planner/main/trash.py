@@ -1,5 +1,7 @@
 import calendar
 import datetime
+from decimal import Decimal
+
 # # Создаем обычный текстовый календарь
 # c = calendar.TextCalendar(calendar.MONDAY)
 # string = c.formatmonth(2025, 3)
@@ -71,7 +73,10 @@ import datetime
 # print(int(False))
 # d=5
 # print(f'{d:05}')
-eng_list = [0, 1, 2, 3, 4, 5, None, 6, False, 7]
-for engineer_id in eng_list:
-    if engineer_id or engineer_id == 0:
-        print(engineer_id)
+# eng_list = [0, 1, 2, 3, 4, 5, None, 6, False, 7]
+# for engineer_id in eng_list:
+#     if engineer_id or engineer_id == 0:
+#         print(engineer_id)
+
+print(datetime.datetime(2025, 4, 23, 13, 19, 18, 360000))
+print( datetime.datetime(2025, 4, 23, 13, 22, 4, 290000))

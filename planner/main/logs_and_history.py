@@ -1,6 +1,7 @@
 from django.db import connections
 from datetime import datetime, date
 
+
 def check_data_type(value):
     if isinstance(value, datetime) or isinstance(value, date):
         return value.strftime('%Y-%m-%d')
@@ -34,8 +35,79 @@ def select_actions(program_id):
                'worker_id', 'time_of_change', 'old_value', 'new_value')
     sql_columns = ', '.join(columns)
     with connections['planner'].cursor() as cursor:
-        query = f'SELECT {sql_columns} FROM [planner].[dbo].[history_list] WHERE [program_id] = {program_id}'
+        query = f'''
+        SELECT {sql_columns}
+        FROM [planner].[dbo].[history_list]
+        WHERE [program_id] = {program_id}
+        ORDER BY [time_of_change]
+        '''
         cursor.execute(query)
         return [dict(zip(columns, actions)) for actions in cursor.fetchall()]
+
+def find_file_path(program_id):
+    columns = (('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
+               ('Files', 'ModificationTime'), ('Progs', 'duration'))
+    sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+    django_columns = [f'{col}_{val}' for col, val in columns]
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        SELECT {sql_columns}
+        FROM [oplan3].[dbo].[File] AS Files
+        JOIN [oplan3].[dbo].[Clip] AS Clips
+            ON Files.[ClipID] = Clips.[ClipID]
+        JOIN [oplan3].[dbo].[program] AS Progs
+            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        WHERE Files.[Deleted] = 0
+        AND Files.[PhysicallyDeleted] = 0
+        AND Clips.[Deleted] = 0
+        AND Progs.[deleted] = 0
+        AND Progs.[DeletedIncludeParent] = 0
+        AND Progs.[program_id] = {program_id}
+        '''
+        cursor.execute(query)
+        file_path_info = cursor.fetchone()
+    if file_path_info:
+        return dict(zip(django_columns, file_path_info))
+
+def change_task_status(program_id, engineer_id, worker_id, work_date, task_status, comment):
+    with connections['planner'].cursor() as cursor:
+        select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
+        cursor.execute(select)
+        if cursor.fetchone():
+            update_status = f'''
+            UPDATE [planner].[dbo].[task_list]
+            SET [task_status] = '{task_status}', [ready_date] = GETDATE()
+            WHERE [program_id] = {program_id}
+            AND [task_status] IN ('ready', 'not_ready', 'otk_fail', 'no_material')
+            '''
+            cursor.execute(update_status)
+            if cursor.rowcount:
+                update_comment = f'''
+                INSERT INTO [planner].[dbo].[comments_history] ([program_id], [task_status], [comment], [worker_id], [time_of_change])
+                VALUES ({program_id}, '{task_status}', '{comment}', {worker_id}, GETDATE());
+                '''
+                cursor.execute(update_comment)
+                return 'Изменения успешно внесены!'
+
+        else:
+            file_path_dict = find_file_path(program_id)
+            file_path = file_path_dict.get('Files_Name')
+            duration = file_path_dict.get('Progs_duration')
+            if not file_path:
+                return 'Ошибка! Изменения не были внесены. Медиафайл отсутствует.'
+            columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
+            values = (program_id, engineer_id, duration, work_date, datetime.today(), task_status, file_path)
+            query = f'''
+            INSERT INTO [planner].[dbo].[task_list] ({columns})
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            '''
+            print(query, values)
+            cursor.execute(query, values)
+            update_comment = f'''
+            INSERT INTO [planner].[dbo].[comments_history] ([program_id], [task_status], [comment], [worker_id], [time_of_change])
+            VALUES ({program_id}, '{task_status}', '{comment}', {worker_id}, GETDATE());
+            '''
+            cursor.execute(update_comment)
+            return 'Новая задача была добавлена в базу!'
 
 

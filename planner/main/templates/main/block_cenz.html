@@ -1,10 +1,4 @@
-{% if messages %}
-  {% for message in messages %}
-    <br><div class="alert alert-warning" role="alert">
-      {{ message }}
-    </div>
-  {% endfor %}
-{% endif %}
+
 <form method="POST">
   {% csrf_token %}
   <div class="row">
@@ -29,38 +23,64 @@
     {% endfor %}
   </div>
 
-
-      <div class="modal fade" id="CenzApprove" tabindex="-1" aria-labelledby="CenzApproveLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="CenzApproveLabel">
-                  {% if full_info.TaskInf_task_status == 'not_ready' %}
-                    Вы подтверждаете выполнение задачи?
-                  {% else %}
-                    Вы подтверждаете изменения?
-                  {% endif%}
-                </h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <h6>Укажите готовый файл</h6>
-              <div class="input-group">
-                <input class="form-control" type="file" id="upload_ready_file_form" name="upload_ready_file_form" accept="">
+  <div class="modal fade" id="CenzApprove" tabindex="-1" aria-labelledby="CenzApproveLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="CenzApproveLabel">
+              {% if full_info.TaskInf_task_status == 'not_ready' %}
+                Вы подтверждаете выполнение задачи?
+              {% else %}
+                Вы подтверждаете изменения?
+              {% endif %}
+            </h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h6>Укажите готовый файл</h6>
+          <div class="input-group">
+            <input class="form-control custom-file-input" type="file" id="upload_ready_file_form" name="upload_ready_file_form" accept="">
 <!--                <button class="btn btn-outline-secondary" type="button" id="upload_form_btn">Загрузить</button>-->
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="submit" class="btn btn-outline-light">Завершить задачу</button>
-              <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
-            </div>
-          </div>
+          </div><br>
+          <h6>Комментарий к материалу</h6>
+            <textarea class="form-control" id="cenz_comment" name="cenz_comment" style="min-height: 130px">CENZ не требуется</textarea><br>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" name="cenz_approve" id="cenz_approve" value="True" class="btn btn-outline-success">Завершить задачу</button>
+          <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="AskFix" tabindex="-1" aria-labelledby="AskFixLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="AskFixLabel">
+              Запросить FIX?
+            </h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h6>Комментарий по исправлению</h6>
+            <textarea class="form-control" style="min-height: 130px" name="fix_comment" id="fix_comment"
+                      placeholder="1. Таймкод - суть проблемы&#10;2. Таймкод - суть проблемы&#10;3. ..."></textarea><br>
+          <h6>Установить крайний срок</h6>
+            <input class="form-control" type="date" id="deadline" name="deadline" value="{{ deadline|date:'Y-m-d' }}">
+        </div>
+        <div class="modal-footer">
+          <button type="submit" name="ask_fix" id="ask_fix" value="True" class="btn btn-outline-warning">Запросить</button>
+          <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="text-end">
-    <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#CenzApprove">Сохранить</button>
-    <button type="reset" class="btn btn-outline-danger">Сбросить</button>
+    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#CenzApprove">Сохранить</button>
+    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#AskFix">Запросить FIX</button>
+    <button type="reset" class="btn btn-sm btn-outline-danger align-bottom">Сбросить</button>
   </div>
 </form>
 
