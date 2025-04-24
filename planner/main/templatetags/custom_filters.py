@@ -1,6 +1,5 @@
 from django.template.defaulttags import register
 from django.db import connections
-
 import os
 
 from main.settings.main_set import MainSettings

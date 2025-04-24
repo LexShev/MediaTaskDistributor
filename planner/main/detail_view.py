@@ -266,6 +266,8 @@ def update_value(field_id, program_id, new_value):
             return cursor.rowcount
 
 def update_file_path(program_id, file_path):
+    if file_path.startswith('"') and file_path.endswith('"'):
+        file_path = file_path[1:-1]
     with connections['planner'].cursor() as cursor:
         query = f'''
         UPDATE [planner].[dbo].[task_list]
@@ -281,11 +283,11 @@ def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
         old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
         old_value, new_value = check_data_type(old_value), check_data_type(new_value)
         if not old_value and new_value:
-            return insert_value(new_field_id, program_id, new_value)
+            insert_value(new_field_id, program_id, new_value)
         elif old_value and not new_value:
-            return delete_value(old_field_id, program_id)
+            delete_value(old_field_id, program_id)
         elif old_value and new_value and str(old_value) != str(new_value):
-            return update_value(old_field_id, program_id, new_value)
+            update_value(old_field_id, program_id, new_value)
 
 def schedule_info(program_id):
     with connections['oplan3'].cursor() as cursor:
@@ -309,3 +311,28 @@ def calc_otk_deadline():
     #     if deadline != day_off:
     #         deadline += timedelta(days=1)
     return date.today() + timedelta(days=5)
+
+def block_object(program_id, worker_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        INSERT INTO [oplan3].[dbo].[ObjectLock]
+        ([ObjectID], [ObjectType], [UserID], [LockTime])
+        VALUES
+        ({program_id}, 'PTeam.Model.SingleProgram', {worker_id}, GETDATE());
+        '''
+        cursor.execute(query)
+        return cursor.rowcount
+
+def unblock_object(program_id, worker_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'DELETE FROM [oplan3].[dbo].[ObjectLock] WHERE [ObjectID] = {program_id} AND [UserID] = {worker_id}'
+        cursor.execute(query)
+        return cursor.rowcount
+
+def check_lock_object(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'SELECT [ObjectID],[UserID] FROM [oplan3].[dbo].[ObjectLock] WHERE [ObjectID] = {program_id}'
+        cursor.execute(query)
+        res = cursor.fetchone()
+        print(res)
+        return res

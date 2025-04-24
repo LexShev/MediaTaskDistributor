@@ -4,14 +4,21 @@
 {% block body %}
 
 <div class="container-md text-start px-0">
+
   {% if messages %}
-  {% for message in messages %}
-    <div class="alert alert-warning alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
-      {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  {% endfor %}
-{% endif %}
+    {% for message in messages %}
+      {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        <div class="alert alert-success alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
+          {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+        <div class="alert alert-warning alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
+          Карточка материала заблокирована пользователем: {{ message|worker_name }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
   {% if full_info.Progs_program_kind != 1 and full_info.Progs_program_kind != 4 %}
     <div class="accordion shadow mx-2 mb-2 mt-0 p-0" id="accordion_sum_info">
       <div class="accordion-item">
@@ -28,7 +35,14 @@
             </div>
             <div class="col p-0">
               <div class="row m-0">
-                <h6 class="{{ full_info.color }} text-end p-1">{{ full_info.material_status }} {{ full_info.oplan3_work_date|date:'d.m.Y' }}</h6>
+                <h6 class="{{ full_info.color }} text-end p-1">
+                  {{ full_info.material_status }}
+                  {% if full_info.Task_ready_date %}
+                    {{ full_info.Task_ready_date|date:'d.m.Y' }}
+                  {% else %}
+                    {{ full_info.oplan3_work_date|date:'d.m.Y' }}
+                  {% endif %}
+                </h6>
               </div>
 
               <div class="row m-0">

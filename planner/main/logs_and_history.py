@@ -69,7 +69,7 @@ def find_file_path(program_id):
     if file_path_info:
         return dict(zip(django_columns, file_path_info))
 
-def change_task_status(program_id, engineer_id, worker_id, work_date, task_status, comment):
+def change_task_status(program_id, engineer_id, work_date, task_status):
     with connections['planner'].cursor() as cursor:
         select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
         cursor.execute(select)
@@ -78,7 +78,48 @@ def change_task_status(program_id, engineer_id, worker_id, work_date, task_statu
             UPDATE [planner].[dbo].[task_list]
             SET [task_status] = '{task_status}', [ready_date] = GETDATE()
             WHERE [program_id] = {program_id}
-            AND [task_status] IN ('ready', 'not_ready', 'otk_fail', 'no_material')
+            AND [task_status] IN ('ready', 'not_ready', 'fix_ready', 'otk_fail', 'no_material')
+            '''
+            cursor.execute(update_status)
+            if cursor.rowcount:
+                return 'Задача завершена.'
+
+        else:
+            file_path_dict = find_file_path(program_id)
+            file_path = file_path_dict.get('Files_Name')
+            duration = file_path_dict.get('Progs_duration')
+            if not file_path:
+                return 'Ошибка! Изменения не были внесены. Медиафайл отсутствует.'
+
+            columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
+            values = (program_id, engineer_id, duration, work_date, datetime.today(), task_status, file_path)
+            query = f'''
+            INSERT INTO [planner].[dbo].[task_list] ({columns})
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            '''
+            cursor.execute(query, values)
+            return 'Новая задача была добавлена в базу.'
+
+def update_comment(program_id, task_status, worker_id, comment, deadline):
+    with connections['planner'].cursor() as cursor:
+        values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
+        query = f'''
+            INSERT INTO [planner].[dbo].[comments_history]
+            ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
+            VALUES (%s, %s, %s, %s, %s, %s);
+            '''
+        cursor.execute(query, values)
+    return 'Изменения успешно внесены!'
+
+def change_fix_task_status(program_id, engineer_id, worker_id, work_date, task_status, comment):
+    with connections['planner'].cursor() as cursor:
+        select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
+        cursor.execute(select)
+        if cursor.fetchone():
+            update_status = f'''
+            UPDATE [planner].[dbo].[task_list]
+            SET [task_status] = 'fix', [ready_date] = GETDATE()
+            WHERE [program_id] = {program_id}
             '''
             cursor.execute(update_status)
             if cursor.rowcount:
@@ -88,26 +129,3 @@ def change_task_status(program_id, engineer_id, worker_id, work_date, task_statu
                 '''
                 cursor.execute(update_comment)
                 return 'Изменения успешно внесены!'
-
-        else:
-            file_path_dict = find_file_path(program_id)
-            file_path = file_path_dict.get('Files_Name')
-            duration = file_path_dict.get('Progs_duration')
-            if not file_path:
-                return 'Ошибка! Изменения не были внесены. Медиафайл отсутствует.'
-            columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
-            values = (program_id, engineer_id, duration, work_date, datetime.today(), task_status, file_path)
-            query = f'''
-            INSERT INTO [planner].[dbo].[task_list] ({columns})
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            '''
-            print(query, values)
-            cursor.execute(query, values)
-            update_comment = f'''
-            INSERT INTO [planner].[dbo].[comments_history] ([program_id], [task_status], [comment], [worker_id], [time_of_change])
-            VALUES ({program_id}, '{task_status}', '{comment}', {worker_id}, GETDATE());
-            '''
-            cursor.execute(update_comment)
-            return 'Новая задача была добавлена в базу!'
-
-

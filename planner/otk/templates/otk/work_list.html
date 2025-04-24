@@ -20,6 +20,29 @@
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="ApproveFIX" tabindex="-1" aria-labelledby="ApproveFIXLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+              <h1 class="modal-title fs-5" id="ApproveFIXLabel">
+                Отправить FIX в работу?
+              </h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <h6>Комментарий по исправлению</h6>
+              <textarea class="form-control" style="min-height: 130px" name="fix_comment" id="fix_comment"
+                        placeholder="1. Перекачан исходник&#10;2. Исправлен звук&#10;3. ..."></textarea><br>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" name="approve_fix" id="approve_fix" value="True" class="btn btn-outline-warning">Отправить</button>
+            <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade" id="FixOTK" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -87,10 +110,13 @@
         {% endfor %}
       </tbody>
     </table>
-    <div class="row">
-      <div class="col">
-        <button type="button" data-bs-toggle="modal" data-bs-target="#ApproveOTK" class="btn me-auto register-button btn-outline-success mx-2">Утвердить</button>
-        <button type="button" data-bs-toggle="modal" data-bs-target="#FixOTK" class="btn me-auto register-button btn-outline-danger mx-2">На доработку</button>
+    <div class="d-flex">
+      <div class="me-auto">
+        <button type="button" data-bs-toggle="modal" data-bs-target="#ApproveOTK" class="btn register-button btn-outline-success mx-2">Утвердить</button>
+      </div>
+      <div class="ms-auto">
+        <button type="button" data-bs-toggle="modal" data-bs-target="#ApproveFIX" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>
+        <button type="button" data-bs-toggle="modal" data-bs-target="#FixOTK" class="btn register-button btn-outline-danger mx-2">На доработку</button>
       </div>
     </div>
   </form>
