@@ -2,7 +2,6 @@ import calendar
 import datetime
 
 from django.db import connections
-
 from .distribution import oplan3_engineer
 
 

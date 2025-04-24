@@ -8,14 +8,15 @@ from django.contrib import messages
 from .common_pool import select_pool, service_pool_info
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .header_search import fast_search, advanced_search
-from .logs_and_history import insert_history, select_actions, change_task_status
+from .logs_and_history import insert_history, select_actions, change_task_status, update_comment
 from .models import ModelFilter
 from .list_view import list_material_list
 from .permission_pannel import ask_db_permissions
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
-from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline
+from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline, \
+    block_object, check_lock_object, unblock_object
 from .distribution import main_distribution
 from .month import report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
@@ -190,8 +191,6 @@ def material_card(request, program_id):
         form_drop = CenzFormDropDown(request.POST)
         form_text = CenzFormText(request.POST)
 
-        upload_ready_file = request.POST.get('upload_ready_file_form')
-        update_file_path(program_id, upload_ready_file)
         if form_text.is_valid() and form_drop.is_valid():
             new_values_dict = {
                 17: form_drop.cleaned_data.get('meta_form'),
@@ -215,23 +214,34 @@ def material_card(request, program_id):
             engineer_id = new_values_dict.get(15)
             work_date = new_values_dict.get(7)
             text_message = ''
-            cenz_approve = request.POST.get('cenz_approve')
+            status_ready = request.POST.get('status_ready')
+            cenz_info_change = request.POST.get('cenz_info_change')
             ask_fix = request.POST.get('ask_fix')
-            print('cenz_approve', cenz_approve)
+            print('cenz_info_change', cenz_info_change)
 
-            if cenz_approve:
+            upload_ready_file = request.POST.get('upload_ready_file')
+            print('upload_ready_file', upload_ready_file)
+            update_file_path(program_id, upload_ready_file)
+            if status_ready:
+                task_status = 'ready'
                 cenz_comment = request.POST.get('cenz_comment')
+                change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
-                change_info = change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
-                text_message = change_task_status(program_id, engineer_id, worker_id, work_date, 'ready', cenz_comment)
-                if not change_info and not text_message:
-                    text_message = 'Без изменений'
+                text_message = change_task_status(program_id, engineer_id, work_date, task_status)
+                update_comment(program_id, task_status, worker_id, cenz_comment, '')
+            if cenz_info_change:
+                cenz_comment = request.POST.get('cenz_comment')
+                change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
+                insert_history(service_info_dict, old_values_dict, new_values_dict)
+                update_comment(program_id, '', worker_id, cenz_comment, '')
+                text_message = 'Изменения успешно внесены.'
             if ask_fix:
+                task_status = 'fix'
                 fix_comment = request.POST.get('fix_comment')
                 deadline = request.POST.get('deadline')
-                print('deadline', deadline)
-                text_message = change_task_status(program_id, engineer_id, worker_id, work_date, 'fix', fix_comment)
-
+                change_task_status(program_id, engineer_id, work_date, task_status)
+                text_message = 'Заявка на FIX успешно отправлена.'
+                update_comment(program_id, task_status, worker_id, fix_comment, deadline)
             if text_message:
                 messages.success(request, text_message)
 
@@ -256,6 +266,17 @@ def material_card(request, program_id):
                 'editor_form': custom_fields.get(16)
             })
 
+    lock_user = check_lock_object(program_id)
+    key = request.POST.get('cenz_comment')
+    print('key', key)
+    if lock_user and lock_user[1] != worker_id:
+        lock_material = True
+        messages.warning(request, lock_user[1])
+    else:
+        unblock_object(program_id, worker_id)
+        lock_material = False
+        block_object(program_id, worker_id)
+
     data = {'full_info': full_info(program_id),
             'custom_fields': custom_fields,
             'deadline': calc_otk_deadline(),
@@ -264,9 +285,16 @@ def material_card(request, program_id):
             'ffmpeg': ffmpeg_dict(program_id),
             'form_text': form_text,
             'form_drop': form_drop,
+            'lock_material': lock_material,
             'permissions': ask_db_permissions(worker_id)
             }
+
     return render(request, 'main/full_info_card.html', data)
+
+def unblock_card(request):
+    print('test')
+
+
 
 @login_required()
 def kpi_info(request):

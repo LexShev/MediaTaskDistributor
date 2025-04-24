@@ -1,5 +1,5 @@
 from django.db import connections
-
+from datetime import datetime
 
 def check_value(key, value):
     if value:
@@ -85,32 +85,23 @@ def find_file_path(program_id):
     if file_path:
         return file_path[0]
 
-def insert_history_batch(service_info_dict, old_values_dict, new_values_dict):
-    program_id = service_info_dict.get('program_id')
-    worker_id = service_info_dict.get('worker_id')
-
-    columns = ('program_id', 'CustomFieldID', 'action_description', 'action_comment',
-               'worker_id', 'time_of_change', 'old_value', 'new_value')
-    sql_columns = ', '.join(columns)
-
-    for old_field_id, new_field_id in zip(old_values_dict, new_values_dict):
-        old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
-        old_value, new_value = check_data_type(old_value), check_data_type(new_value)
-        if str(old_value) != str(new_value):
-            with connections['planner'].cursor() as cursor:
-                query = f'''
-                INSERT INTO [planner].[dbo].[history_list] ({sql_columns})
-                VALUES ({program_id}, {old_field_id}, '', '', {worker_id}, GETDATE(), '{old_value}', '{new_value}');
-                '''
-                print(query)
-                cursor.execute(query)
-
-def change_task_status_batch(file_list, task_status):
+def change_task_status_batch(program_id_list, task_status):
     with connections['planner'].cursor() as cursor:
-        for program_id in file_list:
+        for program_id in program_id_list:
             update = f'''
             UPDATE [planner].[dbo].[task_list]
             SET [task_status] = '{task_status}', [ready_date] = GETDATE()
             WHERE [program_id] = {program_id}'''
             cursor.execute(update)
     return 'Изменения успешно внесены'
+
+def update_comment_batch(program_id_list, task_status, worker_id, comment, deadline):
+    with connections['planner'].cursor() as cursor:
+        for program_id in program_id_list:
+            values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
+            query = f'''
+                INSERT INTO [planner].[dbo].[comments_history]
+                ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
+                VALUES (%s, %s, %s, %s, %s, %s);
+                '''
+            cursor.execute(query, values)
