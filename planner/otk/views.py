@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
 from .models import OtkModel
-from .otk_materials_list import task_info, change_task_status_batch, update_comment_batch
+from .otk_materials_list import task_info, change_task_status_batch, update_comment_batch, change_task_status_fix, \
+    update_comment_fix
 from .forms import OtkForm
 
 
@@ -22,8 +23,15 @@ def work_list(request):
         approve = request.POST.get('approve_otk')
         fix_otk = request.POST.get('fix_otk')
         approve_fix = request.POST.get('approve_fix')
-        fix_comment = request.POST.get('fix_comment')
         program_id_list = request.POST.getlist('program_id')
+
+        fix_list = request.POST.getlist('fix_prog_id')
+        fix_comment = request.POST.getlist('fix_comment')
+        fix_file_path = request.POST.getlist('fix_file_path')
+        fix_tuple = list(zip(fix_list, fix_comment, fix_file_path))
+
+
+
 
         if approve:
             change_task_status_batch(program_id_list, 'otk')
@@ -33,9 +41,9 @@ def work_list(request):
             change_task_status_batch(program_id_list, 'otk_fail')
             print('fix', program_id_list)
         if approve_fix:
-            change_task_status_batch(program_id_list, 'fix_ready')
-            update_comment_batch(program_id_list, 'fix_ready', worker_id, fix_comment, '')
-            print('approve_fix', program_id_list)
+            change_task_status_fix(fix_tuple, 'fix_ready')
+            update_comment_fix(fix_tuple, 'fix_ready', worker_id, '')
+            print('fix_tuple', fix_tuple)
         form = OtkForm(request.POST, instance=init_dict)
         if form.is_valid():
             field_vals = [form.cleaned_data.get(field_key) for field_key in form.fields.keys()]

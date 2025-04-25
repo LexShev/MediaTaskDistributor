@@ -86,7 +86,6 @@ def find_file_path(program_id):
         return file_path[0]
 
 def change_task_status_batch(program_id_list, task_status):
-    print('tetst', program_id_list, task_status)
     with connections['planner'].cursor() as cursor:
         for program_id in program_id_list:
             update = f'''
@@ -100,6 +99,33 @@ def change_task_status_batch(program_id_list, task_status):
 def update_comment_batch(program_id_list, task_status, worker_id, comment, deadline):
     with connections['planner'].cursor() as cursor:
         for program_id in program_id_list:
+            values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
+            query = f'''
+                INSERT INTO [planner].[dbo].[comments_history]
+                ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
+                VALUES (%s, %s, %s, %s, %s, %s);
+                '''
+            cursor.execute(query, values)
+
+def change_task_status_fix(fix_tuple, task_status):
+    with connections['planner'].cursor() as cursor:
+        for material in fix_tuple:
+            program_id, comment, file_path = material
+            if file_path.startswith('"') and file_path.endswith('"'):
+                file_path = file_path[1:-1]
+            query = f'''
+            UPDATE [planner].[dbo].[task_list]
+            SET [task_status] = %s, [ready_date] = %s, [file_path] = %s
+            WHERE [program_id] = %s'''
+            update_data = (task_status, datetime.today(), file_path, program_id)
+            print(query, update_data)
+            cursor.execute(query, update_data)
+    return 'Изменения успешно внесены'
+
+def update_comment_fix(fix_tuple, task_status, worker_id, deadline):
+    with connections['planner'].cursor() as cursor:
+        for material in fix_tuple:
+            program_id, comment, file_path = material
             values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
             query = f'''
                 INSERT INTO [planner].[dbo].[comments_history]
