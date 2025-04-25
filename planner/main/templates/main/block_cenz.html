@@ -97,8 +97,10 @@
 </form>
 
 <script>
-  window.onbeforeunload = function() {
-  console.log('found')
-  window.open('http://127.0.0.1:8000/unblock_card', '_self')
+window.onbeforeunload = function(e) {
+  console.log(e);
+  e.returnValue = 'Есть несохранённые изменения! Уверены, что хотите покинуть страницу?';
+  console.log(e);
+  window.location.href = "{% url 'home' %}unblock_card";
 };
 </script>
