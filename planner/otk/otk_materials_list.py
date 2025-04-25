@@ -111,15 +111,24 @@ def change_task_status_fix(fix_tuple, task_status):
     with connections['planner'].cursor() as cursor:
         for material in fix_tuple:
             program_id, comment, file_path = material
-            if file_path.startswith('"') and file_path.endswith('"'):
-                file_path = file_path[1:-1]
-            query = f'''
-            UPDATE [planner].[dbo].[task_list]
-            SET [task_status] = %s, [ready_date] = %s, [file_path] = %s
-            WHERE [program_id] = %s'''
-            update_data = (task_status, datetime.today(), file_path, program_id)
-            print(query, update_data)
-            cursor.execute(query, update_data)
+            if file_path:
+                if file_path.startswith('"') and file_path.endswith('"'):
+                    file_path = file_path[1:-1]
+                query = f'''
+                UPDATE [planner].[dbo].[task_list]
+                SET [task_status] = %s, [ready_date] = %s, [file_path] = %s
+                WHERE [program_id] = %s'''
+                update_data = (task_status, datetime.today(), file_path, program_id)
+                print(query, update_data)
+                cursor.execute(query, update_data)
+            else:
+                query = f'''
+                UPDATE [planner].[dbo].[task_list]
+                SET [task_status] = %s, [ready_date] = %s
+                WHERE [program_id] = %s'''
+                update_data = (task_status, datetime.today(), program_id)
+                print(query, update_data)
+                cursor.execute(query, update_data)
     return 'Изменения успешно внесены'
 
 def update_comment_fix(fix_tuple, task_status, worker_id, deadline):
