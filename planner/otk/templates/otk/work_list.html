@@ -37,7 +37,7 @@
     </div>
 
     <div class="modal fade" id="ApproveFIX" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="ApproveFIXLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable modal-lg">
+      <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <div class="modal-content">
           <div class="modal-header">
               <h1 class="modal-title fs-5" id="ApproveFIXLabel">
@@ -140,10 +140,9 @@
     </div>
   </form>
 </div>
-
 <script>
 function ProgramIdList() {
-    let FixList = ApproveFIX.querySelector('#fix_list');
+    let FixList = document.getElementById('fix_list');
     FixList.innerHTML = ''
 
     let checked_list = document.getElementsByName('program_id');
@@ -159,40 +158,49 @@ function ProgramIdList() {
         ApproveFIX.toggle();
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
+
                 let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
+
+                let fix_prog_id = document.createElement("input");
+                fix_prog_id.type = 'hidden';
+                fix_prog_id.name = 'fix_prog_id';
+                fix_prog_id.value = prog_id;
+                FixList.appendChild(fix_prog_id);
+
                 let file_name = document.createElement("h5");
+                file_name.classList.add('my-2');
                 file_name.textContent = f_name;
                 file_name.name = 'file_name'
-                FixList.appendChild(file_name)
+                FixList.appendChild(file_name);
 
-                sub_header = document.createElement("h6")
-                sub_header.textContent = 'Комментарий по исправлению'
-                FixList.appendChild(sub_header)
+                sub_header = document.createElement("h6");
+                sub_header.textContent = 'Комментарий по исправлению';
+                FixList.appendChild(sub_header);
 
                 let fix_comment = document.createElement("textarea");
-                fix_comment.classList.add('form-control')
-                fix_comment.name = 'fix_comment'
-                fix_comment.style = 'min-height: 130px'
-                fix_comment.placeholder = '1. Перекачан исходник\n2. Исправлен звук\n3. ...'
-                FixList.appendChild(fix_comment)
-                FixList.appendChild(document.createElement("br"))
+                fix_comment.classList.add('form-control');
+                fix_comment.classList.add('my-2');
+                fix_comment.name = 'fix_comment';
+                fix_comment.style = 'min-height: 130px';
+                fix_comment.placeholder = '1. Перекачан исходник\n2. Исправлен звук\n3. ...';
+                FixList.appendChild(fix_comment);
 
-                file_path_header = document.createElement("h6")
-                file_path_header.textContent = 'Новый путь к файлу'
-                FixList.appendChild(file_path_header)
+                file_path_header = document.createElement("h6");
+                file_path_header.textContent = 'Новый путь к файлу';
+                FixList.appendChild(file_path_header);
 
                 let fix_file_path = document.createElement("input");
-                fix_file_path.classList.add('form-control')
-                fix_file_path.name = 'fix_file_path'
-                fix_file_path.type = 'text'
-                fix_file_path.style = 'font-style: italic'
-                fix_file_path.placeholder = `Старый: ${f_path}`
-                FixList.appendChild(fix_file_path)
-                FixList.appendChild(document.createElement("br"))
+                fix_file_path.classList.add('form-control');
+                fix_file_path.classList.add('my-2');
+                fix_file_path.name = 'fix_file_path';
+                fix_file_path.type = 'text';
+                fix_file_path.style = 'font-style: italic';
+                fix_file_path.placeholder = `Старый: ${f_path}`;
+                FixList.appendChild(fix_file_path);
 
-                let divider = document.createElement("hr")
-                divider.style = 'width: 100%; size: 2;'
-                FixList.appendChild(divider)
+                let divider = document.createElement("hr");
+                divider.style = 'width: 40%; size: 2;';
+                FixList.appendChild(divider);
             }
         }
     }
