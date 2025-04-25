@@ -291,8 +291,9 @@ def material_card(request, program_id):
 
     return render(request, 'main/full_info_card.html', data)
 
-def unblock_card(request):
-    print('test')
+def unblock_card(request, program_id, worker_id):
+    print('test', program_id, worker_id)
+    return redirect(material_card, program_id)
 
 
 

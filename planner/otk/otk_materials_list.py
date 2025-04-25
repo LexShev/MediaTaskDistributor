@@ -86,6 +86,7 @@ def find_file_path(program_id):
         return file_path[0]
 
 def change_task_status_batch(program_id_list, task_status):
+    print('tetst', program_id_list, task_status)
     with connections['planner'].cursor() as cursor:
         for program_id in program_id_list:
             update = f'''
@@ -93,6 +94,7 @@ def change_task_status_batch(program_id_list, task_status):
             SET [task_status] = '{task_status}', [ready_date] = GETDATE()
             WHERE [program_id] = {program_id}'''
             cursor.execute(update)
+            print(update)
     return 'Изменения успешно внесены'
 
 def update_comment_batch(program_id_list, task_status, worker_id, comment, deadline):

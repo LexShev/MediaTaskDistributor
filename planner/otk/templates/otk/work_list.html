@@ -1,10 +1,25 @@
 {% extends  'main/index.html' %}
 
+
 <main role="main">
 {% block body %}
 <div class="container-flex p-4">
   <form method="post">
     {% csrf_token %}
+
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Ошибка!</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <h5>Ни один файл не выбран!</h5>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="modal fade" id="ApproveOTK" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
@@ -21,8 +36,8 @@
       </div>
     </div>
 
-    <div class="modal fade" id="ApproveFIX" tabindex="-1" aria-labelledby="ApproveFIXLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
+    <div class="modal fade" id="ApproveFIX" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="ApproveFIXLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
           <div class="modal-header">
               <h1 class="modal-title fs-5" id="ApproveFIXLabel">
@@ -31,9 +46,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <h6>Комментарий по исправлению</h6>
-              <textarea class="form-control" style="min-height: 130px" name="fix_comment" id="fix_comment"
-                        placeholder="1. Перекачан исходник&#10;2. Исправлен звук&#10;3. ..."></textarea><br>
+            <div id="fix_list">
+
+            </div>
           </div>
           <div class="modal-footer">
             <button type="submit" name="approve_fix" id="approve_fix" value="True" class="btn btn-outline-warning">Отправить</button>
@@ -94,7 +109,11 @@
       <tbody class="table-group-divider" id="tableBody">
         {% for task in task_list %}
           <tr>
-            <td><input class="form-check-input me-1" type="checkbox" value="{{ task.Task_program_id }}" name="program_id" id="program_id"></td>
+            <td>
+              <input class="form-check-input me-1" type="checkbox"
+                     value="{{ task.Task_program_id }};{{ task.Progs_name }};{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
+                     name="program_id">
+            </td>
             <td>
             <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
             {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
@@ -115,11 +134,79 @@
         <button type="button" data-bs-toggle="modal" data-bs-target="#ApproveOTK" class="btn register-button btn-outline-success mx-2">Утвердить</button>
       </div>
       <div class="ms-auto">
-        <button type="button" data-bs-toggle="modal" data-bs-target="#ApproveFIX" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>
+        <button type="button" onclick="ProgramIdList()" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>
         <button type="button" data-bs-toggle="modal" data-bs-target="#FixOTK" class="btn register-button btn-outline-danger mx-2">На доработку</button>
       </div>
     </div>
   </form>
 </div>
+
+<script>
+function ProgramIdList() {
+    let FixList = ApproveFIX.querySelector('#fix_list');
+    FixList.innerHTML = ''
+
+    let checked_list = document.getElementsByName('program_id');
+    let program_id_list = []
+
+    for (let i = 0; i < checked_list.length; i++) {
+        if (checked_list[i].checked) {
+            program_id_list.push(checked_list[i].value);}
+    }
+    if (program_id_list.length > 0) {
+        console.log('list');
+        ApproveFIX = new bootstrap.Modal(document.getElementById('ApproveFIX'));
+        ApproveFIX.toggle();
+        for (let i = 0; i < checked_list.length; i++) {
+            if (checked_list[i].checked) {
+                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
+                let file_name = document.createElement("h5");
+                file_name.textContent = f_name;
+                file_name.name = 'file_name'
+                FixList.appendChild(file_name)
+
+                sub_header = document.createElement("h6")
+                sub_header.textContent = 'Комментарий по исправлению'
+                FixList.appendChild(sub_header)
+
+                let fix_comment = document.createElement("textarea");
+                fix_comment.classList.add('form-control')
+                fix_comment.name = 'fix_comment'
+                fix_comment.style = 'min-height: 130px'
+                fix_comment.placeholder = '1. Перекачан исходник\n2. Исправлен звук\n3. ...'
+                FixList.appendChild(fix_comment)
+                FixList.appendChild(document.createElement("br"))
+
+                file_path_header = document.createElement("h6")
+                file_path_header.textContent = 'Новый путь к файлу'
+                FixList.appendChild(file_path_header)
+
+                let fix_file_path = document.createElement("input");
+                fix_file_path.classList.add('form-control')
+                fix_file_path.name = 'fix_file_path'
+                fix_file_path.type = 'text'
+                fix_file_path.style = 'font-style: italic'
+                fix_file_path.placeholder = `Старый: ${f_path}`
+                FixList.appendChild(fix_file_path)
+                FixList.appendChild(document.createElement("br"))
+
+                let divider = document.createElement("hr")
+                divider.style = 'width: 100%; size: 2;'
+                FixList.appendChild(divider)
+            }
+        }
+    }
+    else
+        {
+            console.log('error');
+            errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            errorModal.toggle();
+
+
+        }
+    }
+</script>
+
 {% endblock %}
 </main>
+
