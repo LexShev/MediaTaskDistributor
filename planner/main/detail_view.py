@@ -266,16 +266,19 @@ def update_value(field_id, program_id, new_value):
             return cursor.rowcount
 
 def update_file_path(program_id, file_path):
-    if file_path.startswith('"') and file_path.endswith('"'):
-        file_path = file_path[1:-1]
-    with connections['planner'].cursor() as cursor:
-        query = f'''
-        UPDATE [planner].[dbo].[task_list]
-        SET [file_path] = '{file_path}'
-        WHERE [program_id] = {program_id}
-        '''
-        cursor.execute(query)
-        return cursor.rowcount
+    if file_path:
+        if file_path.startswith('"') and file_path.endswith('"'):
+            file_path = file_path[1:-1]
+        with connections['planner'].cursor() as cursor:
+            query = f'''
+            UPDATE [planner].[dbo].[task_list]
+            SET [file_path] = '{file_path}'
+            WHERE [program_id] = {program_id}
+            '''
+            cursor.execute(query)
+            return cursor.rowcount
+    else:
+        return 'Новый путь не указан'
 
 def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
     program_id = service_info_dict.get('program_id')
