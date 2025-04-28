@@ -19,7 +19,7 @@ LEFT JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Val
     ON Progs.[program_id] = Val.[ObjectId]
 WHERE Progs.[deleted] = 0
 AND Val.[ProgramCustomFieldId] = 15
-AND DeletedIncludeParent = 0
+AND Progs.[DeletedIncludeParent] = 0
 AND [program_kind] IN (0, 3)
 AND Progs.[program_type_id] NOT IN (1, 2, 3, 9, 13, 14, 15)
 AND Val.[IntValue] = 1
