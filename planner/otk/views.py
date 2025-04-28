@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from main.permission_pannel import ask_db_permissions
 from .models import OtkModel
 from .otk_materials_list import task_info, change_task_status_batch, update_comment_batch, change_task_status_fix, \
-    update_comment_fix
+    update_comment_fix, change_task_status_otk_fail, update_comment_otk_fail
 from .forms import OtkForm
 
 
@@ -21,28 +21,34 @@ def work_list(request):
 
     if request.method == 'POST':
         approve = request.POST.get('approve_otk')
-        fix_otk = request.POST.get('fix_otk')
+        otk_fail = request.POST.get('otk_fail')
         approve_fix = request.POST.get('approve_fix')
-        program_id_list = request.POST.getlist('program_id')
+        program_id_tuple = request.POST.getlist('program_id')
+        print('program_id_list', program_id_tuple)
 
-        fix_list = request.POST.getlist('fix_prog_id')
+        fix_id = request.POST.getlist('fix_prog_id')
         fix_comment = request.POST.getlist('fix_comment')
         fix_file_path = request.POST.getlist('fix_file_path')
-        fix_tuple = list(zip(fix_list, fix_comment, fix_file_path))
+        fix_tuple = list(zip(fix_id, fix_comment, fix_file_path))
+
+        otk_fail_prog_id = request.POST.getlist('otk_fail_prog_id')
+        otk_fail_comment = request.POST.getlist('otk_fail_comment')
+        otk_fail_tuple = list(zip(otk_fail_prog_id, otk_fail_comment))
 
 
 
 
         if approve:
-            change_task_status_batch(program_id_list, 'otk')
-            # insert_history(service_info_dict, {99: 'not_ready'}, {99: 'ready'})
-            print('approve', program_id_list)
-        if fix_otk:
-            change_task_status_batch(program_id_list, 'otk_fail')
-            print('fix', program_id_list)
+            change_task_status_batch(program_id_tuple, 'otk')
+            update_comment_batch(program_id_tuple, 'otk', worker_id)
+            print('approve', program_id_tuple)
+        if otk_fail:
+            change_task_status_otk_fail(otk_fail_tuple, 'otk_fail')
+            update_comment_otk_fail(otk_fail_tuple, 'otk_fail', worker_id)
+            print('otk_fail', otk_fail_tuple)
         if approve_fix:
             change_task_status_fix(fix_tuple, 'fix_ready')
-            update_comment_fix(fix_tuple, 'fix_ready', worker_id, '')
+            update_comment_fix(fix_tuple, 'fix_ready', worker_id)
             print('fix_tuple', fix_tuple)
         form = OtkForm(request.POST, instance=init_dict)
         if form.is_valid():

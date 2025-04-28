@@ -315,6 +315,20 @@ def calc_otk_deadline():
     #         deadline += timedelta(days=1)
     return date.today() + timedelta(days=5)
 
+def comments_history(program_id):
+    with connections['planner'].cursor() as cursor:
+        columns = 'task_status', 'worker_id', 'comment', 'deadline', 'time_of_change'
+        sql_columns = ', '.join(columns)
+        query = f'''
+        SELECT {sql_columns}
+        FROM [planner].[dbo].[comments_history]
+        WHERE program_id = {program_id}
+        ORDER BY [time_of_change]
+        '''
+        cursor.execute(query)
+        return [dict(zip(columns, val)) for val in cursor.fetchall()]
+
+
 def block_object(program_id, worker_id):
     with connections['oplan3'].cursor() as cursor:
         query = f'''

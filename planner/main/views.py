@@ -16,7 +16,7 @@ from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline, \
-    block_object, check_lock_object, unblock_object
+    block_object, check_lock_object, unblock_object, comments_history
 from .distribution import main_distribution
 from .month import report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
@@ -228,12 +228,12 @@ def material_card(request, program_id):
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
                 text_message = change_task_status(program_id, engineer_id, work_date, task_status)
-                update_comment(program_id, task_status, worker_id, cenz_comment, '')
+                update_comment(program_id, task_status, worker_id, cenz_comment)
             if cenz_info_change:
                 cenz_comment = request.POST.get('cenz_comment')
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
-                update_comment(program_id, '', worker_id, cenz_comment, '')
+                update_comment(program_id, '', worker_id, cenz_comment)
                 text_message = 'Изменения успешно внесены.'
             if ask_fix:
                 task_status = 'fix'
@@ -279,6 +279,7 @@ def material_card(request, program_id):
 
     data = {'full_info': full_info(program_id),
             'custom_fields': custom_fields,
+            'comments_history': comments_history(program_id),
             'deadline': calc_otk_deadline(),
             'schedule_info': schedule_info(program_id),
             'actions_list': select_actions(program_id),

@@ -100,9 +100,10 @@ def change_task_status(program_id, engineer_id, work_date, task_status):
             cursor.execute(query, values)
             return 'Новая задача была добавлена в базу.'
 
-def update_comment(program_id, task_status, worker_id, comment, deadline):
+def update_comment(program_id, task_status, worker_id, comment=None, deadline=None):
     with connections['planner'].cursor() as cursor:
         values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
+
         query = f'''
             INSERT INTO [planner].[dbo].[comments_history]
             ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])

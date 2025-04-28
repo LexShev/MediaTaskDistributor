@@ -1,0 +1,32 @@
+{% if comments_history %}
+
+<table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th style="width: 10%;">Время комментария</th>
+        <th style="width: 15%;">Статус</th>
+        <th style="width: 50%;">Комментарий</th>
+        <th style="width: 10%;">Крайний срок</th>
+        <th style="width: 10%;">Сотрудник</th>
+
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        {% for comment in comments_history %}
+          <td>{{ comment.time_of_change|date:"d.m.Y H:i:s" }}</td>
+          <td>{{ comment.task_status|status_name }}</td>
+          <td>{{ comment.comment }}</td>
+          <td>{{ comment.deadline|date:"d.m.Y" }}</td>
+          <td>{{ comment.worker_id|worker_name }}</td>
+
+      </tr>
+        {% endfor %}
+
+    </tbody>
+  </table>
+
+
+{% else %}
+Нет данных
+{% endif %}

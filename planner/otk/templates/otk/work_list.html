@@ -11,7 +11,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h4 class="modal-title">Ошибка!</h4>
+            <h3 class="modal-title">Ошибка!</h3>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -25,7 +25,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5">Утвердить выбранные задачи?</h1>
+            <h3 class="modal-title">Утвердить выбранные задачи?</h3>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-footer">
@@ -40,9 +40,9 @@
       <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <div class="modal-content">
           <div class="modal-header">
-              <h1 class="modal-title fs-5" id="ApproveFIXLabel">
-                Отправить FIX в работу?
-              </h1>
+              <h3 class="modal-title" id="ApproveFIXLabel">
+                Отправить перезалитый FIX в работу?
+              </h3>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -58,15 +58,20 @@
       </div>
     </div>
 
-    <div class="modal fade" id="FixOTK" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
+    <div class="modal fade" id="OTKFail" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5">Отправить на доработку выбранные задачи?</h1>
+            <h3 class="modal-title">Отправить на доработку выбранные задачи?</h3>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
+          <div class="modal-body">
+            <div id="otk_fail_list">
+
+            </div>
+          </div>
           <div class="modal-footer">
-            <button name="fix_otk" id="fix_otk" value="True" type="submit" class="btn btn-warning">На доработку</button>
+            <button name="otk_fail" id="otk_fail" value="True" type="submit" class="btn btn-warning">На доработку</button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
           </div>
         </div>
@@ -96,7 +101,7 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select"></th>
+          <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
           <th style="width: 25%;">Название</th>
           <th style="width: 5%;">Директория</th>
           <th style="width: 35%;">Имя файла</th>
@@ -131,16 +136,89 @@
     </table>
     <div class="d-flex">
       <div class="me-auto">
-        <button type="button" data-bs-toggle="modal" data-bs-target="#ApproveOTK" class="btn register-button btn-outline-success mx-2">Утвердить</button>
+        <button type="button" onclick="ShowApproveOTK()" class="btn register-button btn-outline-success mx-2">Утвердить</button>
       </div>
       <div class="ms-auto">
         <button type="button" onclick="ProgramIdList()" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>
-        <button type="button" data-bs-toggle="modal" data-bs-target="#FixOTK" class="btn register-button btn-outline-danger mx-2">На доработку</button>
+        <button type="button" onclick="ShowOTKFail()" class="btn register-button btn-outline-danger mx-2">На доработку</button>
       </div>
     </div>
   </form>
 </div>
 <script>
+window.addEventListener('load', function() {
+    let fullSelectCheckbox = document.getElementById('full_select');
+    let program_id_list = document.getElementsByName('program_id');
+    program_id_list.forEach(function(program_id) {
+    program_id.addEventListener('change', changeFullSelect);
+    });
+
+    function changeFullSelect() {
+        let checked_list = [];
+            for (let i = 0; i < program_id_list.length; i++) {
+                if (program_id_list[i].checked) {
+                    checked_list.push(program_id_list[i]);
+                }
+            };
+        if (0 < checked_list.length && checked_list.length < program_id_list.length) {
+        fullSelectCheckbox.indeterminate = true;
+        fullSelectCheckbox.checked = false;
+        }
+        else if (checked_list.length == program_id_list.length) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = true;
+        }
+        else if (checked_list.length == 0) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = false;
+        }
+    };
+});
+
+function changeProgramIdCheckbox() {
+    let fullSelectCheckbox = document.getElementById('full_select');
+    let program_id_list = document.getElementsByName('program_id');
+    let checked_list = [];
+        for (let i = 0; i < program_id_list.length; i++) {
+            if (program_id_list[i].checked) {
+                checked_list.push(program_id_list[i]);
+            }
+        };
+    if (checked_list.length > 0) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = false;
+        for (let i = 0; i < program_id_list.length; i++) {
+            program_id_list[i].checked = false;
+        };
+    }
+    else {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = true;
+        for (let i = 0; i < program_id_list.length; i++) {
+            program_id_list[i].checked = true;
+        };
+    }
+};
+
+function ShowApproveOTK() {
+    let checked_list = document.getElementsByName('program_id');
+    let program_id_list = [];
+
+    for (let i = 0; i < checked_list.length; i++) {
+        if (checked_list[i].checked) {
+            program_id_list.push(checked_list[i].value);}
+        }
+    if (program_id_list.length > 0) {
+        ApproveOTK = new bootstrap.Modal(document.getElementById('ApproveOTK'));
+        ApproveOTK.toggle();
+    }
+    else {
+        console.log('error');
+        errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        errorModal.toggle();
+    }
+};
+
 function ProgramIdList() {
     let FixList = document.getElementById('fix_list');
     FixList.innerHTML = ''
@@ -150,15 +228,14 @@ function ProgramIdList() {
 
     for (let i = 0; i < checked_list.length; i++) {
         if (checked_list[i].checked) {
-            program_id_list.push(checked_list[i].value);}
+            program_id_list.push(checked_list[i].value);
+        }
     }
     if (program_id_list.length > 0) {
-        console.log('list');
         ApproveFIX = new bootstrap.Modal(document.getElementById('ApproveFIX'));
         ApproveFIX.toggle();
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
-
                 let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
 
                 let fix_prog_id = document.createElement("input");
@@ -212,7 +289,65 @@ function ProgramIdList() {
 
 
         }
+    };
+
+  function ShowOTKFail() {
+  let OTKFailList = document.getElementById('otk_fail_list');
+    OTKFailList.innerHTML = ''
+
+    let checked_list = document.getElementsByName('program_id');
+    let program_id_list = [];
+
+    for (let i = 0; i < checked_list.length; i++) {
+        if (checked_list[i].checked) {
+            program_id_list.push(checked_list[i].value);}
     }
+    if (program_id_list.length > 0) {
+        OTKFail = new bootstrap.Modal(document.getElementById('OTKFail'));
+        OTKFail.toggle();
+
+        for (let i = 0; i < checked_list.length; i++) {
+            if (checked_list[i].checked) {
+
+                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
+
+                let otk_fail_prog_id = document.createElement("input");
+                otk_fail_prog_id.type = 'hidden';
+                otk_fail_prog_id.name = 'otk_fail_prog_id';
+                otk_fail_prog_id.value = prog_id;
+                OTKFailList.appendChild(otk_fail_prog_id);
+
+                let file_name = document.createElement("h5");
+                file_name.classList.add('my-2');
+                file_name.textContent = f_name;
+                file_name.name = 'file_name'
+                OTKFailList.appendChild(file_name);
+
+                sub_header = document.createElement("h6");
+                sub_header.textContent = 'Комментарий по необходимой доработке';
+                OTKFailList.appendChild(sub_header);
+
+                let otk_fail_comment = document.createElement("textarea");
+                otk_fail_comment.classList.add('form-control');
+                otk_fail_comment.classList.add('my-2');
+                otk_fail_comment.name = 'otk_fail_comment';
+                otk_fail_comment.style = 'min-height: 130px';
+                otk_fail_comment.placeholder = '1. Таймкод - суть проблемы\n2. Таймкод - суть проблемы\n3. ...';
+                OTKFailList.appendChild(otk_fail_comment);
+
+                let divider = document.createElement("hr");
+                divider.style = 'width: 40%; size: 2;';
+                OTKFailList.appendChild(divider);
+            }
+        }
+    }
+    else {
+            console.log('error');
+            errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            errorModal.toggle();
+      }
+    };
+
 </script>
 
 {% endblock %}
