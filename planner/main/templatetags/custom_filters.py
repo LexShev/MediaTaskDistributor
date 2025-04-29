@@ -202,4 +202,4 @@ def month_name(cal_month):
 @register.filter
 def status_name(status):
     status_dict = MainSettings.status_dict
-    return status_dict.get(status)
+    return status_dict.get(status, '')

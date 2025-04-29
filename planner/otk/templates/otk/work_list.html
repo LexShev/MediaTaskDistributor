@@ -4,6 +4,11 @@
 <main role="main">
 {% block body %}
 <div class="container-flex p-4">
+
+
+
+
+
   <form method="post">
     {% csrf_token %}
 
@@ -121,7 +126,12 @@
             </td>
             <td>
             <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-            {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
+            {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a>
+              {% if task.comments %}
+              <span class="badge p-2 align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
+                <span class="px-1"><a data-bs-toggle="popover" title="Крайний срок: {{ task.comments.0.deadline|date:'d.m.Y' }}" data-bs-content="{{ task.comments.0.comment }}">{{ task.comments|length }}</a></span>
+              </span>
+              {% endif %}</td>
             <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
             <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
             <td>
@@ -348,6 +358,14 @@ function ProgramIdList() {
       }
     };
 
+</script>
+
+
+<script>
+var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+  return new bootstrap.Popover(popoverTriggerEl)
+});
 </script>
 
 {% endblock %}
