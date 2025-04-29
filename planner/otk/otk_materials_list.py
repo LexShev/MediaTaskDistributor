@@ -1,6 +1,7 @@
 from django.db import connections
 from datetime import datetime
 
+
 def check_value(key, value):
     if value:
         return f"AND Task.[{key}] = '{value}'"
@@ -56,6 +57,7 @@ def task_info(field_dict):
     material_list = [dict(zip(django_columns, task)) for task in result]
     duration = []
     for material in material_list:
+        material['comments'] = comments_history(material.get('Task_program_id'))
         duration.append(material.get('Task_duration'))
         if not material.get('Task_file_path'):
             material['Files_Name'] = find_file_path(material.get('Task_program_id'))
@@ -85,36 +87,80 @@ def find_file_path(program_id):
     if file_path:
         return file_path[0]
 
-def change_task_status_batch(program_id_tuple, task_status):
-    with connections['planner'].cursor() as cursor:
-        for program_id_list in program_id_tuple:
-            program_id = program_id_list.split(';')[0]
-            update = f'''
-            UPDATE [planner].[dbo].[task_list]
-            SET [task_status] = '{task_status}', [ready_date] = GETDATE()
-            WHERE [program_id] = {program_id}'''
-            print(update)
-            cursor.execute(update)
-    return 'Изменения успешно внесены'
+# def change_task_status_batch(program_id_tuple, task_status):
+#     with connections['planner'].cursor() as cursor:
+#         for program_id_list in program_id_tuple:
+#             program_id = program_id_list.split(';')[0]
+#             update = f'''
+#             UPDATE [planner].[dbo].[task_list]
+#             SET [task_status] = '{task_status}', [ready_date] = GETDATE()
+#             WHERE [program_id] = {program_id}
+#             '''
+#             print(update)
+#             cursor.execute(update)
+#     return 'Изменения успешно внесены'
 
-def update_comment_batch(program_id_tuple, task_status, worker_id, comment=None, deadline=None):
+# def change_task_status_batch(program_list, task_status):
+#     with connections['planner'].cursor() as cursor:
+#         for program in program_list:
+#             program_id = program.get('program_id')
+#             query = f'''
+#             UPDATE [planner].[dbo].[task_list]
+#             SET [task_status] = %s, [ready_date] = %s
+#             WHERE [program_id] = %s'''
+#             update_data = (task_status, datetime.today(), program_id)
+#             print(query, update_data, 'without')
+#             cursor.execute(query, update_data)
+#     return 'Изменения успешно внесены'
+
+#
+# def update_comment_batch(program_id_tuple, task_status, worker_id, comment=None, deadline=None):
+#     with connections['planner'].cursor() as cursor:
+#         for program_id_list in program_id_tuple:
+#             program_id = program_id_list.split(';')[0]
+#             values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
+#             query = f'''
+#                 INSERT INTO [planner].[dbo].[comments_history]
+#                 ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
+#                 VALUES (%s, %s, %s, %s, %s, %s);
+#                 '''
+#             cursor.execute(query, values)
+
+def update_comment_batch(program_list, task_status, worker_id):
     with connections['planner'].cursor() as cursor:
-        for program_id_list in program_id_tuple:
-            program_id = program_id_list.split(';')[0]
+        for program in program_list:
+            program_id = program.get('program_id')
+            comment = program.get('comment')
+            deadline = program.get('deadline')
+
             values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
             query = f'''
                 INSERT INTO [planner].[dbo].[comments_history]
                 ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
                 VALUES (%s, %s, %s, %s, %s, %s);
                 '''
+            print(query, values)
             cursor.execute(query, values)
 
-def change_task_status_fix(fix_tuple, task_status):
+#
+# def update_comment_otk_fail(otk_fail_tuple, task_status, worker_id, deadline=None):
+#     with connections['planner'].cursor() as cursor:
+#         for material in otk_fail_tuple:
+#             program_id, comment = material
+#             values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
+#             query = f'''
+#                  INSERT INTO [planner].[dbo].[comments_history]
+#                  ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
+#                  VALUES (%s, %s, %s, %s, %s, %s);
+#                  '''
+#             print(query, values)
+#             cursor.execute(query, values)
+
+def change_task_status_batch(program_list, task_status):
     with connections['planner'].cursor() as cursor:
-        print('fix_tuple', fix_tuple)
-        for material in fix_tuple:
-            print('material', material)
-            program_id, comment, file_path = material
+        for program in program_list:
+            program_id = program.get('program_id')
+            file_path = program.get('file_path')
             if file_path:
                 if file_path.startswith('"') and file_path.endswith('"'):
                     file_path = file_path[1:-1]
@@ -135,42 +181,17 @@ def change_task_status_fix(fix_tuple, task_status):
                 cursor.execute(query, update_data)
     return 'Изменения успешно внесены'
 
-def change_task_status_otk_fail(otk_fail_tuple, task_status):
+def comments_history(program_id):
     with connections['planner'].cursor() as cursor:
-        for material in otk_fail_tuple:
-            program_id, comment = material
-            query = f'''
-            UPDATE [planner].[dbo].[task_list]
-            SET [task_status] = %s, [ready_date] = %s
-            WHERE [program_id] = %s'''
-            update_data = (task_status, datetime.today(), program_id)
-            print(query, update_data, 'without')
-            cursor.execute(query, update_data)
-    return 'Изменения успешно внесены'
+        columns = 'task_status', 'worker_id', 'comment', 'deadline', 'time_of_change'
+        sql_columns = ', '.join(columns)
+        query = f'''
+        SELECT {sql_columns}
+        FROM [planner].[dbo].[comments_history]
+        WHERE program_id = {program_id}
+        AND [task_status] = 'fix'
+        ORDER BY [time_of_change]
+        '''
+        cursor.execute(query)
+        return [dict(zip(columns, val)) for val in cursor.fetchall()]
 
-def update_comment_fix(fix_tuple, task_status, worker_id, deadline=None):
-    with connections['planner'].cursor() as cursor:
-        for material in fix_tuple:
-            program_id, comment, file_path = material
-
-            values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
-            query = f'''
-                INSERT INTO [planner].[dbo].[comments_history]
-                ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
-                VALUES (%s, %s, %s, %s, %s, %s);
-                '''
-            print(query, values)
-            cursor.execute(query, values)
-
-def update_comment_otk_fail(otk_fail_tuple, task_status, worker_id, deadline=None):
-    with connections['planner'].cursor() as cursor:
-        for material in otk_fail_tuple:
-            program_id, comment = material
-            values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
-            query = f'''
-                INSERT INTO [planner].[dbo].[comments_history]
-                ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
-                VALUES (%s, %s, %s, %s, %s, %s);
-                '''
-            print(query, values)
-            cursor.execute(query, values)

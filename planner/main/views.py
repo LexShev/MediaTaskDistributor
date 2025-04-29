@@ -225,15 +225,18 @@ def material_card(request, program_id):
             if status_ready:
                 task_status = 'ready'
                 cenz_comment = request.POST.get('cenz_comment')
+                print('cenz_comment', cenz_comment, type(cenz_comment))
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
                 text_message = change_task_status(program_id, engineer_id, work_date, task_status)
-                update_comment(program_id, task_status, worker_id, cenz_comment)
+                if text_message:
+                    update_comment(program_id, worker_id, task_status, cenz_comment)
             if cenz_info_change:
                 cenz_comment = request.POST.get('cenz_comment')
+                print(cenz_comment)
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
-                update_comment(program_id, '', worker_id, cenz_comment)
+                update_comment(program_id, worker_id, comment=cenz_comment)
                 text_message = 'Изменения успешно внесены.'
             if ask_fix:
                 task_status = 'fix'
@@ -241,9 +244,11 @@ def material_card(request, program_id):
                 deadline = request.POST.get('deadline')
                 change_task_status(program_id, engineer_id, work_date, task_status)
                 text_message = 'Заявка на FIX успешно отправлена.'
-                update_comment(program_id, task_status, worker_id, fix_comment, deadline)
+                update_comment(program_id, worker_id, task_status, fix_comment, deadline)
             if text_message:
                 messages.success(request, text_message)
+            else:
+                messages.error(request, 'Доступ запрещён.')
 
     else:
         form_drop = CenzFormDropDown(
@@ -289,14 +294,11 @@ def material_card(request, program_id):
             'lock_material': lock_material,
             'permissions': ask_db_permissions(worker_id)
             }
-
     return render(request, 'main/full_info_card.html', data)
 
 def unblock_card(request, program_id, worker_id):
     print('test', program_id, worker_id)
     return redirect(material_card, program_id)
-
-
 
 @login_required()
 def kpi_info(request):

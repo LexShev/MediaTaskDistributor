@@ -16,6 +16,10 @@
         <div class="alert alert-warning alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
           Карточка материала заблокирована пользователем: {{ message|worker_name }}
         </div>
+      {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div class="alert alert-danger alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
+          Ошибка: {{ message }}
+        </div>
       {% endif %}
     {% endfor %}
   {% endif %}

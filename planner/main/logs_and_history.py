@@ -80,6 +80,7 @@ def change_task_status(program_id, engineer_id, work_date, task_status):
             WHERE [program_id] = {program_id}
             AND [task_status] IN ('ready', 'not_ready', 'fix_ready', 'otk_fail', 'no_material')
             '''
+            print('update_status', update_status)
             cursor.execute(update_status)
             if cursor.rowcount:
                 return 'Задача завершена.'
@@ -100,7 +101,7 @@ def change_task_status(program_id, engineer_id, work_date, task_status):
             cursor.execute(query, values)
             return 'Новая задача была добавлена в базу.'
 
-def update_comment(program_id, task_status, worker_id, comment=None, deadline=None):
+def update_comment(program_id, worker_id, task_status=None, comment=None, deadline=None):
     with connections['planner'].cursor() as cursor:
         values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
 
@@ -112,21 +113,21 @@ def update_comment(program_id, task_status, worker_id, comment=None, deadline=No
         cursor.execute(query, values)
     return 'Изменения успешно внесены!'
 
-def change_fix_task_status(program_id, engineer_id, worker_id, work_date, task_status, comment):
-    with connections['planner'].cursor() as cursor:
-        select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
-        cursor.execute(select)
-        if cursor.fetchone():
-            update_status = f'''
-            UPDATE [planner].[dbo].[task_list]
-            SET [task_status] = 'fix', [ready_date] = GETDATE()
-            WHERE [program_id] = {program_id}
-            '''
-            cursor.execute(update_status)
-            if cursor.rowcount:
-                update_comment = f'''
-                INSERT INTO [planner].[dbo].[comments_history] ([program_id], [task_status], [comment], [worker_id], [time_of_change])
-                VALUES ({program_id}, '{task_status}', '{comment}', {worker_id}, GETDATE());
-                '''
-                cursor.execute(update_comment)
-                return 'Изменения успешно внесены!'
+# def change_fix_task_status(program_id, engineer_id, worker_id, work_date, task_status, comment):
+#     with connections['planner'].cursor() as cursor:
+#         select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
+#         cursor.execute(select)
+#         if cursor.fetchone():
+#             update_status = f'''
+#             UPDATE [planner].[dbo].[task_list]
+#             SET [task_status] = 'fix', [ready_date] = GETDATE()
+#             WHERE [program_id] = {program_id}
+#             '''
+#             cursor.execute(update_status)
+#             if cursor.rowcount:
+#                 update_comment = f'''
+#                 INSERT INTO [planner].[dbo].[comments_history] ([program_id], [task_status], [comment], [worker_id], [time_of_change])
+#                 VALUES ({program_id}, '{task_status}', '{comment}', {worker_id}, GETDATE());
+#                 '''
+#                 cursor.execute(update_comment)
+#                 return 'Изменения успешно внесены!'
