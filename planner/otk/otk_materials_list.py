@@ -1,5 +1,7 @@
+import json
+
 from django.db import connections
-from datetime import datetime
+from datetime import datetime, date
 
 
 def check_value(key, value):
@@ -183,7 +185,7 @@ def change_task_status_batch(program_list, task_status):
 
 def comments_history(program_id):
     with connections['planner'].cursor() as cursor:
-        columns = 'task_status', 'worker_id', 'comment', 'deadline', 'time_of_change'
+        columns = 'worker_id', 'comment', 'deadline', 'time_of_change'
         sql_columns = ', '.join(columns)
         query = f'''
         SELECT {sql_columns}
@@ -193,5 +195,23 @@ def comments_history(program_id):
         ORDER BY [time_of_change]
         '''
         cursor.execute(query)
-        return [dict(zip(columns, val)) for val in cursor.fetchall()]
+        history = cursor.fetchall()
+        comments_list = []
+        for comment in history:
+            comments_dict = {}
+            for key, val in zip(columns, comment):
+                if key == 'deadline':
+                    comments_dict[key] = val.strftime('%d-%m-%Y')
+                elif key == 'time_of_change':
+                    comments_dict[key] = val.strftime('%H:%M:%S %d-%m-%Y')
+                else:
+                    comments_dict[key] = val
+            comments_list.append(comments_dict)
+        print(comments_list)
+        # json_data = json.dumps(res, default=json_serial, ensure_ascii=False, indent=2)
+        return comments_list
 
+
+def json_serial(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()

@@ -105,3 +105,11 @@
 
 const modalInput = ApproveFIX.querySelector('#approve_fix_list');
     modalInput.value = program_id_list
+
+<a data-bs-toggle="popover" title="Крайний срок: {{ task.comments.0.deadline|date:'d.m.Y' }}" data-bs-content="{{ task.comments.0.comment }}">{{ task.comments|length }}</a>
+<script>
+var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+  return new bootstrap.Popover(popoverTriggerEl)
+});
+</script>
