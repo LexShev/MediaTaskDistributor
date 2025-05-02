@@ -113,3 +113,7 @@ var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
   return new bootstrap.Popover(popoverTriggerEl)
 });
 </script>
+
+<span class="badge p-2 align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
+  <span class="px-1" id="comment" style="cursor: pointer;" onclick="ShowOTKComment()" data-comment="{{ task.comments }}">{{ task.comments|length }}</span>
+</span>

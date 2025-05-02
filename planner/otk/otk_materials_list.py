@@ -59,7 +59,7 @@ def task_info(field_dict):
     material_list = [dict(zip(django_columns, task)) for task in result]
     duration = []
     for material in material_list:
-        material['comments'] = comments_history(material.get('Task_program_id'))
+        material['comments'] = comments_history(material.get('Task_program_id'), material.get('Progs_name'))
         duration.append(material.get('Task_duration'))
         if not material.get('Task_file_path'):
             material['Files_Name'] = find_file_path(material.get('Task_program_id'))
@@ -183,7 +183,7 @@ def change_task_status_batch(program_list, task_status):
                 cursor.execute(query, update_data)
     return 'Изменения успешно внесены'
 
-def comments_history(program_id):
+def comments_history(program_id, progs_name):
     with connections['planner'].cursor() as cursor:
         columns = 'worker_id', 'comment', 'deadline', 'time_of_change'
         sql_columns = ', '.join(columns)
@@ -198,7 +198,7 @@ def comments_history(program_id):
         history = cursor.fetchall()
         comments_list = []
         for comment in history:
-            comments_dict = {}
+            comments_dict = {'Progs_name': progs_name}
             for key, val in zip(columns, comment):
                 if key == 'deadline':
                     comments_dict[key] = val.strftime('%d-%m-%Y')
