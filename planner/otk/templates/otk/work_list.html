@@ -83,7 +83,10 @@
     <div class="modal fade" id="OTKComment" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
-
+          <div class="modal-header">
+            <h5 class="modal-title" id="otk_comment_title">Комментарии по исправлению</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
           <div class="modal-body">
             <div id="otk_comment_body">
 
@@ -93,6 +96,7 @@
         </div>
       </div>
     </div>
+
 
     <div class="d-flex p-0 m-0 align-items-center justify-content-start">
       <div class="row ms-0 m-2 align-items-center">
@@ -139,10 +143,22 @@
             <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
             {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a>
               {% if task.comments %}
-              <span class="badge p-2 align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
-                <span class="px-1" id="comment" onclick="ShowOTKComment()" data-comment="{{ task.comments }}">{{ task.comments|length }}</span>
-              </span>
-              {% endif %}</td>
+
+              <span class="badge p-2 align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill"></span>
+              <div class="btn-group dropend">
+                <span class="px-1 dropdown-toggle badge align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }}</span>
+                <div class="dropdown-menu p-3" style="min-width: 560px;">
+                  <h5>{{ task.comments.0.Progs_name }}</h5>
+                  <div class="dropdown-divider"></div>
+                  {% for comment in task.comments %}
+                      <h6>Исправить до: {{ comment.deadline }}</h6>
+                      <textarea class="form-control" style="min-height: 160px;" disabled>{{ comment.comment }}</textarea>
+                      <div class="dropdown-divider"></div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+            </td>
             <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
             <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
             <td>

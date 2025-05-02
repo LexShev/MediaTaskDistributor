@@ -202,6 +202,9 @@ function ShowOTKComment() {
     const jsonStr = comment_dict.replace(/'/g, '"').replace(/None/g, 'null').replace(/\r\n/g, '\\n').replace(/\\"/g, '"');
     const commentArray = JSON.parse(jsonStr);
 
+    let OTKCommentTitle = document.getElementById('otk_comment_title');
+    OTKCommentTitle.innerHTML = ''
+    OTKCommentTitle.textContent = commentArray[0].Progs_name
     let OTKCommentBody = document.getElementById('otk_comment_body');
     OTKCommentBody.innerHTML = ''
 
@@ -213,17 +216,18 @@ function ShowOTKComment() {
 
         comment_text = document.createElement("textarea");
         comment_text.classList.add('form-control');
-        comment_text.style = 'min-height: 130px';
+        comment_text.style = 'min-height: 60px';
         comment_text.disabled = true
         comment_text.textContent = commentArray[i].comment;
+        comment_text.rows = comment_text.value.split(/\r|\r\n|\n/).length;
         OTKCommentBody.appendChild(comment_text);
 
         let divider = document.createElement("hr");
         divider.style = 'width: 40%; size: 2;';
         OTKCommentBody.appendChild(divider);
 
-        OTKComment = new bootstrap.Modal(document.getElementById('OTKComment'));
-        OTKComment.toggle();
     };
+    OTKComment = new bootstrap.Modal(document.getElementById('OTKComment'), {keyboard: true});
+    OTKComment.toggle();
 
 };
