@@ -143,10 +143,8 @@
             <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
             {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a>
               {% if task.comments %}
-
-              <span class="badge p-2 align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill"></span>
               <div class="btn-group dropend">
-                <span class="px-1 dropdown-toggle badge align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }}</span>
+                <button type="button" class="btn btn-sm dropdown-toggle align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill ms-4" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }} </button>
                 <div class="dropdown-menu p-3" style="min-width: 560px;">
                   <h5>{{ task.comments.0.Progs_name }}</h5>
                   <div class="dropdown-divider"></div>
