@@ -1,3 +1,5 @@
+{% load static %}
+
 <form method="get" action="{% url 'advanced_search' %}" class="mx-lg-3" role="search">
 <div class="input-group mb-3">
     <label class="input-group-text" for="searchSettings">Поиск по</label>
@@ -12,3 +14,6 @@
     <input class="form-control" name="search_query" id="tableFilter" type="text" placeholder="введите запрос ..." style="width: 100rem;">
 </div>
 </form><br>
+
+
+<script type="text/javascript" src="{% static 'js/advanced_search.js' %}"></script>

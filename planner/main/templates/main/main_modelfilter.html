@@ -19,17 +19,15 @@
 </style>
 
 
-<form method="post" class="container d-flex align-items-center justify-content-start">
+<form method="post" class="container d-flex align-items-center justify-content-start p-0">
       <div class="form-floating">
         {% csrf_token %}
-        <div class="row m-2 p-0">
-            {% for field in form %}
-              <div class="col mx-2 p-0">{{ field }}</div>
-            {% endfor %}
-        </div>
-
-        <div class="row text-end m-2 p-0">
-            <div class="col p-0">
+        {% for field in form %}
+        <div class="row mx-2 my-4 p-0">{{ field }}</div>
+      {% endfor %}
+        <br>
+        <div class="row text-end m-0 p-0">
+            <div class="col m-2 p-0">
                 <button type="submit" class="btn register-button btn-outline-light">Применить</button>
             </div>
         </div>
