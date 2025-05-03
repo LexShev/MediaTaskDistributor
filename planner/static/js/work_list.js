@@ -5,6 +5,11 @@ window.addEventListener('load', function() {
         program_id.addEventListener('change', changeFullSelect);
     });
 
+    let textarea_list = document.getElementsByTagName('textarea');
+    Array.from(textarea_list).forEach(function(textarea) {
+        textarea.rows = textarea.value.split(/\r|\r\n|\n/).length;
+    });
+
     function changeFullSelect() {
         let checked_list = [];
         for (let i = 0; i < program_id_list.length; i++) {

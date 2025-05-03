@@ -117,3 +117,13 @@ var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
 <span class="badge p-2 align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
   <span class="px-1" id="comment" style="cursor: pointer;" onclick="ShowOTKComment()" data-comment="{{ task.comments }}">{{ task.comments|length }}</span>
 </span>
+
+<div class="offcanvas offcanvas-top" style='height: 400px;' tabindex="-1" id="offcanvasTop" aria-labelledby="offcanvasTopLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasTopLabel"></h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    {% include 'main/main_modelfilter.html' %}
+  </div>
+</div>
