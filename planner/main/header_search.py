@@ -54,6 +54,8 @@ def fast_search(program_name):
     return search_list
 
 def advanced_search(search_id, search_query):
+    if not search_query:
+        return []
     columns_0 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),

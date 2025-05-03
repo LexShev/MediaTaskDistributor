@@ -1,7 +1,7 @@
 from django import forms
 
 # from .db_connection import program_custom_fields
-from .models import ModelFilter
+from .models import ModelFilter, AdvancedSearch
 from .form_choices import Choices
 
 
@@ -163,3 +163,23 @@ class VacationForm(forms.Form):
         attrs={'class': "form-control", 'id': "description_form", 'style': "height: 60px"}),
         label='Примечание', required=False)
 
+class AdvancedSearchForm(forms.ModelForm):
+    class Meta:
+        model = AdvancedSearch
+        fields = ('search_id',)
+        choices = (
+            (0, 'id'),
+            (1, 'названию'),
+            (2, 'имени файла'),
+            (3, 'исполнителю'),
+            (4, 'дате эфира'),
+            (5, 'крайнему сроку'),
+        )
+        labels = {'search_id': 'поиск по'}
+
+        widgets = {
+            'search_id': forms.Select(
+                attrs={'class': 'form-select', 'id': 'search_id'},
+                choices=choices
+            ),
+        }
