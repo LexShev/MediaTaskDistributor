@@ -9,3 +9,6 @@ class ModelFilter(Model):
     work_dates = CharField(max_length=100)
     task_status = CharField(max_length=100)
 
+class AdvancedSearch(Model):
+    owner = IntegerField('owner', primary_key=True, default=1)
+    search_id = IntegerField()

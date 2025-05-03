@@ -81,16 +81,19 @@ from decimal import Decimal
 # print(datetime.datetime(2025, 4, 23, 13, 19, 18, 360000))
 # print( datetime.datetime(2025, 4, 23, 13, 22, 4, 290000))
 
-program_id_list = [1234, 4321, 9876]
-comments_list = ['comment_01', 'comment_02', 'comment_03']
+# program_id_list = [1234, 4321, 9876]
+# comments_list = ['comment_01', 'comment_02', 'comment_03']
+#
+# print([{'program_id': program_id} for program_id in program_id_list])
+#
+# fix_tuple = list(zip(program_id_list, comments_list))
+# for program_id, comments in fix_tuple:
+#     print({'program_id': program_id, 'comments': comments})
+#
+# for prog_id, comment in zip(program_id_list, comments_list):
+#     print(dict((('prog_id', prog_id), ('comment', comment))))
+#
+# print([dict((('prog_id', prog_id), ('comment', comment), ('deadline', None))) for prog_id, comment in zip(program_id_list, comments_list)])
 
-print([{'program_id': program_id} for program_id in program_id_list])
-
-fix_tuple = list(zip(program_id_list, comments_list))
-for program_id, comments in fix_tuple:
-    print({'program_id': program_id, 'comments': comments})
-
-for prog_id, comment in zip(program_id_list, comments_list):
-    print(dict((('prog_id', prog_id), ('comment', comment))))
-
-print([dict((('prog_id', prog_id), ('comment', comment), ('deadline', None))) for prog_id, comment in zip(program_id_list, comments_list)])
+first_date=datetime.datetime.strptime('0111.1991', '%d.%m.%Y')
+print(first_date)
