@@ -7,10 +7,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from .common_pool import select_pool, service_pool_info
-from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AdvancedSearchForm
-from .header_search import fast_search, advanced_search
+from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment
-from .models import ModelFilter, AdvancedSearch
+from .models import ModelFilter
 from .list_view import list_material_list
 from .permission_pannel import ask_db_permissions
 from .week_view import week_material_list
@@ -23,53 +22,6 @@ from .month import report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 
 
-@login_required()
-def main_search(request):
-    worker_id = request.user.id
-    search_query = request.GET.get('fast_search', None)
-
-    data = {'search_list': fast_search(search_query),
-            'permissions': ask_db_permissions(worker_id)}
-    return render(request, 'main/fast_search.html', data)
-
-@login_required()
-def dop_search(request):
-    worker_id = request.user.id
-    search_id = request.GET.get('search_id', 1)
-    search_query = request.GET.get('search_query')
-
-    if worker_id:
-        try:
-            init_dict = AdvancedSearch.objects.get(owner=worker_id)
-        except ObjectDoesNotExist:
-            default_advanced_search = AdvancedSearch(owner=worker_id, search_id=1)
-            default_advanced_search.save()
-            init_dict = AdvancedSearch.objects.get(owner=worker_id)
-            print("Новый поиск создан")
-    else:
-        init_dict = AdvancedSearch.objects.get(owner=0)
-    print(request.method)
-    if search_query:
-        form = AdvancedSearchForm(request.GET, instance=init_dict)
-        print('try to save data')
-        print(form)
-        if form.is_valid():
-            print('new data saved')
-            form.save()
-    else:
-        form = AdvancedSearchForm(initial={'search_id': 1})
-        print('initial form', form)
-    data = {'search_list': advanced_search(int(search_id), search_query),
-            'search_query': search_query if int(search_id) not in (4, 5) else change_format(search_query),
-            'permissions': ask_db_permissions(worker_id),
-            'form': form}
-
-    return render(request, 'main/advanced_search.html', data)
-
-def change_format(search_query):
-    if search_query:
-        yy, mm, dd = search_query.split('-')
-        return f'{dd}.{mm}.{yy}'
 
 def distribution(request):
     main_distribution()

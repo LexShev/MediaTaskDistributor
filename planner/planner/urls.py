@@ -24,6 +24,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include('main.urls')),
     path("otk/", include('otk.urls')),
+    path("", include('advanced_search.urls')),
     path("authorize/", include('django.contrib.auth.urls')),
     path("authorize/", include('workers.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

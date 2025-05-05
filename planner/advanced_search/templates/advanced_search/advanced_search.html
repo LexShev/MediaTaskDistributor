@@ -4,7 +4,32 @@
 {% block body %}
   <div class="container-fluid text-start px-lg-5">
     <br><h4>Расширенный поиск:</h4><br>
-    {% include 'main/advanced_search_block.html' %}
+    {% load static %}
+
+    <form method="get" action="{% url 'advanced_search' %}" class="mx-lg-3" role="search">
+    <div class="input-group mb-3">
+        <label class="input-group-text" for="search_id">Поиск по</label>
+    <!--    <select class="form-select" id="search_id" name="search_id">-->
+    <!--      <option value="0">id</option>-->
+    <!--      <option value="1" selected>названию</option>-->
+    <!--      <option value="2">имени файла</option>-->
+    <!--      <option value="3">исполнителю</option>-->
+    <!--      <option value="4">дате эфира</option>-->
+    <!--      <option value="5">крайнему сроку</option>-->
+    <!--    </select>-->
+    <!--    {{ form.search_id.label }}-->
+        {{ form.search_id }}
+
+        <input class="form-control" name="search_query" id="tableFilter" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="введите запрос ..." style="width: 100rem;">
+        <button type="submit" class="btn btn-outline-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            </svg>
+        </button>
+    </div>
+    </form><br>
+
+
     <h5>Результатов: {{ search_list|length }}</h5>
     <hr width="100%" size="2"><br>
     {% if search_list %}
@@ -56,5 +81,7 @@
       {% endfor %}
     {% endif %}
   </div><br>
+
+<script type="text/javascript" src="{% static 'js/advanced_search.js' %}"></script>
 {% endblock %}
 </main>
