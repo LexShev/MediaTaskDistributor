@@ -17,8 +17,6 @@ urlpatterns = [
     path("work_calendar/", work_calendar),
     path("work_calendar/<int:cal_year>", work_year_calendar),
     path("distribution", distribution, name='distribution'),
-    path("fast_search", main_search, name='fast_search'),
-    path("advanced_search", dop_search, name='advanced_search'),
     path("unblock_card/<int:program_id>/<int:worker_id>", unblock_card, name='unblock_card'),
     # redirect('name-of-my-view-pattern')
 ]

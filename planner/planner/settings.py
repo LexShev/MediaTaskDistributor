@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "main",
     "workers",
     "otk",
+    "advanced_search",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
