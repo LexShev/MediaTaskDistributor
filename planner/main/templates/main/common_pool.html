@@ -1,5 +1,5 @@
 {% extends  'main/index.html' %}
-
+{% load static %}
 <main>
 
 {% block body %}
@@ -10,14 +10,31 @@
     <h6>Из них фильмов: {{ service_dict.film_count }} - ({{ service_dict.film_dur|convert_frames_to_time }})</h6>
     <h6>Из них сериалов: {{ service_dict.season_count }} - ({{ service_dict.season_dur|convert_frames_to_time }})</h6>
     <br>
-    <div class="input-group mb-3">
-        <label class="input-group-text" for="searchSettings">Поиск по</label>
-        <select class="form-select" id="searchSettings">
-            <option value="0">id</option>
-            <option value="1" selected>названию</option>
-        </select>
-        <input class="form-control" id="tableFilter" type="text" placeholder="введите название передачи ..." style="width: 70rem;">
-    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="input-group mb-3">
+            <label class="input-group-text" for="searchSettings">Поиск по</label>
+            <select class="form-select" id="searchSettings" style="width: 6rem;">
+                <option value="0">id</option>
+                <option value="1" selected>названию</option>
+            </select>
+            <input class="form-control" id="tableFilter" type="text" placeholder="введите название передачи ..." style="width: 60rem;">
+
+            <select name="sql_set" class="form-select" id="sql_set" style="width: 12rem;">
+                <option value="100">Первые 100</option>
+                <option value="500">Первые 500</option>
+                <option value="1000" selected>Первые 1 000</option>
+                <option value="10000">Первые 10 000</option>
+                <option value="100000">Первые 100 000</option>
+            </select>
+            <button type="submit" class="btn btn-outline-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+              </svg>
+            </button>
+        </div>
+    </form>
+
     <table class="table table-hover">
         <thead>
             <tr>
@@ -41,27 +58,8 @@
         </tbody>
     </table>
 </div>
-<script>
-    document.getElementById('tableFilter').addEventListener('keyup', function() {
-        // Get the value from the input field
-        let filter = this.value.toLowerCase();
-        // Get the table body and rows
-        let tableBody = document.getElementById('tableBody');
-        let rows = tableBody.getElementsByTagName('tr');
-        let searchSettings = document.getElementById('searchSettings').value;
 
-        // Loop through all table rows
-        for (let i = 0; i < rows.length; i++) {
-            // Get the first cell in the row (the 'Name' column)
-            let nameCell = rows[i].getElementsByTagName('td')[searchSettings];
-            // Check if the cell exists and compares the value
-            if (nameCell) {
-                let textValue = nameCell.textContent || nameCell.innerText;
-                // Toggle the visibility based on the filter
-                rows[i].style.display = textValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
-            }
-        }
-    });
-</script>
+<script type="text/javascript" src="{% static 'js/common_pool.js' %}"></script>
+
 {% endblock %}
 </main>

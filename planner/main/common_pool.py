@@ -1,7 +1,7 @@
 from django.db import connections
 
 
-def select_pool():
+def select_pool(sql_set):
     with connections['oplan3'].cursor() as cursor:
         columns = [
             ('Progs', 'program_id'),
@@ -15,7 +15,7 @@ def select_pool():
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
-            SELECT TOP 1000 {sql_columns}
+            SELECT TOP ({sql_set}) {sql_columns}
             FROM [oplan3].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0

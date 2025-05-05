@@ -47,8 +47,9 @@ def dop_search(request):
             print('new data saved')
             form.save()
     else:
-        print('sql_set', sql_set)
         form = AdvancedSearchForm(initial={'search_id': 1, 'sql_set': sql_set})
+
+
     data = {'search_list': query_selector(int(search_id), int(sql_set), search_query),
             'search_id': int(search_id),
             'search_query': search_query,

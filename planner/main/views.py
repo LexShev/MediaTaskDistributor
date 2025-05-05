@@ -357,7 +357,8 @@ def test_page(request):
 @login_required()
 def common_pool(request):
     worker_id = request.user.id
-    data = {'pool_list': select_pool(),
+    sql_set = request.POST.get('sql_set', 1000)
+    data = {'pool_list': select_pool(sql_set),
             'service_dict': service_pool_info(),
             'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/common_pool.html', data)
