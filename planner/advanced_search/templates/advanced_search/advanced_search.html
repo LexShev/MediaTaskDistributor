@@ -8,27 +8,22 @@
 
     <form method="get" action="{% url 'advanced_search' %}" class="mx-lg-3" role="search">
     <div class="input-group mb-3">
-        <label class="input-group-text" for="search_id">Поиск по</label>
-    <!--    <select class="form-select" id="search_id" name="search_id">-->
-    <!--      <option value="0">id</option>-->
-    <!--      <option value="1" selected>названию</option>-->
-    <!--      <option value="2">имени файла</option>-->
-    <!--      <option value="3">исполнителю</option>-->
-    <!--      <option value="4">дате эфира</option>-->
-    <!--      <option value="5">крайнему сроку</option>-->
-    <!--    </select>-->
-    <!--    {{ form.search_id.label }}-->
-        {{ form.search_id }}
-
-        <input class="form-control" name="search_query" id="tableFilter" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="введите запрос ..." style="width: 100rem;">
+      <label class="input-group-text" for="search_id">Поиск по</label>
+      {{ form.search_id }}
+      {{ form.engineers }}
+      {% if search_id == 3 %}
+        <input class="form-control" name="search_input" id="search_input" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="введите запрос ..." style="width: 90rem;" hidden>
+      {% else %}
+        <input class="form-control" name="search_input" id="search_input" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="введите запрос ..." style="width: 90rem;">
+      {% endif %}
+      {{ form.sql_set }}
         <button type="submit" class="btn btn-outline-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-            </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+          </svg>
         </button>
     </div>
     </form><br>
-
 
     <h5>Результатов: {{ search_list|length }}</h5>
     <hr width="100%" size="2"><br>
@@ -49,11 +44,13 @@
           </div>
           <div class="card-body p-2">
             <div class="row">
-              <div class="col">
-                <p class="card-text m-0"><small class="text-body-secondary">Канал: </small>
-                  <small class="text-body-primary">{{ material.SchedDay_schedule_id|schedule_name }}</small>
-                </p>
-              </div>
+              {% if search_id == 4 or search_id == 5 %}
+                <div class="col">
+                  <p class="card-text m-0"><small class="text-body-secondary">Канал: </small>
+                    <small class="text-body-primary">{{ material.SchedDay_schedule_id|schedule_name }}</small>
+                  </p>
+                </div>
+              {% endif %}
               <div class="col">
                 <p class="card-text m-0"><small class="text-body-secondary">Возрастная категория: </small>
                   <small class="text-body-primary">{{ material.Adult_Name }}</small>
@@ -61,13 +58,29 @@
               </div>
               <div class="col">
                 <p class="card-text m-0"><small class="text-body-secondary">Дата отсмотра: </small>
-                  <small class="text-body-primary">{{ material.work_date|date:"d E Y" }}</small>
+                  <small class="text-body-primary">
+                    {% if material.Task_work_date %}
+                      {{ material.Task_work_date|date:"d E Y" }}
+                    {% elif material.SchedDay_day_date %}
+                      {{ material.SchedDay_day_date|date:"d E Y" }}
+                    {% elif material.work_date %}
+                      {{ material.work_date|date:"d E Y" }}
+                    {% else %}
+                      Не отсмотрен
+                    {% endif %}
+                  </small>
                 </p>
               </div>
               <div class="col">
                 <p class="card-text m-0"><small class="text-body-secondary">
-                Исполнитель: <a href="{% url 'home' %}worker/{{ material.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                {{ material.engineer_id|engineer_name }}</a></small>
+                Исполнитель: <a href="{% url 'home' %}worker/{% if material.Task_engineer_id %}{{ material.Task_engineer_id }}{% else %}{{ material.engineer_id }}{% endif %}"
+                                class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                  {% if material.Task_engineer_id %}
+                    {{ material.Task_engineer_id|engineer_name }}
+                  {% else %}
+                    {{ material.engineer_id|engineer_name }}
+                  {% endif %}
+                </a></small>
                 </p>
               </div>
               <div class="col">

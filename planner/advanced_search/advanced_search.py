@@ -1,7 +1,7 @@
 from django.db import connections
 
 
-def query_selector(search_id, search_query):
+def query_selector(search_id, sql_set, search_query):
     if not search_query:
         return []
     columns_0 = [
@@ -21,21 +21,24 @@ def query_selector(search_id, search_query):
         ('Files', 'ModificationTime')
     ]
     columns_3 = [
-
+        ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'),
+        ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
+        ('Progs', 'duration'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_4 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'ModificationTime'),
         ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
+        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_5 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'ModificationTime'),
         ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
+        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
 
     columns_list = [columns_0, columns_1, columns_2, columns_3, columns_4, columns_5]
@@ -43,7 +46,7 @@ def query_selector(search_id, search_query):
     django_columns = [f'{col}_{val}' for col, val in columns_list[search_id]]
     # id
     query_0 = f'''
-        SELECT {sql_columns}
+        SELECT TOP ({sql_set}) {sql_columns}
         FROM [oplan3].[dbo].[program] AS Progs
         LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
@@ -53,7 +56,7 @@ def query_selector(search_id, search_query):
         '''
     # name
     query_1 = f'''
-        SELECT {sql_columns}
+        SELECT TOP ({sql_set}) {sql_columns}
         FROM [oplan3].[dbo].[program] AS Progs
         LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
@@ -67,7 +70,7 @@ def query_selector(search_id, search_query):
         '''
     # file_name
     query_2 = f'''
-        SELECT {sql_columns}
+        SELECT TOP ({sql_set}) {sql_columns}
         FROM [oplan3].[dbo].[File] AS Files
         JOIN [oplan3].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
@@ -89,29 +92,26 @@ def query_selector(search_id, search_query):
         '''
     # !!!engineer
     query_3 = f'''
-        SELECT {sql_columns}
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
-            ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
-            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        SELECT TOP ({sql_set}) {sql_columns}
+        FROM [oplan3].[dbo].[program] AS Progs
+        LEFT JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Fields
+            ON Progs.[program_id] = Fields.[ObjectId]
+        LEFT JOIN [planner].[dbo].[task_list] AS Task
+            ON Progs.[program_id] = Task.[program_id]
         LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        JOIN [oplan3].[dbo].[program_type] AS Types
-            ON Progs.[program_type_id] = Types.[program_type_id]
         WHERE Progs.[deleted] = 0
-        AND Files.[Deleted] = 0
-        AND Files.[PhysicallyDeleted] = 0
-        AND Clips.[Deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
-        AND [program_kind] IN (0, 3)
-        AND Progs.[program_type_id] NOT IN (1, 2, 3, 9, 13, 14, 15)
-        AND Files.[Name] LIKE '%{search_query}%'
-        ORDER BY Files.[Name];
+        AND Fields.[ProgramCustomFieldId] = 15
+        AND Fields.[IntValue] = {search_query}
+        OR Task.[engineer_id] = {search_query}
+        AND Progs.[program_id] NOT IN
+            (SELECT program_id FROM [planner].[dbo].[task_list] WHERE [engineer_id] = {search_query})
+        ORDER BY Progs.[program_id];
         '''
     # sched_date
     query_4 = f'''
-        SELECT {sql_columns}
+        SELECT TOP ({sql_set}) {sql_columns}
         FROM [oplan3].[dbo].[File] AS Files
         JOIN [oplan3].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
@@ -125,6 +125,8 @@ def query_selector(search_id, search_query):
             ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
         JOIN [oplan3].[dbo].[schedule] AS Sched
             ON SchedDay.[schedule_id] = Sched.[schedule_id]
+        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+            ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         LEFT JOIN [planner].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
         WHERE Files.[Deleted] = 0
@@ -141,7 +143,7 @@ def query_selector(search_id, search_query):
         '''
     # last_date
     query_5 = f'''
-        SELECT {sql_columns}
+        SELECT TOP ({sql_set}) {sql_columns}
         FROM [oplan3].[dbo].[File] AS Files
         JOIN [oplan3].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
@@ -155,6 +157,8 @@ def query_selector(search_id, search_query):
             ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
         JOIN [oplan3].[dbo].[schedule] AS Sched
             ON SchedDay.[schedule_id] = Sched.[schedule_id]
+        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+            ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         LEFT JOIN [planner].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
         WHERE Files.[Deleted] = 0
@@ -184,13 +188,21 @@ def query_selector(search_id, search_query):
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
-        temp_dict['work_date'] = (cenz_info(temp_dict.get('Progs_program_id'))).get(7)
-        temp_dict['engineer_id'] = (cenz_info(temp_dict.get('Progs_program_id'))).get(15)
+        if not temp_dict.get('Task_work_date'):
+            cenz_info_dict = cenz_info(temp_dict.get('Progs_program_id'))
+            temp_dict['work_date'] = cenz_info_dict.get(7)
+            temp_dict['engineer_id'] = cenz_info_dict.get(15)
+        else:
+            print('pass')
         if not temp_dict.get('Adult_Name'):
             temp_dict['Adult_Name'] = parent_adult_name(temp_dict.get('Progs_parent_id'))
+        if not temp_dict.get('Files_Name'):
+            file_path_info = find_file_path(program_id)
+            if file_path_info:
+                temp_dict.update(file_path_info)
         program_id_list.append(program_id)
         search_list.append(temp_dict)
-    print(search_list)
+    # print(search_list)
     return search_list
 
 def cenz_info(program_id):
@@ -200,8 +212,9 @@ def cenz_info(program_id):
         SELECT {columns}
         FROM [oplan3].[dbo].[ProgramCustomFieldValues]
         WHERE [ObjectId] = {program_id}
+        AND [ProgramCustomFieldId] IN (7, 15)
         '''
-        print(query)
+        # print(query)
         cursor.execute(query)
         cenz_info_sql = cursor.fetchall()
     custom_fields_dict = {}
@@ -211,9 +224,7 @@ def cenz_info(program_id):
         if field_id == 7:
             custom_fields_dict[field_id] = date_value
         elif field_id == 15:
-            # custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
             custom_fields_dict[field_id] = int_value
-            # .split(';')
     return custom_fields_dict
 
 def parent_adult_name(program_id):
@@ -232,3 +243,28 @@ def parent_adult_name(program_id):
             return adult_name[2]
         elif not adult_name[2] and adult_name[1]:
             return parent_adult_name(adult_name[1])
+
+def find_file_path(program_id):
+    columns = (('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
+               ('Files', 'ModificationTime'), ('Progs', 'duration'))
+    sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+    django_columns = [f'{col}_{val}' for col, val in columns]
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        SELECT {sql_columns}
+        FROM [oplan3].[dbo].[File] AS Files
+        JOIN [oplan3].[dbo].[Clip] AS Clips
+            ON Files.[ClipID] = Clips.[ClipID]
+        JOIN [oplan3].[dbo].[program] AS Progs
+            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        WHERE Files.[Deleted] = 0
+        AND Files.[PhysicallyDeleted] = 0
+        AND Clips.[Deleted] = 0
+        AND Progs.[deleted] = 0
+        AND Progs.[DeletedIncludeParent] = 0
+        AND Progs.[program_id] = {program_id}
+        '''
+        cursor.execute(query)
+        file_path_info = cursor.fetchone()
+    if file_path_info:
+        return dict(zip(django_columns, file_path_info))

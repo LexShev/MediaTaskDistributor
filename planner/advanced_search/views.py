@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+
 from main.permission_pannel import ask_db_permissions
 
 from .models import AdvancedSearch
@@ -22,7 +23,11 @@ def main_search(request):
 def dop_search(request):
     worker_id = request.user.id
     search_id = request.GET.get('search_id', 1)
-    search_query = request.GET.get('search_query')
+    sql_set = request.GET.get('sql_set', 100)
+    if search_id == '3':
+        search_query = request.GET.get('engineers')
+    else:
+        search_query = request.GET.get('search_input')
 
     if worker_id:
         try:
@@ -34,25 +39,21 @@ def dop_search(request):
             print("Новый поиск создан")
     else:
         init_dict = AdvancedSearch.objects.get(owner=0)
-    print(request.method)
+    print('search_query', search_query)
     if search_query:
         form = AdvancedSearchForm(request.GET, instance=init_dict)
         print('try to save data')
-        print(form)
         if form.is_valid():
             print('new data saved')
             form.save()
     else:
-        form = AdvancedSearchForm(initial={'search_id': 1})
-        print('initial form', form)
-    data = {'search_list': query_selector(int(search_id), search_query),
-            'search_query': search_query if int(search_id) not in (4, 5) else change_format(search_query),
+        print('sql_set', sql_set)
+        form = AdvancedSearchForm(initial={'search_id': 1, 'sql_set': sql_set})
+    data = {'search_list': query_selector(int(search_id), int(sql_set), search_query),
+            'search_id': int(search_id),
+            'search_query': search_query,
             'permissions': ask_db_permissions(worker_id),
-            'form': form}
-
+            'form': form,
+            }
     return render(request, 'advanced_search/advanced_search.html', data)
 
-def change_format(search_query):
-    if search_query:
-        yy, mm, dd = search_query.split('-')
-        return f'{dd}.{mm}.{yy}'

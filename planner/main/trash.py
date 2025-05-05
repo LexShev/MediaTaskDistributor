@@ -95,5 +95,18 @@ from decimal import Decimal
 #
 # print([dict((('prog_id', prog_id), ('comment', comment), ('deadline', None))) for prog_id, comment in zip(program_id_list, comments_list)])
 
-first_date=datetime.datetime.strptime('0111.1991', '%d.%m.%Y')
-print(first_date)
+# first_date=datetime.datetime.strptime('0111.1991', '%d.%m.%Y')
+# print(first_date)
+
+list1 = [1]
+list2 = []
+list3 = [3]
+
+if list1:
+    print(list1)
+elif list2:
+    print(list2)
+elif list3:
+    print(list3)
+else:
+    print('none')
