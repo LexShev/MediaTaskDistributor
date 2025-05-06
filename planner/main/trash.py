@@ -98,15 +98,22 @@ from decimal import Decimal
 # first_date=datetime.datetime.strptime('0111.1991', '%d.%m.%Y')
 # print(first_date)
 
-list1 = [1]
-list2 = []
-list3 = [3]
+# list1 = [1]
+# list2 = []
+# list3 = [3]
+#
+# if list1:
+#     print(list1)
+# elif list2:
+#     print(list2)
+# elif list3:
+#     print(list3)
+# else:
+#     print('none')
 
-if list1:
-    print(list1)
-elif list2:
-    print(list2)
-elif list3:
-    print(list3)
-else:
-    print('none')
+
+
+
+
+res = f'{1000000:,}'
+print(res)

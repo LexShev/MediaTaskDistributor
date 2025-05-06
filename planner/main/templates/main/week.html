@@ -6,17 +6,6 @@
   {% if permissions.week %}
   <nav class="container-fluid px-lg-5">
     <div class="d-flex justify-content-end">
-      <div class="dropdown">
-        <button class="btn btn-outline-light dropdown-toggle mx-2" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-offset="[0, 10]" aria-expanded="false">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
-            <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-          </svg>
-        </button>
-
-        <div class="dropdown-menu p-2" style="min-height: 30rem; width: 50rem;">
-          {% include 'main/main_modelfilter.html' %}
-        </div>
-      </div>
 
         <ul class="pagination m-0">
           <li class="page-item">
@@ -35,95 +24,85 @@
   </nav>
   <div class="container-fluid text-start px-lg-5">
     <div class="row p-0">
-      {% for day in week_material_list %}
-      {% if day.1 %}
+
+      <div class="col p-0 mx-1" style="max-width:26rem">
+        <div class="sticky-top text-center bg-body p-2">{{ week_material_list.0.0.weekday }}, {{ week_material_list.0.0.date|date:"d E" }}</div>
+        {% for material in week_material_list.0 %}
+          {% if material.type == 'film' %}
+            {% include 'main/week_film.html' %}
+          {% elif material.type == 'season' %}
+            {% include 'main/week_season.html' %}
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="col p-0 mx-1" style="max-width:26rem">
+        <div class="sticky-top text-center bg-body p-2">{{ week_material_list.1.0.weekday }}, {{ week_material_list.1.0.date|date:"d E" }}</div>
+        {% for material in week_material_list.1 %}
+          {% if material.type == 'film' %}
+            {% include 'main/week_film.html' %}
+          {% elif material.type == 'season' %}
+            {% include 'main/week_season.html' %}
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="col p-0 mx-1" style="max-width:26rem">
+        <div class="sticky-top text-center bg-body p-2">{{ week_material_list.2.0.weekday }}, {{ week_material_list.2.0.date|date:"d E" }}</div>
+        {% for material in week_material_list.2 %}
+          {% if material.type == 'film' %}
+            {% include 'main/week_film.html' %}
+          {% elif material.type == 'season' %}
+            {% include 'main/week_season.html' %}
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="col p-0 mx-1" style="max-width:26rem">
+        <div class="sticky-top text-center bg-body p-2">{{ week_material_list.3.0.weekday }}, {{ week_material_list.3.0.date|date:"d E" }}</div>
+        {% for material in week_material_list.3 %}
+          {% if material.type == 'film' %}
+            {% include 'main/week_film.html' %}
+          {% elif material.type == 'season' %}
+            {% include 'main/week_season.html' %}
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="col p-0 mx-1" style="max-width:26rem">
+        <div class="sticky-top text-center bg-body p-2">{{ week_material_list.4.0.weekday }}, {{ week_material_list.4.0.date|date:"d E" }}</div>
+        {% for material in week_material_list.4 %}
+          {% if material.type == 'film' %}
+            {% include 'main/week_film.html' %}
+          {% elif material.type == 'season' %}
+            {% include 'main/week_season.html' %}
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% if week_material_list.5.1 %}
         <div class="col p-0 mx-1" style="max-width:26rem">
-          <div class="sticky-top text-center bg-body p-2">{{ day.0.weekday }}, {{ day.0.date|date:"d E" }}</div>
-          {% for material in day %}
+          <div class="sticky-top text-center bg-body p-2">{{ week_material_list.5.0.weekday }}, {{ week_material_list.5.0.date|date:"d E" }}</div>
+          {% for material in week_material_list.5 %}
             {% if material.type == 'film' %}
-              <div class="card shadow-sm mx-1 my-2" style="border-color: {{ material.color }};">
-                <div class="card-header p-2">
-                  <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    <h6 class="m-0">{{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
-                  </a>
-                </div>
-                <div class="card-body p-2">
-                  <div class="card-text m-0"><small class="text-body-secondary">
-                    Канал:
-                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                      {{ material.Task_sched_id|schedule_name }}
-                    </a></small>
-                  </div>
-                  <div class="card-text m-0"><small class="text-body-secondary">
-                    Возрастная категория:</small>
-                      <small class="text-body-primary"> {{ material.Adult_Name }}</small>
-                  </div>
-                  <div class="card-text m-0"><small class="text-body-secondary">
-                    Выполняет:
-                    <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                      {{ material.engineer_id|engineer_name }}
-                    </a></small>
-                  </div>
-                  <div class="card-text m-0"><small class="text-body-secondary">
-                    Хронометраж: </small>
-                    <small class="text-emphasis">
-                      {{ material.Progs_duration|convert_frames_to_time }}
-                    </small>
-                  </div>
-                </div>
-              </div>
+              {% include 'main/week_film.html' %}
             {% elif material.type == 'season' %}
-              <div class="card shadow-sm mx-1 my-2" style="border-color: {{ material.color }};">
-                <div class="card-header p-2">
-                  <a href="{% url 'home' %}{{ material.Progs_parent_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    <h6 class="m-0">{{ material.Progs_AnonsCaption }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
-                  </a>
-                </div>
-              </div>
-              {% for episode in material.episode|dictsort:"Progs_episode_num" %}
-                <div class="row align-items-center">
-                  <div class="col ps-4" style="max-width:50px">
-                    <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree"><g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v21M20 27H8.3"></path></g></svg>
-                  </div>
-                  <div class="col">
-                    <div class="card shadow mx-1 my-2 mt-0 p-0" style="border-color: {{ material.color }};">
-                      <div class="card-header p-2">
-                        <a href="{% url 'home' %}{{ episode.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                          <h6 class="my-0 mx-1">{{ episode.Progs_name }}</h6>
-                        </a>
-                      </div>
-                      <div class="card-body p-2">
-                        <div class="card-text m-0"><small class="text-body-secondary">
-                          Канал:
-                          <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                            {{ material.Task_sched_id|schedule_name }}
-                          </a></small>
-                        </div>
-                        <div class="card-text m-0"><small class="text-body-secondary">Возрастная категория:</small>
-                          <small class="text-body-primary"> {{ episode.Adult_Name }}</small>
-                        </div>
-                        <div class="card-text m-0"><small class="text-body-secondary">
-                          Выполняет:
-                          <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                            {{ episode.Task_engineer_id|engineer_name }}
-                          </a></small>
-                        </div>
-                        <div class="card-text m-0"><small class="text-body-secondary">
-                          Хронометраж: </small>
-                          <small class="text-emphasis">
-                            {{ episode.Progs_duration|convert_frames_to_time }}
-                          </small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {% endfor %}
+              {% include 'main/week_season.html' %}
             {% endif %}
           {% endfor %}
         </div>
       {% endif %}
-      {% endfor %}
+      {% if week_material_list.5.1 %}
+        <div class="col p-0 mx-1" style="max-width:26rem">
+          <div class="sticky-top text-center shadow bg-body p-2">{{ week_material_list.6.0.weekday }}, {{ week_material_list.6.0.date|date:"d E" }}</div>
+          {% for material in week_material_list.6 %}
+            {% if material.type == 'film' %}
+              {% include 'main/week_film.html' %}
+            {% elif material.type == 'season' %}
+              {% include 'main/week_season.html' %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
   </div>
   {% else %}
