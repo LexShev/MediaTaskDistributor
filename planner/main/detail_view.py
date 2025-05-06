@@ -353,3 +353,21 @@ def check_lock_object(program_id):
         res = cursor.fetchone()
         print(res)
         return res
+
+def insert_filepath_history(program_id, worker_id, task_status, comment, time_of_change):
+    with connections['planner'].cursor() as cursor:
+        values = (program_id, worker_id, task_status, comment, time_of_change)
+        query = f'''
+        INSERT INTO [planner].[dbo].[filepath_history] (program_id, worker_id, task_status, comment, time_of_change)
+        VALUES (%s, %s, %s, %s, %s)
+        '''
+        cursor.execute(query, values)
+        return cursor.rowcount
+
+def select_filepath_history(program_id):
+    with connections['planner'].cursor() as cursor:
+        columns = 'program_id', 'worker_id', 'task_status', 'comment', 'time_of_change'
+        sql_columns = ', '.join(columns)
+        query = f'SELECT {sql_columns} FROM [planner].[dbo].[filepath_history]'
+        cursor.execute(query)
+        return [dict(zip(columns, val)) for val in cursor.fetchall()]

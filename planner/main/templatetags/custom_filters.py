@@ -203,3 +203,11 @@ def month_name(cal_month):
 def status_name(status):
     status_dict = MainSettings.status_dict
     return status_dict.get(status, '')
+
+@register.filter
+def thousands(num):
+    return f'{num:,}'.replace(',', ' ')
+
+@register.filter
+def stringint(string):
+    return int(string)

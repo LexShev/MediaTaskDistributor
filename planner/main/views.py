@@ -6,7 +6,6 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from .common_pool import select_pool, service_pool_info
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment
 from .models import ModelFilter
@@ -354,14 +353,6 @@ def engineer_profile(request, engineer_id):
 def test_page(request):
     return render(request, 'main/daterange_picker.html')
 
-@login_required()
-def common_pool(request):
-    worker_id = request.user.id
-    sql_set = request.POST.get('sql_set', 1000)
-    data = {'pool_list': select_pool(sql_set),
-            'service_dict': service_pool_info(),
-            'permissions': ask_db_permissions(worker_id)}
-    return render(request, 'main/common_pool.html', data)
 
 @login_required()
 def work_year_calendar(request, cal_year):

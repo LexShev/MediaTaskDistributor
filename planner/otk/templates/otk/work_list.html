@@ -115,7 +115,7 @@
     </div>
     <br>
     <div class="d-flex">
-      <h6 class="pe-5">Всего: {{ service_dict.total_count }}</h6>
+      <h6 class="pe-5">Всего: {{ service_dict.total_count|thousands }}</h6>
       <h6>Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
     </div><br>
     <table class="table table-hover">
