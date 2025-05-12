@@ -3,25 +3,25 @@
 
 <main role="main">
 {% block body %}
-  {% if permissions.week %}
-  <nav class="container-fluid px-lg-5">
-    <div class="d-flex justify-content-end">
+{% if permissions.week %}
 
-        <ul class="pagination m-0">
-          <li class="page-item">
-            <a class="page-link link-light border-light" title="Назад" href="{% url 'home' %}week/{{ service_dict.prev_year }}/{{ service_dict.prev_week }}" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-          <li class="page-item"><a class="page-link link-light border-light" href="{% url 'home' %}week/{{ service_dict.work_year }}/{{ service_dict.work_week }}">{{ service_dict.work_week }}</a></li>
-          <li class="page-item">
-            <a class="page-link link-light border-light" title="Вперёд" href="{% url 'home' %}week/{{ service_dict.next_year }}/{{ service_dict.next_week }}" aria-label="Next">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-        </ul>
-    </div>
+  <nav class="nav d-flex border-bottom shadow py-2 mb-2 px-lg-5">
+    <ul class="pagination my-0 me-auto">
+      <li class="page-item">
+        <a class="page-link link-light border-light" title="Назад" href="{% url 'home' %}week/{{ service_dict.prev_year }}/{{ service_dict.prev_week }}" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      <li class="page-item"><a class="page-link link-light border-light" href="{% url 'home' %}week/{{ service_dict.work_year }}/{{ service_dict.work_week }}">{{ service_dict.work_week }}</a></li>
+      <li class="page-item">
+        <a class="page-link link-light border-light" title="Вперёд" href="{% url 'home' %}week/{{ service_dict.next_year }}/{{ service_dict.next_week }}" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
+    {% include 'main/second_header.html' %}
   </nav>
+
   <div class="container-fluid text-start px-lg-5">
     <div class="row p-0">
 
@@ -105,8 +105,8 @@
       {% endif %}
     </div>
   </div>
-  {% else %}
+{% else %}
   <h4 class="text-center">forbidden</h4>
-  {% endif %}
+{% endif %}
 {% endblock %}
 </main>

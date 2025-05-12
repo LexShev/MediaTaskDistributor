@@ -1,0 +1,140 @@
+{% extends  'main/index.html' %}
+{% load static %}
+
+{% block body %}
+<link href="{% static '/css/dropdowns.css' %}"  rel="stylesheet">
+<nav class="nav d-flex justify-content-end border-bottom shadow py-2 mb-2 px-lg-5">
+  <div class="dropdown">
+    <button class="btn btn-outline-light dropdown-toggle m-0" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" data-bs-offset="[0, 12]" aria-expanded="false">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2-week" viewBox="0 0 16 16">
+      <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+      <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5zM11 7.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/>
+    </svg>
+    </button>
+
+    <div class="dropdown-menu shadow p-4" style="z-index: 1030; width: 23rem; height: 23rem;">
+      <div class="row align-items-center">
+        <div class="col d-flex justify-content-start">
+          <a href="{% url 'home' %}on-air-report/{{ service_dict.prev_year }}/{{ service_dict.prev_month }}" class="btn cal-btn" type="button" style="width: 2rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+            </svg>
+          </a>
+        </div>
+        <div class="col text-center">
+          <h5>{{ service_dict.cal_month|month_name }}</h5>
+        </div>
+        <div class="col d-flex justify-content-end">
+          <a href="{% url 'home' %}on-air-report/{{ service_dict.next_year }}/{{ service_dict.next_month }}" class="btn cal-btn" type="button" style="width: 2rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <table cellpadding="4" class="month">
+          <thead class="text-center text-secondary">
+            <tr>
+              <th class="p-2"></th>
+              <th class="mon p-2">Пн</th>
+              <th class="tue p-2">Вт</th>
+              <th class="wed p-2">Ср</th>
+              <th class="thu p-2">Чт</th>
+              <th class="fri p-2">Пт</th>
+              <th class="sat p-2">Сб</th>
+              <th class="sun p-2">Вс</th>
+            </tr>
+          </thead>
+
+          <tbody class="table-group-divider">
+            {% for week in month_calendar %}
+              <tr>
+                <th class="text-secondary">{{ week.0.day|date:"W" }}</th>
+                {% for date in week %}
+                  {% if date.day|date:"n" == service_dict.cal_month|stringformat:"s" %}
+                    <td>
+                      <button class="btn cal-btn p-2 {{ date.color }}"
+                              name="cal_day" value="{{ date.day|date:'Y-m-d' }}"
+                              type="submit" style="width: 2rem; height: 2rem;"
+                              title="Готово: {{ date.ready_tasks }}&#10;Осталось: {{ date.not_ready_tasks }}">
+                        {{ date.day|date:"j" }}
+                      </button></td>
+                  {% else %}
+                    <td>
+                      <button class="btn cal-btn p-2" type="button" style="width: 2rem; height: 2rem;" disabled>
+                        {{ date.day|date:"j" }}</button></td>
+                  {% endif %}
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </form>
+    </div>
+  </div>
+</nav>
+<div class="container-flex px-lg-5">
+  <br>
+  <div class="row">
+    <div class="col text-center">
+      <h4>Отчёт о готовности материала на эфир: {{ service_dict.cal_day|date:'d-m-Y' }}</h4>
+    </div>
+    <div class="row row-cols-1">
+      {% for channel in channels_list %}
+        {% for schedule_id, task_list in channel.items %}
+        <div class="col p-2">
+          <h5>{{ schedule_id|schedule_name }}</h5>
+          <div class="card p-2">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col" class="col-3">Название</th>
+                  <th scope="col" class="col-1">Директория</th>
+                  <th scope="col" class="col-4">Имя файла</th>
+                  <th scope="col" class="col-2">Исполнитель</th>
+                  <th scope="col" class="col-1">Длительность</th>
+            <!--            <th scope="col">Дата отсмотра</th>-->
+                  <th scope="col" class="col-1">Статус</th>
+                </tr>
+              </thead>
+              <tbody class="table-group-divider" id="tableBody">
+                {% for task in task_list %}
+                  <tr>
+                    <td hidden>
+                      {{ task.Task_sched_date|date:'Y-m-d' }}
+                    </td>
+                    <td>
+                    <a href="{% url 'home' %}{{ task.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
+                    <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
+                    <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
+                    <td>
+                      <a href="{% url 'home' %}worker/{{ task.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                        {{ task.Task_engineer_id|engineer_name }}</a></td>
+                    <td>{{ task.Progs_duration|convert_frames_to_time }}</td>
+                    {% if task.Task_task_status == 'not_ready' %}
+                      <td class="table-danger">Не готов</td>
+                    {% elif task.Task_task_status == 'ready' %}
+                      <td class="table-success">Готов</td>
+                    {% elif not task.Task_task_status and task.Files_Name %}
+                      <td class="table-info">Oplan</td>
+                    {% elif not task.Task_file_path and not task.Files_Name %}
+                      <td class="table-danger">Нет материала</td>
+                    {% else %}
+                      <td class="table-info">{{ task.Task_task_status|status_name }}</td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          </div><br>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

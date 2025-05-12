@@ -40,7 +40,9 @@
   </div>
 </form>
 
+
 <div class="container-flex px-lg-5">
+
   <br><div class="row align-items-center">
     <div class="col d-flex justify-content-end">
       <a href="{% url 'home' %}work_calendar/{{ prev_year }}" class="btn cal-btn" type="button" style="width: 5rem;">
@@ -50,7 +52,7 @@
       </a>
     </div>
     <div class="col text-center">
-      <h4 class="text-center">Производственный календарь на {{ year_num }} год</h4>
+      <h4 class="text-center">{{ year_num }} год</h4>
     </div>
     <div class="col d-flex justify-content-start">
       <a href="{% url 'home' %}work_calendar/{{ next_year }}" class="btn cal-btn" type="button" style="width: 5rem;">
@@ -61,110 +63,129 @@
     </div>
   </div><br>
 
-  <div class="row row-cols-6">
-    {% for month_calendar in year_calendar %}
-      <div class="col p-1">
-        <div class="p-2">
-          {% with month_num=forloop.counter %}
-          <h6 class="text-center">{{ month_num|month_name }}</h6>
-          <table cellpadding="5" class="month">
-            <thead class="text-center text-secondary">
-              <tr>
-                <th class="p-2"></th>
-                <th class="mon p-2">Пн</th>
-                <th class="tue p-2">Вт</th>
-                <th class="wed p-2">Ср</th>
-                <th class="thu p-2">Чт</th>
-                <th class="fri p-2">Пт</th>
-                <th class="sat p-2">Сб</th>
-                <th class="sun p-2">Вс</th>
-              </tr>
-            </thead>
-            <tbody class="table-group-divider">
-              {% for week in month_calendar %}
-                <tr>
-                  <th class="text-secondary">{{ week.0.day|date:"W" }}</th>
-                  {% for date in week %}
-                    {% if date.day|date:"n" == month_num|stringformat:"s" %}
-                      {% if date.day_off %}
-                        <td>
-                          <button class="btn cal-btn btn-outline-warning p-2" type="button" style="width: 1.9rem; height: 1.9rem"
-                                  title="Выходной" data-bs-toggle="modal" data-bs-target="#DeleteDayOff"
-                                  data-bs-whatever="{{ date.day|date:'Y-m-d' }}">
-                            {{ date.day|date:"j" }}
-                          </button></td>
-                      {% else %}
-                        <td>
-                          <button class="btn cal-btn p-2" type="button" style="width: 1.9rem; height: 1.9rem"
-                                  title="Рабочий" data-bs-toggle="modal" data-bs-target="#ApproveDayOff"
-                                  data-bs-whatever="{{ date.day|date:'Y-m-d' }}">
-                            {{ date.day|date:"j" }}
-                          </button></td>
-                      {% endif %}
-                    {% else %}
-                      <td><button class="btn cal-btn p-2" type="button" style="width: 1.9rem; height: 1.9rem" disabled></button></td>
-                    {% endif %}
-                  {% endfor %}
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+  <div class="accordion" id="accordionCalendar">
+    <div class="accordion-item">
+      <h4 class="accordion-header">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+          Производственный календарь
+        </button>
+      </h4>
+      <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
+        <div class="accordion-body">
+          <div class="row row-cols-6">
+            {% for month_calendar in year_calendar %}
+              <div class="col p-1">
+                <div class="p-2">
+                  {% with month_num=forloop.counter %}
+                  <h6 class="text-center">{{ month_num|month_name }}</h6>
+                  <table cellpadding="5" class="month">
+                    <thead class="text-center text-secondary">
+                      <tr>
+                        <th class="p-2"></th>
+                        <th class="mon p-2">Пн</th>
+                        <th class="tue p-2">Вт</th>
+                        <th class="wed p-2">Ср</th>
+                        <th class="thu p-2">Чт</th>
+                        <th class="fri p-2">Пт</th>
+                        <th class="sat p-2">Сб</th>
+                        <th class="sun p-2">Вс</th>
+                      </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                      {% for week in month_calendar %}
+                        <tr>
+                          <th class="text-secondary">{{ week.0.day|date:"W" }}</th>
+                          {% for date in week %}
+                            {% if date.day|date:"n" == month_num|stringformat:"s" %}
+                              {% if date.day_off %}
+                                <td>
+                                  <button class="btn cal-btn btn-outline-warning p-2" type="button" style="width: 1.9rem; height: 1.9rem"
+                                          title="Выходной" data-bs-toggle="modal" data-bs-target="#DeleteDayOff"
+                                          data-bs-whatever="{{ date.day|date:'Y-m-d' }}">
+                                    {{ date.day|date:"j" }}
+                                  </button></td>
+                              {% else %}
+                                <td>
+                                  <button class="btn cal-btn p-2" type="button" style="width: 1.9rem; height: 1.9rem"
+                                          title="Рабочий" data-bs-toggle="modal" data-bs-target="#ApproveDayOff"
+                                          data-bs-whatever="{{ date.day|date:'Y-m-d' }}">
+                                    {{ date.day|date:"j" }}
+                                  </button></td>
+                              {% endif %}
+                            {% else %}
+                              <td><button class="btn cal-btn p-2" type="button" style="width: 1.9rem; height: 1.9rem" disabled></button></td>
+                            {% endif %}
+                          {% endfor %}
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            {% endwith %}
+            {% endfor %}
+          </div>
         </div>
       </div>
-    {% endwith %}
-    {% endfor %}
-  </div>
-  <br><br>
-
-  <h4 class="text-center">График отпусков</h4><br>
-  <div class="row p-2">
-    <div class="col col-3"><h6>Имя сотрудника</h6></div>
-    <div class="col col-2"><h6>Начало отпуска</h6></div>
-    <div class="col col-2"><h6>Конец отпуска</h6></div>
-    <div class="col col-1"><h6>Всего дней</h6></div>
-    <div class="col col-3"><h6>Заметки</h6></div>
-    <div class="col col-1"></div>
-  </div>
-  <hr width="100%" size="2">
-  {% for vacation in vacation_list|dictsort:"start_date" %}
-    <form method="post">
-        {% csrf_token %}
-      <div class="row p-2">
-        <div class="col col-3">{{ vacation.worker }}</div>
-        <div class="col col-2"><input type="date"  class="form-control" value="{{ vacation.start_date|date:'Y-m-d' }}" disabled></div>
-        <div class="col col-2"><input type="date"  class="form-control" value="{{ vacation.end_date|date:'Y-m-d' }}" disabled></div>
-        <div class="col col-1">{{ vacation.total }}</div>
-        <div class="col col-3"><textarea class="form-control">{% if vacation.description %}{{ vacation.description }}{% endif %}</textarea></div>
-        <div class="col col-1"><button name="delete_vacation" value="{{ vacation.vacation_id }}" type="submit" class="btn cal-btn" style="width: 32px">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
-          </svg>
-        </button></div>
-      </div>
-      <hr width="100%" size="2">
-    </form>
-  {% endfor %}
-  <form method="post">
-    {% csrf_token %}
-    <div class="row p-2">
-      <div class="col col-3">{{ form.engineers_form }}</div>
-      <div class="col col-2">{{ form.start_date_form }}</div>
-      <div class="col col-2">{{ form.end_date_form }}</div>
-      <div class="col col-1">{{ vacation.total }}</div>
-      <div class="col col-3">{{ form.description_form }}</div>
-      <div class="col col-1"><button name="add_vacation" type="submit" class="btn cal-btn" style="width: 32px">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-          <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
-        </svg>
-      </button></div>
     </div>
-  </form>
+
+    <div class="accordion-item">
+      <h4 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+          График отпусков
+        </button>
+      </h4>
+      <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
+        <div class="accordion-body">
+          <div class="row p-2">
+            <div class="col col-3"><h6>Имя сотрудника</h6></div>
+            <div class="col col-2"><h6>Начало отпуска</h6></div>
+            <div class="col col-2"><h6>Конец отпуска</h6></div>
+            <div class="col col-1"><h6>Всего дней</h6></div>
+            <div class="col col-3"><h6>Заметки</h6></div>
+            <div class="col col-1"></div>
+          </div>
+          <hr width="100%" size="2">
+          {% for vacation in vacation_list|dictsort:"start_date" %}
+            <form method="post">
+                {% csrf_token %}
+              <div class="row p-2">
+                <div class="col col-3">{{ vacation.worker }}</div>
+                <div class="col col-2"><input type="date"  class="form-control" value="{{ vacation.start_date|date:'Y-m-d' }}" disabled></div>
+                <div class="col col-2"><input type="date"  class="form-control" value="{{ vacation.end_date|date:'Y-m-d' }}" disabled></div>
+                <div class="col col-1">{{ vacation.total }}</div>
+                <div class="col col-3"><textarea class="form-control">{% if vacation.description %}{{ vacation.description }}{% endif %}</textarea></div>
+                <div class="col col-1"><button name="delete_vacation" value="{{ vacation.vacation_id }}" type="submit" class="btn cal-btn" style="width: 32px">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                    <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                  </svg>
+                </button></div>
+              </div>
+              <hr width="100%" size="2">
+            </form>
+          {% endfor %}
+          <form method="post">
+            {% csrf_token %}
+            <div class="row p-2">
+              <div class="col col-3">{{ form.engineers_form }}</div>
+              <div class="col col-2">{{ form.start_date_form }}</div>
+              <div class="col col-2">{{ form.end_date_form }}</div>
+              <div class="col col-1">{{ vacation.total }}</div>
+              <div class="col col-3">{{ form.description_form }}</div>
+              <div class="col col-1"><button name="add_vacation" type="submit" class="btn cal-btn" style="width: 32px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
+                </svg>
+              </button></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
-<!--      <button name="change_vacation_schedule" id="change_vacation_schedule" type="submit" class="btn btn-outline-light text-end">-->
-<!--        Обновить даты-->
-<!--      </button>-->
-
-
+<br>
 <script>
   const DelModal = document.getElementById('DeleteDayOff')
   if (DelModal) {

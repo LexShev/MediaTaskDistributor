@@ -4,7 +4,7 @@ CREATE TABLE permission_list
 (
 	[permission_group] NVARCHAR(50) NOT NULL,
 	[day] BIT NOT NULL,
-	[month] BIT NOT NULL,
+	[on_air_report] BIT NOT NULL,
 	[week] BIT NOT NULL,
 	[list] BIT NOT NULL,
 	[kpi_info] BIT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE permission_list
 );
 
 INSERT INTO [planner].[dbo].[permission_list]
-([permission_group], [day], [month], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search])
+([permission_group], [day], [on_air_report], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search])
 VALUES 
 ('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 ('preparation_engineer', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),

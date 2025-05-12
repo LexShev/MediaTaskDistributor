@@ -3,8 +3,8 @@
 
 <main role="main">
 {% block body %}
-<div class="container-flex p-4">
-
+<div class="container-flex px-lg-5">
+<br>
 
   <form method="post">
     {% csrf_token %}
@@ -162,7 +162,7 @@
             <td>
               <a href="{% url 'home' %}worker/{{ task.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                 {{ task.Task_engineer_id|engineer_name }}</a></td>
-            <td>{{ task.Task_sched_date|date:'Y-m-d' }}</td>
+            <td>{{ task.Task_sched_date|date:'d-m-Y' }}</td>
             <td>{{ task.Task_duration|convert_frames_to_time }}</td>
             <td>{{ task.Task_task_status|status_name }}</td>
           </tr>

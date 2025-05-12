@@ -71,6 +71,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                     'Progs_production_year': temp_dict.get('Progs_production_year'),
                     'color': select_channel_color(temp_dict.get('Task_sched_id')),
                     'Task_sched_id': temp_dict.get('Task_sched_id'),
+                    'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
                     'type': 'season',
                     'episode': [
                         {'Progs_program_id': temp_dict.get('Progs_program_id'),
@@ -111,6 +112,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                 'Task_work_date': temp_dict.get('Task_work_date'),
                 'color': select_channel_color(temp_dict.get('Task_sched_id')),
                 'Task_sched_id': temp_dict.get('Task_sched_id'),
+                'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
                 'Task_sched_date': temp_dict.get('Task_sched_date'),
                 'type': 'film',
                 'status': temp_dict.get('Task_task_status'),

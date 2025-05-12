@@ -8,15 +8,15 @@ def ask_permissions(worker_id):
     editor = [2, 3, 4, 5]
 
     if worker_id in admin:
-        return ['day', 'week', 'month', 'list']
+        return ['day', 'week', 'on_air_report', 'list']
     elif worker_id in preparation_engineer:
         return ['day', 'week', 'list', 'full_info_card', 'common_pool']
     elif worker_id in broadcast_engineer:
-        return ['month', 'full_info_card']
+        return ['on_air_report', 'full_info_card']
     elif worker_id in otk_engineer:
-        return ['month', 'full_info_card']
+        return ['on_air_report', 'full_info_card']
     elif worker_id in editor:
-        return ['month', 'full_info_card']
+        return ['on_air_report', 'full_info_card']
     else:
         return []
 
@@ -35,7 +35,7 @@ def ask_permissions(worker_id):
 
 def ask_db_permissions(worker_id):
     with (connections['planner'].cursor() as cursor):
-        perm_list = ('day', 'month', 'week', 'list', 'kpi_info', 'work_calendar',
+        perm_list = ('day', 'on_air_report', 'week', 'list', 'kpi_info', 'work_calendar',
                      'common_pool', 'full_info_card', 'otk', 'advanced_search')
         columns = ', '.join([f'[{perm}]' for perm in perm_list])
         query = f'''

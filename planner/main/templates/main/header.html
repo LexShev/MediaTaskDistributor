@@ -2,7 +2,7 @@
 
 <link href="{% static '/css/headers.css' %}"  rel="stylesheet">
 
-<header class="border-bottom my-2">
+<header class="border-bottom m-0">
   <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
     <symbol id="check2" viewBox="0 0 16 16">
       <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
@@ -62,8 +62,8 @@
             {% if permissions.week %}
               <li class="nav-item"><a href="{% url 'home' %}week" class="nav-link px-2">Неделя</a></li>
             {% endif %}
-            {% if permissions.month %}
-              <li class="nav-item"><a href="{% url 'home' %}month" class="nav-link px-2">Месяц</a></li>
+            {% if permissions.on_air_report %}
+              <li class="nav-item"><a href="{% url 'home' %}on-air-report" class="nav-link px-2">Эфирный отчёт</a></li>
             {% endif %}
             {% if permissions.list %}
               <li class="nav-item"><a href="{% url 'home' %}list" class="nav-link px-2">Список</a></li>
@@ -95,41 +95,15 @@
       </svg>
     </a>
 
-    <div class="dropdown">
-      <button class="btn btn-outline-light dropdown-toggle mx-2" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" data-bs-offset="[0, 12]" aria-expanded="false">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
-          <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-        </svg>
-      </button>
 
-      <div class="dropdown-menu shadow p-2" id="main_filter" style="z-index: 1030; min-height: 30rem; width: 50rem;">
-        {% include 'main/main_modelfilter.html' %}
-      </div>
-    </div>
-
-    <form method="get" action="{% url 'fast_search' %}" class="mb-lg-0 me-lg-3" role="search">
-      <div class="input-group">
-        <input type="search" name="fast_search" id="fast_search" class="form-control border border-outline-secondary" placeholder="Поиск..." aria-label="Search" style="width: 250px">
-        <button type="submit" class="btn btn-outline-secondary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-          </svg>
-        </button>
-      </div>
-    </form>
-    <script>
-      var input = document.getElementById('fast_search');
-      input.addEventListener('focus', function() {
-        this.style.width = 450 + "px";
-      });
-      input.addEventListener('blur', function() {
-        this.style.width = 250 + "px";
-      });
-    </script>
     <a href="{% url 'home' %}" class="btn btn-outline-secondary mb-lg-0 me-lg-3" type="button">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
         <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
       </svg>
+<!--      <span class="position-relative top-0 start-100 translate-middle badge rounded-pill bg-danger">-->
+<!--        9+-->
+<!--        <span class="visually-hidden">12 новых сообщений</span>-->
+<!--      </span>-->
     </a>
 
     <div class="dropdown text-end" style="z-index: 1030;">

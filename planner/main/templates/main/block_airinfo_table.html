@@ -1,4 +1,5 @@
-<table class="table table-striped table-hover">
+{% if schedule_info %}
+  <table class="table table-striped table-hover">
     <thead>
       <tr>
         <th class="col-1">Дата эфира</th>
@@ -14,6 +15,8 @@
             <td>{{ air.ChannelName }}</td>
       </tr>
         {% endfor %}
-
     </tbody>
   </table>
+{% else %}
+    <small>Нет данных</small>
+{% endif %}
