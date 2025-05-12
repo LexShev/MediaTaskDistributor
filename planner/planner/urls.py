@@ -24,7 +24,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include('main.urls')),
     path("otk/", include('otk.urls')),
+    path("on-air-report/", include('on_air_report.urls')),
     path("common_pool/", include('common_pool.urls')),
+    path("messenger/", include('messenger_static.urls')),
     path("", include('advanced_search.urls')),
     path("authorize/", include('django.contrib.auth.urls')),
     path("authorize/", include('workers.urls'))

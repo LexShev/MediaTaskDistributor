@@ -8,12 +8,12 @@
     <div class="card-text m-0"><small class="text-body-secondary">
       Канал:
       <a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-        {{ material.Task_sched_id|schedule_name }}
+        {% if material.Task_sched_id %}{{ material.Task_sched_id|schedule_name }}{% elif not material.Task_sched_id %}{{ material.Sched_schedule_id|schedule_name }}{% endif %}
       </a></small>
     </div>
     <div class="card-text m-0"><small class="text-body-secondary">
       Возрастная категория:</small>
-        <small class="text-body-primary"> {{ material.Adult_Name }}</small>
+        <small class="text-body-primary">{% if material.Adult_Name %} {{ material.Adult_Name }}{% endif %}</small>
     </div>
     <div class="card-text m-0"><small class="text-body-secondary">
       Выполняет:

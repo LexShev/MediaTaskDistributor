@@ -2,8 +2,8 @@
 
 <main>
 {% block body %}
-
-<div class="container-md text-start px-0">
+<br>
+<div class="container-xxl px-0">
 
   {% if messages %}
     {% for message in messages %}
@@ -51,7 +51,9 @@
 
               <div class="row m-0">
                 <div class="col col-5 p-0">
-                  <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">{{ full_info.Progs_name }}. {{ full_info.Adult_Name }}</h5>
+                  <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">
+                    {{ full_info.Progs_name }}{% if full_info.Adult_Name %}. {{ full_info.Adult_Name }}{% endif %}
+                  </h5>
                 </div>
                 <div class="col col-7 p-0">
                     <div class="row align-items-center text-end mx-1 p-0">
@@ -172,6 +174,18 @@
       <div id="collapseHistory" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
         <div class="accordion-body">
           {% include 'main/block_history.html' %}
+        </div>
+      </div>
+      </div>
+
+      <div class="accordion-item">
+      <h6 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiles" aria-expanded="false" aria-controls="collapseCenz">
+          История медиафайлов
+        </button></h6>
+      <div id="collapseFiles" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
+        <div class="accordion-body">
+          {% include 'main/block_filepath_history.html' %}
         </div>
       </div>
       </div>
@@ -348,5 +362,6 @@
     </div>
   {% endif %}
   </div>
+  <br>
 {% endblock %}
 </main>

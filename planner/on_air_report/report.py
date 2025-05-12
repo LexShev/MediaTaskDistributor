@@ -2,7 +2,6 @@ import calendar
 import datetime
 
 from django.db import connections
-from .distribution import oplan3_engineer
 
 
 def calc_prev_month(cal_year, cal_month):
@@ -53,11 +52,12 @@ def tasks_info(month_calendar, task_list):
                 color = 'btn-outline-warning'
             else:
                 color = 'btn-outline-danger'
-            colorized_weeks.append({'day': day,
-                                    'ready_tasks': ready_tasks,
-                                    'not_ready_tasks': not_ready_tasks,
-                                    'ready_index': ready_index,
-                                    'color': color})
+            colorized_weeks.append(
+                {'day': day,
+                'ready_tasks': ready_tasks,
+                'not_ready_tasks': not_ready_tasks,
+                'ready_index': ready_index,
+                'color': color})
         colorized_calendar.append(colorized_weeks)
     return colorized_calendar
 
@@ -95,12 +95,6 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
 
 def report_calendar(cal_year, cal_month, cal_day):
     month_calendar = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
-    # columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
-    #            ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
-    #            ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-    #            ('Progs', 'duration'), ('Files', 'Name'), ('SchedDay', 'day_date'),
-    #            ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-    #            ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')]
     columns = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
         ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
@@ -121,6 +115,8 @@ def report_calendar(cal_year, cal_month, cal_day):
                 if material[0] in program_id_list:
                     continue
                 temp_dict = dict(zip(django_columns, material))
+                if not temp_dict.get('Task_file_path'):
+                    temp_dict['Files_Name'] = find_file_path(temp_dict.get('Progs_program_id'))
                 if not temp_dict.get('Task_engineer_id') and temp_dict.get('Task_engineer_id') != 0:
                     temp_dict['Task_engineer_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
                 channel[schedule_id].append(temp_dict)
@@ -150,5 +146,37 @@ def report_calendar(cal_year, cal_month, cal_day):
                     }
     return colorized_calendar, channels_list, service_dict
 
+def oplan3_engineer(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        query_oplan3 = f'''
+        SELECT [IntValue]
+        FROM [oplan3].[dbo].[ProgramCustomFieldValues] 
+        WHERE [ObjectId] = {program_id}
+        AND [ProgramCustomFieldId] = 15
+        '''
+        cursor.execute(query_oplan3)
+        oplan3_engineer_id = cursor.fetchone()
+        if oplan3_engineer_id:
+            return oplan3_engineer_id[0]
 
-
+def find_file_path(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        SELECT Files.[Name]
+        FROM [oplan3].[dbo].[File] AS Files
+        JOIN [oplan3].[dbo].[Clip] AS Clips
+            ON Files.[ClipID] = Clips.[ClipID]
+        JOIN [oplan3].[dbo].[program] AS Progs
+            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        WHERE Files.[Deleted] = 0
+        AND Files.[PhysicallyDeleted] = 0
+        AND Clips.[Deleted] = 0
+        AND Progs.[deleted] = 0
+        AND Progs.[DeletedIncludeParent] = 0
+        AND Progs.[program_id] = {program_id}
+        '''
+        print(query)
+        cursor.execute(query)
+        file_path = cursor.fetchone()
+    if file_path:
+        return file_path[0]

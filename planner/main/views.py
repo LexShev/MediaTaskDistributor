@@ -15,9 +15,8 @@ from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline, \
-    block_object, check_lock_object, unblock_object, comments_history
+    block_object, check_lock_object, unblock_object, comments_history, select_filepath_history
 from .distribution import main_distribution
-from .month import report_calendar
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 
 
@@ -78,26 +77,6 @@ def week_date(request, work_year, work_week):
             'form': form}
     return render(request, 'main/week.html', data)
 
-def month(request):
-    today = datetime.datetime.today()
-    cal_year, cal_month = today.year, today.month
-    return redirect(month_date, cal_year, cal_month)
-
-@login_required()
-def month_date(request, cal_year, cal_month):
-    worker_id = request.user.id
-
-    cal_day = request.POST.get('cal_day', None)
-    if cal_day:
-        cal_day = datetime.datetime.strptime(cal_day, '%Y-%m-%d')
-        month_calendar, channels_list, service_dict = report_calendar(cal_year, cal_month, cal_day)
-    else:
-        month_calendar, channels_list, service_dict = report_calendar(cal_year, cal_month, datetime.date(cal_year, cal_month, day=1))
-    data = {'month_calendar': month_calendar,
-            'channels_list': channels_list,
-            'service_dict': service_dict,
-            'permissions': ask_db_permissions(worker_id)}
-    return render(request, 'main/month.html', data)
 
 @login_required()
 def full_list(request):
@@ -283,6 +262,7 @@ def material_card(request, program_id):
             'deadline': calc_otk_deadline(),
             'schedule_info': schedule_info(program_id),
             'actions_list': select_actions(program_id),
+            'filepath_history': select_filepath_history(program_id),
             'ffmpeg': ffmpeg_dict(program_id),
             'form_text': form_text,
             'form_drop': form_drop,

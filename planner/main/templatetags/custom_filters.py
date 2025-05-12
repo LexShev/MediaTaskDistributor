@@ -16,7 +16,7 @@ def cenz_name(cenz_id):
         3: '16+',
         4: '18+'
     }
-    return cenz_dict.get(cenz_id)
+    return cenz_dict.get(cenz_id, '')
 
 @register.filter
 def engineer_name(engineer_id):

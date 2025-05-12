@@ -154,28 +154,6 @@ def find_out_status(program_id, full_info_dict):
         else:
             material_status = 'Карточка материала заполнена неверно'
             color = 'text-danger'
-
-    # if oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and not planner_status:
-    #     material_status = f'Отсмотрен через Oplan: {oplan3_work_date.strftime("%d.%m.%Y")}'  # oplan3_ready
-    #     color = 'text-success'
-    # elif oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and planner_status == 'ready':
-    #     material_status = f'Отсмотрен: {planner_ready_date.strftime("%d.%m.%Y")}'  # planner_ready
-    #     color = 'text-success'
-    # elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and planner_status == 'not_ready':
-    #     material_status = 'Не готов'  # planner_not_ready
-    #     color = 'text-danger'
-    # elif oplan3_work_date and oplan3_cenz_rate and oplan3_engineer and planner_status == 'fix':
-    #     material_status = 'На доработке'  # planner_fix
-    #     color = 'text-warning'
-    # elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and planner_status == 'fix':
-    #     material_status = 'На доработке'  # planner_fix
-    #     color = 'text-warning'
-    # elif not oplan3_work_date and not oplan3_cenz_rate and not oplan3_engineer and not planner_status:
-    #     material_status = 'Материал из общего пула'  # planner_fix
-    #     color = 'text-info'
-    # else:
-    #     material_status = 'Карточка материала заполнена неверно'  # planner_fix
-    #     color = 'text-danger'
     return material_status, color, oplan3_work_date
 
 
@@ -275,6 +253,7 @@ def update_file_path(program_id, file_path):
             SET [file_path] = '{file_path}'
             WHERE [program_id] = {program_id}
             '''
+            print(query)
             cursor.execute(query)
             return cursor.rowcount
     else:
@@ -366,8 +345,8 @@ def insert_filepath_history(program_id, worker_id, task_status, comment, time_of
 
 def select_filepath_history(program_id):
     with connections['planner'].cursor() as cursor:
-        columns = 'program_id', 'worker_id', 'task_status', 'comment', 'time_of_change'
+        columns = 'program_id', 'file_path', 'task_status', 'time_of_change'
         sql_columns = ', '.join(columns)
-        query = f'SELECT {sql_columns} FROM [planner].[dbo].[filepath_history]'
+        query = f'SELECT {sql_columns} FROM [planner].[dbo].[filepath_history] WHERE [program_id] = {program_id}'
         cursor.execute(query)
         return [dict(zip(columns, val)) for val in cursor.fetchall()]
