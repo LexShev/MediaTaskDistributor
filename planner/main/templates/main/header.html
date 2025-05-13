@@ -55,7 +55,7 @@
   <!--        <svg width="32" height="32" class="bi me-2"><use xlink:href="#table"/></svg>-->
   <!--      </a>-->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-lg-auto justify-content-center mb-lg-0 me-lg-3"  id="navBar">
+          <ul class="navbar-nav me-lg-auto justify-content-center mb-0 me-lg-3"  id="navBar">
             {% if permissions.day %}
               <li class="nav-item"><a href="{% url 'home' %}day" class="nav-link px-2">День</a></li>
             {% endif %}
@@ -88,7 +88,7 @@
       </nav>
     </div>
 
-    <a href="{% url 'distribution' %}" class="btn btn-outline-light mb-lg-0 me-lg-3" type="button">
+    <a href="{% url 'distribution' %}" class="btn btn-outline-light mb-0 me-lg-3" type="button">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
         <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
         <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
@@ -96,7 +96,7 @@
     </a>
 
 
-    <a href="{% url 'home' %}" class="btn btn-outline-secondary mb-lg-0 me-lg-3" type="button">
+    <a href="{% url 'home' %}messenger" class="btn btn-outline-secondary mb-0 me-lg-3" type="button">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
         <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
       </svg>
