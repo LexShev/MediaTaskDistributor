@@ -247,7 +247,6 @@ def material_card(request, program_id):
 
     lock_user = check_lock_object(program_id)
     key = request.POST.get('cenz_comment')
-    print('key', key)
     if lock_user and lock_user[1] != worker_id:
         lock_material = True
         messages.warning(request, lock_user[1])

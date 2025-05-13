@@ -1,13 +1,156 @@
 {% extends  'main/index.html' %}
 {% load static %}
 
+
+
+
 <main role="main">
 {% block body %}
+<script type="text/javascript" src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+
+<style>
+    .chat-names {
+    overflow-y: scroll;
+    }
+    .chat-container {
+        overflow-y: scroll;
+    }
+    .chat-image {
+        max-width: 300px;
+        max-height: 300px;
+        display: block;
+        margin: 5px 0;
+    }
+    .chat-video {
+        max-width: 300px;
+        max-height: 300px;
+    }
+    .document-link {
+        display: inline-block;
+        padding: 2px;
+        background: #f0f0f0;
+        border-radius: 3px;
+        color: #333;
+        text-decoration: none;
+    }
+    .file-upload-wrapper {
+        margin: 10px 0;
+    }
+    #id_file {
+        display: none;
+    }
+    .file-upload-label {
+        cursor: pointer;
+        color: #666;
+    }
+    .file-upload-label:hover {
+        color: #333;
+    }
+</style>
+<h4>Комментарии к {{ program_id }}</h4>
 <div class="container-flex px-lg-5">
-<br>
+  <div class="d-flex">
+      <div class="col">
+        <div class="chat-names shadow ms-0 mx-2" style="width: 30rem;">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">An item</li>
+              <li class="list-group-item">A second item</li>
+              <li class="list-group-item">A third item</li>
+              <li class="list-group-item">A fourth item</li>
+              <li class="list-group-item">And a fifth one</li>
+            </ul>
+        </div>
+      </div>
 
+      <div style="height: 100%; width: 2%;"></div>
 
+      <div class="col ms-auto">
+        <div class="chat-container mx-2 text-end" style="height: 200%;">
+            <div class="messages" id="messages">
+                {% for message in messages %}
+                <div class="message {% if message.owner == request.user.id %}text-end{% else %}text-start{% endif %} p-2">
+                    <strong>{{ message.owner|worker_name }}</strong>:
+
+                    {% if message.is_file %}
+                        {% if message.file_type == 'image' %}
+                            img
+                            <img src="{{ message.file.url }}" class="chat-image" alt="Image">
+                        {% elif message.file_type == 'video' %}
+                            <video controls class="chat-video">
+                                video
+                                <source src="{{ message.file.url }}" type="video/mp4">
+                            </video>
+                        {% elif message.file_type == 'audio' %}
+                            <audio controls>
+                                audio
+                                <source src="{{ message.file.url }}" type="audio/mpeg">
+                            </audio>
+                        {% else %}
+                            <a href="{{ message.file.url }}" download class="document-link">
+                                file
+                                <i class="fas fa-file-download"></i> {{ message.file.name|slice:"20:" }}
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        {{ message.content }}
+                    {% endif %}
+
+                    <small class="text-muted">{{ message.timestamp }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="message-form">
+            {% csrf_token %}
+            {{ form.content }}
+            <div class="file-upload-wrapper">
+                <label for="id_file" class="file-upload-label">
+                    <i class="fas fa-paperclip"></i> Прикрепить файл
+                </label>
+                {{ form.file }}
+            </div>
+            <button type="submit" class="btn btn-primary">Отправить</button>
+        </form>
+      </div>
+  </div>
 </div>
+
+<script>
+    function updateMessages() {
+        $.ajax({
+            url: "{% url 'home' %}messenger/{{ program_id }}",
+            type: "get",
+            success: function(data) {
+                var newDoc = new DOMParser().parseFromString(data, 'text/html');
+                var newMessages = newDoc.querySelector('.messages').innerHTML;
+                document.querySelector('.messages').innerHTML = newMessages;
+            }
+        });
+    }
+
+    setInterval(updateMessages, 5000);
+
+    document.getElementById('id_file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const preview = document.createElement('div');
+        preview.className = 'file-preview';
+
+        if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.maxWidth = '100px';
+            preview.appendChild(img);
+        } else {
+            preview.textContent = `Файл: ${file.name}`;
+        }
+
+        const messages = document.getElementById('messages');
+        messages.appendChild(preview);
+    });
+</script>
 {% endblock %}
 </main>
 

@@ -61,8 +61,10 @@ def work_list(request):
     else:
         form = OtkForm(instance=init_dict)
     task_list, service_dict = task_info(field_dict)
-    data = {'task_list': task_list,
-            'service_dict': service_dict,
-            'form': form,
-            'permissions': ask_db_permissions(worker_id)}
+    data = {
+        'task_list': task_list,
+        'service_dict': service_dict,
+        'form': form,
+        'permissions': ask_db_permissions(worker_id)
+            }
     return render(request, 'otk/work_list.html', data)
