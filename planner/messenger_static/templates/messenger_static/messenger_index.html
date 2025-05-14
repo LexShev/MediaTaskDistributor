@@ -53,11 +53,9 @@
       <div class="col">
         <div class="chat-names shadow ms-0 mx-2" style="width: 30rem;">
             <ul class="list-group list-group-flush">
-              <li class="list-group-item">An item</li>
-              <li class="list-group-item">A second item</li>
-              <li class="list-group-item">A third item</li>
-              <li class="list-group-item">A fourth item</li>
-              <li class="list-group-item">And a fifth one</li>
+                {% for program in programs_list %}
+                    <li class="list-group-item">{{ program }}</li>
+                {% endfor %}
             </ul>
         </div>
       </div>
@@ -65,34 +63,38 @@
       <div style="height: 100%; width: 2%;"></div>
 
       <div class="col ms-auto">
-        <div class="chat-container mx-2 text-end" style="height: 200%;">
+        <div class="chat-container mx-2 text-end" style="height: 45rem;">
+<!--             justify-content-between-->
             <div class="messages" id="messages">
                 {% for message in messages %}
-                <div class="message {% if message.owner == request.user.id %}text-end{% else %}text-start{% endif %} p-2">
+                <div class="message
+                {% if message.owner == request.user.id %}text-end{% else %}text-start{% endif %}
+                {% if message.message_id in viewed_messages %}text-bg-secondary{% else %}text-bg-primary{% endif %}
+                p-2">
                     <strong>{{ message.owner|worker_name }}</strong>:
 
                     {% if message.is_file %}
                         {% if message.file_type == 'image' %}
                             img
-                            <img src="{{ message.file.url }}" class="chat-image" alt="Image">
+                            <img src="{{ message.file_path.url }}" class="chat-image" alt="Image">
                         {% elif message.file_type == 'video' %}
                             <video controls class="chat-video">
                                 video
-                                <source src="{{ message.file.url }}" type="video/mp4">
+                                <source src="{{ message.file_path.url }}" type="video/mp4">
                             </video>
                         {% elif message.file_type == 'audio' %}
                             <audio controls>
                                 audio
-                                <source src="{{ message.file.url }}" type="audio/mpeg">
+                                <source src="{{ message.file_path.url }}" type="audio/mpeg">
                             </audio>
                         {% else %}
-                            <a href="{{ message.file.url }}" download class="document-link">
+                            <a href="{{ message.file_path.url }}" download class="document-link">
                                 file
-                                <i class="fas fa-file-download"></i> {{ message.file.name|slice:"20:" }}
+                                <i class="fas fa-file-download"></i> {{ message.file_path.name|slice:"20:" }}
                             </a>
                         {% endif %}
                     {% else %}
-                        {{ message.content }}
+                        {{ message.message }}
                     {% endif %}
 
                     <small class="text-muted">{{ message.timestamp }}</small>
@@ -103,12 +105,12 @@
 
         <form method="post" enctype="multipart/form-data" class="message-form">
             {% csrf_token %}
-            {{ form.content }}
+            {{ form.message }}
             <div class="file-upload-wrapper">
-                <label for="id_file" class="file-upload-label">
-                    <i class="fas fa-paperclip"></i> Прикрепить файл
+                <label for="id_file_path" class="file-upload-label">
+                    <i class="fas fa-paperclip"> Прикрепить файл</i>
                 </label>
-                {{ form.file }}
+                {{ form.file_path }}
             </div>
             <button type="submit" class="btn btn-primary">Отправить</button>
         </form>
@@ -129,9 +131,9 @@
         });
     }
 
-    setInterval(updateMessages, 5000);
+<!--    setInterval(updateMessages, 5000);-->
 
-    document.getElementById('id_file').addEventListener('change', function(e) {
+    document.getElementById('id_file_path').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -144,7 +146,7 @@
             img.style.maxWidth = '100px';
             preview.appendChild(img);
         } else {
-            preview.textContent = `Файл: ${file.name}`;
+            preview.textContent = `Файл: ${file_path.name}`;
         }
 
         const messages = document.getElementById('messages');

@@ -21,17 +21,18 @@ def validate_file_type(value):
         raise ValidationError('Недопустимый тип файла')
 
 class MessageForm(forms.ModelForm):
-    file = forms.FileField(required=False, validators=[validate_file_type])
+    file_path = forms.FileField(required=False, validators=[validate_file_type])
     class Meta:
         model = Message
-        fields = ['content', 'file']
+        fields = ('message', 'file_path')
+        labels = {'message': 'message', 'file_path': 'Прикрепить файл'}
         widgets = {
-            'content': forms.Textarea(attrs={
+            'message': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Напишите сообщение...'
             }),
-            'file': forms.FileInput(attrs={
+            'file_path': forms.FileInput(attrs={
                 'class': 'form-control-file',
                 'accept': 'image/*, video/*, audio/*, .pdf, .doc, .docx'
             })
