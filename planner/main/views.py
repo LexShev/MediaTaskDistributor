@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
+from on_air_report.report import report_calendar
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment
 from .models import ModelFilter
@@ -25,8 +26,20 @@ def distribution(request):
     main_distribution()
     return redirect('home')
 
+@login_required()
 def index(request):
-    return render(request, 'main/index.html')
+    worker_id = request.user.id
+    cal_year, cal_month = 2025, 1
+    service_dict = {'today': datetime.date.today(),
+                    'cal_year': cal_year,
+                    'cal_month': cal_month,
+                    }
+    data = {
+        'month_calendar': report_calendar(cal_year, cal_month),
+        'service_dict': service_dict,
+        'permissions': ask_db_permissions(worker_id),
+    }
+    return render(request, 'main/home.html', data)
 
 def day(request):
     return render(request, 'main/day.html')

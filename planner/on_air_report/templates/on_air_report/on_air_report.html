@@ -58,7 +58,7 @@
                       <button class="btn cal-btn p-2 {{ date.color }}"
                               name="cal_day" value="{{ date.day|date:'Y-m-d' }}"
                               type="submit" style="width: 2rem; height: 2rem;"
-                              title="Готово: {{ date.ready_tasks }}&#10;Осталось: {{ date.not_ready_tasks }}">
+                              title="Выполнено: {{ date.ready_tasks }}&#10;Осталось: {{ date.not_ready_tasks }}">
                         {{ date.day|date:"j" }}
                       </button></td>
                   {% else %}
@@ -78,15 +78,15 @@
 <div class="container-flex px-lg-5">
   <br>
   <div class="row">
-    <div class="col text-center">
+    <div class="col text-center p-0">
       <h4>Отчёт о готовности материала на эфир: {{ service_dict.cal_day|date:'d-m-Y' }}</h4>
     </div>
-    <div class="row row-cols-1">
+    <div class="row row-cols-1 p-0 ps-4">
       {% for channel in channels_list %}
         {% for schedule_id, task_list in channel.items %}
-        <div class="col p-2">
+        <div class="col px-0 py-2">
           <h5>{{ schedule_id|schedule_name }}</h5>
-          <div class="card p-2">
+          <div class="card py-2">
             <table class="table table-hover">
               <thead>
                 <tr>

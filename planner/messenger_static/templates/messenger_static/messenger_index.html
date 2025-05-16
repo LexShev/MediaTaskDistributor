@@ -7,152 +7,103 @@
 <main role="main">
 {% block body %}
 <script type="text/javascript" src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/messenger_static.css' %}">
 
-<style>
-    .chat-names {
-    overflow-y: scroll;
-    }
-    .chat-container {
-        overflow-y: scroll;
-    }
-    .chat-image {
-        max-width: 300px;
-        max-height: 300px;
-        display: block;
-        margin: 5px 0;
-    }
-    .chat-video {
-        max-width: 300px;
-        max-height: 300px;
-    }
-    .document-link {
-        display: inline-block;
-        padding: 2px;
-        background: #f0f0f0;
-        border-radius: 3px;
-        color: #333;
-        text-decoration: none;
-    }
-    .file-upload-wrapper {
-        margin: 10px 0;
-    }
-    #id_file {
-        display: none;
-    }
-    .file-upload-label {
-        cursor: pointer;
-        color: #666;
-    }
-    .file-upload-label:hover {
-        color: #333;
-    }
-</style>
-<h4>Комментарии к {{ program_id }}</h4>
 <div class="container-flex px-lg-5">
-  <div class="d-flex">
-      <div class="col">
-        <div class="chat-names shadow ms-0 mx-2" style="width: 30rem;">
-            <ul class="list-group list-group-flush">
-                {% for program in programs_list %}
-                    <li class="list-group-item">{{ program }}</li>
+
+  <div class="row">
+      <div class="col col-3 px-0">
+        <div class="chat-names">
+            <ul class="list-group">
+                {% for program_id, message_list in all_messages.items %}
+                    <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <h6><a class="stretched-link link-underline link-underline-opacity-0"
+                                   href="{% url 'messenger' program_id=program_id %}">
+                                {{ message_list.Progs_name }}{% if message_list.Progs_production_year %} ({{ message_list.Progs_production_year }}){% endif %}
+                            </a></h6>
+                            <div class="ms-2">{{ message_list.messages.0.message }}</div>
+                        </div>
+                        <span class="badge text-bg-primary rounded-pill">{{ message_list.unread_num }}</span>
+                    </li>
                 {% endfor %}
             </ul>
         </div>
       </div>
 
-      <div style="height: 100%; width: 2%;"></div>
+<!--      <div style="height: 100%; width: 2%;"></div>-->
 
-      <div class="col ms-auto">
-        <div class="chat-container mx-2 text-end" style="height: 45rem;">
-<!--             justify-content-between-->
-            <div class="messages" id="messages">
-                {% for message in messages %}
-                <div class="message
-                {% if message.owner == request.user.id %}text-end{% else %}text-start{% endif %}
-                {% if message.message_id in viewed_messages %}text-bg-secondary{% else %}text-bg-primary{% endif %}
-                p-2">
-                    <strong>{{ message.owner|worker_name }}</strong>:
-
-                    {% if message.is_file %}
-                        {% if message.file_type == 'image' %}
-                            img
-                            <img src="{{ message.file_path.url }}" class="chat-image" alt="Image">
-                        {% elif message.file_type == 'video' %}
-                            <video controls class="chat-video">
-                                video
-                                <source src="{{ message.file_path.url }}" type="video/mp4">
-                            </video>
-                        {% elif message.file_type == 'audio' %}
-                            <audio controls>
-                                audio
-                                <source src="{{ message.file_path.url }}" type="audio/mpeg">
-                            </audio>
+          <div class="col px-0">
+            <div class="chat-container rounded-bottom p-0" style="height: 49rem;">
+                <h6 class="cur-chat-name shadow p-2 mb-0">Комментарии к: {{ messages.0.Progs_name }}{% if messages.0.Progs_production_year %} ({{ messages.0.Progs_production_year }}){% endif %}</h6>
+                <div class="messages" id="messages">
+                    {% for message in messages %}
+                    <div class="message-item {% if message.m_message_id not in viewed_messages %}new-message{% endif %}
+                    {% if message.m_owner == request.user.id %}my-message{% else %}other-message{% endif %} p-2"
+                         data-message-id="{{ message.m_message_id }}">
+                        <strong>{{ message.m_owner|worker_name }}</strong>
+                        {% if message.is_file %}
+                            {% if message.file_type == 'image' %}
+                                img
+                                <img src="{{ message.m_file_path.url }}" class="chat-image" alt="Image">
+                            {% elif message.file_type == 'video' %}
+                                <video controls class="chat-video">
+                                    video
+                                    <source src="{{ message.m_file_path.url }}" type="video/mp4">
+                                </video>
+                            {% elif message.file_type == 'audio' %}
+                                <audio controls>
+                                    audio
+                                    <source src="{{ message.m_file_path.url }}" type="audio/mpeg">
+                                </audio>
+                            {% else %}
+                                <a href="{{ message.m_file_path.url }}" download class="document-link">
+                                    file
+                                    <i class="fas fa-file-download"></i> {{ message.m_file_path.name|slice:"20:" }}
+                                </a>
+                            {% endif %}
                         {% else %}
-                            <a href="{{ message.file_path.url }}" download class="document-link">
-                                file
-                                <i class="fas fa-file-download"></i> {{ message.file_path.name|slice:"20:" }}
-                            </a>
+                            <div class="message-text">{{ message.m_message|linebreaks }}</div>
                         {% endif %}
-                    {% else %}
-                        {{ message.message }}
-                    {% endif %}
 
-                    <small class="text-muted">{{ message.timestamp }}</small>
+                    </div>
+                    <small class="text-muted">{{ message.m_timestamp }}</small>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
-        </div>
 
-        <form method="post" enctype="multipart/form-data" class="message-form">
-            {% csrf_token %}
-            {{ form.message }}
-            <div class="file-upload-wrapper">
-                <label for="id_file_path" class="file-upload-label">
-                    <i class="fas fa-paperclip"> Прикрепить файл</i>
-                </label>
-                {{ form.file_path }}
-            </div>
-            <button type="submit" class="btn btn-primary">Отправить</button>
-        </form>
-      </div>
+            <form method="post" enctype="multipart/form-data" class="message-form my-2" id="message_form">
+                {% csrf_token %}
+                {{ form.message }}
+                <div class="d-flex">
+                    <div class="file-upload-wrapper input-group my-2">
+                      <label class="input-group-text file-upload-label" for="id_file_path">Прикрепить файл</label>
+                      {{ form.file_path }}
+                      <span class="input-group-text">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                          <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/>
+                        </svg>
+                      </span>
+                    </div>
+
+                    <div class="btn-group my-2" role="group">
+                        <button type="submit" id="send_message" class="btn btn-primary">Отправить</button>
+                        <button type="button" class="btn btn-primary active">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+                              <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
+          </div>
+
   </div>
 </div>
 
-<script>
-    function updateMessages() {
-        $.ajax({
-            url: "{% url 'home' %}messenger/{{ program_id }}",
-            type: "get",
-            success: function(data) {
-                var newDoc = new DOMParser().parseFromString(data, 'text/html');
-                var newMessages = newDoc.querySelector('.messages').innerHTML;
-                document.querySelector('.messages').innerHTML = newMessages;
-            }
-        });
-    }
 
-<!--    setInterval(updateMessages, 5000);-->
+<script type="text/javascript" src="{% static 'js/messenger_static.js' %}"></script>
 
-    document.getElementById('id_file_path').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const preview = document.createElement('div');
-        preview.className = 'file-preview';
-
-        if (file.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
-            img.style.maxWidth = '100px';
-            preview.appendChild(img);
-        } else {
-            preview.textContent = `Файл: ${file_path.name}`;
-        }
-
-        const messages = document.getElementById('messages');
-        messages.appendChild(preview);
-    });
-</script>
 {% endblock %}
 </main>
 
