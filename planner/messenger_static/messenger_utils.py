@@ -9,18 +9,76 @@ def unique_program_id():
         if programs:
             return [program[0] for program in programs]
 
+def all_messages(worker_id):
+    with connections['planner'].cursor() as cursor:
+        columns = 'program_id', 'message', 'timestamp', 'Progs_name', 'Progs_production_year', 'read'
+        query = f'''
+        WITH LatestPrograms AS (
+            SELECT TOP 5 
+                m.[program_id]
+            FROM 
+                [planner].[dbo].[messenger_static_message] m
+            GROUP BY 
+                m.[program_id]
+            ORDER BY 
+                MAX(m.[timestamp]) DESC
+        )
+
+        SELECT
+            m.[program_id],
+            m.[message],
+            m.[timestamp],
+            Progs.[name],
+            Progs.[production_year],
+        	CASE 
+                WHEN v.[message_id] IS NOT NULL THEN CAST(1 AS BIT)
+                ELSE CAST(0 AS BIT)
+            END AS [read]
+        FROM 
+            [planner].[dbo].[messenger_static_message] AS m
+        LEFT JOIN [planner].[dbo].[messenger_static_messageviews] AS v
+            ON m.[message_id] = v.[message_id] AND v.[worker_id] = {worker_id}
+        LEFT JOIN [oplan3].[dbo].[program] AS Progs
+            ON m.[program_id] = Progs.[program_id]
+        WHERE m.[program_id] IN (SELECT [program_id] FROM LatestPrograms)
+        ORDER BY 
+            m.[program_id],
+            m.[timestamp] DESC;
+        '''
+        cursor.execute(query)
+        messages = cursor.fetchall()
+        if messages:
+            message_list = [dict(zip(columns, message)) for message in messages]
+            message_sorted = {}
+            for message in message_list:
+                program_id = message.get('program_id')
+                if program_id not in message_sorted:
+                    message_sorted[program_id] = {
+                        'messages': [],
+                        'Progs_name': message.get('Progs_name'),
+                        'Progs_production_year': message.get('Progs_production_year'),
+                        'unread_num': 0
+                    }
+                message_sorted[program_id]['messages'].append(message)
+                if not message['read']:
+                    message_sorted[program_id]['unread_num'] += 1
+            print(message_sorted)
+            return message_sorted
 
 def show_messages(program_id, worker_id):
     messages_dict, viewed_messages_list = [], []
     with connections['planner'].cursor() as cursor:
-        columns = ('message_id', 'owner', 'program_id', 'message', 'file_path', 'timestamp')
-        sql_columns = ', '.join(f'[{col}]' for col in columns)
+        columns = ('m_message_id', 'm_owner', 'm_program_id', 'm_message', 'm_file_path', 'Progs_name', 'Progs_production_year', 'm_timestamp')
+
         query_01 = f'''
-        SELECT {sql_columns}
-        FROM [planner].[dbo].[messenger_static_message]
-        WHERE [program_id] = {program_id}
+        SELECT m.[message_id], m.[owner], m.[program_id], m.[message], m.[file_path], Progs.[name], Progs.[production_year], m.[timestamp]
+        FROM [planner].[dbo].[messenger_static_message] AS m
+        LEFT JOIN [oplan3].[dbo].[program] AS Progs
+            ON m.[program_id] = Progs.[program_id]
+        WHERE m.[program_id] = {program_id}
         ORDER BY [timestamp]
         '''
+        print(query_01)
         cursor.execute(query_01)
         messages = cursor.fetchall()
         if messages:
@@ -32,8 +90,19 @@ def show_messages(program_id, worker_id):
         WHERE [worker_id] = {worker_id}
         AND [message_id] IN 
         (SELECT [message_id] FROM [planner].[dbo].[messenger_static_message] WHERE [program_id] = {program_id})'''
+        print(query_02)
         cursor.execute(query_02)
         viewed_messages = cursor.fetchall()
         if viewed_messages:
             viewed_messages_list = [message_id[0] for message_id in viewed_messages]
     return messages_dict, viewed_messages_list
+
+def insert_views(program_id_list):
+    with connections['planner'].cursor() as cursor:
+        query = '''
+        INSERT INTO [planner].[dbo].[messenger_static_messageviews]
+        ([message_id], [worker_id])
+        VALUES
+        (%s, %s);'''
+        cursor.executemany(query, program_id_list)
+        print(cursor.rowcount)

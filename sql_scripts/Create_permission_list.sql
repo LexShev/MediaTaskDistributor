@@ -3,6 +3,7 @@ USE planner;
 CREATE TABLE permission_list
 (
 	[permission_group] NVARCHAR(50) NOT NULL,
+	[home] BIT NOT NULL,
 	[day] BIT NOT NULL,
 	[on_air_report] BIT NOT NULL,
 	[week] BIT NOT NULL,
@@ -17,10 +18,10 @@ CREATE TABLE permission_list
 );
 
 INSERT INTO [planner].[dbo].[permission_list]
-([permission_group], [day], [on_air_report], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search], [messenger])
+([permission_group], [home], [day], [on_air_report], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search], [messenger])
 VALUES 
-('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-('preparation_engineer', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-('broadcast_engineer', 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1),
-('otk_engineer', 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1),
-('editor', 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1);
+('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+('preparation_engineer', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+('broadcast_engineer', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1),
+('otk_engineer', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1),
+('editor', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1);

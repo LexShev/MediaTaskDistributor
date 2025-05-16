@@ -1,0 +1,31 @@
+{% extends  'main/index.html' %}
+{% load static %}
+
+<main>
+{% block body %}
+
+<!--<link rel="stylesheet" href="{% static 'css/home_dashboard.css' %}">-->
+<link href="{% static '/css/dropdowns.css' %}"  rel="stylesheet">
+
+<br>
+<div class="container-xxl px-0">
+  <div class="row">
+    <h4>СЕГОДНЯ {{ service_dict.today|date:'d-m-Y' }}</h4>
+    <div class="col">
+      <div class="card p-4">
+        {% include 'main/home_calendar.html' %}
+      </div>
+    </div>
+    <div class="col">
+      <canvas class="my-4" id="dailyChart" style="max-width: 350px; max-height: 450px;"></canvas>
+    </div>
+  </div>
+  <br>
+  <canvas class="my-4" id="weekChart" width="1000" height="200"></canvas>
+</div>
+<br>
+
+<script type="text/javascript" src="{% static 'js/chart.umd.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/home_dashboard.js' %}"></script>
+  {% endblock %}
+</main>

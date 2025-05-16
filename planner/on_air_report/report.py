@@ -3,6 +3,9 @@ import datetime
 
 from django.db import connections
 
+program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
+schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+
 
 def calc_prev_month(cal_year, cal_month):
     if cal_month > 1:
@@ -41,7 +44,8 @@ def tasks_info(month_calendar, task_list):
             not_ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status') == 'not_ready' and task.get('SchedDay_day_date').date() == day))
             try:
                 ready_index = (ready_tasks * 100) / total_tasks
-            except Exception:
+            except Exception as e:
+                print(e)
                 ready_index = 'day_off'
             #     проверка на отсутствие задач в текущий день
             if ready_index == 'day_off':
@@ -93,8 +97,37 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
         material_list_sql = cursor.fetchall()
     return material_list_sql, django_columns
 
-def report_calendar(cal_year, cal_month, cal_day):
+def report_calendar(cal_year, cal_month):
     month_calendar = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
+
+    # work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
+    num_days = calendar.monthrange(cal_year, cal_month)[1]
+    start_date = datetime.date(cal_year, cal_month, 1)
+    end_date = datetime.date(cal_year, cal_month, num_days)
+
+    columns = [('Progs', 'program_id'), ('SchedDay', 'day_date'), ('Task', 'task_status')]
+
+    material_task_list, django_task_columns = oplan_material_list(columns=columns, dates=(start_date, end_date), program_type=program_type)
+    task_list = [dict(zip(django_task_columns, material)) for material in material_task_list]
+    colorized_calendar = tasks_info(month_calendar, task_list)
+
+    return colorized_calendar
+
+def prepare_service_dict(cal_year, cal_month, cal_day):
+    prev_year, prev_month = calc_prev_month(cal_year, cal_month)
+    next_year, next_month = calc_next_month(cal_year, cal_month)
+    service_dict = {
+        'cal_year': cal_year,
+        'cal_month': cal_month,
+        'cal_day': cal_day,
+        'prev_year': prev_year,
+        'next_year': next_year,
+        'prev_month': prev_month,
+        'next_month': next_month
+    }
+    return service_dict
+
+def collect_channels_list(cal_day):
     columns = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
         ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
@@ -102,10 +135,8 @@ def report_calendar(cal_year, cal_month, cal_day):
         ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
         ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
     ]
-    program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
     material_list, django_columns = oplan_material_list(columns=columns, dates=(cal_day, cal_day), program_type=program_type)
 
-    schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
     channels_list = []
     for schedule_id in schedules_id:
         program_id_list = []
@@ -122,29 +153,7 @@ def report_calendar(cal_year, cal_month, cal_day):
                 channel[schedule_id].append(temp_dict)
                 program_id_list.append(material[0])
         channels_list.append(channel)
-
-    # work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
-    num_days = calendar.monthrange(cal_year, cal_month)[1]
-    start_date = datetime.date(cal_year, cal_month, 1)
-    end_date = datetime.date(cal_year, cal_month, num_days)
-
-    columns = [('Progs', 'program_id'), ('SchedDay', 'day_date'), ('Task', 'task_status')]
-
-    material_task_list, django_task_columns = oplan_material_list(columns=columns, dates=(start_date, end_date), program_type=program_type)
-    task_list = [dict(zip(django_task_columns, material)) for material in material_task_list]
-    colorized_calendar = tasks_info(month_calendar, task_list)
-
-    prev_year, prev_month = calc_prev_month(cal_year, cal_month)
-    next_year, next_month = calc_next_month(cal_year, cal_month)
-    service_dict = {'cal_year': cal_year,
-                    'cal_month': cal_month,
-                    'cal_day': cal_day,
-                    'prev_year': prev_year,
-                    'next_year': next_year,
-                    'prev_month': prev_month,
-                    'next_month': next_month
-                    }
-    return colorized_calendar, channels_list, service_dict
+    return channels_list
 
 def oplan3_engineer(program_id):
     with connections['oplan3'].cursor() as cursor:
