@@ -26,7 +26,7 @@ class MessageForm(forms.ModelForm):
         validators=[validate_file_type],
         widget=forms.FileInput(attrs={
                 'class': 'form-control',
-                'accept': 'image/*, video/*, audio/*, .pdf, .doc, .docx'
+                'accept': 'image/*, video/*, audio/*, .pdf, .doc, .docx, .srt'
             })
         )
     class Meta:

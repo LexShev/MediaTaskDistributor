@@ -2,9 +2,11 @@ import datetime
 import ast
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.template.loader import render_to_string
 
 from on_air_report.report import report_calendar
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
@@ -29,17 +31,26 @@ def distribution(request):
 @login_required()
 def index(request):
     worker_id = request.user.id
-    cal_year, cal_month = 2025, 1
-    service_dict = {'today': datetime.date.today(),
-                    'cal_year': cal_year,
-                    'cal_month': cal_month,
-                    }
+    service_dict = {
+        'today': datetime.date.today(),
+        'cal_month': 1,
+
+    }
     data = {
-        'month_calendar': report_calendar(cal_year, cal_month),
         'service_dict': service_dict,
         'permissions': ask_db_permissions(worker_id),
     }
     return render(request, 'main/home.html', data)
+
+def home_calendar(request):
+    today = datetime.date.today()
+    cal_year, cal_month = today.year, today.month
+    cal_year, cal_month = 2025, 1
+    html = render_to_string('main/home_calendar.html',
+                            {'month_calendar': report_calendar(cal_year, cal_month), 'cal_month': cal_month})
+
+    return JsonResponse({'html': html})
+    # return JsonResponse({'month_calendar': report_calendar(cal_year, cal_month)})
 
 def day(request):
     return render(request, 'main/day.html')

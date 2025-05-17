@@ -1,6 +1,7 @@
 import calendar
 import datetime
 
+from django.core.cache import cache
 from django.db import connections
 
 program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
@@ -98,6 +99,10 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
     return material_list_sql, django_columns
 
 def report_calendar(cal_year, cal_month):
+    cache_key = f'calendar_{cal_year}_{cal_month}'
+    result_cash = cache.get(cache_key)
+    if result_cash:
+        return result_cash
     month_calendar = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
 
     # work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
@@ -110,7 +115,7 @@ def report_calendar(cal_year, cal_month):
     material_task_list, django_task_columns = oplan_material_list(columns=columns, dates=(start_date, end_date), program_type=program_type)
     task_list = [dict(zip(django_task_columns, material)) for material in material_task_list]
     colorized_calendar = tasks_info(month_calendar, task_list)
-
+    cache.set(cache_key, colorized_calendar, timeout=60*60*24)  # Кеш на 24 часа
     return colorized_calendar
 
 def prepare_service_dict(cal_year, cal_month, cal_day):

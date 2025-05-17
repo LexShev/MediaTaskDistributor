@@ -1,3 +1,4 @@
+
 <table cellpadding="4" class="month">
   <thead class="text-center text-secondary">
     <tr>
@@ -17,7 +18,7 @@
       <tr>
         <th class="text-secondary">{{ week.0.day|date:"W" }}</th>
         {% for date in week %}
-          {% if date.day|date:"n" == service_dict.cal_month|stringformat:"s" %}
+          {% if date.day|date:"n" == cal_month|stringformat:"s" %}
             <td>
               <button class="btn cal-btn m-2 p-2 {{ date.color }}"
                       name="cal_day" value="{{ date.day|date:'Y-m-d' }}"

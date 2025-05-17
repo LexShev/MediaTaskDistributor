@@ -59,3 +59,8 @@ function updateMessages() {
         const messages = document.getElementById('messages');
         messages.appendChild(preview);
     });
+
+    function enlargeImage(img) {
+        document.getElementById('modalImage').src = img.src;
+        document.getElementById('imageModalLabel').textContent = img.alt || "Изображение";
+    }
