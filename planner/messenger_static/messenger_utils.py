@@ -62,15 +62,13 @@ def all_messages(worker_id):
                 message_sorted[program_id]['messages'].append(message)
                 if not message['read']:
                     message_sorted[program_id]['unread_num'] += 1
-            print(message_sorted)
             return message_sorted
 
-def show_messages(program_id, worker_id):
-    messages_dict, viewed_messages_list = [], []
+def show_messages(program_id):
     with connections['planner'].cursor() as cursor:
         columns = ('m_message_id', 'm_owner', 'm_program_id', 'm_message', 'm_file_path', 'Progs_name', 'Progs_production_year', 'm_timestamp')
 
-        query_01 = f'''
+        query = f'''
         SELECT m.[message_id], m.[owner], m.[program_id], m.[message], m.[file_path], Progs.[name], Progs.[production_year], m.[timestamp]
         FROM [planner].[dbo].[messenger_static_message] AS m
         LEFT JOIN [oplan3].[dbo].[program] AS Progs
@@ -78,24 +76,47 @@ def show_messages(program_id, worker_id):
         WHERE m.[program_id] = {program_id}
         ORDER BY [timestamp]
         '''
-        print(query_01)
-        cursor.execute(query_01)
+        print(query)
+        cursor.execute(query)
         messages = cursor.fetchall()
         if messages:
-            messages_dict = [dict(zip(columns, message)) for message in messages]
+            message_list = []
+            for message in messages:
+                temp_dict = {}
+                for key, val in zip(columns, message):
+                    temp_dict[key] = val
+                    file_path = temp_dict.get('m_file_path')
+                temp_dict['file_type'] = file_type(file_path)
+                message_list.append(temp_dict)
+            print(message_list)
+            return message_list
 
-        query_02 = f'''
+def file_type(file_path):
+    if file_path:
+        ext = file_path.split('.')[-1].lower()
+        if ext in ['jpg', 'jpeg', 'png', 'gif']:
+            return 'image'
+        elif ext in ['mp4', 'mov', 'avi']:
+            return 'video'
+        elif ext in ['mp3', 'wav', 'aac', 'ac3']:
+            return 'audio'
+        else:
+            return 'document'
+    return None
+
+def show_viewed_messages(program_id, worker_id):
+    with connections['planner'].cursor() as cursor:
+        query = f'''
         SELECT [message_id]
         FROM [planner].[dbo].[messenger_static_messageviews]
         WHERE [worker_id] = {worker_id}
         AND [message_id] IN 
         (SELECT [message_id] FROM [planner].[dbo].[messenger_static_message] WHERE [program_id] = {program_id})'''
-        print(query_02)
-        cursor.execute(query_02)
+        print(query)
+        cursor.execute(query)
         viewed_messages = cursor.fetchall()
         if viewed_messages:
-            viewed_messages_list = [message_id[0] for message_id in viewed_messages]
-    return messages_dict, viewed_messages_list
+            return [message_id[0] for message_id in viewed_messages]
 
 def insert_views(program_id_list):
     with connections['planner'].cursor() as cursor:

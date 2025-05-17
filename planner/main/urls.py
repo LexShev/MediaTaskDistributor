@@ -3,6 +3,7 @@ from .views import *
 
 urlpatterns = [
     path("", index, name='home'),
+    path('home_calendar/', home_calendar, name='home_calendar'),
     path("day", day),
     path("week", week),
     path("week/<int:work_year>/<int:work_week>", week_date),
