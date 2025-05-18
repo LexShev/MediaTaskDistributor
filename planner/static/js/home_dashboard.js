@@ -5,7 +5,7 @@
 
   const dailyChart = document.getElementById('dailyChart')
   const myDailyChart = new Chart(dailyChart, {
-      type: 'pie',
+      type: 'doughnut',
       data: {
       labels: [
         'Не выполнено',
@@ -20,13 +20,13 @@
           'rgb(54, 162, 235)',
           'rgb(254, 62, 235)'
         ],
-        hoverOffset: 4
+        hoverOffset: 3
       }]
     },
     options: {
       plugins: {
         legend: {
-          display: true
+          display: false
         },
         tooltip: {
           boxPadding: 2
@@ -42,13 +42,13 @@
     type: 'line',
     data: {
       labels: [
-        'Понедельник',
-        'Вторник',
-        'Среда',
-        'Четверг',
-        'Пятница',
-        'Суббота',
-        'Воскресенье',
+        'Пн',
+        'Вт',
+        'Ср',
+        'Чт',
+        'Пт',
+        'Сб',
+        'Вс',
 
       ],
       datasets: [{

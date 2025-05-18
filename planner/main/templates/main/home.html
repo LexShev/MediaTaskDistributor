@@ -9,30 +9,71 @@
 <script type="text/javascript" src="{% static 'js/home_calendar.js' %}"></script>
 
 <br>
-<div class="container-xxl px-0">
-  <div class="row">
-    <h4>СЕГОДНЯ {{ service_dict.today|date:'d-m-Y' }}</h4>
-    <div class="col">
-      <div class="card p-4">
+<div class="container-flex px-lg-5">
 
-        <div id="calendar-container">
-          <div class="text-center py-5">
-              <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Загрузка календаря...</span>
+  <h4 class="text-center mb-4">СЕГОДНЯ: {{ service_dict.today|date:'d-m-Y' }}</h4>
+  <div class="row">
+    <div class="col" style="max-width: 50%;">
+      <div class="row p-4">
+        <div class="col" style="max-width: 55%;">
+          <div class="card p-4">
+            <div id="calendar-container">
+              <div class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Загрузка календаря...</span>
+                  </div>
+                  <p class="mt-2">Загрузка календаря...</p>
               </div>
-              <p class="mt-2">Загрузка календаря...</p>
+            </div>
           </div>
+        </div>
+
+        <div class="col" style="max-width: 45%;">
+          <div class="card d-flex justify-content-center p-4">
+            <canvas class="my-4" id="dailyChart"></canvas>
+          </div>
+        </div>
       </div>
+      <div class="row">
+
+        <div class="card align-content-center p-4">
+          <canvas class="my-4" id="weekChart" width="1000" height="200"></canvas>
+        </div>
 
       </div>
     </div>
-    <div class="col">
-      <canvas class="my-4" id="dailyChart" style="max-width: 350px; max-height: 450px;"></canvas>
+
+
+
+    <div class="col" style="max-width: 50%;">
+
+      <div class="card p-4" style="height: 50rem;">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th style="width: 1%;">#</th>
+              <th style="width: 25%;">Название</th>
+              <th style="width: 7%;">Длительность</th>
+              <th style="width: 10%;">Крайний срок</th>
+            </tr>
+          </thead>
+          <tbody class="table-group-divider" id="tableBody">
+            {% for task in home_table %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
+                <td>{{ task.Task_duration|convert_frames_to_time }}</td>
+                <td>{{ task.Task_sched_date|date:'d-m-Y' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-  <br>
-  <canvas class="my-4" id="weekChart" width="1000" height="200"></canvas>
 </div>
+
 <br>
 
 <script type="text/javascript" src="{% static 'js/chart.umd.js' %}"></script>

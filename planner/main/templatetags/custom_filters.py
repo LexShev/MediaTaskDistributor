@@ -168,6 +168,7 @@ def dir_no_host_name(full_path):
 @register.filter
 def schedule_name(schedule_id):
     schedules = {
+        1: 'Общая задача',
         3: 'Крепкое',
         5: 'Планета дети',
         6: 'Мировой сериал',
