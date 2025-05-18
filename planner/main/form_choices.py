@@ -57,6 +57,7 @@ class Choices:
     def schedules(self, label='-'):
         return [
             ('', label),
+            (1, 'Общая задача'),
             (3, 'Крепкое'),
             (5, 'Планета дети'),
             (6, 'Мировой сериал'),

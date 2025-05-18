@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 
 from on_air_report.report import report_calendar
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
+from .home_table import home_common_table
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment
 from .models import ModelFilter
 from .list_view import list_material_list
@@ -37,6 +38,8 @@ def index(request):
 
     }
     data = {
+
+        'home_table': home_common_table(),
         'service_dict': service_dict,
         'permissions': ask_db_permissions(worker_id),
     }

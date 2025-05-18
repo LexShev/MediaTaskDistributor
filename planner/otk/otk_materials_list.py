@@ -66,6 +66,7 @@ def task_info(field_dict):
     total_duration = sum(duration)
     total_count = len(material_list)
     service_dict = {'total_duration': total_duration, 'total_count': total_count}
+    print(material_list)
     return material_list, service_dict
 
 def find_file_path(program_id):
@@ -141,7 +142,6 @@ def update_comment_batch(program_list, task_status, worker_id):
                 ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
                 VALUES (%s, %s, %s, %s, %s, %s);
                 '''
-            print(query, values)
             cursor.execute(query, values)
 
 #
@@ -179,7 +179,6 @@ def change_task_status_batch(program_list, task_status):
                 SET [task_status] = %s, [ready_date] = %s
                 WHERE [program_id] = %s'''
                 update_data = (task_status, datetime.today(), program_id)
-                print(query, update_data, 'without')
                 cursor.execute(query, update_data)
     return 'Изменения успешно внесены'
 
@@ -207,7 +206,6 @@ def comments_history(program_id, progs_name):
                 else:
                     comments_dict[key] = val
             comments_list.append(comments_dict)
-        print(comments_list)
         # json_data = json.dumps(res, default=json_serial, ensure_ascii=False, indent=2)
         return comments_list
 
