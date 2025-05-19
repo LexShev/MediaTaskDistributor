@@ -170,18 +170,28 @@
       </tbody>
     </table>
     <div class="d-flex">
-      <div class="me-auto">
-        <button type="button" onclick="ShowApproveOTK()" class="btn register-button btn-outline-success mx-2">Утвердить</button>
+      <div class="input-group" style="width: 35rem;">
+        <label class="input-group-text" for="inputGroupSelect01">Выберите действие</label>
+        <select class="form-select" id="inputGroupSelect01">
+          <option selected>...</option>
+          <option value="1">Заменить исполнителя</option>
+          <option value="2">Изменить дату отсмотра</option>
+          <option value="3">Редактировать материал</option>
+        </select>
       </div>
-      <div class="ms-auto">
-        <button type="button" onclick="ProgramIdList()" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>
-        <button type="button" onclick="ShowOTKFail()" class="btn register-button btn-outline-danger mx-2">На доработку</button>
-      </div>
+
+<!--      <div class="me-auto">-->
+<!--        <button type="button" onclick="ShowApproveOTK()" class="btn register-button btn-outline-success mx-2">Утвердить</button>-->
+<!--      </div>-->
+<!--      <div class="ms-auto">-->
+<!--        <button type="button" onclick="ProgramIdList()" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>-->
+<!--        <button type="button" onclick="ShowOTKFail()" class="btn register-button btn-outline-danger mx-2">На доработку</button>-->
+<!--      </div>-->
     </div>
   </form>
 </div>
 <br>
-<script type="text/javascript" src="{% static 'js/work_list.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/admin_work_list.js' %}"></script>
 
 {% endblock %}
 </main>

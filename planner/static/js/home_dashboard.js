@@ -1,83 +1,99 @@
-/* globals Chart:false */
+// Функция для получения актуальных цветов из Bootstrap
+function getBootstrapColor(cssVar) {
+  return getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
+}
 
-(() => {
-  'use strict'
+// Объект для хранения экземпляров графиков
+const charts = {
+  daily: null,
+  week: null
+};
 
-  const dailyChart = document.getElementById('dailyChart')
-  const myDailyChart = new Chart(dailyChart, {
-      type: 'doughnut',
-      data: {
-      labels: [
-        'Не выполнено',
-        'Выполнено',
-        'На доработке'
-      ],
+// Функция инициализации/обновления круговой диаграммы
+function initDailyChart() {
+  const ctx = document.getElementById('dailyChart');
+
+  if (charts.daily) charts.daily.destroy();
+
+  charts.daily = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Не выполнено', 'Выполнено', 'На доработке'],
       datasets: [{
         label: 'Статистика за день',
         data: [300, 50, 100],
         backgroundColor: [
-          'rgb(255, 99, 132)',
-          'rgb(54, 162, 235)',
-          'rgb(254, 62, 235)'
+          getBootstrapColor('--bs-danger-bg-subtle'),
+          getBootstrapColor('--bs-success-bg-subtle'),
+          getBootstrapColor('--bs-warning-bg-subtle')
         ],
+        borderColor: [
+          getBootstrapColor('--bs-danger-border-subtle'),
+          getBootstrapColor('--bs-success-border-subtle'),
+          getBootstrapColor('--bs-warning-border-subtle')
+        ],
+        borderWidth: 2,
         hoverOffset: 3
       }]
     },
     options: {
       plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          boxPadding: 2
-        }
+        legend: { display: false },
+        tooltip: { boxPadding: 2 }
       }
     }
   });
+}
 
-  // Graphs
-  const weekChart = document.getElementById('weekChart')
-  // eslint-disable-next-line no-unused-vars
-  const myWeekChart = new Chart(weekChart, {
+// Функция инициализации/обновления линейного графика
+function initWeekChart() {
+  const ctx = document.getElementById('weekChart');
+
+  if (charts.week) charts.week.destroy();
+
+  charts.week = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: [
-        'Пн',
-        'Вт',
-        'Ср',
-        'Чт',
-        'Пт',
-        'Сб',
-        'Вс',
-
-      ],
+      labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
       datasets: [{
-        data: [
-          150,
-          180,
-          145,
-          160,
-          160,
-          140,
-          150
-        ],
-        lineTension: 0,
-        backgroundColor: 'transparent',
-        borderColor: '#007bff',
-        borderWidth: 4,
-        pointBackgroundColor: '#007bff'
+        fill: true,
+        data: [150, 180, 145, 160, 160, 140, 150],
+        lineTension: 0.2,
+        backgroundColor: getBootstrapColor('--bs-info-bg-subtle'),
+        borderColor: getBootstrapColor('--bs-info-border-subtle'),
+        borderWidth: 3,
+        pointBackgroundColor: getBootstrapColor('--bs-info-border-subtle')
       }]
     },
     options: {
       plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          boxPadding: 3
-        }
+        legend: { display: false },
+        tooltip: { boxPadding: 3 }
       }
     }
-  })
-})();
+  });
+}
 
+// Инициализация всех графиков
+function initCharts() {
+  initDailyChart();
+  initWeekChart();
+}
+
+// Отслеживание смены темы
+function setupThemeObserver() {
+  const observer = new MutationObserver(() => {
+    initCharts(); // Пересоздаём графики при смене темы
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-bs-theme']
+  });
+}
+
+// Запуск при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  setupThemeObserver();
+});

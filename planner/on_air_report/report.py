@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.db import connections
 
 program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
-schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+schedules_id = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
 
 
 def calc_prev_month(cal_year, cal_month):

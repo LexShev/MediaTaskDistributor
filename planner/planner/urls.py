@@ -28,6 +28,8 @@ urlpatterns = ([
     path("common_pool/", include('common_pool.urls')),
     path("messenger/", include('messenger_static.urls')),
     path("", include('advanced_search.urls')),
+    path("admin_work_panel/", include('admin_work_panel.urls')),
+    path("", include('distribution.urls')),
     path("authorize/", include('django.contrib.auth.urls')),
     path("authorize/", include('workers.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

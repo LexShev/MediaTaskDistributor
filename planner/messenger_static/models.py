@@ -1,10 +1,10 @@
 from django.db import models
 from django.db.models import IntegerField, AutoField
 
+
 class MessageViews(models.Model):
     message_id = IntegerField(default=0)
     worker_id = IntegerField(default=0)
-
 
 class Program(models.Model):
     program_id = models.IntegerField(primary_key=True)
