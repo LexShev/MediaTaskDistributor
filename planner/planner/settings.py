@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "advanced_search",
     "common_pool",
     "messenger_static",
+    "admin_work_panel",
+    "distribution",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

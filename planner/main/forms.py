@@ -1,47 +1,27 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
-# from .db_connection import program_custom_fields
-from .models import ModelFilter
+from .models import ModelFilter, AttachedFiles
 from .form_choices import Choices
 
-
-# engineers_list = program_custom_fields().get(15)
-# engineers = [('', '-')]
-# if engineers_list:
-#     for engineer in enumerate(engineers_list.split('\r\n')):
-#         if engineer[1]:
-#             engineers.append(engineer)
-#
-# tags_list = program_custom_fields().get(18)
-# tags = [('', '-')]
-# if tags_list:
-#     for tag in enumerate(tags_list.split('\r\n')):
-#         if tag[1]:
-#             tags.append(tag)
-#
-# inoagents_list = program_custom_fields().get(19)
-# inoagents = [('', '-')]
-# if inoagents_list:
-#     for inoagent in enumerate(inoagents_list.split('\r\n')):
-#         if inoagent[1]:
-#             inoagents.append(inoagent)
-#
-# rate = (('', '-'), (0, '0+'), (1, '6+'), (2, '12+'), (3, '16+'), (4, '18+'))
-#
-# schedules = [
-#     (3, 'Крепкое'),
-#     (5, 'Планета дети'),
-#     (6, 'Мировой сериал'),
-#     (7, 'Мужской сериал'),
-#     (8, 'Наше детство'),
-#     (9, 'Романтичный сериал'),
-#     (10, 'Наше родное кино'),
-#     (11, 'Семейное кино'),
-#     (12, 'Советское родное кино'),
-#     (20, 'Кино +')
-# ]
-
 choice = Choices()
+
+
+def validate_file_type(value):
+    valid_types = [
+        'image/jpeg', 'image/png', 'image/gif',
+        'video/mp4', 'video/quicktime',
+        'audio/mpeg', 'audio/wav', 'audio/aac', 'audio/x-aac', 'audio/vnd.dlna.adts',
+        'text/plain',
+        'application/pdf',
+        'application/octet-stream',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ]
+
+    if value.content_type not in valid_types:
+        print('Запрещённый формат', value.content_type)
+        raise ValidationError('Недопустимый тип файла')
 
 class ListFilter(forms.ModelForm):
     class Meta:
@@ -109,8 +89,6 @@ class CenzFormText(forms.Form):
         label='Редакторские замечания', required=False)
 
 class CenzFormDropDown(forms.Form):
-    # engineers = [(0, '-'), (0, 'Александр Кисляков'), (1, 'Ольга Кузовкина'), (2, 'Дмитрий Гатенян'), (3, 'Мария Сучкова'), (4, 'Андрей Антипин'), (
-    # 5, 'Роман Рогачев'), (6, 'Анастасия Чебакова'), (7, 'Никита Кузаков'), (8, 'Олег Кашежев'), (9, 'Марфа Тарусина'), (10, 'Евгений Доманов')]
     narc_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'form-select', 'id': "narc_form"}),
         label='Наркотики', choices=((0, 'Нет'), (1, 'Да')), required=False)
@@ -163,3 +141,23 @@ class VacationForm(forms.Form):
         attrs={'class': "form-control", 'id': "description_form", 'style': "height: 60px"}),
         label='Примечание', required=False)
 
+
+class AttachedFilesForm(forms.ModelForm):
+    file_path = forms.FileField(
+        required=False,
+        validators=[validate_file_type],
+        widget=forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*, video/*, audio/*, .pdf, .doc, .docx, .srt'
+            })
+        )
+    class Meta:
+        model = AttachedFiles
+        fields = ('description', 'file_path')
+        labels = {'description': 'description', 'file_path': 'Прикрепить файл'}
+        widgets = {
+            'description': forms.TextInput(attrs={
+                'class': 'form-control m-0',
+                'placeholder': 'Добавьте описание...'
+            }),
+        }

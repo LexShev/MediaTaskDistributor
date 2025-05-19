@@ -9,10 +9,10 @@ from django.contrib import messages
 from django.template.loader import render_to_string
 
 from on_air_report.report import report_calendar
-from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm
+from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
 from .home_table import home_common_table
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment
-from .models import ModelFilter
+from .models import ModelFilter, AttachedFiles
 from .list_view import list_material_list
 from .permission_pannel import ask_db_permissions
 from .week_view import week_material_list
@@ -20,14 +20,9 @@ from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline, \
     block_object, check_lock_object, unblock_object, comments_history, select_filepath_history
-from .distribution import main_distribution
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 
 
-
-def distribution(request):
-    main_distribution()
-    return redirect('home')
 
 @login_required()
 def index(request):
@@ -48,7 +43,7 @@ def index(request):
 def home_calendar(request):
     today = datetime.date.today()
     cal_year, cal_month = today.year, today.month
-    cal_year, cal_month = 2025, 1
+    # cal_year, cal_month = 2025, 1
     html = render_to_string('main/home_calendar.html',
                             {'month_calendar': report_calendar(cal_year, cal_month), 'cal_month': cal_month})
 
@@ -112,7 +107,7 @@ def full_list(request):
         try:
             init_dict = ModelFilter.objects.get(owner=worker_id)
         except ObjectDoesNotExist:
-            schedules = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+            schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
             start_date = datetime.datetime.today().strftime('%d/%m/%Y')
             work_dates = f'{start_date} - {start_date}'
             task_status = ('not_ready', 'ready', 'fix')
@@ -141,7 +136,7 @@ def full_list(request):
             task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
 
         else:
-            schedules = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+            schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
             start_date = datetime.datetime.today().strftime('%d/%m/%Y')
             work_dates = f'{start_date} - {start_date}'
             engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
@@ -191,6 +186,13 @@ def material_card(request, program_id):
     if request.method == 'POST':
         form_drop = CenzFormDropDown(request.POST)
         form_text = CenzFormText(request.POST)
+
+        form_attached_files = AttachedFilesForm(request.POST, request.FILES)
+        if form_attached_files.is_valid():
+            attached_file = form_attached_files.save(commit=False)
+            attached_file.owner = worker_id
+            attached_file.program_id = program_id
+            attached_file.save()
 
         if form_text.is_valid() and form_drop.is_valid():
             new_values_dict = {
@@ -282,6 +284,10 @@ def material_card(request, program_id):
         lock_material = False
         block_object(program_id, worker_id)
 
+    form_attached_files = AttachedFilesForm()
+
+    attached_files = AttachedFiles.objects.filter(program_id=program_id).order_by('timestamp')
+
     data = {'full_info': full_info(program_id),
             'custom_fields': custom_fields,
             'comments_history': comments_history(program_id),
@@ -289,9 +295,11 @@ def material_card(request, program_id):
             'schedule_info': schedule_info(program_id),
             'actions_list': select_actions(program_id),
             'filepath_history': select_filepath_history(program_id),
+            'attached_files': attached_files,
             'ffmpeg': ffmpeg_dict(program_id),
             'form_text': form_text,
             'form_drop': form_drop,
+            'form_attached_files': form_attached_files,
             'lock_material': lock_material,
             'permissions': ask_db_permissions(worker_id)
             }

@@ -4,13 +4,14 @@ from django.db import connections
 
 
 def main_distribution():
-    # work_date = datetime.today().date()
-    work_date = date(day=10, month=3, year=2025)
-    dates = tuple(str(work_date + timedelta(days=day)) for day in range(25))
+    work_date = datetime.today().date()
+    # work_date = date(day=10, month=3, year=2025)
+    # dates = tuple(str(work_date + timedelta(days=day)) for day in range(25))
 
-    material_list_sql, django_columns = oplan_material_list(dates=dates)
+    material_list_sql, django_columns = oplan_material_list(start_date=work_date, duration=25)
     program_id_list = []
-    for program_info in material_list_sql:
+    for i, program_info in enumerate(material_list_sql, 1):
+        print('working', i)
         if not program_info:
             continue
         program_id = program_info[0]
@@ -41,23 +42,7 @@ def main_distribution():
         insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
 
 
-# def distribution_by_id(program_id, duration, sched_id, sched_date, work_date, file_path):
-#     planner_engineer_id = planner_engineer(program_id)
-#     oplan3_engineer_id = oplan3_engineer(program_id)
-#     if oplan3_engineer_id != 0 and not oplan3_engineer_id:
-#
-#         if planner_engineer_id != 0 and not planner_engineer_id:
-#             status = 'not_ready'
-#             engineer_id, kpi, work_date = date_seek(work_date)
-#             insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
-#         else:
-#             # print('skip', program_id)
-#             # ? update(program_id, engineer_id, duration, date, status)
-#             engineer_id = planner_engineer_id
-#             status = 'not_ready'
-#     return engineer_id, status, work_date
-
-def oplan_material_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
+def oplan_material_list(start_date, duration, program_type=(4, 5, 6, 10, 11, 12)):
     columns = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
@@ -85,7 +70,7 @@ def oplan_material_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
             AND Progs.[DeletedIncludeParent] = 0
             AND SchedProg.[Deleted] = 0
             AND SchedDay.[schedule_id] IN {schedules_id}
-            AND SchedDay.[day_date] IN {dates}
+            AND SchedDay.[day_date] BETWEEN '{start_date}' AND DATEADD(DAY, {duration}, '{start_date}')
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
