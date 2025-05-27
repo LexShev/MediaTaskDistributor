@@ -236,3 +236,53 @@ function ShowOTKComment() {
     OTKComment.toggle();
 
 };
+
+document.getElementById('tableFilter').addEventListener('keyup', fastSearch);
+document.getElementById('search_type').addEventListener('change', fastSearch);
+
+function fastSearch() {
+    let filter = document.getElementById('tableFilter').value.toLowerCase();
+    let tableBody = document.getElementById('tableBody');
+    let rows = tableBody.getElementsByTagName('tr');
+    let searchSettings = document.getElementById('search_type').value;
+    if (searchSettings == 0) {
+        for (let i = 0; i < rows.length; i++) {
+            let nameCell = rows[i].getElementsByTagName('td')[0];
+            if (nameCell) {
+                let idValue = nameCell.querySelector('input')?.value
+                rows[i].style.display = idValue.indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+    }
+    if (searchSettings == 1) {
+        for (let i = 0; i < rows.length; i++) {
+            let nameCell = rows[i].getElementsByTagName('td')[1];
+            if (nameCell) {
+                let textValue = (nameCell.textContent || nameCell.innerText).toLowerCase();
+                rows[i].style.display = textValue.indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+    }
+};
+
+document.getElementById('tableFilter').addEventListener('keyup', totalCalc);
+function totalCalc() {
+    let tableBody = document.getElementById('tableBody');
+    let rows = tableBody.getElementsByTagName('tr');
+    let totalNum = document.getElementById('total_num');
+    let totalDuration = document.getElementById('total_dur');
+    let visibleCount = 0;
+    let countDuration = 0;
+    for (let i = 0; i < rows.length; i++) {
+        if (rows[i].style.display !== 'none') {
+            let duration = parseFloat(rows[i].getElementsByTagName('td')[6].querySelector('input')?.value);
+            countDuration+=duration;
+            visibleCount++;
+        }
+    };
+    console.log(countDuration);
+
+    totalNum.textContent = `Всего: ${visibleCount}`;
+    totalDuration.textContent = `Продолжительность: ${countDuration}`;
+    return visibleCount;
+};

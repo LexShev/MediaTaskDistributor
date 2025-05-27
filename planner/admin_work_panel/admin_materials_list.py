@@ -22,7 +22,7 @@ def check_deadline(value):
     else:
         return ''
 
-def task_info(field_dict):
+def task_info(field_dict, sql_set):
     with connections['planner'].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
@@ -33,7 +33,7 @@ def task_info(field_dict):
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
-        SELECT {sql_columns}
+        SELECT TOP ({sql_set}) {sql_columns}
         FROM [planner].[dbo].[task_list] AS Task
         JOIN [oplan3].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]

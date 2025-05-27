@@ -1,7 +1,6 @@
-from django.db.models import Model, IntegerField, CharField, AutoField, FileField, DateTimeField, TextField
+from django.db.models import Model, IntegerField, CharField, FileField, DateTimeField, TextField
 
 def get_upload_path(instance, filename):
-    # Файл сохранится в: MEDIA_ROOT/attached_files/<program_id>/<filename>
     return f'attached_files/{instance.program_id}/{filename}'
 
 
@@ -19,3 +18,20 @@ class AttachedFiles(Model):
     description = TextField(blank=True, null=True)
     timestamp = DateTimeField(auto_now_add=True)
     file_path = FileField(upload_to=get_upload_path, blank=True, null=True)
+
+    @property
+    def file_type(self):
+        if self.file_path:
+            ext = self.file_path.name.split('.')[-1].lower()
+            if ext in ['jpg', 'jpeg', 'png', 'gif']:
+                return 'image'
+            elif ext in ['mp4', 'mov', 'avi']:
+                return 'video'
+            elif ext in ['mp3', 'wav', 'aac', 'ac3']:
+                return 'audio'
+            else:
+                return 'document'
+        return None
+
+    class Meta:
+        ordering = ['timestamp']

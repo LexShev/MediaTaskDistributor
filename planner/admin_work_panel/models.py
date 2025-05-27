@@ -11,3 +11,8 @@ class AdminModel(Model):
     material_type = CharField(max_length=50, null=True, blank=True, default='film')
     sched_id = IntegerField(default=1, null=True, blank=True)
     task_status = CharField(max_length=50, null=True, blank=True, default='ready')
+
+class TaskSearch(Model):
+    owner = IntegerField('owner', primary_key=True, default=1)
+    search_type = IntegerField(default=1)
+    sql_set = IntegerField(default=100)

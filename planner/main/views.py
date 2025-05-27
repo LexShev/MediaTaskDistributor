@@ -2,7 +2,7 @@ import datetime
 import ast
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -188,6 +188,10 @@ def material_card(request, program_id):
         form_text = CenzFormText(request.POST)
 
         form_attached_files = AttachedFilesForm(request.POST, request.FILES)
+        uploaded_file = request.FILES.get('file_path')
+        if uploaded_file and uploaded_file.size > 10 * 1024 * 1024:  # 10 МБ
+            print(uploaded_file.size)
+            # return HttpResponse("Файл слишком большой!", status=400)
         if form_attached_files.is_valid():
             attached_file = form_attached_files.save(commit=False)
             attached_file.owner = worker_id

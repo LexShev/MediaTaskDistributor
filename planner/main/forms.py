@@ -8,6 +8,7 @@ choice = Choices()
 
 
 def validate_file_type(value):
+    print('value', value)
     valid_types = [
         'image/jpeg', 'image/png', 'image/gif',
         'video/mp4', 'video/quicktime',
@@ -144,8 +145,9 @@ class VacationForm(forms.Form):
 
 class AttachedFilesForm(forms.ModelForm):
     file_path = forms.FileField(
-        required=False,
+        required=True,
         validators=[validate_file_type],
+        label='Прикрепить файл',
         widget=forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*, video/*, audio/*, .pdf, .doc, .docx, .srt'
@@ -154,10 +156,11 @@ class AttachedFilesForm(forms.ModelForm):
     class Meta:
         model = AttachedFiles
         fields = ('description', 'file_path')
-        labels = {'description': 'description', 'file_path': 'Прикрепить файл'}
+        labels = {'description': 'Описание',}
         widgets = {
             'description': forms.TextInput(attrs={
-                'class': 'form-control m-0',
+                'class': 'form-control',
+                'style': 'min-width: 51%;',
                 'placeholder': 'Добавьте описание...'
             }),
         }

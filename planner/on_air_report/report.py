@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.db import connections
 
 program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
-schedules_id = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
 
 
 def calc_prev_month(cal_year, cal_month):
@@ -93,7 +93,7 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
             """
-        print(query)
+        # print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
     return material_list_sql, django_columns
@@ -189,7 +189,6 @@ def find_file_path(program_id):
         AND Progs.[DeletedIncludeParent] = 0
         AND Progs.[program_id] = {program_id}
         '''
-        print(query)
         cursor.execute(query)
         file_path = cursor.fetchone()
     if file_path:

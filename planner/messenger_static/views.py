@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from main.permission_pannel import ask_db_permissions
 from messenger_static.forms import MessageForm
 from .messenger_utils import show_messages, insert_views, all_messages, show_viewed_messages
-from .models import Message
+from .models import Message, Program
 
 
 @login_required()
@@ -17,7 +17,7 @@ def index(request):
         'all_messages': all_messages(worker_id),
         'permissions': ask_db_permissions(worker_id),
     }
-    return render(request, 'messenger_static/messenger_index.html', data)
+    return render(request, 'messenger_static/messenger_empty.html', data)
 
 
 
@@ -35,6 +35,8 @@ def messenger(request, program_id):
     form = MessageForm()
 
     messages = Message.objects.filter(program_id=program_id).order_by('timestamp')[:50]
+    program_info = Program.objects.using('oplan3').get(program_id=program_id)
+    print('program_info', program_info)
 
     # messages = show_messages(program_id)
     viewed_messages = show_viewed_messages(program_id, worker_id)
@@ -42,6 +44,7 @@ def messenger(request, program_id):
         'messages': messages,
         'viewed_messages': viewed_messages,
         'all_messages': all_messages(worker_id),
+        'program_info': program_info,
         'form': form,
         'permissions': ask_db_permissions(worker_id),
     }
@@ -51,12 +54,10 @@ def messenger(request, program_id):
     #     if message.get('message_id') != message_id:
     #         print(message, message_id, worker_id)
 
-
-    # updated_views = [
-    #     (message.get('m_message_id'), worker_id) for message in messages if message.get('m_message_id') not in show_viewed_messages
-    # ]
-    # if updated_views:
-    #     insert_views(updated_views)
-    return render(request, 'messenger_static/messenger_index.html', data)
+    updated_views = [(message.message_id, worker_id) for message in messages if message.message_id not in viewed_messages]
+    print(updated_views)
+    if updated_views:
+        insert_views(updated_views)
+    return render(request, 'messenger_static/messenger.html', data)
 
 

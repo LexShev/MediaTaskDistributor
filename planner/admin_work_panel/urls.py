@@ -3,6 +3,6 @@ from .views import *
 
 
 urlpatterns = [
-    path("", admin_index, name="admin_index"),
+    path("", task_manager, name="task_manager"),
 
 ]

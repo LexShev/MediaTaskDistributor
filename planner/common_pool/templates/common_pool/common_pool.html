@@ -10,14 +10,15 @@
     <h6>Из них фильмов: {{ service_dict.film_count|thousands }} - ({{ service_dict.film_dur|convert_frames_to_time }})</h6>
     <h6>Из них сериалов: {{ service_dict.season_count|thousands }} - ({{ service_dict.season_dur|convert_frames_to_time }})</h6>
     <br>
-    <form method="POST">
+    <form method="POST" id="poolForm">
         {% csrf_token %}
         <div class="input-group mb-3">
-            <label class="input-group-text" for="searchSettings">Поиск по</label>
-            <select class="form-select" id="searchSettings" style="width: 6rem;">
-                <option value="0">id</option>
-                <option value="1" selected>названию</option>
-            </select>
+            <label class="input-group-text" for="search_type">Поиск по</label>
+            {{ form.search_type }}
+<!--            <select class="form-select" id="search_type" style="width: 6rem;">-->
+<!--                <option value="0">id</option>-->
+<!--                <option value="1" selected>названию</option>-->
+<!--            </select>-->
             <input class="form-control" id="tableFilter" type="text" placeholder="введите название передачи ..." style="width: 60rem;">
 
             {{ form.sql_set }}
@@ -29,31 +30,15 @@
         </div>
     </form>
 
-    <h6>Всего на странице: {{ pool_list|length|thousands }}</h6>
-    <hr width="100%" size="2"><br>
 
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th scope="col" class="col-1">Program_id</th>
-                <th scope="col" class="col-6">Название</th>
-                <th scope="col" class="col-1">Длительность</th>
-            </tr>
-        </thead>
-        <tbody class="table-group-divider" id="tableBody">
-            {% for material in pool_list %}
-                <tr>
-                    <td><a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                        {{ material.Progs_program_id }}
-                    </a></td>
-                    <td><a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ material.Progs_name }}
-                        {% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</a></td>
-                    <td>{{ material.Progs_duration|convert_frames_to_time }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div  id="pool-table-container">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Загрузка данных...</span>
+            </div>
+            <p class="mt-3">Идет загрузка таблицы...</p>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript" src="{% static 'js/common_pool.js' %}"></script>
