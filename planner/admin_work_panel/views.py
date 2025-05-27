@@ -39,6 +39,15 @@ def task_manager(request):
         search_form = TaskSearchForm(request.POST, instance=search_init_dict)
         if search_form.is_valid():
             search_form.save()
+
+        program_id = request.POST.getlist('program_id')
+        engineers = request.POST.getlist('engineers_selector')
+        work_date = request.POST.getlist('work_date_selector')
+        status = request.POST.getlist('status_selector')
+        if engineers and work_date and status:
+            selector_data = [(p, e, w, s) for p, e, w, s in zip(program_id, engineers, work_date, status)]
+            print(selector_data)
+
         approve = request.POST.get('approve_otk')
 
         if approve:

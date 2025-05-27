@@ -61,7 +61,7 @@ def task_info(field_dict, sql_set):
     total_duration = sum(duration)
     total_count = len(material_list)
     service_dict = {'total_duration': total_duration, 'total_count': total_count}
-    print(material_list)
+    # print(material_list)
     return material_list, service_dict
 
 def find_file_path(program_id):
