@@ -1,0 +1,91 @@
+{% extends  'messenger_static/index.html' %}
+{% load static %}
+
+{% block messenger %}
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="imageModalLabel">Просмотр изображения</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid" alt="Увеличенное изображение">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="chat-container rounded-bottom p-0">
+    {{ program_info.program }}
+    <h6 class="cur-chat-name text-center shadow p-2 mb-0">
+        Комментарии к:
+        <a href="{% url 'home' %}{{ program_info.program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+            {{ program_info.name }}
+        </a>{% if program_info.production_year %} ({{ program_info.production_year }}){% endif %}
+    </h6>
+    <div class="messages flex-grow-1 overflow-auto" id="messages" style="height: 47rem">
+        {% for message in messages %}
+        <div class="d-flex">
+            <div class="message-item {% if message.message_id not in viewed_messages %}new-message{% endif %}
+            {% if message.owner == request.user.id %}my-message{% else %}other-message{% endif %}"
+                 data-message-id="{{ message.message_id }}">
+                <h6>{{ message.owner|worker_name }}</h6>
+                {% if message.is_file %}
+                    {% if message.file_type == 'image' %}
+                        <img src="{{ message.file_path.url }}" class="chat-image" data-bs-toggle="modal"
+                             data-bs-target="#imageModal" onclick="enlargeImage(this)" alt="{{ message.file_path.name}}">
+                    {% elif message.file_type == 'video' %}
+                        <video controls class="chat-video">
+                            <source src="{{ message.file_path.url }}" type="video/mp4">
+                        </video>
+                    {% elif message.file_type == 'audio' %}
+                        <audio controls class="chat-audio">
+                            <source src="{{ message.file_path.url }}" type="audio/mpeg">
+                        </audio>
+                    {% else %}
+                        <a href="{{ message.file_path.url }}" download class="document-link">
+                            <i class="fas fa-file-download"></i> {{ message.file_path.name|slice:"20:" }}
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <div class="message-text">{{ message.message|linebreaks }}</div>
+                {% endif %}
+                <small class="text-muted d-block text-end">{{ message.timestamp|date:"d.m.Y H:i:s" }}</small>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<form method="post" enctype="multipart/form-data" class="message-form my-2" id="message_form">
+    {% csrf_token %}
+    {{ form.message }}
+    <div class="d-flex">
+        <div class="file-upload-wrapper input-group my-2">
+          <label class="input-group-text file-upload-label" for="id_file_path">Прикрепить файл</label>
+          {{ form.file_path }}
+          <span class="input-group-text">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+              <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/>
+            </svg>
+          </span>
+        </div>
+
+        <div class="btn-group my-2" role="group">
+            <button type="submit" id="send_message" class="btn btn-primary">Отправить</button>
+            <button type="button" class="btn btn-primary active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+                  <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</form>
+
+
+
+{% endblock %}
+
+

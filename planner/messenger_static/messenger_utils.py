@@ -14,7 +14,7 @@ def all_messages(worker_id):
         columns = 'program_id', 'message', 'timestamp', 'Progs_name', 'Progs_production_year', 'read'
         query = f'''
         WITH LatestPrograms AS (
-            SELECT TOP 5 
+            SELECT TOP (10)
                 m.[program_id]
             FROM 
                 [planner].[dbo].[messenger_static_message] m
@@ -41,10 +41,11 @@ def all_messages(worker_id):
         LEFT JOIN [oplan3].[dbo].[program] AS Progs
             ON m.[program_id] = Progs.[program_id]
         WHERE m.[program_id] IN (SELECT [program_id] FROM LatestPrograms)
-        ORDER BY 
-            m.[program_id],
-            m.[timestamp] DESC;
+        ORDER BY
+            m.[timestamp]
+            DESC;
         '''
+        # m.[program_id]
         cursor.execute(query)
         messages = cursor.fetchall()
         if messages:

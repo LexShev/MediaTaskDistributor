@@ -38,69 +38,9 @@
       </div>
     </div>
 
-    <div class="modal fade" id="ApproveFIX" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="ApproveFIXLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable modal-xl">
-        <div class="modal-content">
-          <div class="modal-header">
-              <h3 class="modal-title" id="ApproveFIXLabel">
-                Отправить перезалитый FIX в работу?
-              </h3>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div id="fix_list">
-
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="submit" name="approve_fix" id="approve_fix" value="True" class="btn btn-outline-warning">Отправить</button>
-            <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="OTKFail" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable modal-xl">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3 class="modal-title">Отправить на доработку выбранные задачи?</h3>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div id="otk_fail_list">
-
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button name="otk_fail" id="otk_fail" value="True" type="submit" class="btn btn-warning">На доработку</button>
-            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="OTKComment" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="otk_comment_title">Комментарии по исправлению</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div id="otk_comment_body">
-
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-
-    <div class="d-flex p-0 m-0 align-items-center justify-content-start">
+    <div class="d-flex p-0 m-0 mb-3 align-items-center justify-content-start">
       <div class="row ms-0 m-2 align-items-center">
-        {% for field in form %}
+        {% for field in filter_form %}
           <div class="col ps-0">
             <div class="form-floating" style="width:210px;">
               {{ field }}
@@ -113,30 +53,48 @@
         </div>
       </div>
     </div>
-    <br>
-    <div class="d-flex">
-      <h6 class="pe-5">Всего: {{ service_dict.total_count|thousands }}</h6>
-      <h6>Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
-    </div><br>
-    <table class="table table-hover">
+
+    <form method="POST" id="poolForm">
+        {% csrf_token %}
+        <div class="input-group mb-3" style="width: 80%;">
+            <label class="input-group-text" for="search_type">Поиск по</label>
+            {{ search_form.search_type }}
+            <input class="form-control" id="tableFilter" type="text" placeholder="введите название передачи ...">
+            {{ search_form.sql_set }}
+            <button type="submit" class="btn btn-outline-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+              </svg>
+            </button>
+        </div>
+    </form>
+
+    <div class="d-flex mb-3">
+      <h6 class="pe-5" id="total_num">Всего: {{ service_dict.total_count|thousands }}</h6>
+      <h6 id="total_dur">Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
+
+    </div>
+
+    <table class="table table-hover align-middle">
       <thead>
         <tr>
           <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
-          <th style="width: 25%;">Название</th>
-          <th style="width: 5%;">Директория</th>
-          <th style="width: 35%;">Имя файла</th>
+          <th style="width: 23%;">Название</th>
           <th style="width: 10%;">Исполнитель</th>
-          <th style="width: 7%;">Дата эфира</th>
-          <th style="width: 7%;">Длительность</th>
-          <th style="width: 10%;">Статус</th>
+          <th style="width: 6%;">Дата отсмотра</th>
+          <th style="width: 6%;">Дата эфира</th>
+          <th style="width: 11%;">Статус</th>
+          <th style="width: 6%;">Длительность</th>
+          <th style="width: 6%;">Директория</th>
+          <th style="width: 30%;">Имя файла</th>
         </tr>
       </thead>
       <tbody class="table-group-divider" id="tableBody">
-        {% for task in task_list %}
+        {% for task, dynamic_selector in task_list_zip %}
           <tr>
             <td>
               <input class="form-check-input me-1" type="checkbox"
-                     value="{{ task.Task_program_id }};{{ task.Progs_name }};{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
+                     value="{{ task.Task_program_id }}"
                      name="program_id">
             </td>
             <td>
@@ -157,14 +115,15 @@
               </div>
               {% endif %}
             </td>
+            <td>{{ dynamic_selector.engineers_selector }}</td>
+            <td>{{ dynamic_selector.work_date_selector }}</td>
+            <td>{{ task.Task_sched_date|date:'d.m.Y' }}</td>
+            <td>{{ dynamic_selector.status_selector }}</td>
+            <td>{{ task.Task_duration|convert_frames_to_time }}
+              <input value="{{ task.Task_duration }}" id="dur_{{ task.Task_program_id }}" class="visually-hidden">
+            </td>
             <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
             <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
-            <td>
-              <a href="{% url 'home' %}worker/{{ task.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                {{ task.Task_engineer_id|engineer_name }}</a></td>
-            <td>{{ task.Task_sched_date|date:'d-m-Y' }}</td>
-            <td>{{ task.Task_duration|convert_frames_to_time }}</td>
-            <td>{{ task.Task_task_status|status_name }}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -191,7 +150,7 @@
   </form>
 </div>
 <br>
-<script type="text/javascript" src="{% static 'js/admin_work_list.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/task_manager.js' %}"></script>
 
 {% endblock %}
 </main>

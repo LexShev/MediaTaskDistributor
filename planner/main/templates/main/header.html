@@ -83,6 +83,9 @@
             {% if permissions.advanced_search %}
               <li class="nav-item"><a href="{% url 'home' %}advanced_search" class="nav-link px-2">Расширенный поиск</a></li>
             {% endif %}
+            {% if permissions.otk %}
+              <li class="nav-item"><a href="{% url 'task_manager' %}" class="nav-link px-2">Управление задачами</a></li>
+            {% endif %}
           </ul>
         </div>
       </nav>

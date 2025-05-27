@@ -212,3 +212,15 @@ def thousands(num):
 @register.filter
 def stringint(string):
     return int(string)
+
+@register.filter
+def basename(file_path):
+    return os.path.basename(file_path)
+
+@register.filter
+def filename(file_path):
+    return os.path.splitext(os.path.basename(file_path))[0]
+
+@register.filter
+def file_ext(file_path):
+    return os.path.splitext(file_path)[-1].lower()
