@@ -46,7 +46,7 @@ def task_info(field_dict, sql_set):
         {check_value('sched_id', field_dict.get('sched_id'))}
         {check_value('task_status', field_dict.get('task_status'))}
         {check_material_type(field_dict.get('material_type'))}
-        ORDER BY Task.[work_date];
+        ORDER BY Progs.[name];
         '''
         print(query)
         cursor.execute(query)
@@ -63,6 +63,18 @@ def task_info(field_dict, sql_set):
     service_dict = {'total_duration': total_duration, 'total_count': total_count}
     # print(material_list)
     return material_list, service_dict
+
+def update_task_list(selector_data):
+    with connections['planner'].cursor() as cursor:
+        query = '''
+        UPDATE [planner].[dbo].[task_list]
+        SET [engineer_id] = %s, [work_date] = %s, [task_status] = %s
+        WHERE [program_id] = %s
+        '''
+        values = [(engineer, work_date, status, program_id) for program_id, engineer, work_date, status in selector_data]
+
+        cursor.executemany(query, values)
+        return cursor.rowcount
 
 def find_file_path(program_id):
     with connections['oplan3'].cursor() as cursor:

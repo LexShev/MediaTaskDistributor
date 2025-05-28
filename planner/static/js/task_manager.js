@@ -1,8 +1,8 @@
 window.addEventListener('load', function() {
     let fullSelectCheckbox = document.getElementById('full_select');
-    let program_id_list = document.getElementsByName('program_id');
-    program_id_list.forEach(function(program_id) {
-        program_id.addEventListener('change', changeFullSelect);
+    let program_id_check_list = document.getElementsByName('program_id_check');
+    program_id_check_list.forEach(function(program_id_check) {
+        program_id_check.addEventListener('change', changeFullSelect);
     });
 
     let textarea_list = document.getElementsByTagName('textarea');
@@ -12,16 +12,16 @@ window.addEventListener('load', function() {
 
     function changeFullSelect() {
         let checked_list = [];
-        for (let i = 0; i < program_id_list.length; i++) {
-            if (program_id_list[i].checked) {
-                checked_list.push(program_id_list[i]);
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            if (program_id_check_list[i].checked) {
+                checked_list.push(program_id_check_list[i]);
             }
         };
-        if (0 < checked_list.length && checked_list.length < program_id_list.length) {
+        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
             fullSelectCheckbox.indeterminate = true;
             fullSelectCheckbox.checked = false;
         }
-        else if (checked_list.length == program_id_list.length) {
+        else if (checked_list.length == program_id_check_list.length) {
             fullSelectCheckbox.indeterminate = false;
             fullSelectCheckbox.checked = true;
         }
@@ -34,37 +34,37 @@ window.addEventListener('load', function() {
 
 function changeProgramIdCheckbox() {
     let fullSelectCheckbox = document.getElementById('full_select');
-    let program_id_list = document.getElementsByName('program_id');
+    let program_id_check_list = document.getElementsByName('program_id_check');
     let checked_list = [];
-        for (let i = 0; i < program_id_list.length; i++) {
-            if (program_id_list[i].checked) {
-                checked_list.push(program_id_list[i]);
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            if (program_id_check_list[i].checked) {
+                checked_list.push(program_id_check_list[i]);
             }
         };
     if (checked_list.length > 0) {
         fullSelectCheckbox.indeterminate = false;
         fullSelectCheckbox.checked = false;
-        for (let i = 0; i < program_id_list.length; i++) {
-            program_id_list[i].checked = false;
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            program_id_check_list[i].checked = false;
         };
     }
     else {
         fullSelectCheckbox.indeterminate = false;
         fullSelectCheckbox.checked = true;
-        for (let i = 0; i < program_id_list.length; i++) {
-            program_id_list[i].checked = true;
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            program_id_check_list[i].checked = true;
         };
     }
 };
 
 function showApproveTaskChange() {
-    let checked_list = document.getElementsByName('program_id');
-    let program_id_list = [];
+    let checked_list = document.getElementsByName('program_id_check');
+    let program_id_check_list = [];
     for (let i = 0; i < checked_list.length; i++) {
         if (checked_list[i].checked) {
-            program_id_list.push(checked_list[i].value);}
+            program_id_check_list.push(checked_list[i].value);}
         }
-    if (program_id_list.length > 0) {
+    if (program_id_check_list.length > 0) {
         ApproveTaskChange = new bootstrap.Modal(document.getElementById('ApproveTaskChange'));
         ApproveTaskChange.toggle();
     }
