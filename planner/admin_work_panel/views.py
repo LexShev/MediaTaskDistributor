@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
 from .models import AdminModel, TaskSearch
-from .admin_materials_list import task_info
+from .admin_materials_list import task_info, update_task_list
 from .forms import AdminForm, DynamicSelector, TaskSearchForm
 
 
@@ -40,32 +40,26 @@ def task_manager(request):
         if search_form.is_valid():
             search_form.save()
 
-        program_id = request.POST.getlist('program_id')
-        engineers = request.POST.getlist('engineers_selector')
-        work_date = request.POST.getlist('work_date_selector')
-        status = request.POST.getlist('status_selector')
-        if engineers and work_date and status:
-            selector_data = [(p, e, w, s) for p, e, w, s in zip(program_id, engineers, work_date, status)]
-            print(selector_data)
-
-        approve = request.POST.get('approve_otk')
-
-        if approve:
-            checked_list = request.POST.getlist('program_id')
-            program_id_list = [{'program_id': program_id.split(';')[0]} for program_id in checked_list]
-
         filter_form = AdminForm(request.POST, instance=filter_init_dict)
         if filter_form.is_valid():
             field_vals = [filter_form.cleaned_data.get(field_key) for field_key in filter_form.fields.keys()]
             # field_info = tuple(zip(form.fields.keys(), field_vals))
             field_dict = dict(zip(filter_form.fields.keys(), field_vals))
             filter_form.save()
+
+        program_id_check = request.POST.getlist('program_id_check')
+
+        program_id = request.POST.getlist('program_id')
+        engineers = request.POST.getlist('engineers_selector')
+        work_date = request.POST.getlist('work_date_selector')
+        status = request.POST.getlist('status_selector')
+        if engineers and work_date and status:
+            selector_data = [p for p in zip(program_id, engineers, work_date, status) if p[0] in program_id_check]
+            update_task_list(selector_data)
+
     else:
         filter_form = AdminForm(instance=filter_init_dict)
-        search_form = TaskSearchForm(initial={
-            'sql_set': search_init_dict.sql_set,
-            'search_type': search_init_dict.search_type
-        })
+        search_form = TaskSearchForm(instance=search_init_dict)
 
     task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
     dynamic_selector_list = []

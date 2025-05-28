@@ -4,7 +4,7 @@
 <main role="main">
 {% block body %}
 <div class="container-flex px-lg-5">
-<br>
+  <br>
 
   <form method="post">
   {% csrf_token %}
@@ -23,28 +23,24 @@
         </div>
       </div>
     </div>
-  </form>
 
-  <form method="post" id="poolForm">
-      {% csrf_token %}
-      <div class="input-group mb-3" style="width: 80%;">
-          <label class="input-group-text" for="search_type">Поиск по</label>
-          {{ search_form.search_type }}
-          <input class="form-control" id="tableFilter" type="text" placeholder="введите название передачи ...">
-          {{ search_form.sql_set }}
-          <button type="submit" class="btn btn-outline-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-            </svg>
-          </button>
-      </div>
-  </form>
-
-    <div class="d-flex mb-3">
-      <h6 class="pe-5" id="total_num">Всего: {{ service_dict.total_count|thousands }}</h6>
-      <h6 id="total_dur">Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
-
+    <div class="input-group mb-3" style="width: 80%;">
+        <label class="input-group-text" for="search_type">Поиск по</label>
+        {{ search_form.search_type }}
+        <input class="form-control" id="tableFilter" type="text" placeholder="введите название передачи ...">
+        {{ search_form.sql_set }}
+        <button type="submit" class="btn btn-outline-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+          </svg>
+        </button>
     </div>
+  </form>
+
+  <div class="d-flex mb-3">
+    <h6 class="pe-5" id="total_num">Всего: {{ service_dict.total_count|thousands }}</h6>
+    <h6 id="total_dur">Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
+  </div>
 
   <form method="post" id="task_table">
     {% csrf_token %}
@@ -52,7 +48,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h3 class="modal-title">Ошибка!</h3>
+            <h4 class="modal-title">Ошибка!</h4>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -66,11 +62,11 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h3 class="modal-title">Изменить выбранные задачи?</h3>
+            <h4 class="modal-title">Применить изменения к выбранному?</h4>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-footer">
-            <button name="approve_task_change" id="approve_task_change" value="True" type="submit" class="btn btn-success">Изменить</button>
+            <button name="approve_task_change" id="approve_task_change" value="True" type="submit" class="btn btn-success">Применить</button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
           </div>
         </div>
@@ -95,9 +91,8 @@
         {% for task, dynamic_selector in task_list_zip %}
           <tr>
             <td>
-              <input class="form-check-input me-1" type="checkbox"
-                     value="{{ task.Task_program_id }}"
-                     name="program_id">
+              <input class="form-check-input me-1" type="checkbox" value="{{ task.Task_program_id }}" name="program_id_check">
+              <input class="visually-hidden" type="text" value="{{ task.Task_program_id }}" name="program_id">
             </td>
             <td>
             <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
@@ -141,10 +136,6 @@
         </select>
       </div>
       <button type="button" class="btn btn-outline-secondary" onclick="showApproveTaskChange()">test</button>
-
-<!--      <div class="me-auto">-->
-<!--        <button type="button" onclick="ApproveTaskChange()" class="btn register-button btn-outline-success mx-2">Утвердить</button>-->
-<!--      </div>-->
 
     </div>
   </form>
