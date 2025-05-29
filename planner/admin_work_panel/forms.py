@@ -72,3 +72,8 @@ class DynamicSelector(forms.Form):
             label='Статус',
             choices=choice.task_status,
             required=False)
+        self.fields['file_path'] = forms.CharField(
+            widget=forms.TextInput(
+                attrs={'class': 'form-control form-control-sm', 'id': f"file_path_{self.program_id}"}),
+            label='Имя файла',
+            required=False)

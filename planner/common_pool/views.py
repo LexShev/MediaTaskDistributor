@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
-from .common_pool import select_pool, service_pool_info
+from .common_pool import select_pool, get_total_count, get_film_stats, get_season_stats
 from .forms import CommonPoolForm
 from .models import CommonPool
 
@@ -32,11 +32,20 @@ def common_pool(request):
         form = CommonPoolForm(initial={'sql_set': init_dict.sql_set, 'search_type': init_dict.search_type})
 
     data = {'pool_list': [],
-            'service_dict': service_pool_info(),
             'permissions': ask_db_permissions(worker_id),
             'form': form,
             }
     return render(request, 'common_pool/common_pool.html', data)
+
+def total_count(request):
+    return JsonResponse(get_total_count())
+
+def film_stats(request):
+    return JsonResponse(get_film_stats())
+
+def season_stats(request):
+    return JsonResponse(get_season_stats())
+
 
 def load_pool_table(request):
     worker_id = request.user.id

@@ -6,9 +6,9 @@
 
 <div class="container-xxl text-start p-0">
     <br><h3>Общий пул</h3>
-    <h6>Материалов в базе не отсмотрено: {{ service_dict.total_count|thousands }}</h6>
-    <h6>Из них фильмов: {{ service_dict.film_count|thousands }} - ({{ service_dict.film_dur|convert_frames_to_time }})</h6>
-    <h6>Из них сериалов: {{ service_dict.season_count|thousands }} - ({{ service_dict.season_dur|convert_frames_to_time }})</h6>
+    <h6>Материалов в базе не отсмотрено:  <span id="total-count">Загрузка...</span></h6>
+    <h6>Из них фильмов:  <span id="film-count">Загрузка...</span></h6>
+    <h6>Из них сериалов:  <span id="season-count">Загрузка...</span></h6>
     <br>
     <form method="POST" id="poolForm">
         {% csrf_token %}

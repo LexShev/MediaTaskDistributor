@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, date
 import ast
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -28,7 +28,7 @@ from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacat
 def index(request):
     worker_id = request.user.id
     service_dict = {
-        'today': datetime.date.today(),
+        'today': date.today(),
         'cal_month': 1,
 
     }
@@ -41,7 +41,7 @@ def index(request):
     return render(request, 'main/home.html', data)
 
 def home_calendar(request):
-    today = datetime.date.today()
+    today = date.today()
     cal_year, cal_month = today.year, today.month
     # cal_year, cal_month = 2025, 1
     html = render_to_string('main/home_calendar.html',
@@ -54,7 +54,7 @@ def day(request):
     return render(request, 'main/day.html')
 
 def week(request):
-    start_day = datetime.datetime.today()
+    start_day = datetime.today()
     start_day.strftime('%Y/%U')
     return redirect(week_date, start_day.year, start_day.isocalendar().week)
 
@@ -108,7 +108,7 @@ def full_list(request):
             init_dict = ModelFilter.objects.get(owner=worker_id)
         except ObjectDoesNotExist:
             schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
-            start_date = datetime.datetime.today().strftime('%d/%m/%Y')
+            start_date = datetime.today().strftime('%d/%m/%Y')
             work_dates = f'{start_date} - {start_date}'
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
@@ -132,13 +132,13 @@ def full_list(request):
             schedules = ast.literal_eval(form.cleaned_data.get('schedules'))
             engineers = ast.literal_eval(form.cleaned_data.get('engineers'))
             material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
-            work_dates = form.cleaned_data.get('work_dates')
+            work_dates = map(lambda d: datetime.strptime(d, '%d/%m/%Y'), form.cleaned_data.get('work_dates').split(' - '))
             task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
 
         else:
             schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
-            start_date = datetime.datetime.today().strftime('%d/%m/%Y')
-            work_dates = f'{start_date} - {start_date}'
+            start_date = datetime.today()
+            work_dates = (start_date, start_date)
             engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
@@ -146,7 +146,7 @@ def full_list(request):
         schedules = ast.literal_eval(init_dict.schedules)
         engineers = ast.literal_eval(init_dict.engineers)
         material_type = ast.literal_eval(init_dict.material_type)
-        work_dates = init_dict.work_dates
+        work_dates = map(lambda d: datetime.strptime(d, '%d/%m/%Y'), init_dict.work_dates.split(' - '))
         task_status = ast.literal_eval(init_dict.task_status)
 
         initial_dict = {'schedules': schedules,
@@ -156,7 +156,7 @@ def full_list(request):
                         'task_status': task_status}
         form = ListFilter(initial=initial_dict)
 
-    data = {'material_list': list_material_list(schedules, engineers, material_type, str(work_dates), task_status),
+    data = {'material_list': list_material_list(schedules, engineers, material_type, work_dates, task_status),
             'form': form, 'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/list.html', data)
 
@@ -316,7 +316,7 @@ def unblock_card(request, program_id, worker_id):
 @login_required()
 def kpi_info(request):
     worker_id = request.user.id
-    work_date = str(datetime.datetime.today().date())
+    work_date = str(datetime.today().date())
     engineers = ''
     task_status = ''
     material_type = ''
@@ -337,7 +337,7 @@ def kpi_info(request):
     task_list, summary_dict = kpi_summary_calc(work_date, engineers, material_type, task_status)
     data = {'task_list': task_list,
             'summary_dict': summary_dict,
-            'today': datetime.datetime.today().date(),
+            'today': datetime.today().date(),
             'form': form,
             'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/kpi_admin_panel.html', data)
@@ -345,7 +345,7 @@ def kpi_info(request):
 @login_required()
 def engineer_profile(request, engineer_id):
     worker_id = request.user.id
-    work_date = str(datetime.datetime.today().date())
+    work_date = str(datetime.today().date())
     task_status = ''
     material_type = ''
     if request.method == 'POST':
@@ -363,7 +363,7 @@ def engineer_profile(request, engineer_id):
     data = {'engineer_id': engineer_id,
             'task_list': task_list,
             'summary_dict': summary_dict,
-            'today': datetime.datetime.today().date(),
+            'today': datetime.today().date(),
             'permissions': ask_db_permissions(worker_id),
             'form': form}
     return render(request, 'main/kpi_engineer.html', data)
@@ -408,5 +408,5 @@ def work_year_calendar(request, cal_year):
     return render(request, 'main/work_calendar.html', data)
 
 def work_calendar(request):
-    start_year = datetime.datetime.today().year
+    start_year = datetime.today().year
     return redirect(work_year_calendar, start_year)

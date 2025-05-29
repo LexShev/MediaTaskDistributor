@@ -31,7 +31,7 @@ def fast_search(program_name):
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
-        SELECT {sql_columns}
+        SELECT TOP (500) {sql_columns}
         FROM [planner].[dbo].[task_list] AS Task
         JOIN [oplan3].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]

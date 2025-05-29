@@ -129,6 +129,13 @@ def date_generator(work_dates):
     else:
         return str(start_date.date()), str(start_date.date())
 
+def date_splitter(work_dates):
+    start_date, end_date = work_dates.split(' - ')
+    start_date = datetime.datetime.strptime(start_date, '%d/%m/%Y')
+    end_date = datetime.datetime.strptime(end_date, '%d/%m/%Y')
+    return start_date, end_date
+
+
 
 
 def planner_material_list(schedules_id, engineer_id, material_type, work_dates, task_status):
@@ -136,9 +143,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
     engineer_id = check_param(engineer_id)
     material_type = check_mat_type(material_type)
     task_status = check_param(task_status)
-
-    if isinstance(work_dates, str):
-        work_dates = date_generator(work_dates)
+    start_date, end_date = work_dates
 
     with connections['planner'].cursor() as cursor:
         order = 'ASC'
@@ -163,7 +168,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
         AND Task.[sched_id] IN {schedules_id}
         AND Task.[engineer_id] IN {engineer_id}
         AND Progs.[program_type_id] IN {material_type}
-        AND Task.[work_date] IN {work_dates}
+        AND Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'
         AND Task.[task_status] IN {task_status}
         ORDER BY Task.[sched_date] {order}
         '''

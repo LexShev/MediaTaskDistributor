@@ -32,9 +32,9 @@ def select_pool(sql_set):
         cursor.execute(query)
         return [dict(zip(django_columns, material)) for material in cursor.fetchall()]
 
-def service_pool_info():
+def get_total_count():
     with connections['oplan3'].cursor() as cursor:
-        query = '''
+        cursor.execute('''
             SELECT COUNT(Progs.[program_id]) AS total_count
             FROM [oplan3].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
@@ -47,7 +47,13 @@ def service_pool_info():
             AND Progs.[program_id] NOT IN
                 (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
-            
+        ''')
+        total_count = cursor.fetchone()[0] or 0
+    return {'total_count': total_count}
+
+def get_film_stats():
+    with connections['oplan3'].cursor() as cursor:
+        cursor.execute('''
             SELECT COUNT(Progs.[program_id]) AS film_count, SUM(Progs.[duration]) AS film_dur
             FROM [oplan3].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
@@ -60,8 +66,13 @@ def service_pool_info():
             AND Progs.[program_id] NOT IN
                 (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
-                
-            
+        ''')
+        film_count, film_dur = cursor.fetchone() or (0, 0)
+    return {'film_count': film_count, 'film_dur': film_dur}
+
+def get_season_stats():
+    with connections['oplan3'].cursor() as cursor:
+        cursor.execute('''
             SELECT COUNT(Progs.[program_id]) AS season_count, SUM(Progs.[duration]) AS season_dur
             FROM [oplan3].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
@@ -74,22 +85,7 @@ def service_pool_info():
             AND Progs.[program_id] NOT IN
                 (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
-                '''
-        cursor.execute(query)
-        total_count_cur = cursor.fetchone()
-        if total_count_cur:
-            total_count = total_count_cur[0]
-        cursor.nextset()
-        film_cur = cursor.fetchone()
-        if film_cur:
-            film_count, film_dur = film_cur
-        cursor.nextset()
-        season_cur = cursor.fetchone()
-        if season_cur:
-            season_count, season_dur = season_cur
+        ''')
+        season_count, season_dur = cursor.fetchone() or (0, 0)
+    return {'season_count': season_count, 'season_dur': season_dur}
 
-    return {'total_count': total_count,
-            'film_count': film_count,
-            'film_dur': film_dur,
-            'season_count': season_count,
-            'season_dur': season_dur}

@@ -39,7 +39,7 @@ def messenger(request, program_id):
     print('program_info', program_info)
 
     # messages = show_messages(program_id)
-    viewed_messages = show_viewed_messages(program_id, worker_id)
+    viewed_messages = show_viewed_messages(program_id, worker_id) or []
     data = {
         'messages': messages,
         'viewed_messages': viewed_messages,
@@ -48,8 +48,6 @@ def messenger(request, program_id):
         'form': form,
         'permissions': ask_db_permissions(worker_id),
     }
-    # for message_id, worker_id in viewed_messages:
-
     # for message, (message_id, worker_id) in zip(messages, viewed_messages):
     #     if message.get('message_id') != message_id:
     #         print(message, message_id, worker_id)

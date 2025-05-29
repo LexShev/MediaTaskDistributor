@@ -68,10 +68,13 @@ def update_task_list(selector_data):
     with connections['planner'].cursor() as cursor:
         query = '''
         UPDATE [planner].[dbo].[task_list]
-        SET [engineer_id] = %s, [work_date] = %s, [task_status] = %s
+        SET [engineer_id] = %s, [work_date] = %s, [task_status] = %s, [file_path] = %s
         WHERE [program_id] = %s
         '''
-        values = [(engineer, work_date, status, program_id) for program_id, engineer, work_date, status in selector_data]
+        values = [
+            (engineer, work_date, status, file_path, program_id)
+            for program_id, engineer, work_date, status, file_path in selector_data
+        ]
 
         cursor.executemany(query, values)
         return cursor.rowcount
