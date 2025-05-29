@@ -83,8 +83,7 @@
           <th style="width: 6%;">Дата эфира</th>
           <th style="width: 11%;">Статус</th>
           <th style="width: 6%;">Длительность</th>
-          <th style="width: 6%;">Директория</th>
-          <th style="width: 30%;">Имя файла</th>
+          <th style="width: 36%;">Полное имя файла</th>
         </tr>
       </thead>
       <tbody class="table-group-divider" id="tableBody">
@@ -119,8 +118,7 @@
             <td>{{ task.Task_duration|convert_frames_to_time }}
               <input value="{{ task.Task_duration }}" id="dur_{{ task.Task_program_id }}" class="visually-hidden">
             </td>
-            <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
-            <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
+            <td>{{ dynamic_selector.file_path }}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -129,13 +127,16 @@
       <div class="input-group" style="width: 35rem;">
         <label class="input-group-text" for="inputGroupSelect01">Выберите действие</label>
         <select class="form-select" id="inputGroupSelect01">
-          <option selected>...</option>
-          <option value="1">Заменить исполнителя</option>
-          <option value="2">Изменить дату отсмотра</option>
-          <option value="3">Редактировать материал</option>
+          <option value="1" selected>Внести изменения</option>
+          <option value="2">Добавить в Общую задачу</option>
+          <option value="3">Удалить выбранное</option>
         </select>
+        <button type="button" class="btn btn-outline-secondary" onclick="showApproveTaskChange()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+              <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"></path>
+            </svg>
+        </button>
       </div>
-      <button type="button" class="btn btn-outline-secondary" onclick="showApproveTaskChange()">test</button>
 
     </div>
   </form>

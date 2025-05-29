@@ -53,8 +53,12 @@ def task_manager(request):
         engineers = request.POST.getlist('engineers_selector')
         work_date = request.POST.getlist('work_date_selector')
         status = request.POST.getlist('status_selector')
+        file_path = request.POST.getlist('file_path')
         if engineers and work_date and status:
-            selector_data = [p for p in zip(program_id, engineers, work_date, status) if p[0] in program_id_check]
+            selector_data = [
+                params for params in zip(program_id, engineers, work_date, status, file_path)
+                if params[0] in program_id_check
+            ]
             update_task_list(selector_data)
 
     else:
@@ -64,11 +68,13 @@ def task_manager(request):
     task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
     dynamic_selector_list = []
     for task in task_list:
+        file_path = task.get('Task_file_path', '')
         dynamic_selector_list.append(DynamicSelector(
             program_id=task.get('Task_program_id'),
             initial={'engineers_selector': task.get('Task_engineer_id'),
                      'work_date_selector': task.get('Task_work_date'),
                      'status_selector': task.get('Task_task_status'),
+                     'file_path': file_path or '',
                      }),
         )
     data = {

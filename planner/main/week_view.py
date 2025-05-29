@@ -27,6 +27,7 @@ def repeat_index_search(material_list, temp_dict):
 
 def week_material_list(schedules_id, engineer_id, material_type, task_status, work_year, work_week):
     start_day = date.fromisocalendar(work_year, work_week, 1)
+    end_day = start_day + timedelta(7)
 
     prev_mon = start_day - timedelta(7)
     next_mon = start_day + timedelta(7)
@@ -36,8 +37,10 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
     prev_year = prev_mon.isocalendar().year
     next_year = next_mon.isocalendar().year
 
-    dates = tuple((start_day + timedelta(day_num)).strftime('%Y-%m-%d') for day_num in range(7))
-    material_list_sql, django_columns = planner_material_list(schedules_id, engineer_id, material_type, dates, task_status)
+    # dates = tuple((start_day + timedelta(day_num)).strftime('%Y-%m-%d') for day_num in range(7))
+    material_list_sql, django_columns = planner_material_list(
+        schedules_id, engineer_id, material_type, (start_day, end_day), task_status
+    )
 
     service_dict = {'start_day': start_day, 'prev_year': prev_year, 'prev_week': prev_week,
                     'next_year': next_year, 'next_week': next_week, 'work_year': work_year,
