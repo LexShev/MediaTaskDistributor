@@ -44,8 +44,11 @@ def home_calendar(request):
     today = date.today()
     cal_year, cal_month = today.year, today.month
     # cal_year, cal_month = 2025, 1
-    html = render_to_string('main/home_calendar.html',
-                            {'month_calendar': report_calendar(cal_year, cal_month), 'cal_month': cal_month})
+    html = render_to_string(
+        'main/home_calendar.html',
+        {'month_calendar': report_calendar(cal_year, cal_month), 'cal_month': cal_month},
+        request=request
+    )
 
     return JsonResponse({'html': html})
     # return JsonResponse({'month_calendar': report_calendar(cal_year, cal_month)})
@@ -160,6 +163,65 @@ def full_list(request):
             'form': form, 'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/list.html', data)
 
+def load_cenz_data(request):
+    form_drop = CenzFormDropDown()
+    form_text = CenzFormText()
+
+    html = render_to_string('main/block_cenz.html', {
+        'form_drop': form_drop,
+        'form_text': form_text,
+    }, request=request)
+    return JsonResponse({'html': html})
+
+def submit_cenz_data(request):
+    worker_id = request.user.id
+    if request.method == 'POST':
+
+        form_drop = CenzFormDropDown(request.POST)
+        form_text = CenzFormText(request.POST)
+
+        if form_text.is_valid() and form_drop.is_valid():
+            new_values_dict = {
+                17: form_drop.cleaned_data.get('meta_form'),
+                7: form_drop.cleaned_data.get('work_date_form'),
+                14: form_drop.cleaned_data.get('cenz_rate_form'),
+                15: form_drop.cleaned_data.get('engineers_form'),
+                18: form_drop.cleaned_data.get('tags_form'),
+                19: form_drop.cleaned_data.get('inoagent_form'),
+                8: form_text.cleaned_data.get('lgbt_form'),
+                9: form_text.cleaned_data.get('sig_form'),
+                10: form_text.cleaned_data.get('obnazh_form'),
+                11: form_text.cleaned_data.get('narc_form'),
+                12: form_text.cleaned_data.get('mat_form'),
+                13: form_text.cleaned_data.get('other_form'),
+                16: form_text.cleaned_data.get('editor_form')
+            }
+        else:
+            new_values_dict = {}
+        task_ready_list = request.POST.get('task_ready').split(',')
+        for program_id in task_ready_list:
+            service_info_dict = {'program_id': program_id, 'worker_id': worker_id}
+            custom_fields = cenz_info(program_id)
+            old_values_dict = {
+                17: custom_fields.get(17),
+                7: custom_fields.get(7),
+                14: custom_fields.get(14),
+                15: custom_fields.get(15),
+                18: custom_fields.get(18),
+                19: custom_fields.get(19),
+                8: custom_fields.get(8),
+                9: custom_fields.get(9),
+                10: custom_fields.get(10),
+                11: custom_fields.get(11),
+                12: custom_fields.get(12),
+                13: custom_fields.get(13),
+                16: custom_fields.get(16)
+            }
+
+            change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
+            insert_history(service_info_dict, old_values_dict, new_values_dict)
+    return redirect(full_list)
+
 @login_required()
 def material_card(request, program_id):
     worker_id = request.user.id
@@ -224,15 +286,11 @@ def material_card(request, program_id):
             status_ready = request.POST.get('status_ready')
             cenz_info_change = request.POST.get('cenz_info_change')
             ask_fix = request.POST.get('ask_fix')
-            print('cenz_info_change', cenz_info_change)
-
             upload_ready_file = request.POST.get('upload_ready_file')
-            print('upload_ready_file', upload_ready_file)
             update_file_path(program_id, upload_ready_file)
             if status_ready:
                 task_status = 'ready'
                 cenz_comment = request.POST.get('cenz_comment')
-                print('cenz_comment', cenz_comment, type(cenz_comment))
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
                 text_message = change_task_status(program_id, engineer_id, work_date, task_status)
@@ -240,7 +298,6 @@ def material_card(request, program_id):
                     update_comment(program_id, worker_id, task_status, cenz_comment)
             if cenz_info_change:
                 cenz_comment = request.POST.get('cenz_comment')
-                print(cenz_comment)
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
                 update_comment(program_id, worker_id, comment=cenz_comment)

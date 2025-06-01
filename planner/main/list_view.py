@@ -103,6 +103,6 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                 }
             material_list.append(program_info_dict)
             program_id_list.append(program_id)
-    print(material_list)
+    # print(material_list)
     return material_list
 

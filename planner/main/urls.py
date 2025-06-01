@@ -15,5 +15,6 @@ urlpatterns = [
     path("work_calendar/", work_calendar),
     path("work_calendar/<int:cal_year>", work_year_calendar),
     path("unblock_card/<int:program_id>/<int:worker_id>", unblock_card, name='unblock_card'),
-    # redirect('name-of-my-view-pattern')
+    path("load_cenz_data/", load_cenz_data, name='load_cenz_data'),
+    path("submit_cenz_data/", submit_cenz_data, name='submit_cenz_data'),
 ]

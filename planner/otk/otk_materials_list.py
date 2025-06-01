@@ -1,5 +1,3 @@
-import json
-
 from django.db import connections
 from datetime import datetime, date
 
@@ -25,9 +23,6 @@ def check_deadline(value):
         return ''
 
 def task_info(field_dict):
-    # args = check_value(field_info)
-    # fields = ('ready_date', 'sched_date', 'engineer_id', 'material_type', 'sched_id', 'task_status')
-    # schedule_id = field_dict.get('schedule_id')
     with connections['planner'].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
