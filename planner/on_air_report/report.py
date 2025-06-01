@@ -51,9 +51,9 @@ def tasks_info(month_calendar, task_list):
             #     проверка на отсутствие задач в текущий день
             if ready_index == 'day_off':
                 color = ''
-            elif ready_index > 13:
+            elif ready_index > 3:
                 color = 'btn-outline-success'
-            elif 10 < ready_index < 13:
+            elif 1 < ready_index < 3:
                 color = 'btn-outline-warning'
             else:
                 color = 'btn-outline-danger'
@@ -101,8 +101,8 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
 def report_calendar(cal_year, cal_month):
     cache_key = f'calendar_{cal_year}_{cal_month}'
     result_cash = cache.get(cache_key)
-    if result_cash:
-        return result_cash
+    # if result_cash:
+    #     return result_cash
     month_calendar = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
 
     # work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)

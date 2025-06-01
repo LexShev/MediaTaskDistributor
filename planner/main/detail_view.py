@@ -63,6 +63,7 @@ def full_info(program_id):
     file_path_info = find_file_path(program_id)
     if movie_info:
         full_info_dict = dict(zip(django_columns, movie_info))
+        print(full_info_dict)
         if file_path_info:
             full_info_dict.update(file_path_info)
         if not full_info_dict.get('Adult_Name'):

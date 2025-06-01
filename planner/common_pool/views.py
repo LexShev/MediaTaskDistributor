@@ -57,5 +57,9 @@ def load_pool_table(request):
     else:
         init_dict = CommonPool.objects.get(owner=0)
     sql_set = request.GET.get('sql_set', init_dict.sql_set)
-    html = render_to_string('common_pool/common_pool_table.html', {'pool_list': select_pool(sql_set)})
+    html = render_to_string(
+        'common_pool/common_pool_table.html',
+        {'pool_list': select_pool(sql_set)},
+        request=request
+    )
     return JsonResponse({'html': html})

@@ -137,7 +137,9 @@
         </button></h6>
       <div id="collapseCenz" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
         <div class="accordion-body">
-          {% include 'main/block_cenz.html' %}
+          <form method="post">
+            {% include 'main/cenz_buttons.html' %}
+          </form>
         </div>
       </div>
       </div>
