@@ -6,8 +6,12 @@
 <nav class="nav container-fluid justify-content-end border-bottom shadow py-2 mb-2 px-lg-5">
   {% include 'main/second_header.html' %}
 </nav>
+
 {% if permissions.list %}
   <div class="container-xxl text-start px-lg-5">
+    <div id="message_container">
+      {% include  'main/messages.html' %}
+    </div>
     {{ init.0.channels }}
     {% for material in material_list %}
       {% if material.type == 'film' %}

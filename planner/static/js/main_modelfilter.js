@@ -19,7 +19,7 @@ $(function() {
     "showWeekNumbers": true,
     "autoApply": true,
     "locale": {
-        "format": "DD/MM/YYYY",
+        "format": "DD.MM.YYYY",
         "separator": " - ",
         "applyLabel": "Выбрать",
         "cancelLabel": "Отмена",
@@ -56,7 +56,7 @@ $(function() {
   });
 
   $('input[name="work_dates"]').on('apply.daterangepicker', function(ev, picker) {
-      $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+      $(this).val(picker.startDate.format('DD.MM.YYYY') + ' - ' + picker.endDate.format('DD.MM.YYYY'));
   });
 
   $('input[name="work_dates"]').on('cancel.daterangepicker', function(ev, picker) {

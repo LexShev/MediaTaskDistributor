@@ -63,7 +63,6 @@ def full_info(program_id):
     file_path_info = find_file_path(program_id)
     if movie_info:
         full_info_dict = dict(zip(django_columns, movie_info))
-        print(full_info_dict)
         if file_path_info:
             full_info_dict.update(file_path_info)
         if not full_info_dict.get('Adult_Name'):
@@ -308,8 +307,14 @@ def comments_history(program_id):
         cursor.execute(query)
         return [dict(zip(columns, val)) for val in cursor.fetchall()]
 
+def unblock_object(program_id, worker_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'DELETE FROM [oplan3].[dbo].[ObjectLock] WHERE [ObjectID] = {program_id} AND [UserID] = {worker_id}'
+        cursor.execute(query)
+        return cursor.rowcount
 
-def block_object(program_id, worker_id):
+# DELETE!
+def block_object_oplan3(program_id, worker_id):
     with connections['oplan3'].cursor() as cursor:
         query = f'''
         INSERT INTO [oplan3].[dbo].[ObjectLock]
@@ -319,20 +324,6 @@ def block_object(program_id, worker_id):
         '''
         cursor.execute(query)
         return cursor.rowcount
-
-def unblock_object(program_id, worker_id):
-    with connections['oplan3'].cursor() as cursor:
-        query = f'DELETE FROM [oplan3].[dbo].[ObjectLock] WHERE [ObjectID] = {program_id} AND [UserID] = {worker_id}'
-        cursor.execute(query)
-        return cursor.rowcount
-
-def check_lock_object(program_id):
-    with connections['oplan3'].cursor() as cursor:
-        query = f'SELECT [ObjectID],[UserID] FROM [oplan3].[dbo].[ObjectLock] WHERE [ObjectID] = {program_id}'
-        cursor.execute(query)
-        res = cursor.fetchone()
-        print(res)
-        return res
 
 def insert_filepath_history(program_id, worker_id, task_status, comment, time_of_change):
     with connections['planner'].cursor() as cursor:

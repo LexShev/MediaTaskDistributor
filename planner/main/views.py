@@ -11,15 +11,19 @@ from django.template.loader import render_to_string
 from on_air_report.report import report_calendar
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
 from .home_table import home_common_table
+from .js_requests import program_name
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment
 from .models import ModelFilter, AttachedFiles
 from .list_view import list_material_list
+from .object_block import unblock_object_planner, block_object_planner, check_planner_lock, \
+    check_oplan3_lock
 from .permission_pannel import ask_db_permissions
+from .templatetags.custom_filters import worker_name
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline, \
-    block_object, check_lock_object, unblock_object, comments_history, select_filepath_history
+    comments_history, select_filepath_history
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 
 
@@ -108,34 +112,38 @@ def full_list(request):
     worker_id = request.user.id
     if worker_id:
         try:
-            init_dict = ModelFilter.objects.get(owner=worker_id)
+            inst_dict = ModelFilter.objects.get(owner=worker_id)
+            print('inst_dict', inst_dict)
         except ObjectDoesNotExist:
             schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
-            start_date = datetime.today().strftime('%d/%m/%Y')
-            work_dates = f'{start_date} - {start_date}'
+            start_date = datetime.today()
+            work_dates = (start_date, start_date)
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
 
-            default_filter = ModelFilter(owner=worker_id, schedules=schedules,
-                                         engineers=[worker_id], material_type=material_type,
-                                         work_dates=work_dates, task_status=task_status)
+            default_filter = ModelFilter(
+                owner=worker_id, schedules=schedules,
+                engineers=[worker_id], material_type=material_type,
+                work_dates=' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
+                task_status=task_status
+            )
 
             default_filter.save()
-            init_dict = ModelFilter.objects.get(owner=worker_id)
+            inst_dict = ModelFilter.objects.get(owner=worker_id)
             print("Новый фильтр создан")
 
     else:
-        init_dict = ModelFilter.objects.get(owner=0)
+        inst_dict = ModelFilter.objects.get(owner=0)
 
     if request.method == 'POST':
-        form = ListFilter(request.POST, instance=init_dict)
+        form = ListFilter(request.POST, instance=inst_dict)
         if form.is_valid():
             form.save()
 
             schedules = ast.literal_eval(form.cleaned_data.get('schedules'))
             engineers = ast.literal_eval(form.cleaned_data.get('engineers'))
             material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
-            work_dates = map(lambda d: datetime.strptime(d, '%d/%m/%Y'), form.cleaned_data.get('work_dates').split(' - '))
+            work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), form.cleaned_data.get('work_dates').split(' - ')))
             task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
 
         else:
@@ -146,17 +154,18 @@ def full_list(request):
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
     else:
-        schedules = ast.literal_eval(init_dict.schedules)
-        engineers = ast.literal_eval(init_dict.engineers)
-        material_type = ast.literal_eval(init_dict.material_type)
-        work_dates = map(lambda d: datetime.strptime(d, '%d/%m/%Y'), init_dict.work_dates.split(' - '))
-        task_status = ast.literal_eval(init_dict.task_status)
+        schedules = ast.literal_eval(inst_dict.schedules)
+        engineers = ast.literal_eval(inst_dict.engineers)
+        material_type = ast.literal_eval(inst_dict.material_type)
+        work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), inst_dict.work_dates.split(' - ')))
+        task_status = ast.literal_eval(inst_dict.task_status)
 
         initial_dict = {'schedules': schedules,
                         'engineers': engineers,
                         'material_type': material_type,
-                        'work_dates': work_dates,
+                        'work_dates': ' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
                         'task_status': task_status}
+        print(initial_dict)
         form = ListFilter(initial=initial_dict)
 
     data = {'material_list': list_material_list(schedules, engineers, material_type, work_dates, task_status),
@@ -174,6 +183,8 @@ def load_cenz_data(request):
     return JsonResponse({'html': html})
 
 def submit_cenz_data(request):
+    success_messages = []
+    error_messages = []
     worker_id = request.user.id
     if request.method == 'POST':
 
@@ -188,6 +199,7 @@ def submit_cenz_data(request):
                 15: form_drop.cleaned_data.get('engineers_form'),
                 18: form_drop.cleaned_data.get('tags_form'),
                 19: form_drop.cleaned_data.get('inoagent_form'),
+                22: form_drop.cleaned_data.get('narc_select_form'),
                 8: form_text.cleaned_data.get('lgbt_form'),
                 9: form_text.cleaned_data.get('sig_form'),
                 10: form_text.cleaned_data.get('obnazh_form'),
@@ -200,6 +212,12 @@ def submit_cenz_data(request):
             new_values_dict = {}
         task_ready_list = request.POST.get('task_ready').split(',')
         for program_id in task_ready_list:
+            check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
+            if check_lock:
+                [lockType, [workerId, lockTime]] = check_lock
+                text = f'{program_name(program_id)} заблокирован в {lockType} пользователем: {worker_name(workerId)} в {lockTime}.'
+                error_messages.append(text)
+                continue
             service_info_dict = {'program_id': program_id, 'worker_id': worker_id}
             custom_fields = cenz_info(program_id)
             old_values_dict = {
@@ -209,6 +227,7 @@ def submit_cenz_data(request):
                 15: custom_fields.get(15),
                 18: custom_fields.get(18),
                 19: custom_fields.get(19),
+                22: custom_fields.get(22),
                 8: custom_fields.get(8),
                 9: custom_fields.get(9),
                 10: custom_fields.get(10),
@@ -220,6 +239,21 @@ def submit_cenz_data(request):
 
             change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
             insert_history(service_info_dict, old_values_dict, new_values_dict)
+            text = change_task_status(service_info_dict, 'ready')
+            if text.startswith('Ошибка!'):
+                error_messages.append(text)
+            else:
+                success_messages.append(text)
+
+            print(program_id, 'was added')
+
+        if success_messages:
+            messages.success(request, '\n'.join(success_messages))
+        if error_messages:
+            messages.error(request, '\n'.join(error_messages))
+        if not success_messages and not error_messages:
+            messages.error(request, 'Ошибка!')
+    print(success_messages, error_messages)
     return redirect(full_list)
 
 @login_required()
@@ -233,6 +267,7 @@ def material_card(request, program_id):
         15: custom_fields.get(15),
         18: custom_fields.get(18),
         19: custom_fields.get(19),
+        22: custom_fields.get(22),
         8: custom_fields.get(8),
         9: custom_fields.get(9),
         10: custom_fields.get(10),
@@ -268,6 +303,7 @@ def material_card(request, program_id):
                 15: form_drop.cleaned_data.get('engineers_form'),
                 18: form_drop.cleaned_data.get('tags_form'),
                 19: form_drop.cleaned_data.get('inoagent_form'),
+                22: form_drop.cleaned_data.get('narc_select_form'),
                 8: form_text.cleaned_data.get('lgbt_form'),
                 9: form_text.cleaned_data.get('sig_form'),
                 10: form_text.cleaned_data.get('obnazh_form'),
@@ -276,12 +312,14 @@ def material_card(request, program_id):
                 13: form_text.cleaned_data.get('other_form'),
                 16: form_text.cleaned_data.get('editor_form')
             }
+
             service_info_dict = {
                 'program_id': program_id,
-                'worker_id': worker_id
+                'worker_id': worker_id,
+                'engineer_id': new_values_dict.get(15),
+                'work_date': new_values_dict.get(7)
             }
-            engineer_id = new_values_dict.get(15)
-            work_date = new_values_dict.get(7)
+
             text_message = ''
             status_ready = request.POST.get('status_ready')
             cenz_info_change = request.POST.get('cenz_info_change')
@@ -293,7 +331,7 @@ def material_card(request, program_id):
                 cenz_comment = request.POST.get('cenz_comment')
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
-                text_message = change_task_status(program_id, engineer_id, work_date, task_status)
+                text_message = change_task_status(service_info_dict, task_status)
                 if text_message:
                     update_comment(program_id, worker_id, task_status, cenz_comment)
             if cenz_info_change:
@@ -306,7 +344,7 @@ def material_card(request, program_id):
                 task_status = 'fix'
                 fix_comment = request.POST.get('fix_comment')
                 deadline = request.POST.get('deadline')
-                change_task_status(program_id, engineer_id, work_date, task_status)
+                change_task_status(service_info_dict, task_status)
                 text_message = 'Заявка на FIX успешно отправлена.'
                 update_comment(program_id, worker_id, task_status, fix_comment, deadline)
             if text_message:
@@ -323,6 +361,7 @@ def material_card(request, program_id):
                 'engineers_form': custom_fields.get(15),
                 'tags_form': custom_fields.get(18),
                 'inoagent_form': custom_fields.get(19),
+                'narc_select_form':  custom_fields.get(22),
             })
         form_text = CenzFormText(
             initial={
@@ -334,16 +373,6 @@ def material_card(request, program_id):
                 'other_form': custom_fields.get(13),
                 'editor_form': custom_fields.get(16)
             })
-
-    lock_user = check_lock_object(program_id)
-    key = request.POST.get('cenz_comment')
-    if lock_user and lock_user[1] != worker_id:
-        lock_material = True
-        messages.warning(request, lock_user[1])
-    else:
-        unblock_object(program_id, worker_id)
-        lock_material = False
-        block_object(program_id, worker_id)
 
     form_attached_files = AttachedFilesForm()
 
@@ -361,14 +390,22 @@ def material_card(request, program_id):
             'form_text': form_text,
             'form_drop': form_drop,
             'form_attached_files': form_attached_files,
-            'lock_material': lock_material,
+            # 'lock_material': lock_material,
             'permissions': ask_db_permissions(worker_id)
             }
     return render(request, 'main/full_info_card.html', data)
 
+def check_lock_card(request, program_id):
+    return JsonResponse({'locked': check_oplan3_lock(program_id) or check_planner_lock(program_id)})
+
+def block_card(request, program_id, worker_id):
+    return JsonResponse({'response': block_object_planner(program_id, worker_id)})
+
 def unblock_card(request, program_id, worker_id):
-    print('test', program_id, worker_id)
-    return redirect(material_card, program_id)
+    return JsonResponse({'response': unblock_object_planner(program_id, worker_id)})
+
+def get_worker_name(request, worker_id):
+    return JsonResponse({'worker_name': worker_name(worker_id)})
 
 @login_required()
 def kpi_info(request):

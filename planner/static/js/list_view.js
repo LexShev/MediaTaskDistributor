@@ -12,7 +12,6 @@ window.addEventListener('load', function() {
             let checkbox = episodes[n].querySelector('input[type="checkbox"]');
             if (checkbox) {
                 episodeCheckboxes.push(checkbox);
-                // Обработчик на каждый чекбокс
                 checkbox.addEventListener('change', updateParentCheckbox);
             }
         };

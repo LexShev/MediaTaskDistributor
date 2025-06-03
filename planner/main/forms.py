@@ -90,8 +90,8 @@ class CenzFormText(forms.Form):
         label='Редакторские замечания', required=False)
 
 class CenzFormDropDown(forms.Form):
-    narc_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': 'form-select', 'id': "narc_form"}),
+    narc_select_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': 'form-select', 'id': "narc_select_form"}),
         label='Наркотики', choices=((0, 'Нет'), (1, 'Да')), required=False)
     meta_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'form-select', 'id': "meta_form"}),
