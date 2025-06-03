@@ -1,6 +1,8 @@
 from django.db import connections
 from datetime import datetime, date
 
+from main.js_requests import program_name
+
 
 def check_data_type(value):
     if isinstance(value, datetime) or isinstance(value, date):
@@ -69,7 +71,12 @@ def find_file_path(program_id):
     if file_path_info:
         return dict(zip(django_columns, file_path_info))
 
-def change_task_status(program_id, engineer_id, work_date, task_status):
+
+def change_task_status(service_info_dict, task_status):
+    program_id = service_info_dict.get('program_id')
+    engineer_id = service_info_dict.get('engineer_id')
+    work_date = service_info_dict.get('work_date')
+
     with connections['planner'].cursor() as cursor:
         select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
         cursor.execute(select)
@@ -83,14 +90,14 @@ def change_task_status(program_id, engineer_id, work_date, task_status):
             print('update_status', update_status)
             cursor.execute(update_status)
             if cursor.rowcount:
-                return 'Задача завершена.'
+                return f'{program_name(program_id)} завершено.'
 
         else:
-            file_path_dict = find_file_path(program_id)
+            file_path_dict = find_file_path(service_info_dict.get('program_id'))
             file_path = file_path_dict.get('Files_Name')
             duration = file_path_dict.get('Progs_duration')
             if not file_path:
-                return 'Ошибка! Изменения не были внесены. Медиафайл отсутствует.'
+                return f'Ошибка! Изменения не были внесены. Медиафайл для {program_name(program_id)} отсутствует.'
 
             columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
             values = (program_id, engineer_id, duration, work_date, datetime.today(), task_status, file_path)
@@ -99,7 +106,7 @@ def change_task_status(program_id, engineer_id, work_date, task_status):
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             '''
             cursor.execute(query, values)
-            return 'Новая задача была добавлена в базу.'
+            return f'{program_name(program_id)} был добавлен в базу.'
 
 def update_comment(program_id, worker_id, task_status=None, comment=None, deadline=None):
     with connections['planner'].cursor() as cursor:
@@ -112,22 +119,3 @@ def update_comment(program_id, worker_id, task_status=None, comment=None, deadli
             '''
         cursor.execute(query, values)
     return 'Изменения успешно внесены!'
-
-# def change_fix_task_status(program_id, engineer_id, worker_id, work_date, task_status, comment):
-#     with connections['planner'].cursor() as cursor:
-#         select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
-#         cursor.execute(select)
-#         if cursor.fetchone():
-#             update_status = f'''
-#             UPDATE [planner].[dbo].[task_list]
-#             SET [task_status] = 'fix', [ready_date] = GETDATE()
-#             WHERE [program_id] = {program_id}
-#             '''
-#             cursor.execute(update_status)
-#             if cursor.rowcount:
-#                 update_comment = f'''
-#                 INSERT INTO [planner].[dbo].[comments_history] ([program_id], [task_status], [comment], [worker_id], [time_of_change])
-#                 VALUES ({program_id}, '{task_status}', '{comment}', {worker_id}, GETDATE());
-#                 '''
-#                 cursor.execute(update_comment)
-#                 return 'Изменения успешно внесены!'
