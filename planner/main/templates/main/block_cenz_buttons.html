@@ -9,10 +9,10 @@
       </svg>
     </a>
     <button type="button" class="btn btn-outline-success mx-1 my-2 {% if lock_material %}disabled{% endif %}"
-            data-bs-toggle="modal" data-bs-target="#CenzApprove">Сохранить
+            id="cenz_approve_btn" data-bs-toggle="modal" data-bs-target="#CenzApprove">Сохранить
     </button>
     <button type="button" class="btn btn-outline-warning mx-1 my-2 {% if lock_material %}disabled{% endif %}"
-            data-bs-toggle="modal" data-bs-target="#AskFix">Запросить FIX
+            id="ask_fix_btn" data-bs-toggle="modal" data-bs-target="#AskFix">Запросить FIX
     </button>
     <button type="reset" class="btn btn-sm btn-outline-danger align-bottom mx-1 my-2 mt-auto {% if lock_material %}disabled{% endif %}">
       Сбросить

@@ -1,28 +1,12 @@
 {% extends  'main/index.html' %}
-
+{% load static %}
 <main>
 {% block body %}
 <br>
 <div class="container-xxl px-0">
-
-  {% if messages %}
-    {% for message in messages %}
-      {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
-        <div class="alert alert-success alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
-          {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
-        <div class="alert alert-warning alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
-          Карточка материала заблокирована пользователем: {{ message|worker_name }}
-        </div>
-      {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-        <div class="alert alert-danger alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
-          Ошибка: {{ message }}
-        </div>
-      {% endif %}
-    {% endfor %}
-  {% endif %}
+  <div id="message_container">
+    {% include  'main/messages.html' %}
+  </div>
   {% if full_info.Progs_program_kind != 1 and full_info.Progs_program_kind != 4 %}
     <div class="accordion shadow mx-2 mb-2 mt-0 p-0" id="accordion_sum_info">
       <div class="accordion-item">
@@ -51,7 +35,7 @@
 
               <div class="row m-0">
                 <div class="col col-5 p-0">
-                  <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">
+                  <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
                     {{ full_info.Progs_name }}{% if full_info.Adult_Name %}. {{ full_info.Adult_Name }}{% endif %}
                   </h5>
                 </div>
@@ -138,7 +122,7 @@
       <div id="collapseCenz" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
         <div class="accordion-body">
           <form method="post">
-            {% include 'main/cenz_buttons.html' %}
+            {% include 'main/block_cenz_buttons.html' %}
           </form>
         </div>
       </div>
@@ -365,5 +349,6 @@
   {% endif %}
 </div>
 <br>
+<script type="text/javascript" src="{% static 'js/detail_view.js' %}"></script>
 {% endblock %}
 </main>

@@ -30,7 +30,7 @@
   {% include 'main/header.html' %}
 {% endif %}
 
-<body>
+<body data-user-id="{{ request.user.id|default:'' }}">
 {% block body %}
 {% endblock %}
 </body>
