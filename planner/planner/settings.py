@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     "main",
     "workers",
+    "desktop",
     "otk",
     "on_air_report",
     "advanced_search",

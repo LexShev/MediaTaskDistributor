@@ -1,0 +1,9 @@
+.custom-ghost {
+  opacity: 1;
+}
+.custom-chosen {
+  opacity: 1;
+  border: 2px dashed #ccc;
+}
+.custom-drag {
+}

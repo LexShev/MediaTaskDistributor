@@ -30,6 +30,7 @@ urlpatterns = ([
     path("", include('advanced_search.urls')),
     path("task_manager/", include('admin_work_panel.urls')),
     path("", include('distribution.urls')),
+    path("desktop/", include('desktop.urls')),
     path("authorize/", include('django.contrib.auth.urls')),
     path("authorize/", include('workers.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -5,10 +5,10 @@ from django.db import connections
 
 def main_distribution():
     work_date = datetime.today().date()
-    # work_date = date(day=10, month=3, year=2025)
+    work_date = date(day=10, month=3, year=2025)
     # dates = tuple(str(work_date + timedelta(days=day)) for day in range(25))
 
-    material_list_sql, django_columns = oplan_material_list(start_date=work_date, duration=25)
+    material_list_sql, django_columns = oplan_material_list(start_date=work_date, duration=28)
     program_id_list = []
     for i, program_info in enumerate(material_list_sql, 1):
         print('working', i)
@@ -18,16 +18,18 @@ def main_distribution():
         if program_id in program_id_list:
             continue
         program_id_list.append(program_id)
-
-        oplan3_engineer_id = oplan3_engineer(program_id)
-        if oplan3_engineer_id or oplan3_engineer_id == 0:
-            continue
-        planner_engineer_id = planner_engineer(program_id)
-        if planner_engineer_id or planner_engineer_id == 0:
-            continue
+        #
+        # oplan3_engineer_id = oplan3_engineer(program_id)
+        # if oplan3_engineer_id or oplan3_engineer_id == 0:
+        #     continue
+        #
+        # planner_engineer_id = planner_engineer(program_id)
+        # if planner_engineer_id or planner_engineer_id == 0:
+        #     continue
         engineer_id, kpi, work_date = date_seek(work_date)
 
         temp_dict = dict(zip(django_columns, program_info))
+        print(temp_dict)
         sched_id = temp_dict.get('SchedDay_schedule_id')
         sched_date = temp_dict.get('SchedDay_day_date')
         duration = temp_dict.get('Progs_duration')
@@ -46,9 +48,7 @@ def oplan_material_list(start_date, duration, program_type=(4, 5, 6, 10, 11, 12)
     columns = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Progs', 'SuitableMaterialForScheduleID'), ('SchedDay', 'day_date'),
-        ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'), ('Task', 'work_date'),
-        ('Task', 'task_status'), ('Task', 'file_path')
+        ('Progs', 'duration'), ('Progs', 'SuitableMaterialForScheduleID'), ('SchedDay', 'day_date')
     ]
     with connections['oplan3'].cursor() as cursor:
         schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
@@ -73,6 +73,9 @@ def oplan_material_list(start_date, duration, program_type=(4, 5, 6, 10, 11, 12)
             AND SchedDay.[day_date] BETWEEN '{start_date}' AND DATEADD(DAY, {duration}, '{start_date}')
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
+            AND Progs.[program_id] NOT IN
+                (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues] WHERE [ProgramCustomFieldId] = 15)
+            AND Task.[engineer_id] IS NULL
             ORDER BY SchedProg.[DateTime] {order}
             """
         print(query)
@@ -147,6 +150,7 @@ def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_da
         '''
         cursor.execute(query, values)
         print(query, values)
+        print(cursor.rowcount)
         # print(f'{program_id}, {engineer_id} successfully added')
 
 def planner_engineer(program_id):
