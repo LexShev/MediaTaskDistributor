@@ -6,8 +6,8 @@
 
 A Django-based web application that extends the functionality of Oplan3 broadcast scheduling system by providing comprehensive material management and workforce distribution tools.
 
-![HomePage](/screenshots/home.png)
-![List](/screenshots/task_manager.png)
+![Demo](/screenshots/demo.gif)
+
 ## Key Features
 
 ### Material Management

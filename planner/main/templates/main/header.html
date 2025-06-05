@@ -86,6 +86,9 @@
             {% if permissions.otk %}
               <li class="nav-item"><a href="{% url 'task_manager' %}" class="nav-link px-2">Управление задачами</a></li>
             {% endif %}
+            {% if permissions.desktop %}
+              <li class="nav-item"><a href="{% url 'desktop' %}" class="nav-link px-2">Рабочий стол</a></li>
+            {% endif %}
           </ul>
         </div>
       </nav>
