@@ -8,16 +8,6 @@ def check_param(param):
     else:
         return tuple(param)
 
-# def check_mat_type_obsolete(param):
-#     if isinstance(param, str):
-#         temp_list = [ast.literal_eval(mat) for mat in ast.literal_eval(param)]
-#         param = []
-#         for new in temp_list:
-#             param.extend(new)
-#         return tuple(param)
-#     else:
-#         return param
-
 def check_mat_type(param):
     if param == ['film']:
         return 5, 6, 10, 11
@@ -62,7 +52,6 @@ def oplan_task_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
             """
-        print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
         return material_list_sql, django_columns
@@ -110,7 +99,6 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
             """
-        print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
     return material_list_sql, django_columns

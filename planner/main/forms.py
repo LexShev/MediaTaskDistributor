@@ -41,7 +41,6 @@ class ListFilter(forms.ModelForm):
                 choices=choice.material_type('Тип материала')),
             'work_dates': forms.DateInput(
                 attrs={'class': 'form-control', 'data-bs-theme': 'light', 'type': 'text'}),
-                # , 'data-bs-theme': "light"
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status', 'placeholder': 'test'},
                 choices=choice.task_status('Статус')),

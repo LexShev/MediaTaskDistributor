@@ -7,3 +7,40 @@
 }
 .custom-drag {
 }
+
+#full_list .card {
+  border: none;
+  margin-right: 0;
+}
+
+#full_list .card .card-body {
+  display: none;
+}
+
+#cards_container_01 .card,
+#cards_container_02 .card {
+    margin: 0 0 0.5rem 0.5rem;
+    width: 19.4%
+}
+
+#cards_container_01 .card .card-body,
+#cards_container_02 .card .card-body {
+  display: flex;
+}
+
+
+#cards_container_01:empty::after,
+#cards_container_02:empty::after {
+  content: "Перетащите сюда";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  position: relative;
+  min-height: 29rem;
+  width: 100%;
+  border: 2px dashed #ccc;
+}
+
+.clear-input {
+}
