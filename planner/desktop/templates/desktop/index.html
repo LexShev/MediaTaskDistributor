@@ -2,57 +2,81 @@
 {% load static %}
 
 <main role="main">
+
+
 {% block body %}
+<link rel="stylesheet" type="text/css" href="{% static 'Semantic-UI-master/dist/semantic.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/ui_dropdown.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static '/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/daterangepicker.css' %}"/>
+
 <script type="text/javascript" src="{% static 'SortableJS/Sortable.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'SortableJS/jquery-sortable.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'js/moment-2.30.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/daterangepicker-3.1.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'Semantic-UI-master/dist/semantic.min.js' %}"></script>
 
 <link rel="stylesheet" href="{% static 'css/desktop.css' %}">
 
 <div class="container-fluid px-lg-5">
-  <div class="row">
-    <div class="col-3 overflow-auto" id="full_list" style="height: calc(100vh - 65px);">
-      {% for material in task_list %}
-        <div class="card shadow-sm mx-1 my-2 p-0" style="border-color: {{ material.color }};">
-          <div class="card-header p-2">
-            <a href="{% url 'home' %}{{ material.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-              <h6 class="m-0">{{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
-            </a>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
+  <br>
+  <div class="row pe-2">
+  <div class="col-3">
+    <div class="d-flex justify-content-end sticky-top bg-body mb-3 pb-2">
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary me-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" data-bs-offset="[0, 12]" aria-expanded="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+          <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+        </svg>
+        </button>
 
-    <div class="col-9">
-      <div class="row row-cols-4" id="cards_container">
-        {% for material in task_list %}
-            <div class="card shadow-sm mx-1 my-2 p-0" style="max-width: 18rem; border-color: {{ material.color }};">
-              <div class="card-header p-2">
-                <a href="{% url 'home' %}{{ material.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                  <h6 class="m-0">{{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
-                </a>
-              </div>
-              <div class="card-body p-2">
-                <div class="card-text m-0"><small class="text-body-secondary">Канал: </small>
-                    <small class="text-body-primary">
-                      {% if material.Task_sched_id %}{{ material.Task_sched_id|schedule_name }}
-                      {% elif not material.Task_sched_id %}{{ material.Sched_schedule_id|schedule_name }}
-                      {% endif %}
-                    </small>
-                </div>
-                <div class="card-text m-0"><small class="text-body-secondary">Возрастная категория: </small>
-                    <small class="text-body-primary">
-                      {% if material.Adult_Name %} {{ material.Adult_Name }}{% endif %}
-                    </small>
-                </div>
-                <div class="card-text m-0"><small class="text-body-secondary">Хронометраж: </small>
-                  <small class="text-body-primary">
-                    {{ material.Task_duration|convert_frames_to_time }}
-                  </small>
-                </div>
+          <div class="dropdown-menu shadow p-2" id="main_filter" style="z-index: 1030; min-height: 30rem; width: 31.6rem;">
+          <form method="post" class="container d-flex align-items-center justify-content-start p-0">
+            <div class="form-floating">
+              {% csrf_token %}
+              {% for field in desktop_form %}
+              <div class="row mx-2 my-4 p-0">{{ field }}</div>
+            {% endfor %}
+              <br>
+              <div class="d-flex justify-content-end m-0 p-0">
+                  <div class="m-2 p-0">
+                      <button type="submit" class="btn register-button btn-outline-light">Применить</button>
+                  </div>
               </div>
             </div>
+          </form>
+          <script type="text/javascript" src="{% static 'js/desktop_filter.js' %}"></script>
+          </div>
+      </div>
+      <div class="input-group" id="search-filter">
+        <input class="form-control" id="list_filter" type="text" placeholder="введите название материала ...">
+        <button class="btn btn-outline-secondary clear-input" type="button" style="display: none;" id="clear-input">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+          </svg>
+        </button>
+        <button type="submit" class="btn btn-outline-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+
+
+      <div class="overflow-auto" id="full_list" style="height: calc(100vh - 135px);">
+        {% for material in full_list %}
+          {% include 'desktop/card.html' %}
         {% endfor %}
       </div>
+    </div>
+
+    <div class="col-9 pe-0" id="drop_zone">
+      <div class="row row-cols-4" id="cards_container_01">{% for material in cards_container_01 %}{% include 'desktop/card.html' %}{% endfor %}</div>
+      <hr width="100%" size="2">
+      <div class="row row-cols-4" id="cards_container_02">{% for material in cards_container_02 %}{% include 'desktop/card.html' %}{% endfor %}</div>
     </div>
   </div>
 

@@ -1,11 +1,16 @@
 {% extends  'main/index.html' %}
 
 {% load static %}
+<style>
+input[class*="engineer"] {
+
+}
+</style>
 <main>
 {% block body %}
+
   <div class="container-fluid text-start px-lg-5">
     <br><h4>Расширенный поиск:</h4><br>
-
 
     <form method="get" action="{% url 'advanced_search' %}" class="mx-lg-3" role="search">
     <div class="input-group mb-3">
