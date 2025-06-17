@@ -20,14 +20,15 @@ def select_channel_color(schedule_id):
         20: '#6610f2'} # Кино +
     return color_dict.get(schedule_id)
 
-def repeat_index_search(material_list, temp_dict):
+def repeat_index_search(material_list, parent_id):
     for num, program in enumerate(material_list):
-        if temp_dict.get('Progs_parent_id') == program.get('Progs_parent_id'):
+        if parent_id == program.get('Progs_parent_id'):
             return num
 
 def week_material_list(schedules_id, engineer_id, material_type, task_status, work_year, work_week):
     start_day = date.fromisocalendar(work_year, work_week, 1)
-    end_day = start_day + timedelta(7)
+    print('start_day', start_day)
+    end_day = start_day + timedelta(6)
 
     prev_mon = start_day - timedelta(7)
     next_mon = start_day + timedelta(7)
@@ -66,7 +67,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
             temp_dict['Adult_Name'] = parent_adult_name(temp_dict.get('Progs_parent_id'))
         day_num = temp_dict['Task_work_date'].weekday()
         if temp_dict['Progs_program_type_id'] in (4, 8, 12):
-            repeat_index = repeat_index_search(material_list[day_num], temp_dict)
+            repeat_index = repeat_index_search(material_list[day_num], temp_dict.get('Progs_parent_id'))
             if not repeat_index and repeat_index != 0:
                 program_info_dict = {
                     'Progs_parent_id': temp_dict.get('Progs_parent_id'),

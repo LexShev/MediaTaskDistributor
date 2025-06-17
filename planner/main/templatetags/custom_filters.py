@@ -127,7 +127,6 @@ def get_value(dictionary, key):
 
 @register.filter
 def convert_frames_to_time(frames, fps=25):
-    print(frames)
     try:
         sec = int(frames) / fps
         yy = int((sec // 3600) // 24) // 365

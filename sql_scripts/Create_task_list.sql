@@ -3,7 +3,7 @@ USE planner;
 CREATE TABLE task_list
 (
     program_id INT PRIMARY KEY NOT NULL,
-    engineer_id INT NOT NULL,
+    engineer_id INT,
     duration INT NOT NULL,
 	sched_id INT,
 	sched_date DATE,

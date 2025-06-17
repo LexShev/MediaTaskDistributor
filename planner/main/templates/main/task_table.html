@@ -21,15 +21,11 @@
         {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
         <td>{{ task.Files_Name|dir_name }}</td>
         <td>{{ task.Task_file_path|file_name }}</td>
-        <td>
-          <a href="{% url 'home' %}worker/{{ task.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-            {{ task.Task_engineer_id|engineer_name }}</a></td>
+        <td><a href="{% url 'home' %}worker/{{ task.Task_engineer_id }}"
+               class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+          {{ task.Task_engineer_id|engineer_name }}</a></td>
         <td>{{ task.Task_duration|convert_frames_to_time }}</td>
-        {% if task.Task_task_status == 'not_ready' %}
-          <td>Не готов</td>
-        {% elif task.Task_task_status == 'ready' %}
-          <td>Готов</td>
-        {% endif %}
+        <td>{{ task.Task_task_status|status_name }}</td>
       </tr>
     {% endfor %}
   </tbody>

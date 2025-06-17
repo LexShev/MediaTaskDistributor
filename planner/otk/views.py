@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
@@ -14,7 +15,13 @@ def work_list(request):
     if field_dict:
         field_dict = field_dict[0]
     if worker_id:
-        init_dict = OtkModel.objects.get(owner=worker_id)
+        try:
+            init_dict = OtkModel.objects.get(owner=worker_id)
+        except ObjectDoesNotExist:
+            default_filter = OtkModel(owner=worker_id)
+            default_filter.save()
+            init_dict = OtkModel.objects.get(owner=worker_id)
+            print("Новый фильтр создан")
     else:
         init_dict = OtkModel.objects.get(owner=0)
 
