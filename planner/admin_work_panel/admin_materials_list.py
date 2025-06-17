@@ -48,7 +48,6 @@ def task_info(field_dict, sql_set):
         {check_material_type(field_dict.get('material_type'))}
         ORDER BY Progs.[name];
         '''
-        print(query)
         cursor.execute(query)
         result = cursor.fetchall()
     material_list = [dict(zip(django_columns, task)) for task in result]
@@ -64,20 +63,64 @@ def task_info(field_dict, sql_set):
     # print(material_list)
     return material_list, service_dict
 
-def update_task_list(selector_data):
-    with connections['planner'].cursor() as cursor:
-        query = '''
-        UPDATE [planner].[dbo].[task_list]
-        SET [engineer_id] = %s, [work_date] = %s, [task_status] = %s, [file_path] = %s
-        WHERE [program_id] = %s
-        '''
-        values = [
-            (engineer, work_date, status, file_path, program_id)
-            for program_id, engineer, work_date, status, file_path in selector_data
+def update_task_list(request):
+    program_id_check = request.POST.getlist('program_id_check')
+    program_id = request.POST.getlist('program_id')
+    engineers = request.POST.getlist('engineers_selector')
+    work_date = request.POST.getlist('work_date_selector')
+    status = request.POST.getlist('status_selector')
+    file_path = request.POST.getlist('file_path')
+    if engineers and work_date and status:
+        selector_data = [
+            params for params in zip(program_id, engineers, work_date, status, file_path)
+            if params[0] in program_id_check
         ]
+        with connections['planner'].cursor() as cursor:
+            query = '''
+            UPDATE [planner].[dbo].[task_list]
+            SET [engineer_id] = %s, [work_date] = %s, [task_status] = %s, [file_path] = %s
+            WHERE [program_id] = %s
+            '''
+            values = [
+                (engineer, work_date, status, file_path, program_id)
+                for program_id, engineer, work_date, status, file_path in selector_data
+            ]
 
-        cursor.executemany(query, values)
-        return cursor.rowcount
+            cursor.executemany(query, values)
+            return cursor.rowcount
+
+def add_in_common_task(request):
+    program_id_check = request.POST.getlist('program_id_check')
+    program_id = request.POST.getlist('program_id')
+    work_date = request.POST.getlist('work_date_selector')
+    if program_id and work_date:
+        selector_data = [
+            params for params in zip(program_id, work_date)
+            if params[0] in program_id_check
+        ]
+        with connections['planner'].cursor() as cursor:
+            query = '''
+            UPDATE [planner].[dbo].[task_list]
+            SET [engineer_id] = %s, [sched_id] = %s, [work_date] = %s, [ready_date] = %s
+            WHERE [program_id] = %s
+            '''
+            values = [(None, 1, work_date, None, program_id) for program_id, work_date in selector_data]
+            cursor.executemany(query, values)
+            return cursor.rowcount
+
+def del_task(request):
+    program_id_check = request.POST.getlist('program_id_check')
+    print(program_id_check)
+    if program_id_check:
+        program_id_list = [(program_id,) for program_id in program_id_check]
+        with connections['planner'].cursor() as cursor:
+            query = '''
+            DELETE FROM [planner].[dbo].[task_list]
+            WHERE [program_id] IN (%s)
+            '''
+            cursor.executemany(query, program_id_list)
+            return cursor.rowcount
+
 
 def find_file_path(program_id):
     with connections['oplan3'].cursor() as cursor:

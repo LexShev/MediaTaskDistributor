@@ -15,7 +15,7 @@ def login_worker(request):
                 return redirect(next_request)
             else:
                 homepage_dict = {0: 'home',
-                                 1: 'month',
+                                 1: 'list',
                                  2: 'home'}
                 return redirect(homepage_dict.get(request.user.id, 0))
         else:

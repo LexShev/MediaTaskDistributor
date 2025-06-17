@@ -8,7 +8,7 @@ def main_distribution():
     work_date = date(day=10, month=3, year=2025)
     # dates = tuple(str(work_date + timedelta(days=day)) for day in range(25))
 
-    material_list_sql, django_columns = oplan_material_list(start_date=work_date, duration=28)
+    material_list_sql, django_columns = oplan_material_list(start_date=work_date, work_duration=28)
     program_id_list = []
     for i, program_info in enumerate(material_list_sql, 1):
         print('working', i)
@@ -18,22 +18,15 @@ def main_distribution():
         if program_id in program_id_list:
             continue
         program_id_list.append(program_id)
-        #
-        # oplan3_engineer_id = oplan3_engineer(program_id)
-        # if oplan3_engineer_id or oplan3_engineer_id == 0:
-        #     continue
-        #
-        # planner_engineer_id = planner_engineer(program_id)
-        # if planner_engineer_id or planner_engineer_id == 0:
-        #     continue
-        engineer_id, kpi, work_date = date_seek(work_date)
 
         temp_dict = dict(zip(django_columns, program_info))
-        print(temp_dict)
+
         sched_id = temp_dict.get('SchedDay_schedule_id')
         sched_date = temp_dict.get('SchedDay_day_date')
         duration = temp_dict.get('Progs_duration')
         suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
+
+        engineer_id, kpi, work_date = date_seek(work_date, duration)
 
         if suitable_material:
             file_path = find_file_path(program_id)
@@ -44,7 +37,7 @@ def main_distribution():
         insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
 
 
-def oplan_material_list(start_date, duration, program_type=(4, 5, 6, 10, 11, 12)):
+def oplan_material_list(start_date, work_duration, program_type=(4, 5, 6, 10, 11, 12)):
     columns = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
@@ -70,7 +63,7 @@ def oplan_material_list(start_date, duration, program_type=(4, 5, 6, 10, 11, 12)
             AND Progs.[DeletedIncludeParent] = 0
             AND SchedProg.[Deleted] = 0
             AND SchedDay.[schedule_id] IN {schedules_id}
-            AND SchedDay.[day_date] BETWEEN '{start_date}' AND DATEADD(DAY, {duration}, '{start_date}')
+            AND SchedDay.[day_date] BETWEEN '{start_date}' AND DATEADD(DAY, {work_duration}, '{start_date}')
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
             AND Progs.[program_id] NOT IN
@@ -104,17 +97,18 @@ def find_file_path(program_id):
     if file_path:
         return file_path[0]
 
-def date_seek(work_date):
+def date_seek(work_date, duration):
     kpi_info = kpi_min(work_date)
-    if kpi_info and kpi_info[0][1] < 1:
-        engineer_id, kpi = kpi_info[0]
-        return engineer_id, kpi, work_date
-    else:
-        print('work_date', work_date)
-        work_date += timedelta(days=1)
-        return date_seek(work_date)
+    if kpi_info:
+        for engineer_id, kpi in kpi_info:
+            new_kpi = kpi + (duration / 720000.0)
+            if new_kpi <= 1:
+                return engineer_id, kpi, work_date
+    print('work_date', work_date)
+    work_date += timedelta(days=1)
+    return date_seek(work_date, duration)
 
-def kpi_min(work_date):
+def kpi_min_obsolete(work_date):
     kpi_list = []
     with connections['planner'].cursor() as cursor:
         query_01 = f'''
@@ -127,8 +121,8 @@ def kpi_min(work_date):
         engineer_list = cursor.fetchall()
 
         if engineer_list:
-            for engineer_id in engineer_list:
-                engineer_id = engineer_id[0]
+            for engineer in engineer_list:
+                engineer_id = engineer[0]
                 query_02 = f'''
                 SELECT Task.[engineer_id], Task.[duration]
                 FROM [planner].[dbo].[task_list] AS Task
@@ -136,9 +130,27 @@ def kpi_min(work_date):
                 AND Task.[engineer_id] = '{engineer_id}'
                 '''
                 cursor.execute(query_02)
-                kpi = sum([args[1] for args in cursor.fetchall()])/720000.0
+                kpi = sum([duration for engineer_id, duration in cursor.fetchall()])/720000.0
                 kpi_list.append((engineer_id, kpi))
     return sorted(kpi_list, key=lambda x: x[1])
+
+def kpi_min(work_date):
+    with connections['planner'].cursor() as cursor:
+        query = f'''
+        SELECT Worker.[worker_id] AS engineer_id, CAST(COALESCE(SUM(Task.[duration]), 0) AS FLOAT) / 720000.0 AS kpi
+        FROM [planner].[dbo].[worker_list] AS Worker
+        LEFT JOIN [planner].[dbo].[task_list] AS Task
+            ON Worker.[worker_id] = Task.[engineer_id] 
+            AND Task.[work_date] = %s
+        WHERE %s NOT IN (SELECT day_off FROM [planner].[dbo].[days_off])
+        AND [fired] = 'False'
+        GROUP BY Worker.[worker_id]
+        ORDER BY kpi ASC
+        '''
+        cursor.execute(query, (work_date, work_date))
+        res = cursor.fetchall()
+        print('res', res)
+        return res
 
 def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path=''):
     with connections['planner'].cursor() as cursor:

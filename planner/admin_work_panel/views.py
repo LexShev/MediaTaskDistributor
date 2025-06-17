@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
 from .models import AdminModel, TaskSearch
-from .admin_materials_list import task_info, update_task_list
+from .admin_materials_list import task_info, update_task_list, add_in_common_task, del_task
 from .forms import AdminForm, DynamicSelector, TaskSearchForm
 
 
@@ -48,23 +48,21 @@ def task_manager(request):
             filter_form.save()
 
         program_id_check = request.POST.getlist('program_id_check')
+        print('program_id_check', program_id_check)
+        change_type = request.POST.get('change_type')
 
-        program_id = request.POST.getlist('program_id')
-        engineers = request.POST.getlist('engineers_selector')
-        work_date = request.POST.getlist('work_date_selector')
-        status = request.POST.getlist('status_selector')
-        file_path = request.POST.getlist('file_path')
-        if engineers and work_date and status:
-            selector_data = [
-                params for params in zip(program_id, engineers, work_date, status, file_path)
-                if params[0] in program_id_check
-            ]
-            update_task_list(selector_data)
+        if program_id_check:
+            if change_type == '1':
+                update_task_list(request)
+            elif change_type == '2':
+                add_in_common_task(request)
+            elif change_type == '3':
+                del_task(request)
 
     else:
         filter_form = AdminForm(instance=filter_init_dict)
         search_form = TaskSearchForm(instance=search_init_dict)
-
+    print(field_dict, search_init_dict.sql_set)
     task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
     dynamic_selector_list = []
     for task in task_list:

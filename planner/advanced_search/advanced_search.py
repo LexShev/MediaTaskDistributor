@@ -7,18 +7,21 @@ def query_selector(search_id, sql_set, search_query):
     columns_0 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Adult', 'Name')
+        ('Progs', 'duration'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_1 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Adult', 'Name')
+        ('Progs', 'duration'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_2 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Adult', 'Name'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
-        ('Files', 'ModificationTime')
+        ('Progs', 'duration'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name'), ('Files', 'Name'),
+        ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
     ]
     columns_3 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'),
@@ -48,6 +51,8 @@ def query_selector(search_id, sql_set, search_query):
     query_0 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
         FROM [oplan3].[dbo].[program] AS Progs
+        LEFT JOIN [planner].[dbo].[task_list] AS Task
+            ON Progs.[program_id] = Task.[program_id]
         LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0
@@ -58,6 +63,8 @@ def query_selector(search_id, sql_set, search_query):
     query_1 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
         FROM [oplan3].[dbo].[program] AS Progs
+        LEFT JOIN [planner].[dbo].[task_list] AS Task
+            ON Progs.[program_id] = Task.[program_id]
         LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0
@@ -76,6 +83,8 @@ def query_selector(search_id, sql_set, search_query):
             ON Files.[ClipID] = Clips.[ClipID]
         JOIN [oplan3].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        LEFT JOIN [planner].[dbo].[task_list] AS Task
+            ON Progs.[program_id] = Task.[program_id]
         LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         JOIN [oplan3].[dbo].[program_type] AS Types
@@ -202,7 +211,7 @@ def query_selector(search_id, sql_set, search_query):
                 temp_dict.update(file_path_info)
         program_id_list.append(program_id)
         search_list.append(temp_dict)
-    # print(search_list)
+    print(search_list)
     return search_list
 
 def cenz_info(program_id):

@@ -8,13 +8,13 @@
   <nav class="nav d-flex border-bottom shadow py-2 mb-2 px-lg-5">
     <ul class="pagination my-0 me-auto">
       <li class="page-item">
-        <a class="page-link link-light border-light" title="Назад" href="{% url 'home' %}week/{{ service_dict.prev_year }}/{{ service_dict.prev_week }}" aria-label="Previous">
+        <a class="page-link link-secondary border-secondary" title="Назад" href="{% url 'home' %}week/{{ service_dict.prev_year }}/{{ service_dict.prev_week }}" aria-label="Previous">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
-      <li class="page-item"><a class="page-link link-light border-light" href="{% url 'home' %}week/{{ service_dict.work_year }}/{{ service_dict.work_week }}">{{ service_dict.work_week }}</a></li>
+      <li class="page-item"><a class="page-link link-secondary border-secondary" href="{% url 'home' %}week/{{ service_dict.work_year }}/{{ service_dict.work_week }}">{{ service_dict.work_week }}</a></li>
       <li class="page-item">
-        <a class="page-link link-light border-light" title="Вперёд" href="{% url 'home' %}week/{{ service_dict.next_year }}/{{ service_dict.next_week }}" aria-label="Next">
+        <a class="page-link link-secondary border-secondary" title="Вперёд" href="{% url 'home' %}week/{{ service_dict.next_year }}/{{ service_dict.next_week }}" aria-label="Next">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>
