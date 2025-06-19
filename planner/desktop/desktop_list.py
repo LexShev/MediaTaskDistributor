@@ -66,7 +66,7 @@ def cards_container(program_list):
         FROM [planner].[dbo].[task_list] AS Task
         JOIN [oplan3].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
-        JOIN [planner].[dbo].[desktop_modelcardscontainer] AS Cont
+        JOIN [service].[dbo].[desktop_modelcardscontainer] AS Cont
             ON Task.[program_id] = Cont.[program_id]
         LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]

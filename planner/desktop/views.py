@@ -64,18 +64,27 @@ def show_desktop(request):
                         'work_dates': ' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
                         'task_status': task_status}
         desktop_form = DeskTopFilter(initial=initial_dict)
-    cards_list_01 = tuple(ModelCardsContainer.objects.filter(container=1, owner=worker_id).values_list('program_id', flat=True))
-    cards_list_02 = tuple(ModelCardsContainer.objects.filter(container=2, owner=worker_id).values_list('program_id', flat=True))
-    exclusion_list = cards_list_01 + cards_list_02
+    cards_list_01 = read_cards_list(0, worker_id)
+    cards_list_02 = read_cards_list(1, worker_id)
+    cards_list_03 = read_cards_list(2, worker_id)
+    cards_list_04 = read_cards_list(3, worker_id)
+    exclusion_list = cards_list_01 + cards_list_02 + cards_list_03 + cards_list_04
     data = {
         'permissions': ask_db_permissions(worker_id),
         'full_list': task_info(worker_id, schedules, material_type, task_status, work_dates, exclusion_list),
         'cards_container_01': cards_container(cards_list_01),
         'cards_container_02': cards_container(cards_list_02),
+        'cards_container_03': cards_container(cards_list_03),
+        'cards_container_04': cards_container(cards_list_04),
         'desktop_form': desktop_form,
     }
     return render(request, 'desktop/index.html', data)
 
+def read_cards_list(i, worker_id):
+    return tuple(ModelCardsContainer.objects.filter(container=i, owner=worker_id).values_list('program_id', flat=True))
+
+def read_program_list(worker_id, i, order):
+    return [ModelCardsContainer(container=i, owner=worker_id, order=num, program_id=program_id) for num, program_id in enumerate(order)]
 
 def update_order(request):
     worker_id = request.user.id
@@ -83,18 +92,16 @@ def update_order(request):
         if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
         data = json.loads(request.body)
-        order_01 = data.get('order_01', [])
-        order_02 = data.get('order_02', [])
 
         if not data:
             return JsonResponse({'status': 'error', 'message': 'No order data provided'}, status=400)
 
         with transaction.atomic():
             ModelCardsContainer.objects.filter(owner=worker_id).delete()
-            programs_01 = [ModelCardsContainer(container=1, owner=worker_id, order=num, program_id=program_id) for num, program_id in enumerate(order_01)]
-            programs_02 = [ModelCardsContainer(container=2, owner=worker_id, order=num, program_id=program_id) for num, program_id in enumerate(order_02)]
-            ModelCardsContainer.objects.bulk_create(programs_01)
-            ModelCardsContainer.objects.bulk_create(programs_02)
+            for i in range(4):
+                print(data[i])
+                ModelCardsContainer.objects.bulk_create(read_program_list(worker_id, i, data[i]))
+
         return JsonResponse({'status': 'success', 'message': 'Order updated successfully'})
     except Exception as e:
         print(e)

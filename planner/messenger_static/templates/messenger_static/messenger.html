@@ -35,7 +35,7 @@
                 {% if message.is_file %}
                     {% if message.file_type == 'image' %}
                         <img src="{{ message.file_path.url }}" class="chat-image" data-bs-toggle="modal"
-                             data-bs-target="#imageModal" onclick="enlargeImage(this)" alt="{{ message.file_path.name}}">
+                             data-bs-target="#imageModal" onclick="enlargeImage(this)" alt="{{ message.file_path.name|file_name}}">
                     {% elif message.file_type == 'video' %}
                         <video controls class="chat-video">
                             <source src="{{ message.file_path.url }}" type="video/mp4">

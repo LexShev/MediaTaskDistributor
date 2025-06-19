@@ -2,22 +2,22 @@ from django.db import connections
 
 
 def unique_program_id():
-    with connections['planner'].cursor() as cursor:
-        query = 'SELECT DISTINCT [program_id] FROM [planner].[dbo].[messenger_static_message]'
+    with connections['service'].cursor() as cursor:
+        query = 'SELECT DISTINCT [program_id] FROM [service].[dbo].[messenger_static_message]'
         cursor.execute(query)
         programs = cursor.fetchall()
         if programs:
             return [program[0] for program in programs]
 
 def all_messages(worker_id):
-    with connections['planner'].cursor() as cursor:
+    with connections['default'].cursor() as cursor:
         columns = 'program_id', 'message', 'timestamp', 'Progs_name', 'Progs_production_year', 'read'
         query = f'''
         WITH LatestPrograms AS (
             SELECT TOP (10)
                 m.[program_id]
             FROM 
-                [planner].[dbo].[messenger_static_message] m
+                [service].[dbo].[messenger_static_message] m
             GROUP BY 
                 m.[program_id]
             ORDER BY 
@@ -35,8 +35,8 @@ def all_messages(worker_id):
                 ELSE CAST(0 AS BIT)
             END AS [read]
         FROM 
-            [planner].[dbo].[messenger_static_message] AS m
-        LEFT JOIN [planner].[dbo].[messenger_static_messageviews] AS v
+            [service].[dbo].[messenger_static_message] AS m
+        LEFT JOIN [service].[dbo].[messenger_static_messageviews] AS v
             ON m.[message_id] = v.[message_id] AND v.[worker_id] = {worker_id}
         LEFT JOIN [oplan3].[dbo].[program] AS Progs
             ON m.[program_id] = Progs.[program_id]
@@ -66,12 +66,12 @@ def all_messages(worker_id):
             return message_sorted
 
 def show_messages(program_id):
-    with connections['planner'].cursor() as cursor:
+    with connections['default'].cursor() as cursor:
         columns = ('m_message_id', 'm_owner', 'm_program_id', 'm_message', 'm_file_path', 'Progs_name', 'Progs_production_year', 'm_timestamp')
 
         query = f'''
         SELECT m.[message_id], m.[owner], m.[program_id], m.[message], m.[file_path], Progs.[name], Progs.[production_year], m.[timestamp]
-        FROM [planner].[dbo].[messenger_static_message] AS m
+        FROM [service].[dbo].[messenger_static_message] AS m
         LEFT JOIN [oplan3].[dbo].[program] AS Progs
             ON m.[program_id] = Progs.[program_id]
         WHERE m.[program_id] = {program_id}
@@ -106,13 +106,13 @@ def file_type(file_path):
     return None
 
 def show_viewed_messages(program_id, worker_id):
-    with connections['planner'].cursor() as cursor:
+    with connections['default'].cursor() as cursor:
         query = f'''
         SELECT [message_id]
-        FROM [planner].[dbo].[messenger_static_messageviews]
+        FROM [service].[dbo].[messenger_static_messageviews]
         WHERE [worker_id] = {worker_id}
         AND [message_id] IN 
-        (SELECT [message_id] FROM [planner].[dbo].[messenger_static_message] WHERE [program_id] = {program_id})'''
+        (SELECT [message_id] FROM [service].[dbo].[messenger_static_message] WHERE [program_id] = {program_id})'''
         print(query)
         cursor.execute(query)
         viewed_messages = cursor.fetchall()
@@ -120,9 +120,9 @@ def show_viewed_messages(program_id, worker_id):
             return [message_id[0] for message_id in viewed_messages]
 
 def insert_views(program_id_list):
-    with connections['planner'].cursor() as cursor:
+    with connections['default'].cursor() as cursor:
         query = '''
-        INSERT INTO [planner].[dbo].[messenger_static_messageviews]
+        INSERT INTO [service].[dbo].[messenger_static_messageviews]
         ([message_id], [worker_id])
         VALUES
         (%s, %s);'''

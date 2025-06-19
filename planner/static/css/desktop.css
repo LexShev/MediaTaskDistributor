@@ -17,27 +17,26 @@
   display: none;
 }
 
-#cards_container_01 .card,
-#cards_container_02 .card {
-    margin: 0 0 0.5rem 0.5rem;
-    width: 19.4%
+.cards_container .card {
+    margin-bottom: 0.5rem;
 }
 
-#cards_container_01 .card .card-body,
-#cards_container_02 .card .card-body {
+.cards_container .card .card-body {
   display: flex;
 }
 
+.cards_container {
+  min-height: 57rem;
+}
 
-#cards_container_01:empty::after,
-#cards_container_02:empty::after {
+.cards_container:empty::after {
   content: "Перетащите сюда";
   display: flex;
   align-items: center;
   justify-content: center;
   color: #999;
   position: relative;
-  min-height: 29rem;
+  min-height: 57rem;
   width: 100%;
   border: 2px dashed #ccc;
 }

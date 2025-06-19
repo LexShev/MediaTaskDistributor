@@ -17,9 +17,11 @@
       {% if material.type == 'film' %}
         <div class="card shadow my-2 p-0" style="border-color: {{ material.color }};">
           <div class="card-header p-2">
-            <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-              <h6 class="my-0 mx-1">{{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
-            </a>
+            <h6 class="my-0 mx-1">
+              <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                {{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}
+              </a>
+            </h6>
           </div>
           <div class="card-body p-2">
             <div class="row">
@@ -40,9 +42,8 @@
                 </p>
               </div>
               <div class="col">
-                <p class="card-text m-0"><small class="text-body-secondary">
-                Выполняет: <a href="{% url 'home' %}worker/{{ material.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                {{ material.Task_engineer_id|engineer_name }}</a></small>
+                <p class="card-text m-0"><small class="text-body-secondary">Выполняет:</small>
+                  <small class="text-body-primary"> {{ material.Task_engineer_id|engineer_name }}</small>
                 </p>
               </div>
             </div>
