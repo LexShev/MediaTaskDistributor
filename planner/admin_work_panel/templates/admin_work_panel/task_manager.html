@@ -123,7 +123,7 @@
         {% endfor %}
       </tbody>
     </table>
-    <div class="d-flex">
+    <div class="d-flex border-top bg-body py-2 sticky-bottom">
       <div class="input-group" style="width: 35rem;">
         <label class="input-group-text" for="change_type">Выберите действие</label>
         <select class="form-select" id="change_type" name="change_type">
@@ -141,7 +141,6 @@
     </div>
   </form>
 </div>
-<br>
 <script type="text/javascript" src="{% static 'js/task_manager.js' %}"></script>
 
 {% endblock %}

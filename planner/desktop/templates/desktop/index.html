@@ -66,17 +66,37 @@
 
 
 
-      <div class="overflow-auto" id="full_list" style="height: calc(100vh - 135px);">
-        {% for material in full_list %}
-          {% include 'desktop/card.html' %}
-        {% endfor %}
+      <div class="overflow-auto" style="height: calc(100vh - 135px);">
+        <div class="border rounded" id="full_list">
+          {% for material in full_list %}
+            {% include 'desktop/card.html' %}
+          {% endfor %}
+        </div>
       </div>
     </div>
 
-    <div class="col-9 pe-0" id="drop_zone">
-      <div class="row row-cols-4" id="cards_container_01">{% for material in cards_container_01 %}{% include 'desktop/card.html' %}{% endfor %}</div>
-      <hr width="100%" size="2">
-      <div class="row row-cols-4" id="cards_container_02">{% for material in cards_container_02 %}{% include 'desktop/card.html' %}{% endfor %}</div>
+    <div class="col-9 overflow-auto pe-0" id="drop_zone" style="height: calc(100vh - 85px);">
+      <div class="row g-0">
+        <div class="col d-flex flex-column">
+          <input class="form-control mb-2" id="cards_name_01" value="Список 1">
+          <div class="cards_container" id="cards_container_01">{% for material in cards_container_01 %}{% include 'desktop/card.html' %}{% endfor %}</div>
+        </div>
+        <div class="vr mx-2 my-2"></div>
+        <div class="col d-flex flex-column">
+          <input class="form-control mb-2" id="cards_name_02" value="Список 2">
+          <div class="cards_container" id="cards_container_02">{% for material in cards_container_02 %}{% include 'desktop/card.html' %}{% endfor %}</div>
+        </div>
+        <div class="vr mx-2 my-2"></div>
+        <div class="col d-flex flex-column">
+          <input class="form-control mb-2" id="cards_name_03" value="Список 3">
+          <div class="cards_container" id="cards_container_03">{% for material in cards_container_03 %}{% include 'desktop/card.html' %}{% endfor %}</div>
+        </div>
+        <div class="vr mx-2 my-2"></div>
+        <div class="col d-flex flex-column">
+          <input class="form-control mb-2" id="cards_name_04" value="Список 4">
+          <div class="cards_container" id="cards_container_04">{% for material in cards_container_04 %}{% include 'desktop/card.html' %}{% endfor %}</div>
+        </div>
+      </div>
     </div>
   </div>
 

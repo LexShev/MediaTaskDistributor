@@ -33,7 +33,7 @@ async function CheckLockCard() {
 
         let messageContainer = document.getElementById('message_container');
         messageContainer.innerHTML = `
-            <div class="alert alert-warning alert-dismissible fade show mx-2 mb-2 mt-0" role="alert">
+            <div class="alert alert-warning alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">
                 Карточка материала заблокирована в ${lockType} пользователем: ${workerName} в ${FormatDate(lockTime)}
             </div>`;
         let cenzApproveBtn = document.getElementById('cenz_approve_btn');
