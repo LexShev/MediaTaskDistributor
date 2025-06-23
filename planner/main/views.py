@@ -210,7 +210,18 @@ def submit_cenz_data(request):
             }
         else:
             new_values_dict = {}
-        task_ready_list = request.POST.get('task_ready').split(',')
+
+        task_ready_list = []
+        task_status = ''
+        task_ready = request.POST.get('task_ready')
+        cenz_info_change = request.POST.get('cenz_info_change')
+        if task_ready:
+            task_status = 'ready'
+            task_ready_list = task_ready.split(',')
+        if cenz_info_change:
+            task_status = ''
+            task_ready_list = cenz_info_change.split(',')
+        cenz_comment = request.POST.get('cenz_comment')
         for program_id in task_ready_list:
             check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
             if check_lock:
@@ -239,10 +250,16 @@ def submit_cenz_data(request):
 
             change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
             insert_history(service_info_dict, old_values_dict, new_values_dict)
-            text = change_task_status(service_info_dict, 'ready')
-            if text.startswith('Ошибка!'):
-                error_messages.append(text)
+            update_comment(program_id, worker_id, comment=cenz_comment)
+
+            if task_status:
+                text = change_task_status(service_info_dict, task_status)
+                if text.startswith('Ошибка!'):
+                    error_messages.append(text)
+                else:
+                    success_messages.append(text)
             else:
+                text = f'{program_name(program_id)} изменено.'
                 success_messages.append(text)
 
             print(program_id, 'was added')

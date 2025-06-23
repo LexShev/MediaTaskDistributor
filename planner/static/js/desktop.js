@@ -1,9 +1,9 @@
 let fullList = document.getElementById('full_list');
 const containers = [
-  document.getElementById('cards_container_01'),
-  document.getElementById('cards_container_02'),
-  document.getElementById('cards_container_03'),
-  document.getElementById('cards_container_04')
+  document.getElementById('cards_container_1'),
+  document.getElementById('cards_container_2'),
+  document.getElementById('cards_container_3'),
+  document.getElementById('cards_container_4')
 ];
 
 new Sortable(fullList, {
@@ -32,7 +32,6 @@ function WriteOrder() {
         const cards = container.getElementsByClassName('card');
         return Array.from(cards).map(card => card.dataset.programId);
     });
-    console.log(orders);
     fetch('update_order/', {
     method: 'POST',
     headers: {
@@ -106,3 +105,105 @@ clearBtn.addEventListener('click', function() {
   clearBtn.style.display = 'none';
   FastSearch();
 });
+
+
+let currentEditingLabel = null;
+
+function EditListMarker(clickedButton) {
+    const newLabel = clickedButton.parentElement;
+
+    // Если уже есть редактируемый элемент - завершаем его редактирование
+    if (currentEditingLabel && currentEditingLabel !== newLabel) {
+        finishEditing(currentEditingLabel);
+    }
+
+    startEditing(newLabel);
+}
+
+function startEditing(label) {
+    currentEditingLabel = label;
+    const markerName = label.querySelector('[name="input-markerName"]');
+    const btnEdit = label.querySelector('[name="btn-edit"]');
+    const btnApply = label.querySelector('[name="btn-apply"]');
+
+    btnEdit.style.display = 'none';
+    btnApply.style.display = '';
+    markerName.disabled = false;
+
+    const handleApply = () => finishEditing(label);
+    const handleOutsideClick = (e) => {
+        if (!label.contains(e.target)) {
+            finishEditing(label);
+        }
+    };
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            finishEditing(label);
+        }
+    };
+
+    btnApply.addEventListener('click', handleApply);
+    document.addEventListener('click', handleOutsideClick);
+    markerName.addEventListener('keydown', handleKeyDown);
+
+    // Сохраняем ссылки на обработчики для последующего удаления
+    label._editHandlers = { handleApply, handleOutsideClick, handleKeyDown };
+}
+
+function finishEditing(label) {
+    if (!label) return;
+
+    const markerName = label.querySelector('[name="input-markerName"]');
+    const btnEdit = label.querySelector('[name="btn-edit"]');
+    const btnApply = label.querySelector('[name="btn-apply"]');
+
+    btnEdit.style.display = '';
+    btnApply.style.display = 'none';
+    markerName.disabled = true;
+
+    // Отправляем изменения на сервер
+    WriteMarkerName(markerName);
+
+    // Удаляем обработчики
+    if (label._editHandlers) {
+        btnApply.removeEventListener('click', label._editHandlers.handleApply);
+        document.removeEventListener('click', label._editHandlers.handleOutsideClick);
+        markerName.removeEventListener('keydown', label._editHandlers.handleKeyDown);
+        delete label._editHandlers;
+    }
+
+    if (currentEditingLabel === label) {
+        currentEditingLabel = null;
+    }
+};
+
+function WriteMarkerName(markerName) {
+    fetch('update_marker_name/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest'
+    },
+
+    body: JSON.stringify([markerName.dataset.listId, markerName.value]),
+    credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+             console.error(response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('data', data)
+        if (data.status !== 'success') {
+            console.error(data.message || 'Unknown server error');
+        }
+
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+};
+

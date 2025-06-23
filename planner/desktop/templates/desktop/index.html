@@ -64,8 +64,6 @@
       </div>
     </div>
 
-
-
       <div class="overflow-auto" style="height: calc(100vh - 135px);">
         <div class="border rounded" id="full_list">
           {% for material in full_list %}
@@ -75,27 +73,26 @@
       </div>
     </div>
 
+<!--<svg style="display: none;">-->
+<!--  <symbol id="icon-edit" fill="currentColor" viewBox="0 0 16 16">-->
+<!--    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>-->
+<!--    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>-->
+<!--  </symbol>-->
+<!--  <symbol id="icon-check" fill="currentColor" viewBox="0 0 16 16">-->
+<!--    <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>-->
+<!--  </symbol>-->
+<!--</svg>-->
+
     <div class="col-9 overflow-auto pe-0" id="drop_zone" style="height: calc(100vh - 85px);">
       <div class="row g-0">
-        <div class="col d-flex flex-column">
-          <input class="form-control mb-2" id="cards_name_01" value="Список 1">
-          <div class="cards_container" id="cards_container_01">{% for material in cards_container_01 %}{% include 'desktop/card.html' %}{% endfor %}</div>
-        </div>
-        <div class="vr mx-2 my-2"></div>
-        <div class="col d-flex flex-column">
-          <input class="form-control mb-2" id="cards_name_02" value="Список 2">
-          <div class="cards_container" id="cards_container_02">{% for material in cards_container_02 %}{% include 'desktop/card.html' %}{% endfor %}</div>
-        </div>
-        <div class="vr mx-2 my-2"></div>
-        <div class="col d-flex flex-column">
-          <input class="form-control mb-2" id="cards_name_03" value="Список 3">
-          <div class="cards_container" id="cards_container_03">{% for material in cards_container_03 %}{% include 'desktop/card.html' %}{% endfor %}</div>
-        </div>
-        <div class="vr mx-2 my-2"></div>
-        <div class="col d-flex flex-column">
-          <input class="form-control mb-2" id="cards_name_04" value="Список 4">
-          <div class="cards_container" id="cards_container_04">{% for material in cards_container_04 %}{% include 'desktop/card.html' %}{% endfor %}</div>
-        </div>
+        {% include "desktop/list_column.html" with list_id=1 list_name=list_names.1 cards=cards_container_1 %}
+      <div class="vr mx-2 my-2"></div>
+        {% include "desktop/list_column.html" with list_id=2 list_name=list_names.2 cards=cards_container_2 %}
+      <div class="vr mx-2 my-2"></div>
+        {% include "desktop/list_column.html" with list_id=3 list_name=list_names.3 cards=cards_container_3 %}
+      <div class="vr mx-2 my-2"></div>
+        {% include "desktop/list_column.html" with list_id=4 list_name=list_names.4 cards=cards_container_4 %}
+
       </div>
     </div>
   </div>
