@@ -23,25 +23,23 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title" id="CenzApproveLabel">
+            <h4 class="modal-title" id="CenzApproveLabel">
               {% if full_info.TaskInf_task_status == 'not_ready' %}
                 Вы подтверждаете выполнение задачи?
               {% else %}
                 Вы подтверждаете изменения?
               {% endif %}
-            </h3>
+            </h4>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <h6>Укажите путь к готовому файлу</h6>
           <div class="input-group">
-<!--            <input class="form-control custom-file-input" type="file" id="upload_ready_file_form" name="upload_ready_file" accept="">-->
             <input class="form-control custom-file-input"
                    type="text" id="upload_ready_file_form"
                    placeholder="Ctrl+Shift+C -> Ctrl+V"
                    style="font-style: italic"
                    name="upload_ready_file" accept="">
-<!--                <button class="btn btn-outline-secondary" type="button" id="upload_form_btn">Загрузить</button>-->
           </div><br>
           <h6>Комментарий к материалу</h6>
             <textarea class="form-control" id="cenz_comment" name="cenz_comment" style="min-height: 130px">CENZ не требуется</textarea><br>
@@ -53,15 +51,15 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
 
   <div class="modal fade" id="AskFix" tabindex="-1" aria-labelledby="AskFixLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title" id="AskFixLabel">
+            <h4 class="modal-title" id="AskFixLabel">
               Запросить FIX?
-            </h3>
+            </h4>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">

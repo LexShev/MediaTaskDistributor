@@ -29,7 +29,6 @@ def insert_history(service_info_dict, old_values_dict, new_values_dict):
                 INSERT INTO [planner].[dbo].[history_list] ({sql_columns})
                 VALUES ({program_id}, {old_field_id}, '', '', {worker_id}, GETDATE(), '{old_value}', '{new_value}');
                 '''
-                print(query)
                 cursor.execute(query)
 
 def select_actions(program_id):
@@ -87,7 +86,6 @@ def change_task_status(service_info_dict, task_status):
             WHERE [program_id] = {program_id}
             AND [task_status] IN ('ready', 'not_ready', 'fix_ready', 'otk_fail', 'no_material')
             '''
-            print('update_status', update_status)
             cursor.execute(update_status)
             if cursor.rowcount:
                 return f'{program_name(program_id)} завершено.'

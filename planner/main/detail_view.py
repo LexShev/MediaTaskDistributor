@@ -239,7 +239,6 @@ def update_value(field_id, program_id, new_value):
 
     if query:
         with connections['oplan3'].cursor() as cursor:
-            print(query)
             cursor.execute(query)
             return cursor.rowcount
 

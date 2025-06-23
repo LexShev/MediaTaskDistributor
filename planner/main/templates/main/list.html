@@ -114,9 +114,9 @@
   {% endif %}
 
 <script type="text/javascript" src="{% static 'js/list_view.js' %}"></script>
-<form method="post" action="{% url 'submit_cenz_data' %}">
+<form method="post" action="{% url 'submit_cenz_data' %}" class="needs-validation" novalidate>
   {% csrf_token %}
-  <div class="modal fade" id="TaskReady" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="ApproveFIXLabel" aria-hidden="true">
+  <div class="modal fade" id="TaskReady" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="TaskReadyLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-xl">
       <div class="modal-content">
         <div class="modal-header">
@@ -131,13 +131,36 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" name="task_ready" id="task_ready" value="" class="btn btn-outline-warning">Завершить</button>
+          <button type="button" class="btn btn-outline-warning" onclick="ValidateForm()">Далее</button>
           <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
         </div>
       </div>
     </div>
   </div>
+
+<div class="modal fade" id="CenzComment" tabindex="-1" aria-labelledby="CenzCommentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h4 class="modal-title" id="CenzCommentLabel">
+              Вы подтверждаете изменения?
+            </h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h6>Комментарий к материалу</h6>
+            <textarea class="form-control" id="cenz_comment" name="cenz_comment" style="min-height: 130px">CENZ не требуется</textarea><br>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary me-auto" data-bs-target="#TaskReady" data-bs-toggle="modal">Назад</button>
+          <button type="submit" name="task_ready" id="task_ready" value="" class="btn btn-outline-warning ms-2">Завершить</button>
+          <button type="submit" name="cenz_info_change" id="cenz_info_change" value="" class="btn btn-outline-success">Изменить</button>
+        </div>
+      </div>
+    </div>
+</div>
 </form>
 
 {% endblock %}
 </main>
+

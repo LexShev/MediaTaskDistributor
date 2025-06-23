@@ -10,7 +10,7 @@ from django.shortcuts import render
 
 from desktop.desktop_list import task_info, cards_container
 from desktop.forms import DeskTopFilter
-from desktop.models import ModelDeskTopFilter, ModelCardsContainer
+from desktop.models import ModelDeskTopFilter, ModelCardsContainer, ModelListNames
 from main.permission_pannel import ask_db_permissions
 
 
@@ -69,13 +69,17 @@ def show_desktop(request):
     cards_list_03 = read_cards_list(2, worker_id)
     cards_list_04 = read_cards_list(3, worker_id)
     exclusion_list = cards_list_01 + cards_list_02 + cards_list_03 + cards_list_04
+
+    # [ModelListNames(owner=worker_id, list_id=i, name=f'Список_{i}').save() for i in range(1, 5)]
+    dict_names = ModelListNames.objects.filter(owner=worker_id).values('list_id', 'name')
     data = {
         'permissions': ask_db_permissions(worker_id),
         'full_list': task_info(worker_id, schedules, material_type, task_status, work_dates, exclusion_list),
-        'cards_container_01': cards_container(cards_list_01),
-        'cards_container_02': cards_container(cards_list_02),
-        'cards_container_03': cards_container(cards_list_03),
-        'cards_container_04': cards_container(cards_list_04),
+        'list_names': dict(map(lambda items: (items['list_id'], items['name']), dict_names)),
+        'cards_container_1': cards_container(cards_list_01),
+        'cards_container_2': cards_container(cards_list_02),
+        'cards_container_3': cards_container(cards_list_03),
+        'cards_container_4': cards_container(cards_list_04),
         'desktop_form': desktop_form,
     }
     return render(request, 'desktop/index.html', data)
@@ -107,3 +111,22 @@ def update_order(request):
         print(e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
+def update_marker_name(request):
+    print(request.body)
+    worker_id = request.user.id
+    try:
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+        data = json.loads(request.body)
+
+        if not data:
+            return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+        print(data, type(data))
+        with transaction.atomic():
+            ModelListNames.objects.filter(owner=worker_id, list_id=data[0]).delete()
+            ModelListNames(owner=worker_id, list_id=data[0], name=data[1]).save()
+
+        return JsonResponse({'status': 'success', 'message': 'Name updated successfully'})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

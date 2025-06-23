@@ -16,6 +16,9 @@
       <div class="form-floating mx-1 my-2">
         {{ field }}
         {{ field.label_tag }}
+        <div class="invalid-feedback">
+          Please choose a username.
+        </div>
       </div>
     </div>
     {% endfor %}
