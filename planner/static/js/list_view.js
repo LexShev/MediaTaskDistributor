@@ -1,14 +1,17 @@
 function ValidateForm() {
     const form = document.querySelector('.needs-validation')
-    let CenzCommentModal = new bootstrap.Modal(document.getElementById('CenzComment'));
-    if (!form.checkValidity()) {
-        CenzCommentModal.show();
+    const TaskReadyModal = bootstrap.Modal.getInstance(document.getElementById('TaskReady')) ||
+                        new bootstrap.Modal(document.getElementById('TaskReady'));
+    const CenzCommentModal = bootstrap.Modal.getInstance(document.getElementById('CenzComment')) ||
+                        new bootstrap.Modal(document.getElementById('CenzComment'));
+    if (form.checkValidity()) {
+        TaskReadyModal.hide();
+        CenzCommentModal.toggle();
     }
     else {
         form.classList.add('was-validated');
     }
 };
-
 
 window.addEventListener('load', function() {
     let seasons = document.getElementsByClassName('season');
@@ -77,22 +80,49 @@ function ShowTaskReady(program_id) {
     cenzInfoChange.value = Array.from(episodeCheckboxes);
     let readyCenzInfo = document.getElementById('ready_cenz_info');
     let modalLabel = document.getElementById('TaskReadyLabel');
-    let TaskReadyModal = new bootstrap.Modal(document.getElementById('TaskReady'));
+    const TaskReadyModal = new bootstrap.Modal(document.getElementById('TaskReady'));
 
     readyCenzInfo.innerHTML = ''
     TaskReadyModal.toggle();
-    fetch(`/load_cenz_data/`)
-    .then(response => response.json())
-    .then(cenz_data => {
-        if (cenz_data && cenz_data.html) {
-            const fragment = document.createRange().createContextualFragment(cenz_data.html);
-            readyCenzInfo.innerHTML = '';
-            readyCenzInfo.appendChild(fragment);
+        fetch(`/load_cenz_data/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
 
-        }
-    })
-            .catch(error => {
-                modalLabel.textContent = `Ошибка загрузки данных`;
+            body: JSON.stringify(episodeCheckboxes),
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(cenz_data => {
+            console.log(cenz_data);
+            if (cenz_data && cenz_data.html) {
+                const fragment = document.createRange().createContextualFragment(cenz_data.html);
+                readyCenzInfo.innerHTML = '';
+                readyCenzInfo.appendChild(fragment);
+
+            }
+        })
+        .catch(error => {
+            modalLabel.textContent = `Ошибка загрузки данных`;
         });
 
-    };
+};
+
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};

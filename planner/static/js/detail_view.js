@@ -70,6 +70,17 @@ async function getWorkerName(workerId) {
     }
 }
 
-function UpdateCenzInfo() {
+function ValidateForm() {
+    const form = document.querySelector('.needs-validation')
+    const CenzApproveModal = bootstrap.Modal.getInstance(document.getElementById('CenzApprove')) ||
+                        new bootstrap.Modal(document.getElementById('CenzApprove'));
 
-}
+    if (form.checkValidity()) {
+        CenzApproveModal.toggle();
+    }
+    else {
+        form.classList.add('was-validated');
+    }
+};
+
+
