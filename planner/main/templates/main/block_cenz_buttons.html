@@ -9,7 +9,7 @@
       </svg>
     </a>
     <button type="button" class="btn btn-outline-success mx-1 my-2 {% if lock_material %}disabled{% endif %}"
-            id="cenz_approve_btn" data-bs-toggle="modal" data-bs-target="#CenzApprove">Сохранить
+            id="cenz_approve_btn" onclick="ValidateForm()">Сохранить
     </button>
     <button type="button" class="btn btn-outline-warning mx-1 my-2 {% if lock_material %}disabled{% endif %}"
             id="ask_fix_btn" data-bs-toggle="modal" data-bs-target="#AskFix">Запросить FIX
@@ -20,7 +20,7 @@
 </div>
 
 <div class="modal fade" id="CenzApprove" tabindex="-1" aria-labelledby="CenzApproveLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
             <h4 class="modal-title" id="CenzApproveLabel">

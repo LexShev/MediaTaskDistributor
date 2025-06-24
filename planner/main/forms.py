@@ -42,7 +42,7 @@ class ListFilter(forms.ModelForm):
             'work_dates': forms.DateInput(
                 attrs={'class': 'form-control', 'data-bs-theme': 'light', 'type': 'text'}),
             'task_status': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'id': 'task_status', 'placeholder': 'test'},
+                attrs={'class': 'ui selection dropdown', 'id': 'task_status'},
                 choices=choice.task_status('Статус')),
         }
 
@@ -97,13 +97,13 @@ class CenzFormDropDown(forms.Form):
         label='Meta', choices=((0, 'Нет'), (1, 'Да')), required=False)
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
-        label='Дата отсмотра', required=False)
+        label='Дата отсмотра', required=True)
     cenz_rate_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "cenz_rate_form"}),
-        label='Ценз отсмотра', choices=choice.rate())
+        label='Ценз отсмотра', choices=choice.rate(), required=True)
     engineers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "engineers_form"}),
-        label='Тайтл проверил', choices=choice.engineers, required=False)
+        label='Тайтл проверил', choices=choice.engineers, required=True)
     # tags_form = forms.ChoiceField(widget=forms.Select(
     #     attrs={'class': "form-select", 'id': "tags_form"}),
     #     label='Теги', choices=choice.tags(), required=False)

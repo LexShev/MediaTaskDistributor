@@ -74,7 +74,7 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-}
+};
 
 function FastSearch() {
     let filterVal = filter.value.toLowerCase();

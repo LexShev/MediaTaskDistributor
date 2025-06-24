@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, date
 import ast
 
@@ -173,14 +174,89 @@ def full_list(request):
     return render(request, 'main/list.html', data)
 
 def load_cenz_data(request):
-    form_drop = CenzFormDropDown()
-    form_text = CenzFormText()
+    try:
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+        program_id_list = json.loads(request.body)
 
-    html = render_to_string('main/block_cenz.html', {
-        'form_drop': form_drop,
-        'form_text': form_text,
-    }, request=request)
-    return JsonResponse({'html': html})
+        if not program_id_list:
+            return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+
+        fields_to_compare = {
+            8: 'lgbt_form',
+            9: 'sig_form',
+            10: 'obnazh_form',
+            11: 'narc_form',
+            12: 'mat_form',
+            13: 'other_form',
+            16: 'editor_form',
+
+            17: 'meta_form',
+            7: 'work_date_form',
+            14: 'cenz_rate_form',
+            15: 'engineers_form',
+            18: 'tags_form',
+            19: 'inoagent_form',
+            22: 'narc_select_form',
+        }
+
+        initial_dict = {}
+        initial_values = {field: None for field in fields_to_compare}
+        has_differences = {field: False for field in fields_to_compare}
+
+        for program_id in program_id_list:
+            custom_fields = cenz_info(program_id)
+
+            for field in fields_to_compare:
+                current_value = custom_fields.get(field, '')
+
+                if initial_values.get(field) is None:
+                    initial_values[field] = current_value
+                elif not has_differences.get(field) and current_value != initial_values.get(field):
+                    has_differences[field] = True
+
+        for field in fields_to_compare:
+            if has_differences.get(field):
+                if field in (17, 7, 14, 15, 18, 19, 22):
+                    initial_dict[field] = '-'
+                else:
+                    initial_dict[field] = 'несколько значений'
+            else:
+                initial_dict[field] = initial_values.get(field) if initial_values.get(field) is not None else ''
+        print(initial_dict)
+
+        print(program_id_list, type(program_id_list))
+
+
+        form_drop = CenzFormDropDown(
+            initial={
+                'meta_form': initial_dict.get(17),
+                'work_date_form': initial_dict.get(7),
+                'cenz_rate_form': initial_dict.get(14),
+                'engineers_form': initial_dict.get(15),
+                'tags_form': initial_dict.get(18),
+                'inoagent_form': initial_dict.get(19),
+                'narc_select_form': initial_dict.get(22),
+            })
+        form_text = CenzFormText(
+            initial={
+                'lgbt_form': initial_dict.get(8),
+                'sig_form': initial_dict.get(9),
+                'obnazh_form': initial_dict.get(10),
+                'narc_form': initial_dict.get(11),
+                'mat_form': initial_dict.get(12),
+                'other_form': initial_dict.get(13),
+                'editor_form': initial_dict.get(16)
+            })
+
+        html = render_to_string('main/block_cenz.html', {
+            'form_drop': form_drop,
+            'form_text': form_text,
+        }, request=request)
+        return JsonResponse({'status': 'success', 'message': 'Data loaded successfully', 'html': html})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def submit_cenz_data(request):
     success_messages = []
