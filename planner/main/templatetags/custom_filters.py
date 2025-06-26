@@ -5,6 +5,13 @@ import os
 from main.settings.main_set import MainSettings
 
 
+@register.simple_tag
+def is_active(request, url):
+    print('url', request.path, url)
+    if request.path.startswith(url):
+        return "active"
+    return ""
+
 @register.filter
 def cenz_name(cenz_id):
     if cenz_id:

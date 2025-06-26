@@ -42,7 +42,6 @@
     </symbol>
   </svg>
   <div class="container-fluid d-flex align-items-center justify-content-center justify-content-lg-start px-lg-5">
-<!--    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">-->
     <div class="me-auto">
       <nav class="navbar navbar-expand-lg">
           <a class="navbar-brand" href="{% url 'home' %}">
@@ -51,44 +50,53 @@
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
-  <!--      <a href="{% url 'home' %}kpi_info" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">-->
-  <!--        <svg width="32" height="32" class="bi me-2"><use xlink:href="#table"/></svg>-->
-  <!--      </a>-->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-lg-auto justify-content-center mb-0 me-lg-3"  id="navBar">
             {% if permissions.day %}
-              <li class="nav-item"><a href="{% url 'home' %}day" class="nav-link px-2">День</a></li>
+              <li class="nav-item"><a href="{% url 'home' %}day" class="nav-link px-2 {% is_active request '/day/' %}">День</a></li>
             {% endif %}
             {% if permissions.week %}
-              <li class="nav-item"><a href="{% url 'home' %}week" class="nav-link px-2">Неделя</a></li>
+              <li class="nav-item"><a href="{% url 'home' %}week/" class="nav-link px-2 {% is_active request '/week/' %}">Неделя</a></li>
             {% endif %}
             {% if permissions.on_air_report %}
-              <li class="nav-item"><a href="{% url 'home' %}on-air-report" class="nav-link px-2">Эфирный отчёт</a></li>
+              <li class="nav-item"><a href="{% url 'home' %}on-air-report/" class="nav-link px-2 {% is_active request '/on-air-report/' %}">Эфирный отчёт</a></li>
             {% endif %}
             {% if permissions.list %}
-              <li class="nav-item"><a href="{% url 'home' %}list" class="nav-link px-2">Список</a></li>
+              <li class="nav-item"><a href="{% url 'home' %}list/" class="nav-link px-2 {% is_active request '/list/' %}">Список</a></li>
             {% endif %}
-            {% if permissions.kpi_info %}
-              <li class="nav-item"><a href="{% url 'home' %}kpi_info" class="nav-link px-2">KPI</a></li>
-            {% endif %}
-            {% if permissions.work_calendar %}
-              <li class="nav-item"><a href="{% url 'home' %}work_calendar" class="nav-link px-2">Календарь</a></li>
-            {% endif %}
+
+
             {% if permissions.common_pool %}
-              <li class="nav-item"><a href="{% url 'home' %}common_pool" class="nav-link px-2">Общий пул</a></li>
+              <li class="nav-item"><a href="{% url 'home' %}common_pool/" class="nav-link px-2 {% is_active request '/common_pool/' %}">Общий пул</a></li>
             {% endif %}
             {% if permissions.otk %}
-              <li class="nav-item"><a href="{% url 'otk' %}" class="nav-link px-2">ОТК</a></li>
+              <li class="nav-item"><a href="{% url 'otk' %}" class="nav-link px-2 {% is_active request '/otk/' %}">ОТК</a></li>
             {% endif %}
             {% if permissions.advanced_search %}
-              <li class="nav-item"><a href="{% url 'home' %}advanced_search" class="nav-link px-2">Расширенный поиск</a></li>
-            {% endif %}
-            {% if permissions.otk %}
-              <li class="nav-item"><a href="{% url 'task_manager' %}" class="nav-link px-2">Управление задачами</a></li>
+              <li class="nav-item"><a href="{% url 'home' %}advanced_search" class="nav-link px-2 {% is_active request '/advanced_search/' %}">Расширенный поиск</a></li>
             {% endif %}
             {% if permissions.desktop %}
-              <li class="nav-item"><a href="{% url 'desktop' %}" class="nav-link px-2">Рабочий стол</a></li>
+              <li class="nav-item"><a href="{% url 'desktop' %}" class="nav-link px-2 {% is_active request '/desktop/' %}">Рабочий стол</a></li>
             {% endif %}
+            {% if permissions.task_manager %}
+              <li class="nav-item dropdown" style="z-index: 1050;">
+                <a class="nav-link dropdown-toggle {% is_active request '/task_manager/' %} {% is_active request '/kpi_info/' %} {% is_active request '/work_calendar/' %}"
+                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Админ панель
+                </a>
+                <ul class="dropdown-menu">
+                  {% if permissions.task_manager %}
+                    <li><a href="{% url 'task_manager' %}" class="dropdown-item {% is_active request '/task_manager/' %}">Управление задачами</a></li>
+                  {% endif %}
+                  {% if permissions.kpi_info %}
+                    <li><a href="{% url 'home' %}kpi_info/" class="dropdown-item {% is_active request '/kpi_info/' %}">KPI</a></li>
+                  {% endif %}
+                  {% if permissions.work_calendar %}
+                    <li><a href="{% url 'home' %}work_calendar/" class="dropdown-item {% is_active request '/work_calendar/' %}">Календарь</a></li>
+                  {% endif %}
+                </ul>
+            {% endif %}
+
           </ul>
         </div>
       </nav>

@@ -88,6 +88,22 @@ class CenzFormText(forms.Form):
         attrs={'class': "form-control", 'id': "editor_form", 'style': "height: 130px"}),
         label='Редакторские замечания', required=False)
 
+    def __init__(self, *args, **kwargs):
+        comparison_data = kwargs.pop('comparison_data', {})
+        super(CenzFormText, self).__init__(*args, **kwargs)
+
+        if comparison_data:
+            for field_name, field_value in comparison_data.items():
+                if not self.fields.get(field_name):
+                    continue
+                self.fields[field_name].initial = field_value
+
+                if field_value == 'несколько значений':
+                    label = self.fields[field_name].label
+                    self.fields[field_name].label = f'{label}\n<{field_value}>'
+                    self.fields[field_name].initial = ''
+
+
 class CenzFormDropDown(forms.Form):
     narc_select_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'form-select', 'id': "narc_select_form"}),
@@ -96,7 +112,7 @@ class CenzFormDropDown(forms.Form):
         attrs={'class': 'form-select', 'id': "meta_form"}),
         label='Meta', choices=((0, 'Нет'), (1, 'Да')), required=False)
     work_date_form = forms.DateField(widget=forms.DateInput(
-        attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
+        attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}, format='%Y-%m-%d'),
         label='Дата отсмотра', required=True)
     cenz_rate_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "cenz_rate_form"}),
@@ -111,6 +127,20 @@ class CenzFormDropDown(forms.Form):
         widget=forms.Select(attrs={'class': "form-select", 'id': "inoagent_form"}),
         label='Иноагент', choices=choice.inoagents, required=False)
 
+    def __init__(self, *args, **kwargs):
+        comparison_data = kwargs.pop('comparison_data', {})
+        super(CenzFormDropDown, self).__init__(*args, **kwargs)
+
+        if comparison_data:
+            for field_name, field_value in comparison_data.items():
+                if not self.fields.get(field_name):
+                    continue
+                self.fields[field_name].initial = field_value
+
+                if field_value == 'несколько значений':
+                    label = self.fields[field_name].label
+                    self.fields[field_name].label = f'{label} <{field_value}>'
+                    self.fields[field_name].initial = ''
 
 class KpiForm(forms.Form):
 
@@ -126,6 +156,8 @@ class KpiForm(forms.Form):
     task_status_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "task_status_form"}),
         label='Статус задачи', choices=choice.task_status(), required=False)
+
+
 
 class VacationForm(forms.Form):
     engineers_form = forms.ChoiceField(widget=forms.Select(
