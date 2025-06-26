@@ -173,6 +173,34 @@ def full_list(request):
             'form': form, 'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/list.html', data)
 
+def get_field_comparison(program_id_list, fields_to_compare):
+    initial_dict = {}
+    initial_values = {field: None for field in fields_to_compare}
+    has_differences = {field: False for field in fields_to_compare}
+
+    for program_id in program_id_list:
+        custom_fields = cenz_info(program_id)
+
+        for field in fields_to_compare:
+            current_value = custom_fields.get(field, '')
+
+            if initial_values.get(field) is None:
+                initial_values[field] = current_value
+            elif not has_differences.get(field) and current_value != initial_values.get(field):
+                has_differences[field] = True
+    print('initial_values', initial_values)
+    print('has_differences', has_differences)
+    for field_id, field_name in fields_to_compare.items():
+        if has_differences.get(field_id):
+            if field_id in (17, 7, 14, 15, 18, 19, 22):
+                initial_dict[field_name] = '-'
+            else:
+                initial_dict[field_name] = 'несколько значений'
+        else:
+            initial_dict[field_name] = initial_values.get(field_id) if initial_values.get(field_id) is not None else ''
+    print('initial_dict', initial_dict)
+    return initial_dict
+
 def load_cenz_data(request):
     try:
         if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -200,58 +228,33 @@ def load_cenz_data(request):
             22: 'narc_select_form',
         }
 
-        initial_dict = {}
-        initial_values = {field: None for field in fields_to_compare}
-        has_differences = {field: False for field in fields_to_compare}
-
-        for program_id in program_id_list:
-            custom_fields = cenz_info(program_id)
-
-            for field in fields_to_compare:
-                current_value = custom_fields.get(field, '')
-
-                if initial_values.get(field) is None:
-                    initial_values[field] = current_value
-                elif not has_differences.get(field) and current_value != initial_values.get(field):
-                    has_differences[field] = True
-
-        for field in fields_to_compare:
-            if has_differences.get(field):
-                if field in (17, 7, 14, 15, 18, 19, 22):
-                    initial_dict[field] = '-'
-                else:
-                    initial_dict[field] = 'несколько значений'
-            else:
-                initial_dict[field] = initial_values.get(field) if initial_values.get(field) is not None else ''
-        print(initial_dict)
-
-        print(program_id_list, type(program_id_list))
-
-
-        form_drop = CenzFormDropDown(
-            initial={
-                'meta_form': initial_dict.get(17),
-                'work_date_form': initial_dict.get(7),
-                'cenz_rate_form': initial_dict.get(14),
-                'engineers_form': initial_dict.get(15),
-                'tags_form': initial_dict.get(18),
-                'inoagent_form': initial_dict.get(19),
-                'narc_select_form': initial_dict.get(22),
-            })
-        form_text = CenzFormText(
-            initial={
-                'lgbt_form': initial_dict.get(8),
-                'sig_form': initial_dict.get(9),
-                'obnazh_form': initial_dict.get(10),
-                'narc_form': initial_dict.get(11),
-                'mat_form': initial_dict.get(12),
-                'other_form': initial_dict.get(13),
-                'editor_form': initial_dict.get(16)
-            })
+        initial_dict = get_field_comparison(program_id_list, fields_to_compare)
+        #
+        # form_drop = CenzFormDropDown(
+        #     initial={
+        #         'meta_form': initial_dict.get(17),
+        #         'work_date_form': (initial_dict.get(7)),
+        #         'cenz_rate_form': initial_dict.get(14),
+        #         'engineers_form': initial_dict.get(15),
+        #         'tags_form': initial_dict.get(18),
+        #         'inoagent_form': initial_dict.get(19),
+        #         'narc_select_form': initial_dict.get(22),
+        #     })
+        # form_text = CenzFormText(comparison_data=initial_dict,
+        #     # initial={
+        #     #     'lgbt_form': initial_dict.get(8),
+        #     #     'sig_form': initial_dict.get(9),
+        #     #     'obnazh_form': initial_dict.get(10),
+        #     #     'narc_form': initial_dict.get(11),
+        #     #     'mat_form': initial_dict.get(12),
+        #     #     'other_form': initial_dict.get(13),
+        #     #     'editor_form': initial_dict.get(16)
+        #     # }
+        # )
 
         html = render_to_string('main/block_cenz.html', {
-            'form_drop': form_drop,
-            'form_text': form_text,
+            'form_drop': CenzFormDropDown(comparison_data=initial_dict),
+            'form_text': CenzFormText(comparison_data=initial_dict),
         }, request=request)
         return JsonResponse({'status': 'success', 'message': 'Data loaded successfully', 'html': html})
     except Exception as e:

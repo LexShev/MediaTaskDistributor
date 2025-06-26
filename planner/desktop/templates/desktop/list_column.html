@@ -1,5 +1,5 @@
 <div class="col d-flex flex-column">
-  <div class="d-flex rounded mb-2" id="markerName_{{ list_id }}">
+  <div class="d-flex rounded sticky-top mb-2" id="markerName_{{ list_id }}">
     <input class="form-control form-control-sm m-1" name="input-markerName" data-list-id="{{ list_id }}" value="{{ list_name }}" disabled>
     <button type="button" onclick="EditListMarker(this)" class="btn btn-sm ms-0 m-1 opacity-75" name="btn-edit" id="editBtn_{{ list_id }}">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16" style="vertical-align: middle;">
@@ -14,5 +14,5 @@
       </svg>
     </button>
   </div>
-  <div class="cards_container" id="cards_container_{{ list_id }}">{% for material in cards %}{% include 'desktop/card.html' %}{% endfor %}</div>
+  <div class="cards_container overflow-auto" id="cards_container_{{ list_id }}" style="height: calc(100vh - 125px);">{% for material in cards %}{% include 'desktop/card.html' %}{% endfor %}</div>
 </div>
