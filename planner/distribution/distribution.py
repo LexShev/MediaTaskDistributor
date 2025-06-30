@@ -71,7 +71,6 @@ def oplan_material_list(start_date, work_duration, program_type=(4, 5, 6, 10, 11
             AND Task.[engineer_id] IS NULL
             ORDER BY SchedProg.[DateTime] {order}
             """
-        print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
     return material_list_sql, django_columns
