@@ -100,7 +100,7 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
-        # "PORT": "1433",
+        "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
             "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
@@ -112,7 +112,7 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
-        # "PORT": "1433",
+        "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
             "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
@@ -124,7 +124,7 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
-        # "PORT": "1433",
+        "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
             "extra_params": "Encrypt=yes;TrustServerCertificate=yes"

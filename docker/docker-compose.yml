@@ -16,3 +16,12 @@ services:
       - ../.env
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Для доступа к хосту
+    environment:
+      - WAIT_HOSTS=mssql:1433  # Ожидание готовности SQL Server
+    networks:
+      - default  # Подключаем к той же сети, где работает SQL Server
+
+networks:
+  default:
+    external: true  # Используем существующую сеть
+    name: bridge    # Стандартная сеть Docker (или ваша кастомная)
