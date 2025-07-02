@@ -26,7 +26,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key-only-f
 DB_USER = os.getenv('DB_USER', 'alex')
 DB_PASSWORD = os.getenv('DB_PASSWORD', 'alex')
 DB_HOST = os.getenv('DB_HOST', 'localhost')
-ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'localhost')
+ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
