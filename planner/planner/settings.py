@@ -23,6 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key-only-for-dev')
+DB_USER = os.getenv('DB_USER', 'alex')
+DB_PASSWORD = os.getenv('DB_PASSWORD', 'alex')
+DB_HOST = os.getenv('DB_HOST', 'localhost')
+ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'localhost')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -93,31 +97,37 @@ DATABASES = {
     "default": {
         "ENGINE": "mssql",
         "NAME": 'service',
-        "USER": "alex",
-        "PASSWORD": "alex",
-        "HOST": "ST14\\FINAL_BASE",
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
         # "PORT": "1433",
-        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
+        "OPTIONS": {
+            "driver": ODBC_DRIVER,
+            "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
         },
     },
     "oplan3": {
         "ENGINE": "mssql",
         "NAME": 'oplan3',
-        "USER": "alex",
-        "PASSWORD": "alex",
-        "HOST": "ST14\\FINAL_BASE",
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
         # "PORT": "1433",
-        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
+        "OPTIONS": {
+            "driver": ODBC_DRIVER,
+            "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
         },
     },
     "planner": {
         "ENGINE": "mssql",
         "NAME": 'planner',
-        "USER": "alex",
-        "PASSWORD": "alex",
-        "HOST": "ST14\\FINAL_BASE",
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
         # "PORT": "1433",
-        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
+        "OPTIONS": {
+            "driver": ODBC_DRIVER,
+            "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
         },
     },
     "ffmpeg": {
