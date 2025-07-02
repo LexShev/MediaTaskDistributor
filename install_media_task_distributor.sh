@@ -3,11 +3,6 @@
 # Останавливаем и удаляем контейнеры текущего проекта
 docker-compose down --rmi all --volumes --remove-orphans
 
-# Очищаем Docker кэш (осторожно, это может затронуть другие проекты)
-docker system prune -af
-docker builder prune -af
-docker image prune -a
-
 # Переходим в директорию проекта
 # shellcheck disable=SC2164
 cd /home/a.shevchenko@tltv.local/PycharmProjects/
@@ -23,7 +18,7 @@ cp /home/a.shevchenko@tltv.local/secrets/planner/env /home/a.shevchenko@tltv.loc
 
 # Переходим в папку проекта
 # shellcheck disable=SC2164
-cd MediaTaskDistributor
+cd MediaTaskDistributor/docker
 
 # Перестраиваем и запускаем контейнеры
 docker-compose up --build

@@ -32,8 +32,8 @@ RUN set -ex \
     && echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> /etc/bash.bashrc \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /code
-COPY requirements.txt .
+WORKDIR /app
+COPY ../requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+COPY .. .
+CMD ["python", "planner/manage.py", "runserver", "0.0.0.0:8000"]

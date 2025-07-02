@@ -2,11 +2,13 @@ version: '3.8'
 
 services:
   web:
-    build: .
+    build: ..
     command: python planner/manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/code
+      - .:/app
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Для доступа к хосту
