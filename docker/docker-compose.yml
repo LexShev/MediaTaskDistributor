@@ -2,10 +2,12 @@ version: '3.8'
 
 services:
   web:
-    build: ..
+    build:
+      context: ..  # Собираем из корня проекта
+      dockerfile: docker/Dockerfile  # Путь к Dockerfile относительно контекста
     command: python planner/manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/app
+      - ../planner:/app  # Монтируем код Django
     ports:
       - "8000:8000"
     env_file:
