@@ -31,7 +31,7 @@ ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
 
 
 # Application definition
@@ -100,7 +100,7 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
-        "PORT": "1433",
+        # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
             "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
@@ -112,7 +112,7 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
-        "PORT": "1433",
+        # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
             "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
@@ -124,7 +124,7 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
-        "PORT": "1433",
+        # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
             "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
@@ -212,6 +212,8 @@ CACHES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = '/authorize/login_worker/'
+
+
 
 # DATE_INPUT_FORMATS = ["%d.%m.%Y", "%d-%m-%Y"]
 # USE_L10N = False
