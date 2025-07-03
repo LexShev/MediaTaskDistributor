@@ -134,7 +134,7 @@ DATABASES = {
     "ffmpeg": {
         "ENGINE": "django_mongodb_engine",
         "NAME": 'planner_db',
-        'HOST': 'mongodb://localhost:27017',
+        'HOST': MONGO_HOST,
         "OPTIONS": {
             "authSource": "admin",
         },
