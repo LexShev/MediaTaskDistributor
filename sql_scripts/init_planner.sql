@@ -25,17 +25,17 @@ CREATE TABLE [vacation_schedule]
 INSERT INTO [planner].[dbo].[vacation_schedule]
 (worker_id, worker, holiday)
 VALUES 
-(0, 'РђР»РµРєСЃР°РЅРґСЂ РљРёСЃР»СЏРєРѕРІ'),
-(1,	'РћР»СЊРіР° РљСѓР·РѕРІРєРёРЅР°'),
-(2,	'Р”РјРёС‚СЂРёР№ Р“Р°С‚РµРЅСЏРЅ'),
-(3,	'РњР°СЂРёСЏ РЎСѓС‡РєРѕРІР°'),
-(4,	'РђРЅРґСЂРµР№ РђРЅС‚РёРїРёРЅ'),
-(5,	'Р РѕРјР°РЅ Р РѕРіР°С‡РµРІ'),
-(6,	'РђРЅР°СЃС‚Р°СЃРёСЏ Р§РµР±Р°РєРѕРІР°'),
-(7,	'РќРёРєРёС‚Р° РљСѓР·Р°РєРѕРІ'),
-(8,	'РћР»РµРі РљР°С€РµР¶РµРІ'),
-(9,	'РњР°СЂС„Р° РўР°СЂСѓСЃРёРЅР°'),
-(10, 'Р•РІРіРµРЅРёР№ Р”РѕРјР°РЅРѕРІ');
+(0, 'Александр Кисляков'),
+(1,	'Ольга Кузовкина'),
+(2,	'Дмитрий Гатенян'),
+(3,	'Мария Сучкова'),
+(4,	'Андрей Антипин'),
+(5,	'Роман Рогачев'),
+(6,	'Анастасия Чебакова'),
+(7,	'Никита Кузаков'),
+(8,	'Олег Кашежев'),
+(9,	'Марфа Тарусина'),
+(10, 'Евгений Доманов');
 
 CREATE TABLE worker_list
 (
@@ -45,20 +45,36 @@ CREATE TABLE worker_list
 	fired BIT
 );
 
+INSERT INTO [planner].[dbo].[worker_list]
+(worker_id, worker, permission_group)
+VALUES 
+(0, 'Александр Кисляков', 'preparation_engineer'),
+(1, 'Ольга Кузовкина', 'preparation_engineer'),
+(2, 'Дмитрий Гатенян', 'preparation_engineer'),
+(3, 'Мария Сучкова', 'preparation_engineer'),
+(4, 'Андрей Антипин', 'preparation_engineer'),
+(5, 'Роман Рогачев', 'preparation_engineer'),
+(6, 'Анастасия Чебакова', 'broadcast_engineer'),
+(7, 'Никита Кузаков', 'preparation_engineer'),
+(8, 'Олег Кашежев', 'preparation_engineer'),
+(9, 'Марфа Тарусина', 'preparation_engineer'),
+(10, 'Евгений Доманов', 'preparation_engineer'),
+(11, 'Евгений Доманов', 'admin');
+
 INSERT INTO [planner].[dbo].[vacation_schedule]
 (worker_id, worker, permission_group)
-VALUES
-(0, 'РђР»РµРєСЃР°РЅРґСЂ РљРёСЃР»СЏРєРѕРІ', 0),
-(1,	'РћР»СЊРіР° РљСѓР·РѕРІРєРёРЅР°', 0),
-(2,	'Р”РјРёС‚СЂРёР№ Р“Р°С‚РµРЅСЏРЅ', 0),
-(3,	'РњР°СЂРёСЏ РЎСѓС‡РєРѕРІР°', 0),
-(4,	'РђРЅРґСЂРµР№ РђРЅС‚РёРїРёРЅ', 0),
-(5,	'Р РѕРјР°РЅ Р РѕРіР°С‡РµРІ', 0),
-(6,	'РђРЅР°СЃС‚Р°СЃРёСЏ Р§РµР±Р°РєРѕРІР°', 0),
-(7,	'РќРёРєРёС‚Р° РљСѓР·Р°РєРѕРІ', 0),
-(8,	'РћР»РµРі РљР°С€РµР¶РµРІ', 0),
-(9,	'РњР°СЂС„Р° РўР°СЂСѓСЃРёРЅР°', 0),
-(10, 'Р•РІРіРµРЅРёР№ Р”РѕРјР°РЅРѕРІ', 0);
+VALUES 
+(0, 'Александр Кисляков', 0),
+(1,	'Ольга Кузовкина', 0),
+(2,	'Дмитрий Гатенян', 0),
+(3,	'Мария Сучкова', 0),
+(4,	'Андрей Антипин', 0),
+(5,	'Роман Рогачев', 0),
+(6,	'Анастасия Чебакова', 0),
+(7,	'Никита Кузаков', 0),
+(8,	'Олег Кашежев', 0),
+(9,	'Марфа Тарусина', 0),
+(10, 'Евгений Доманов', 0);
 
 CREATE TABLE permission_list
 (
@@ -110,42 +126,6 @@ CREATE TABLE history_list
 	new_value NVARCHAR(MAX)
 );
 
-CREATE TABLE history_list
-(
-    action_id INT PRIMARY KEY IDENTITY NOT NULL,
-	program_id INT NOT NULL,
-	action_description NVARCHAR(MAX),
-	action_comment NVARCHAR(MAX),
-    worker_id INT NOT NULL,
-    worker NVARCHAR(100) NOT NULL,
-	date_of_change DATE NOT NULL,
-	old_meta BIT,
-	new_meta BIT,
-	old_work_date DATE,
-	new_work_date DATE,
-	old_cenz_rate NVARCHAR(MAX),
-	new_cenz_rate NVARCHAR(MAX),
-	old_cenz_worker_id INT,
-	new_cenz_worker_id INT,
-	old_tags NVARCHAR(MAX),
-	new_tags NVARCHAR(MAX),
-	old_inoagent NVARCHAR(MAX),
-	new_inoagent NVARCHAR(MAX),
-	old_lgbt NVARCHAR(MAX),
-	new_lgbt NVARCHAR(MAX),
-	old_sig NVARCHAR(MAX),
-	new_sig NVARCHAR(MAX),
-	old_obnazh NVARCHAR(MAX),
-	new_obnazh NVARCHAR(MAX),
-	old_narc NVARCHAR(MAX),
-	new_narc NVARCHAR(MAX),
-	old_mat NVARCHAR(MAX),
-	new_mat NVARCHAR(MAX),
-	old_other NVARCHAR(MAX),
-	new_other NVARCHAR(MAX),
-	old_editor NVARCHAR(MAX),
-	new_editor NVARCHAR(MAX)
-);
 
 CREATE TABLE [days_off]
 (
