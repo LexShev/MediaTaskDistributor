@@ -10,7 +10,7 @@ RUN apt-get update && \
     libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка Microsoft ODBC драйвера 18 (исправленная версия)
+# Установка Microsoft ODBC драйвера 18
 RUN set -ex \
     && DEBIAN_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2 | cut -d '.' -f 1) \
     && SUPPORTED_VERSIONS="11 12" \

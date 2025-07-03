@@ -87,7 +87,7 @@ def full_info(program_id):
         return full_info_dict
 
 def find_file_path(program_id):
-    columns = (('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
+    columns = (('Files', 'FileID'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
                ('Files', 'ModificationTime'), ('Progs', 'duration'))
     sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
     django_columns = [f'{col}_{val}' for col, val in columns]

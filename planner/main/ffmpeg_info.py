@@ -16,4 +16,5 @@ def mongo_connection(collection_name):
 
 def ffmpeg_dict(program_id):
     with mongo_connection('mediainfo') as collection:
-        return collection.find_one({'_id': program_id})
+        ffmpeg_info = collection.find_one({'_id': program_id})
+        if ffmpeg_info: return ffmpeg_info
