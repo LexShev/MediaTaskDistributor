@@ -1,13 +1,19 @@
-from django.db import connections
-import pymongo
-from django.template.defaulttags import register
+from contextlib import contextmanager
+from pymongo import MongoClient
+from django.conf import settings
 
-conn = pymongo.MongoClient("localhost", 27017)
-db = conn['planner_db']
-collection = db['mediainfo']
 
+@contextmanager
+def mongo_connection(collection_name):
+    client = None
+    try:
+        client = MongoClient(settings.DATABASES['ffmpeg']['HOST'])
+        db = client[settings.DATABASES['ffmpeg']['NAME']]
+        yield db[collection_name]
+    finally:
+        if client:
+            client.close()
 
 def ffmpeg_dict(program_id):
-    cursor = collection.find({'_id': program_id})
-    for record in cursor:
-        return record
+    with mongo_connection('mediainfo') as collection:
+        return collection.find_one({'_id': program_id})
