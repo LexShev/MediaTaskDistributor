@@ -54,7 +54,7 @@ def insert_day_off(work_date):
 
 def vacation_info(cal_year):
     with connections['planner'].cursor() as cursor:
-        columns = ('vacation_id', 'worker_id', 'worker', 'start_date', 'end_date', 'description')
+        columns = ('vacation_id', 'worker_id', 'start_date', 'end_date', 'description')
         sql_columns = ', '.join([f'[{col}]' for col in columns])
         query = f'''
         SELECT {sql_columns}
@@ -74,10 +74,9 @@ def vacation_info(cal_year):
 
 def insert_vacation(worker_id, start_date, end_date, description):
     with connections['planner'].cursor() as cursor:
-        worker = workers_name(worker_id)
         query = f'''INSERT INTO [planner].[dbo].[vacation_schedule]
-        ([worker_id], [worker], [start_date], [end_date], [description])
-        VALUES ({worker_id}, '{worker}', '{start_date}', '{end_date}', '{description}');'''
+        ([worker_id], [start_date], [end_date], [description])
+        VALUES ({worker_id}, '{start_date}', '{end_date}', '{description}');'''
         cursor.execute(query)
 
 def drop_vacation(vacation_id):

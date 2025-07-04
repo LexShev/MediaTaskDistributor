@@ -6,7 +6,6 @@ from django.db import connections
 def main_distribution():
     work_date = datetime.today().date()
     # work_date = date(day=10, month=3, year=2025)
-    # dates = tuple(str(work_date + timedelta(days=day)) for day in range(25))
 
     material_list_sql, django_columns = oplan_material_list(start_date=work_date, work_duration=28)
     program_id_list = []
@@ -135,9 +134,9 @@ def kpi_min_obsolete(work_date):
                 kpi_list.append((engineer_id, kpi))
     return sorted(kpi_list, key=lambda x: x[1])
 
-def kpi_min(work_date):
+def kpi_min_obsolette_2(work_date):
     with connections['planner'].cursor() as cursor:
-        query = f'''
+        query = '''
         SELECT Worker.[worker_id] AS engineer_id, CAST(COALESCE(SUM(Task.[duration]), 0) AS FLOAT) / 720000.0 AS kpi
         FROM [planner].[dbo].[worker_list] AS Worker
         LEFT JOIN [planner].[dbo].[task_list] AS Task
@@ -153,6 +152,41 @@ def kpi_min(work_date):
         print('res', res)
         return res
 
+def kpi_min(work_date):
+    with connections['planner'].cursor() as cursor:
+        query = '''
+        DECLARE @target_date DATE
+        SET @target_date = %s
+        SELECT
+            w.[worker_id] AS engineer_id,
+            CASE
+                WHEN d.[day_off] IS NOT NULL THEN NULL
+                WHEN v.[vacation_id] IS NOT NULL THEN NULL
+                ELSE CAST(COALESCE(SUM(t.[duration]), 0) AS FLOAT) / 720000.0
+            END AS kpi
+        FROM
+            [planner].[dbo].[worker_list] w
+        LEFT JOIN
+            [planner].[dbo].[task_list] t ON w.[worker_id] = t.[engineer_id]
+            AND t.[work_date] = CONVERT(DATE, @target_date)
+        LEFT JOIN
+            [planner].[dbo].[days_off] d ON d.[day_off] = CONVERT(DATE, @target_date)
+        LEFT JOIN
+            [planner].[dbo].[vacation_schedule] v ON w.[worker_id] = v.[worker_id]
+            AND CONVERT(DATE, @target_date) BETWEEN v.[start_date] AND v.[end_date]
+        WHERE
+            w.[fired] = 0
+        GROUP BY
+            w.[worker_id],
+            d.[day_off],
+            v.[vacation_id]
+        ORDER BY
+            kpi ASC;
+        '''
+        cursor.execute(query, (work_date,))
+        res = cursor.fetchall()
+        return sorted([item for item in res if item[1] is not None], key=lambda x: x[1])
+
 def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path=''):
     with connections['planner'].cursor() as cursor:
         columns = '[program_id], [engineer_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path]'
@@ -162,7 +196,6 @@ def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_da
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
         cursor.execute(query, values)
-        print(query, values)
         print(cursor.rowcount)
         # print(f'{program_id}, {engineer_id} successfully added')
 

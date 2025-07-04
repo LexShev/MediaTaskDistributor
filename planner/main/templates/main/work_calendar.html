@@ -150,7 +150,7 @@
             <form method="post">
                 {% csrf_token %}
               <div class="row p-2">
-                <div class="col col-3">{{ vacation.worker }}</div>
+                <div class="col col-3">{{ vacation.worker_id|engineer_name }}</div>
                 <div class="col col-2"><input type="date"  class="form-control" value="{{ vacation.start_date|date:'Y-m-d' }}" disabled></div>
                 <div class="col col-2"><input type="date"  class="form-control" value="{{ vacation.end_date|date:'Y-m-d' }}" disabled></div>
                 <div class="col col-1">{{ vacation.total }}</div>
