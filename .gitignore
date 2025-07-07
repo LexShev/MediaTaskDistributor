@@ -1,0 +1,16 @@
+/planner/mongodb/
+/planner/mongodb_data/
+/planner/mongosh/
+/planner/media
+/planner/static/waveforms
+/planner/static/banners
+/planner/static/bootstrap-5.3.3-dist
+/planner/static/Semantic-UI-master
+/planner/static/SortableJS
+/planner/static/ChartJS
+/planner/static/jquery
+.idea
+.env
+**/migrations/
+export_structure.py
+project_structure.txt

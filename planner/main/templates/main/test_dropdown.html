@@ -1,0 +1,65 @@
+<html>
+<head>
+	<script src=
+"http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js">
+	</script>
+	<link href=
+"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+			rel="stylesheet" >
+	<script src=
+"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js">
+	</script>
+	<script src=
+"https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/js/bootstrap-multiselect.js">
+	</script>
+	<link href=
+"https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/css/bootstrap-multiselect.css"
+	rel="stylesheet">
+
+	<style>
+		.container
+		{
+			margin-top: 30px;
+			color: green;
+			font-size: 20px;
+		}
+	</style>
+</head>
+
+<body>
+	<br>
+	<form method="post" class="container p-0 d-flex align-items-center justify-content-start">
+        {% csrf_token %}
+          <div class="form-floating ms-0 mx-1">
+            <select class="form-select" name="work_date" id="WorkDate" aria-label="WorkDate">
+              <option value="2025-02-26" selected>Сегодня</option>
+              <option value="2025-02-27">Завтра</option>
+              <option value="2025-03-01">2025-03-01</option>
+              <option value="2025-03-02">2025-03-02</option>
+            </select>
+            <label for="WorkDate">Укажите дату</label>
+          </div>
+
+		<select id="checkboxes" name="checkboxes" multiple="multiple">
+			<option value="Linked list">Linked list</option>
+			<option value="Array">Array</option>
+			<option value="Strings">Strings</option>
+			<option value="Stack">Stack</option>
+			<option value="Queue">Queue</option>
+			<option value="Graph">Graph</option>
+			<option value="Tree">Tree</option>
+			<option value="Maps">Maps</option>
+		</select>
+        <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+    </form>
+
+
+	<script>
+		$(document).ready(function() {
+			$('#checkboxes').multiselect();
+
+		});
+	</script>
+
+</body>
+</html>
