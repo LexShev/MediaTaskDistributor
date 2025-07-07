@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  web:
+    container_name: media_task_web
+    build:
+      context: ..  # Собираем из корня проекта
+      dockerfile: docker/Dockerfile  # Путь к Dockerfile относительно контекста
+    command: python planner/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ..:/app
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.env
+    restart: unless-stopped
+    image: media_task_web
+    network_mode: bridge

@@ -1,0 +1,40 @@
+<div class="col text-center">
+  <h5>{{ cal_month|month_name }}</h5>
+</div>
+<table cellpadding="4" class="month">
+  <thead class="text-center text-secondary">
+    <tr>
+      <th class="p-2"></th>
+      <th class="mon p-2">Пн</th>
+      <th class="tue p-2">Вт</th>
+      <th class="wed p-2">Ср</th>
+      <th class="thu p-2">Чт</th>
+      <th class="fri p-2">Пт</th>
+      <th class="sat p-2">Сб</th>
+      <th class="sun p-2">Вс</th>
+    </tr>
+  </thead>
+
+  <tbody class="table-group-divider">
+    {% for week in month_calendar %}
+      <tr>
+        <th class="text-secondary">{{ week.0.day|date:"W" }}</th>
+        {% for date in week %}
+          {% if date.day|date:"n" == cal_month|stringformat:"s" %}
+            <td>
+              <button class="btn cal-btn m-1 p-1 {{ date.color }}"
+                      name="cal_day" value="{{ date.day|date:'Y-m-d' }}"
+                      type="submit" style="width: 3rem; height: 3rem;"
+                      title="Выполнено: {{ date.ready_tasks }}&#10;Осталось: {{ date.not_ready_tasks }}">
+                {{ date.day|date:"j" }}
+              </button></td>
+          {% else %}
+            <td>
+              <button class="btn cal-btn p-2" type="button" style="width: 3rem; height: 3rem;" disabled>
+                {{ date.day|date:"j" }}</button></td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

@@ -1,0 +1,66 @@
+.custom-ghost {
+  opacity: 1;
+}
+.custom-chosen {
+  opacity: 1;
+  border: 2px dashed #ccc;
+}
+.custom-drag {
+}
+
+#full_list .card {
+  border: none;
+  margin-right: 0;
+}
+
+#full_list .card .card-body {
+  display: none;
+}
+
+.cards_container .card {
+    margin-bottom: 0.5rem;
+}
+
+.cards_container .card .card-body {
+  display: flex;
+}
+
+.cards_container {
+  min-height: 57rem;
+}
+
+.cards_container:empty::after {
+  content: "Перетащите сюда";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  position: relative;
+  min-height: 57rem;
+  width: 100%;
+  border: 2px dashed #ccc;
+}
+
+.clear-input {
+}
+
+#markerName_1 {
+  background-color: var(--bs-info-bg-subtle);
+  color: var(--bs-info-text);
+  border: 1px solid var(--bs-info-border-subtle);
+}
+#markerName_2 {
+  background-color: var(--bs-success-bg-subtle);
+  color: var(--bs-success-text);
+  border: 1px solid var(--bs-success-border-subtle);
+}
+#markerName_3 {
+  background-color: var(--bs-warning-bg-subtle);
+  color: var(--bs-warning-text);
+  border: 1px solid var(--bs-warning-border-subtle);
+}
+#markerName_4 {
+  background-color: var(--bs-danger-bg-subtle);
+  color: var(--bs-danger-text);
+  border: 1px solid var(--bs-danger-border-subtle);
+}
