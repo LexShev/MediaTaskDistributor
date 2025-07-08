@@ -9,7 +9,7 @@ window.addEventListener('beforeunload', function(e) {
             console.log(data.response);
         })
         .catch(error => {
-            console.log('Ошибка разблокировки:', error);
+            console.log('Unblock error:', error);
         });
 });
 
@@ -24,7 +24,7 @@ async function CheckLockCard() {
                     console.log(data.response);
                 })
                 .catch(error => {
-                    console.log('Ошибка блокировки:', error);
+                    console.log('Block error:', error);
                 });
             return;
         }
@@ -41,7 +41,7 @@ async function CheckLockCard() {
         cenzApproveBtn.disabled = true;
         askFixBtn.disabled = true;
     } catch (error) {
-        console.log('Ошибка загрузки:', error);
+        console.log('Loading error:', error);
     }
 };
 
@@ -65,7 +65,7 @@ async function getWorkerName(workerId) {
         const data = await response.json();
         return data.worker_name;
     } catch (error) {
-        console.error('Ошибка при получении имени:', error);
+        console.error('Getting name error:', error);
         return 'Аноним';
     }
 }
@@ -83,4 +83,55 @@ function ValidateForm() {
     }
 };
 
+document.addEventListener('DOMContentLoaded', function() {
+    let poster = document.getElementById('movie_poster');
+    let programId = poster.dataset.programId;
+    let fallback = poster.dataset.fallback;
+    let src = `/static/banners/${programId}.jpg`;
+    let name = poster.dataset.name;
+    let year = poster.dataset.year;
+    function checkPoster() {
+        fetch('/get_movie_poster/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify([programId, name, year]),
+        credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                poster.src = src;
+                console.log('success', src)
+            }
+            else {
+                poster.src = fallback;
+                console.log('error', fallback)
+            }
+        })
+        .catch(error => {
+            console.error('Error checking poster:', error);
+            poster.src = fallback;
+        });
+    }
 
+    checkPoster();
+})
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};

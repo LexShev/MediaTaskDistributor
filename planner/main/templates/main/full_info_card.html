@@ -19,7 +19,10 @@
 
           <div class="row m-0">
             <div class="col col-2 p-0">
-              <img src="{% if full_info.poster_link %}{{ full_info.poster_link }}{% else %}/static/img/no_poster.jpg{% endif%}" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
+              <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
+                   class="img-fluid rounded mx-1 my-2" style="height: 230px;"
+                   data-fallback="{% static 'img/no_poster.jpg' %}" data-program-id="{{ full_info.Progs_program_id }}"
+                   data-name="{{ full_info.Progs_AnonsCaption }}" data-year="{{ full_info.Progs_production_year }}">
             </div>
             <div class="col p-0">
               <div class="row m-0">
