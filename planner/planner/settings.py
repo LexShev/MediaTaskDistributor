@@ -27,6 +27,7 @@ DB_USER = os.getenv('DB_USER', 'alex')
 DB_PASSWORD = os.getenv('DB_PASSWORD', 'alex')
 DB_HOST = os.getenv('DB_HOST', 'localhost')
 ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
+MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
 MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -133,7 +134,7 @@ DATABASES = {
     },
     "ffmpeg": {
         "ENGINE": "django_mongodb_engine",
-        "NAME": 'planner_db',
+        "NAME": MONGO_DB,
         'HOST': MONGO_HOST,
         "OPTIONS": {
             "authSource": "admin",
