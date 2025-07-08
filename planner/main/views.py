@@ -10,6 +10,8 @@ from django.contrib import messages
 from django.template.loader import render_to_string
 
 from on_air_report.report import report_calendar
+
+from .ffmpeg_info import ffmpeg_dict
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
 from .home_table import home_common_table
 from .js_requests import program_name
@@ -22,7 +24,6 @@ from .permission_pannel import ask_db_permissions
 from .templatetags.custom_filters import worker_name
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
-from .ffmpeg_info import ffmpeg_dict
 from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline, \
     comments_history, select_filepath_history
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
@@ -166,7 +167,6 @@ def full_list(request):
                         'material_type': material_type,
                         'work_dates': ' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
                         'task_status': task_status}
-        print(initial_dict)
         form = ListFilter(initial=initial_dict)
 
     data = {'material_list': list_material_list(schedules, engineers, material_type, work_dates, task_status),
@@ -188,8 +188,7 @@ def get_field_comparison(program_id_list, fields_to_compare):
                 initial_values[field] = current_value
             elif not has_differences.get(field) and current_value != initial_values.get(field):
                 has_differences[field] = True
-    print('initial_values', initial_values)
-    print('has_differences', has_differences)
+
     for field_id, field_name in fields_to_compare.items():
         if has_differences.get(field_id):
             if field_id in (17, 7, 14, 15, 18, 19, 22):
@@ -198,7 +197,6 @@ def get_field_comparison(program_id_list, fields_to_compare):
                 initial_dict[field_name] = 'несколько значений'
         else:
             initial_dict[field_name] = initial_values.get(field_id) if initial_values.get(field_id) is not None else ''
-    print('initial_dict', initial_dict)
     return initial_dict
 
 def load_cenz_data(request):
@@ -473,8 +471,10 @@ def material_card(request, program_id):
     form_attached_files = AttachedFilesForm()
 
     attached_files = AttachedFiles.objects.filter(program_id=program_id).order_by('timestamp')
-
-    data = {'full_info': full_info(program_id),
+    full_info_dict = full_info(program_id)
+    file_id = full_info_dict.get('Files_FileID', '')
+    print('file_id', file_id)
+    data = {'full_info': full_info_dict,
             'custom_fields': custom_fields,
             'comments_history': comments_history(program_id),
             'deadline': calc_otk_deadline(),
@@ -482,7 +482,7 @@ def material_card(request, program_id):
             'actions_list': select_actions(program_id),
             'filepath_history': select_filepath_history(program_id),
             'attached_files': attached_files,
-            'ffmpeg': ffmpeg_dict(program_id),
+            'ffmpeg': ffmpeg_dict(file_id),
             'form_text': form_text,
             'form_drop': form_drop,
             'form_attached_files': form_attached_files,

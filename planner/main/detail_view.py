@@ -16,7 +16,6 @@ def check_data_type(value):
     else:
         return str(value)
 
-
 def check_planner_status(planner_status):
     status_dict = MainSettings.status_dict
     return status_dict.get(planner_status)

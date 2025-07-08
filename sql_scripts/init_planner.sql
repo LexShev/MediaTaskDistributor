@@ -1,3 +1,7 @@
+CREATE DATABASE oplan3;
+CREATE DATABASE planner;
+CREATE DATABASE service;
+
 USE planner;
 
 CREATE TABLE task_list
@@ -25,7 +29,7 @@ INSERT INTO [planner].[dbo].[vacation_schedule]
 (worker_id, start_date, end_date)
 VALUES 
 (0, '2025-03-10', '2025-03-20'),
-(5, '2025-04-13', '2025-03-23');
+(5, '2025-04-13', '2025-04-23');
 
 CREATE TABLE worker_list
 (
