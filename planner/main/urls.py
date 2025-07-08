@@ -22,4 +22,6 @@ urlpatterns = [
 
     path("load_cenz_data/", load_cenz_data, name='load_cenz_data'),
     path("submit_cenz_data/", submit_cenz_data, name='submit_cenz_data'),
+
+    path("get_movie_poster/", get_movie_poster, name='get_movie_poster'),
 ]

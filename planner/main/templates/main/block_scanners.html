@@ -6,10 +6,7 @@
   <h5 class="text-body-secondary text-center mb-2">
     {% if ffmpeg.ffmpeg_scanners.r128 %}
       {% with r128=ffmpeg.ffmpeg_scanners.r128 %}
-        I = {{ r128.input_i }} |
-        TP = {{ r128.input_tp }} |
-        LRA = {{ r128.input_lra }} |
-        THR = {{ r128.input_thresh }}
+        I = {{ r128.input_i }} | TP = {{ r128.input_tp }} | LRA = {{ r128.input_lra }} | THR = {{ r128.input_thresh }}
       {% endwith %}
     {% else %}
       нет данных

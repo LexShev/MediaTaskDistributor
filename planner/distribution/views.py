@@ -5,6 +5,10 @@ from .distribution import main_distribution
 
 
 def start_distribution(request):
-    main_distribution()
-    return redirect('home')
+    try:
+        main_distribution()
+        return JsonResponse({'status': 'success', 'message': ''})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=405)
 

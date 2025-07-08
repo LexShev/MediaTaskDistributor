@@ -15,6 +15,7 @@ from .ffmpeg_info import ffmpeg_dict
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
 from .home_table import home_common_table
 from .js_requests import program_name
+from .kinoroom_parser import search_movie_poster
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment
 from .models import ModelFilter, AttachedFiles
 from .list_view import list_material_list
@@ -473,7 +474,6 @@ def material_card(request, program_id):
     attached_files = AttachedFiles.objects.filter(program_id=program_id).order_by('timestamp')
     full_info_dict = full_info(program_id)
     file_id = full_info_dict.get('Files_FileID', '')
-    print('file_id', file_id)
     data = {'full_info': full_info_dict,
             'custom_fields': custom_fields,
             'comments_history': comments_history(program_id),
@@ -502,6 +502,10 @@ def unblock_card(request, program_id, worker_id):
 
 def get_worker_name(request, worker_id):
     return JsonResponse({'worker_name': worker_name(worker_id)})
+
+def get_movie_poster(request):
+    program_id, program_name, year = json.loads(request.body)
+    return JsonResponse({'status': search_movie_poster(program_id, program_name, year)})
 
 @login_required()
 def kpi_info(request):
