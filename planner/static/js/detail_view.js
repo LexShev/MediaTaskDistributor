@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let src = `/static/banners/${programId}.jpg`;
     let name = poster.dataset.name;
     let year = poster.dataset.year;
+    let country = poster.dataset.country;
     function checkPoster() {
         fetch('/get_movie_poster/', {
         method: 'POST',
@@ -98,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'X-CSRFToken': getCookie('csrftoken'),
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify([programId, name, year]),
+        body: JSON.stringify([programId, name, year, country]),
         credentials: 'same-origin'
         })
         .then(response => response.json())

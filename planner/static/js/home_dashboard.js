@@ -54,10 +54,10 @@ function initWeekChart() {
   charts.week = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+      labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт'],
       datasets: [{
         fill: true,
-        data: [150, 180, 145, 160, 160, 140, 150],
+        data: [158, 162, 159, 160, 161],
         lineTension: 0.2,
         backgroundColor: getBootstrapColor('--bs-info-bg-subtle'),
         borderColor: getBootstrapColor('--bs-info-border-subtle'),

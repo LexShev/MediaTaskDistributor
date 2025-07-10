@@ -3,7 +3,6 @@ from types import NoneType
 
 from django.db import connections
 
-from .kinoroom_parser import locate_url
 from .db_connection import parent_name, parent_adult_name
 from .settings.main_set import MainSettings
 
@@ -70,19 +69,19 @@ def full_info(program_id):
         if full_info_dict.get('Progs_program_kind') in (1, 4):
             full_info_dict['episodes'] = find_episodes(program_id)
 
-        if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
-            poster_link = locate_url(
-                full_info_dict.get('Progs_parent_id'),
-                parent_name(full_info_dict.get('Progs_parent_id')),
-                full_info_dict.get('Progs_production_year'))
-            full_info_dict['poster_link'] = poster_link
-        else:
-            poster_link = locate_url(
-                full_info_dict.get('Progs_program_id'),
-                full_info_dict.get('Progs_AnonsCaption'),
-                full_info_dict.get('Progs_production_year'))
-
-            full_info_dict['poster_link'] = poster_link
+        # if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
+        #     poster_link = locate_url(
+        #         full_info_dict.get('Progs_parent_id'),
+        #         parent_name(full_info_dict.get('Progs_parent_id')),
+        #         full_info_dict.get('Progs_production_year'))
+        #     full_info_dict['poster_link'] = poster_link
+        # else:
+        #     poster_link = locate_url(
+        #         full_info_dict.get('Progs_program_id'),
+        #         full_info_dict.get('Progs_AnonsCaption'),
+        #         full_info_dict.get('Progs_production_year'))
+        #
+        #     full_info_dict['poster_link'] = poster_link
         return full_info_dict
 
 def find_file_path(program_id):
