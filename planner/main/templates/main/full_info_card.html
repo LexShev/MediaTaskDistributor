@@ -17,47 +17,91 @@
       <div id="collapseDescription" class="accordion-collapse collapse show" data-bs-parent="#accordion_sum_info">
         <div class="accordion-body">
 
-          <div class="row m-0">
-            <div class="col col-2 p-0">
+          <div class="row m-0 mb-2 gx-1 gy-2">
+            <div class="col px-1 d-flex align-items-center" style="flex: 0 0 15%; max-width: 15%; height: 90%;">
               <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
-                   class="img-fluid rounded mx-1 my-2" style="height: 230px;"
+                   class="img-fluid rounded m-0 w-100 h-auto object-fit-cover"
                    data-fallback="{% static 'img/no_poster.jpg' %}" data-program-id="{{ full_info.Progs_program_id }}"
-                   data-name="{{ full_info.Progs_AnonsCaption }}" data-year="{{ full_info.Progs_production_year }}">
+                   data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
+                   data-country="{{ full_info.Progs_production_country }}">
             </div>
-            <div class="col p-0">
-              <div class="row m-0">
-                <h6 class="{{ full_info.color }} text-end p-1">
-                  {{ full_info.material_status }}
-                  {% if full_info.Task_ready_date %}
-                    {{ full_info.Task_ready_date|date:'d.m.Y' }}
-                  {% else %}
-                    {{ full_info.oplan3_work_date|date:'d.m.Y' }}
-                  {% endif %}
-                </h6>
-              </div>
 
-              <div class="row m-0">
-                <div class="col col-5 p-0">
+
+            <div class="col px-1" style="flex: 0 0 85%; max-width: 85%;">
+              <div class="row mb-2 mx-0 align-items-center">
+                <div class="col">
+                  <h6 class="{{ full_info.color }} text-end p-1 m-0">
+                    {{ full_info.material_status }}
+                    {% if full_info.Task_ready_date %}
+                      {{ full_info.Task_ready_date|date:'d.m.Y' }}
+                    {% else %}
+                      {{ full_info.oplan3_work_date|date:'d.m.Y' }}
+                    {% endif %}
+                  </h6>
+                </div>
+              </div>
+              <div class="row mb-2 mx-0 align-items-center">
+                <div class="col-md-6">
                   <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
                     {{ full_info.Progs_name }}{% if full_info.Adult_Name %}. {{ full_info.Adult_Name }}{% endif %}
                   </h5>
                 </div>
-                <div class="col col-7 p-0">
-                    <div class="row align-items-center text-end mx-1 p-0">
-                      <div class="col ms-0 m-0 p-0">
-                        <input type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle" value="{{ full_info.Files_Name }}" id="file_path">
-                      </div>
-                      <div class="col col-1 m-0 p-0">
-                        <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
-                              <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
-                              <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
-                            </svg>
-                        </button>
-                      </div>
+                <div class="col p-0">
+                  <div class="row align-items-center text-end mx-1 p-0">
+                    <div class="col ms-0 m-0 p-0">
+                      <input type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle" value="{{ full_info.Files_Name }}" id="file_path">
                     </div>
+                    <div class="col col-1 m-0 p-0">
+                      <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText()">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                          </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
+              <div class="row g-2 ms-2 mx-0">
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <textarea class="form-control" id="year_form" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
+                    <label for="year_form">Год</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <textarea class="form-control" id="country_form" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
+                    <label for="country_form">Страна</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <textarea class="form-control" id="director_form" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
+                    <label for="director_form">Режиссёр</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
+                    <label for="roles_form">В ролях</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
+                    <label for="theme_form">Тематика</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
+                    <label for="keywords_form">Ключевые слова</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
               {% block scripts %}
                 <script>
                   function CopyText() {
@@ -68,39 +112,10 @@
                 }
                 </script>
               {% endblock scripts %}
-              <div class="row m-0">
-                <div class="col col-5 p-0">
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="year_form" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
-                  <label for="year_form">Год</label>
-                </div>
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="country_form" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
-                  <label for="country_form">Страна</label>
-                </div>
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="director_form" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
-                  <label for="director_form">Режиссёр</label>
-                </div>
-              </div>
-              <div class="col col-7 p-0">
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
-                  <label for="roles_form">В ролях</label>
-                </div>
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
-                  <label for="theme_form">Тематика</label>
-                </div>
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
-                  <label for="keywords_form">Ключевые слова</label>
-                </div>
-              </div>
-            </div>
 
 
-            </div>
+
+
           </div>
 
           <div class="form-floating mx-1 my-2">

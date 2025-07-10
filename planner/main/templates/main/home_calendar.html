@@ -4,7 +4,7 @@
 <table cellpadding="4" class="month">
   <thead class="text-center text-secondary">
     <tr>
-      <th class="p-2"></th>
+      <th class="p-2 week-number"></th>
       <th class="mon p-2">Пн</th>
       <th class="tue p-2">Вт</th>
       <th class="wed p-2">Ср</th>
@@ -22,15 +22,15 @@
         {% for date in week %}
           {% if date.day|date:"n" == cal_month|stringformat:"s" %}
             <td>
-              <button class="btn cal-btn m-1 p-1 {{ date.color }}"
+              <button class="btn cal-btn w-100 p-1 {{ date.color }}"
                       name="cal_day" value="{{ date.day|date:'Y-m-d' }}"
-                      type="submit" style="width: 3rem; height: 3rem;"
+                      type="submit"
                       title="Выполнено: {{ date.ready_tasks }}&#10;Осталось: {{ date.not_ready_tasks }}">
                 {{ date.day|date:"j" }}
               </button></td>
           {% else %}
             <td>
-              <button class="btn cal-btn p-2" type="button" style="width: 3rem; height: 3rem;" disabled>
+              <button class="btn cal-btn w-100 p-2" type="button" disabled>
                 {{ date.day|date:"j" }}</button></td>
           {% endif %}
         {% endfor %}
