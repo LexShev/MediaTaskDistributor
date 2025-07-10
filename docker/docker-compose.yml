@@ -3,6 +3,7 @@ version: '3.8'
 services:
   web:
     container_name: media_task_web
+    image: python:3.10
     build:
       context: ..  # Собираем из корня проекта
       dockerfile: docker/Dockerfile  # Путь к Dockerfile относительно контекста
@@ -15,5 +16,5 @@ services:
     env_file:
       - ../.env
     restart: unless-stopped
-    image: media_task_web
+
     network_mode: bridge
