@@ -69,19 +69,10 @@ def full_info(program_id):
         if full_info_dict.get('Progs_program_kind') in (1, 4):
             full_info_dict['episodes'] = find_episodes(program_id)
 
-        # if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
-        #     poster_link = locate_url(
-        #         full_info_dict.get('Progs_parent_id'),
-        #         parent_name(full_info_dict.get('Progs_parent_id')),
-        #         full_info_dict.get('Progs_production_year'))
-        #     full_info_dict['poster_link'] = poster_link
-        # else:
-        #     poster_link = locate_url(
-        #         full_info_dict.get('Progs_program_id'),
-        #         full_info_dict.get('Progs_AnonsCaption'),
-        #         full_info_dict.get('Progs_production_year'))
-        #
-        #     full_info_dict['poster_link'] = poster_link
+        if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
+            full_info_dict['material_type'] = 'season'
+        else:
+            full_info_dict['material_type'] = 'film'
         return full_info_dict
 
 def find_file_path(program_id):

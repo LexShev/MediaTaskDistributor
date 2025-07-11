@@ -1,4 +1,5 @@
 import datetime
+import re
 from typing import List, Dict
 from django.conf import settings
 from django.db import connections
@@ -16,10 +17,10 @@ headers = {
 def download_poster(program_id, movie_id):
     base_urls = [
         'https://images-s.kinorium.com/movie/400/',
-        'https://en-images.kinorium.com/movie/400/',
-        'https://en-images-s.kinorium.com/movie/400/',
         'https://ru-images.kinorium.com/movie/400/',
         'https://ru-images-s.kinorium.com/movie/400/',
+        'https://en-images.kinorium.com/movie/400/',
+        'https://en-images-s.kinorium.com/movie/400/',
     ]
 
     os.makedirs(settings.STATIC_BANNERS, exist_ok=True)
@@ -56,70 +57,97 @@ def download_poster(program_id, movie_id):
 
 
 def poster_parser(query: Dict):
+    print(query)
     program_name = query['title'].replace('ё', 'е')
     program_name = program_name.replace('`', '')
     program_name = program_name.replace('’', '')
-    program_name = program_name.replace(' ', '%20')
     program_name = program_name.split('сезон')[0]
     program_name = program_name.split('серия')[0]
-    program_name = program_name[:35]
-    program_year = query['year']
+    program_name = program_name.split('№')[0]
+    program_name = program_name[:35].rstrip()
+    program_name = program_name.replace(' ', '%20')
+    program_year = clean_year(query['year'])
 
     search_url = f'https://ru.kinorium.com/search/?q={program_name}%20{program_year}'
     print('search_url', search_url)
     response = requests.get(search_url, headers=headers)
     if response.status_code == 200:
+        work_url = response.url
+        print(work_url)
         soup = BeautifulSoup(response.text, 'html.parser')
-        movie_list = soup.find('div', {'class': 'movieList'})
-        print(movie_list)
-        if movie_list:
-            movies = []
-            for item in movie_list.find_all('div', {'class': 'item'}):
-                title_tag = item.find('h3', {'class': 'search-page__item-title'})
-                movie_id = title_tag.get('data-id') if title_tag else None
+        if work_url.startswith('https://ru.kinorium.com/search/'):
+            movie_list = soup.find('div', {'class': 'movieList'})
+            if movie_list:
+                movies = []
+                for item in movie_list.find_all('div', {'class': 'item'}):
+                    title_tag = item.find('h3', {'class': 'search-page__item-title'})
+                    movie_id = title_tag.get('data-id') if title_tag else None
 
-                title_link = item.find('a', {'class': 'search-page__item-title-text'})
-                title = title_link.get_text(strip=True) if title_link else None
+                    title_link = item.find('a', {'class': 'search-page__item-title-text'})
+                    title = title_link.get_text(strip=True).split('(сериал)')[0] if title_link else None
 
-                year_tag = item.find('small', {'class': 'cut_text'})
-                production_year = year_tag.get_text(strip=True).split(',')[0] if year_tag else None
+                    year_tag = item.find('small', {'class': 'cut_text'})
+                    production_year = year_tag.get_text(strip=True).split(',')[0] if year_tag else None
 
-                extro_info = item.find('div', {'class': 'search-page__extro-info'})
-                if extro_info:
-                    genre_div = extro_info.find('div', {'class': 'search-page__genre-list'})
-                    if genre_div:
-                        genre_div.extract()
-                    country = extro_info.get_text(strip=True)
-                else:
-                    country = None
+                    extro_info = item.find('div', {'class': 'search-page__extro-info'})
+                    if extro_info:
+                        genre_div = extro_info.find('div', {'class': 'search-page__genre-list'})
+                        if genre_div:
+                            genre_div.extract()
+                        country = extro_info.get_text(strip=True)
+                    else:
+                        country = None
 
-                if movie_id and title and production_year:
-                    movies.append({
-                        'program_id': query['program_id'],
-                        'data-id': movie_id,
-                        'title': title,
-                        'year': production_year,
-                        'country': country,
-                    })
-            return movies
+                    if movie_id and title and production_year:
+                        movies.append({
+                            'program_id': query['program_id'],
+                            'data-id': movie_id,
+                            'title': title,
+                            'year': production_year,
+                            'country': country,
+                        })
+                return movies
+        elif re.fullmatch(r'https://ru\.kinorium\.com/\d+/', work_url):
+            movie_id = work_url.split('/')[-2]
 
+            title_tag = soup.find('h1', {'class': 'film-page__title-text'})
+            title = title_tag.get_text(strip=True) if title_tag else None
+
+            year_tag = soup.find('span', {'class': 'film-page__date'})
+            production_year = year_tag.get_text(strip=True).split(',')[0] if year_tag else None
+
+            country_tag = soup.find('div', {'class': 'film-page__country-links'})
+            country = country_tag.get_text() if country_tag else None
+            return [{
+                'program_id': query['program_id'],
+                'data-id': movie_id,
+                'title': title,
+                'year': production_year,
+                'country': country,
+            }]
 
 def split_countries(countries_str):
     if not countries_str or not countries_str.strip():
         return []
     return [c.strip() for c in countries_str.replace("'", "").split(',')]
 
+def clean_year(year):
+    try:
+        if not year and not re.sub(r'[^\d]', '', year):
+            return 0
+        year_str = year.strip().split('-')[0].split('–')[0].split('—')[0]
+        return int(re.sub(r'[^\d]', '', year_str))
+    except Exception as e:
+        print(year, e)
+        return 0
 
 def calculate_year_score(query_year, movie_year):
     try:
-        query_year = int(query_year.strip().split('-')[0].split('–')[0].split('—')[0])
-        movie_year = int(movie_year.strip().split('-')[0].split('–')[0].split('—')[0])
+        year_diff = abs(clean_year(query_year) - clean_year(movie_year))
+        return 1 if year_diff <= 1 else 0
     except Exception as e:
         print(e)
         return 0
-    year_diff = abs(query_year - movie_year)
-    return 1 if year_diff <= 1 else 0
-
 
 def normalize_similarity(value: float) -> float:
     return max(0, min(1, value / 100))
@@ -153,7 +181,6 @@ def search(query: Dict, threshold: float = 0.7) -> Dict:
         return {}
     results = []
     movie_list = poster_parser(query)
-    print(movie_list)
     if not movie_list:
         return {}
     for movie in movie_list:
@@ -172,7 +199,7 @@ def search(query: Dict, threshold: float = 0.7) -> Dict:
 
     results.sort(key=lambda x: x['score'], reverse=True)
     if results: return results[0]
-    return []
+    return {}
 
 
 def check_db(program_id):

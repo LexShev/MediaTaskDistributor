@@ -236,3 +236,14 @@ function ShowOTKComment() {
     OTKComment.toggle();
 
 };
+
+function ResetFilter() {
+    const [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus] =
+    ['ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status']
+    .map(id => document.getElementById(id));
+
+    [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus].forEach(el => {el.value = '';});
+
+    document.getElementById('otk_form').submit();
+
+};

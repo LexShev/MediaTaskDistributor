@@ -6,7 +6,7 @@
 <div class="container-flex px-lg-5">
 <br>
 
-  <form method="post">
+  <form method="post" id="otk_form">
     {% csrf_token %}
 
     <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
@@ -110,6 +110,7 @@
         {% endfor %}
         <div class="col ps-0 m-0">
           <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+          <button type="button" onclick="ResetFilter()" class="btn btn-sm register-button btn-outline-secondary">Сбросить</button>
         </div>
       </div>
     </div>

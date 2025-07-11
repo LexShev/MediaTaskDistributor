@@ -3,7 +3,7 @@ const userId = document.body.dataset.userId || null;
 
 window.addEventListener('load', CheckLockCard);
 window.addEventListener('beforeunload', function(e) {
-    fetch(`/unblock_card/${programId}/${userId}`)
+    fetch(`/unblock_card/${programId}/${userId}/`)
         .then(response => response.json())
         .then(data => {
             console.log(data.response);
@@ -15,10 +15,10 @@ window.addEventListener('beforeunload', function(e) {
 
 async function CheckLockCard() {
     try {
-        let response = await fetch(`/check_lock_card/${programId}`);
+        let response = await fetch(`/check_lock_card/${programId}/`);
         let data = await response.json();
         if (!data?.locked) {
-            await fetch(`/block_card/${programId}/${userId}`)
+            await fetch(`/block_card/${programId}/${userId}/`)
                 .then(response => response.json())
                 .then(data => {
                     console.log(data.response);
@@ -85,12 +85,26 @@ function ValidateForm() {
 
 document.addEventListener('DOMContentLoaded', function() {
     let poster = document.getElementById('movie_poster');
+
+    let materialType = poster.dataset.materialType;
     let programId = poster.dataset.programId;
+    let parentId = poster.dataset.parentId;
     let fallback = poster.dataset.fallback;
-    let src = `/static/banners/${programId}.jpg`;
     let name = poster.dataset.name;
     let year = poster.dataset.year;
     let country = poster.dataset.country;
+    let query;
+    let src;
+
+    if (materialType === 'film') {
+        query = [programId, name, year, country]
+        src = `/static/banners/${programId}.jpg`
+    }
+    else {
+        query = [parentId, name, year, country]
+        src = `/static/banners/${parentId}.jpg`
+    };
+
     function checkPoster() {
         fetch('/get_movie_poster/', {
         method: 'POST',
@@ -99,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'X-CSRFToken': getCookie('csrftoken'),
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify([programId, name, year, country]),
+        body: JSON.stringify(query),
         credentials: 'same-origin'
         })
         .then(response => response.json())
@@ -135,4 +149,11 @@ function getCookie(name) {
         }
     }
     return cookieValue;
+};
+
+function CopyText() {
+    var text = document.getElementById('file_path')
+    text.focus()
+    text.select()
+    document.execCommand('copy');
 };
