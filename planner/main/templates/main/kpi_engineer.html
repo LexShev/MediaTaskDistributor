@@ -1,4 +1,5 @@
 {% extends  'main/index.html' %}
+{% load static %}
 
 <main role="main">
 {% block body %}
@@ -63,7 +64,7 @@
     </div>
 
     <div class="col col-10 pe-5">
-      <form method="post" class="container p-0 m-0 d-flex align-items-center justify-content-start">
+      <form method="post" id="kpi_engineer_form" class="container p-0 m-0 d-flex align-items-center justify-content-start">
         {% csrf_token %}
         <div class="row ms-0 m-2 align-items-center">
           <div class="col ps-0">
@@ -85,8 +86,9 @@
             </div>
           </div>
         </div>
-        <div class="col">
+        <div class="col ps-0 m-0">
           <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+          <button type="button" onclick="ResetFilter()" class="btn btn-sm register-button btn-outline-secondary">Сбросить</button>
         </div>
       </form>
 
@@ -115,5 +117,6 @@
     </div>
   </div>
 </div>
+<script type="text/javascript" src="{% static 'js/kpi_engineer.js' %}"></script>
 {% endblock %}
 </main>

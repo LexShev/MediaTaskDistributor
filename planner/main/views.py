@@ -228,28 +228,6 @@ def load_cenz_data(request):
         }
 
         initial_dict = get_field_comparison(program_id_list, fields_to_compare)
-        #
-        # form_drop = CenzFormDropDown(
-        #     initial={
-        #         'meta_form': initial_dict.get(17),
-        #         'work_date_form': (initial_dict.get(7)),
-        #         'cenz_rate_form': initial_dict.get(14),
-        #         'engineers_form': initial_dict.get(15),
-        #         'tags_form': initial_dict.get(18),
-        #         'inoagent_form': initial_dict.get(19),
-        #         'narc_select_form': initial_dict.get(22),
-        #     })
-        # form_text = CenzFormText(comparison_data=initial_dict,
-        #     # initial={
-        #     #     'lgbt_form': initial_dict.get(8),
-        #     #     'sig_form': initial_dict.get(9),
-        #     #     'obnazh_form': initial_dict.get(10),
-        #     #     'narc_form': initial_dict.get(11),
-        #     #     'mat_form': initial_dict.get(12),
-        #     #     'other_form': initial_dict.get(13),
-        #     #     'editor_form': initial_dict.get(16)
-        #     # }
-        # )
 
         html = render_to_string('main/block_cenz.html', {
             'form_drop': CenzFormDropDown(comparison_data=initial_dict),
@@ -515,14 +493,14 @@ def get_movie_poster(request):
 @login_required()
 def kpi_info(request):
     worker_id = request.user.id
-    work_date = str(datetime.today().date())
+    work_date = datetime.today().date()
     engineers = ''
     task_status = ''
     material_type = ''
     if request.method == 'POST':
         form = KpiForm(request.POST)
         if form.is_valid():
-            work_date = str(form.cleaned_data.get('work_date_form'))
+            work_date = form.cleaned_data.get('work_date_form')
             engineers = form.cleaned_data.get('engineers_form')
             material_type = form.cleaned_data.get('material_type_form')
             task_status = form.cleaned_data.get('task_status_form')
@@ -533,7 +511,10 @@ def kpi_info(request):
             'material_type_form': material_type,
             'task_status': task_status})
 
-    task_list, summary_dict = kpi_summary_calc(work_date, engineers, material_type, task_status)
+    task_list, summary_dict = kpi_summary_calc(
+        {'work_date': work_date, 'engineers': engineers,
+         'material_type': material_type, 'task_status': task_status})
+
     data = {'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.today().date(),
@@ -544,13 +525,13 @@ def kpi_info(request):
 @login_required()
 def engineer_profile(request, engineer_id):
     worker_id = request.user.id
-    work_date = str(datetime.today().date())
+    work_date = datetime.today().date()
     task_status = ''
     material_type = ''
     if request.method == 'POST':
         form = KpiForm(request.POST)
         if form.is_valid():
-            work_date = str(form.cleaned_data.get('work_date_form'))
+            work_date = form.cleaned_data.get('work_date_form')
             material_type = form.cleaned_data.get('material_type_form')
             task_status = form.cleaned_data.get('task_status_form')
     else:
@@ -558,7 +539,11 @@ def engineer_profile(request, engineer_id):
             'work_date_form': work_date,
             'material_type': material_type,
             'task_status': task_status})
-    task_list, summary_dict = kpi_personal_calc(work_date, engineer_id, material_type, task_status)
+
+    task_list, summary_dict = kpi_personal_calc(
+        {'work_date': work_date, 'engineer_id': engineer_id,
+         'material_type': material_type, 'task_status': task_status})
+
     data = {'engineer_id': engineer_id,
             'task_list': task_list,
             'summary_dict': summary_dict,

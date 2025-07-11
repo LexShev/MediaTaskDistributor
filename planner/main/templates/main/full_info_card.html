@@ -18,10 +18,11 @@
         <div class="accordion-body">
 
           <div class="row m-0 mb-2 gx-1 gy-2">
-            <div class="col px-1 d-flex align-items-center" style="flex: 0 0 15%; max-width: 15%; height: 90%;">
+            <div class="col px-1 d-flex align-items-center" style="flex: 0 0 15%; max-width: 15%; height: 100%;">
               <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
                    class="img-fluid rounded m-0 w-100 h-auto object-fit-cover"
-                   data-fallback="{% static 'img/no_poster.jpg' %}" data-program-id="{{ full_info.Progs_program_id }}"
+                   data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
+                   data-program-id="{{ full_info.Progs_program_id }}" data-parent-id="{{ full_info.Progs_parent_id }}"
                    data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
                    data-country="{{ full_info.Progs_production_country }}">
             </div>
@@ -101,18 +102,6 @@
                 </div>
               </div>
             </div>
-
-              {% block scripts %}
-                <script>
-                  function CopyText() {
-                  var text = document.getElementById('file_path')
-                  text.focus()
-                  text.select()
-                  document.execCommand('copy');
-                }
-                </script>
-              {% endblock scripts %}
-
 
 
 
@@ -230,9 +219,10 @@
           </div>
         </div>
     </div>
+  <script type="text/javascript" src="{% static 'js/detail_view.js' %}"></script>
   {% else %}
 
-  <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_folder_info">
+    <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_folder_info">
       <div class="accordion-item">
         <h6 class="accordion-header">
           <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFolder" aria-expanded="true" aria-controls="collapseFolder">
@@ -311,6 +301,6 @@
   {% endif %}
 </div>
 <br>
-<script type="text/javascript" src="{% static 'js/detail_view.js' %}"></script>
+
 {% endblock %}
 </main>

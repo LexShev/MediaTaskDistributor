@@ -1,4 +1,5 @@
 {% extends  'main/index.html' %}
+{% load static %}
 
 <main role="main">
 {% block body %}
@@ -57,75 +58,13 @@
             </div>
           </div>
         </div>
-<!--        <div class="col m-2">-->
-<!--          <div class="card text-center border-secondary p-0" style="width: 16rem;">-->
-<!--            <div class="card-header border-secondary">-->
-<!--              <h5>Сегодня</h5>-->
-<!--            </div>-->
-<!--            <div class="card-body border-secondary">-->
-<!--              <h3 class="card-title">{{ today|date:'d.m.Y' }}</h3>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
       </div>
 
 
-<!--      <div class="flex-shrink-0 bg-primary-subtle p-3">-->
-<!--        <p>Общая статистика</p>-->
-<!--        <ul class="list-unstyled ps-0">-->
-<!--          <li class="mb-1">-->
-<!--            <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">-->
-<!--              Сотрудники-->
-<!--            </button>-->
-<!--            <div class="collapse show" id="home-collapse">-->
-<!--              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Александр Кисляков</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Ольга Кузовкина</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Дмитрий Гатенян</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Мария Сучкова</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Андрей Антипин</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Роман Рогачев</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Анастасия Чебакова</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Никита Кузаков</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Олег Кашежев</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Марфа Тарусина</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Евгений Доманов</a></li>-->
-<!--              </ul>-->
-<!--            </div>-->
-<!--          </li>-->
-<!--          <li class="mb-1">-->
-<!--            <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">-->
-<!--              Все задачи-->
-<!--            </button>-->
-<!--            <div class="collapse" id="dashboard-collapse">-->
-<!--              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">На отсмотре</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">В ОТК</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">В доработке</a></li>-->
-<!--              </ul>-->
-<!--            </div>-->
-<!--          </li>-->
-
-<!--          <li class="border-top my-3"></li>-->
-<!--          <li class="mb-1">-->
-<!--            <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">-->
-<!--              Общий пул-->
-<!--            </button>-->
-<!--            <div class="collapse" id="account-collapse">-->
-<!--              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">...</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">...</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">...</a></li>-->
-<!--                <li><a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded">...</a></li>-->
-<!--              </ul>-->
-<!--            </div>-->
-<!--          </li>-->
-<!--        </ul>-->
-<!--      </div>-->
     </div>
     <div class="col col-10 pe-5">
 
-      <form method="post" class="container p-0 m-0 d-flex align-items-center justify-content-start">
+      <form method="post" id="kpi_form" class="container p-0 m-0 d-flex align-items-center justify-content-start">
         {% csrf_token %}
         <div class="row ms-0 m-2 align-items-center">
           {% for field in form %}
@@ -138,6 +77,7 @@
           {% endfor %}
           <div class="col ps-0 m-0">
             <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+            <button type="button" onclick="ResetFilter()" class="btn btn-sm register-button btn-outline-secondary">Сбросить</button>
           </div>
         </div>
       </form>
@@ -146,6 +86,6 @@
     </div>
   </div>
 </div>
-
+<script type="text/javascript" src="{% static 'js/kpi_admin_panel.js' %}"></script>
 {% endblock %}
 </main>

@@ -6,7 +6,7 @@
 <div class="container-flex px-lg-5">
   <br>
 
-  <form method="post">
+  <form method="post" id="admin_form">
   {% csrf_token %}
     <div class="d-flex p-0 m-0 mb-3 align-items-center justify-content-start">
       <div class="row ms-0 m-2 align-items-center">
@@ -20,6 +20,7 @@
         {% endfor %}
         <div class="col ps-0 m-0">
           <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+          <button type="button" onclick="ResetFilter()" class="btn btn-sm register-button btn-outline-secondary">Сбросить</button>
         </div>
       </div>
     </div>
