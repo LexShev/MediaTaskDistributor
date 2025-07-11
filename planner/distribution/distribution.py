@@ -5,7 +5,7 @@ from django.db import connections
 
 def main_distribution():
     work_date = datetime.today().date()
-    work_date = date(day=10, month=3, year=2025)
+    # work_date = date(day=7, month=7, year=2025)
 
     material_list_sql, django_columns = oplan_material_list(start_date=work_date, work_duration=28)
     program_id_list = []

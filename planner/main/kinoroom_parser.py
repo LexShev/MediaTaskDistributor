@@ -16,8 +16,8 @@ headers = {
 def download_poster(program_id, movie_id):
     base_urls = [
         'https://images-s.kinorium.com/movie/400/',
-        'https://en-images.kinorium.com/movie/400/'
-        'https://en-images-s.kinorium.com/movie/400/'
+        'https://en-images.kinorium.com/movie/400/',
+        'https://en-images-s.kinorium.com/movie/400/',
         'https://ru-images.kinorium.com/movie/400/',
         'https://ru-images-s.kinorium.com/movie/400/',
     ]
@@ -47,6 +47,7 @@ def download_poster(program_id, movie_id):
                     for chunk in response.iter_content(8192):
                         f.write(chunk)
                     insert_into_db(program_id)
+                    print('poster downloaded')
                     return 'success'
 
         except (requests.RequestException, OSError) as e:
@@ -61,11 +62,11 @@ def poster_parser(query: Dict):
     program_name = program_name.replace(' ', '%20')
     program_name = program_name.split('сезон')[0]
     program_name = program_name.split('серия')[0]
-    program_name = program_name[:40]
+    program_name = program_name[:35]
     program_year = query['year']
 
     search_url = f'https://ru.kinorium.com/search/?q={program_name}%20{program_year}'
-    print(search_url)
+    print('search_url', search_url)
     response = requests.get(search_url, headers=headers)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -170,7 +171,8 @@ def search(query: Dict, threshold: float = 0.7) -> Dict:
             })
 
     results.sort(key=lambda x: x['score'], reverse=True)
-    return results[0]
+    if results: return results[0]
+    return []
 
 
 def check_db(program_id):
