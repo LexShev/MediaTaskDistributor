@@ -1,4 +1,4 @@
-from django.db.models import Model, IntegerField
+from django.db.models import Model, IntegerField, CharField
 
 
 class AdvancedSearch(Model):

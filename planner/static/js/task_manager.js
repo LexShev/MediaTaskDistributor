@@ -118,7 +118,6 @@ function totalCalc() {
             visibleCount++;
         }
     };
-    console.log(countDuration);
 
     totalNum.textContent = `Всего: ${thousands(visibleCount)}`;
     totalDuration.textContent = `Продолжительность: ${convertFramesToTime(countDuration)}`;
@@ -135,4 +134,34 @@ function ResetFilter() {
 
     document.getElementById('admin_form').submit();
 
+};
+
+function convertFramesToTime(frames, fps = 25) {
+    const sec = parseInt(frames) / fps;
+    const yy = Math.floor(Math.floor(sec / 3600 / 24) / 365);
+    const dd = Math.floor(Math.floor(sec / 3600 / 24) % 365);
+    const hh = Math.floor((sec / 3600) % 24);
+    const mm = Math.floor((sec % 3600) / 60);
+    const ss = Math.floor((sec % 3600) % 60);
+    const ff = Math.floor((sec % 1) * fps);
+
+    const formatNum = num => num.toString().padStart(2, '0');
+
+    if (yy < 1) {
+        if (dd < 1) {
+            return `${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        } else {
+            return `${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        }
+    } else {
+        if (0 < yy % 10 && yy % 10 < 5) {
+            return `${formatNum(yy)}г. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        } else {
+            return `${formatNum(yy)}л. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        }
+    }
+};
+
+function thousands(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };

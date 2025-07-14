@@ -5,16 +5,20 @@ from django.shortcuts import render, redirect
 from main.permission_pannel import ask_db_permissions
 from messenger_static.forms import MessageForm
 from .messenger_utils import show_messages, insert_views, all_messages, show_viewed_messages
-from .models import Message, Program
+from .models import Message, Program, Notification
 
 
 @login_required()
 def index(request):
     worker_id = request.user.id
-    # prog_count = Message.objects.values('program_id').annotate(
-    #     count=Count('program_id', distinct=True)).order_by().count()
+    last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
+    all_notifications = Notification.objects.filter(recipient=worker_id).order_by('timestamp')[:50] or []
+    unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
     data = {
         'all_messages': all_messages(worker_id),
+        'last_notice': last_notice,
+        'all_notifications': all_notifications,
+        'unread_notifications': unread_notifications,
         'permissions': ask_db_permissions(worker_id),
     }
     return render(request, 'messenger_static/messenger_empty.html', data)
@@ -34,16 +38,20 @@ def messenger(request, program_id):
             return redirect('messenger', program_id=program_id)
     form = MessageForm()
 
-    messages = Message.objects.filter(program_id=program_id).order_by('timestamp')[:50]
+    messages = Message.objects.filter(program_id=program_id).order_by('timestamp')[:50] or []
     program_info = Program.objects.using('oplan3').get(program_id=program_id)
     print('program_info', program_info)
 
     # messages = show_messages(program_id)
     viewed_messages = show_viewed_messages(program_id, worker_id) or []
+    last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
+    unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
     data = {
         'messages': messages,
         'viewed_messages': viewed_messages,
         'all_messages': all_messages(worker_id),
+        'last_notice': last_notice,
+        'unread_notifications': unread_notifications,
         'program_info': program_info,
         'form': form,
         'permissions': ask_db_permissions(worker_id),
@@ -59,3 +67,16 @@ def messenger(request, program_id):
     return render(request, 'messenger_static/messenger.html', data)
 
 
+def notificator(request):
+    worker_id = request.user.id
+    last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
+    all_notifications = Notification.objects.filter(recipient=worker_id).order_by('timestamp')[:50] or []
+    unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
+    data = {
+        'all_messages': all_messages(worker_id),
+        'last_notice': last_notice,
+        'all_notifications': all_notifications,
+        'unread_notifications': unread_notifications,
+        'permissions': ask_db_permissions(worker_id),
+    }
+    return render(request, 'messenger_static/notificator.html', data)

@@ -1,0 +1,25 @@
+{% extends  'messenger_static/index.html' %}
+{% load static %}
+
+
+{% block messenger %}
+
+<div class="notificator-container rounded-bottom p-0">
+    <h6 class="cur-chat-name text-center shadow p-2 mb-0">Уведомления</h6>
+    <div class="notifications flex-grow-1 overflow-auto" id="notifications" style="height: 59rem">
+        {% for notice in all_notifications %}
+            <div class="d-flex">
+                <div class="notice-item {% if notice.notice_id not in viewed_notifications %}new-notice{% endif %}"
+                     data-notice-id="{{ notice.notice_id }}">
+                    <h6>{{ notice.sender|worker_name }}</h6>
+                    <div class="notice-text">{{ notice.message|linebreaks }}</div>
+                    <small class="text-muted d-block text-end">{{ notice.timestamp|date:"d.m.Y H:i:s" }}</small>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+

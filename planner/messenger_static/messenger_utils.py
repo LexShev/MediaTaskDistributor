@@ -65,6 +65,7 @@ def all_messages(worker_id):
                     message_sorted[program_id]['unread_num'] += 1
             return message_sorted
 
+
 def show_messages(program_id):
     with connections['default'].cursor() as cursor:
         columns = ('m_message_id', 'm_owner', 'm_program_id', 'm_message', 'm_file_path', 'Progs_name', 'Progs_production_year', 'm_timestamp')
@@ -77,7 +78,6 @@ def show_messages(program_id):
         WHERE m.[program_id] = {program_id}
         ORDER BY [timestamp]
         '''
-        print(query)
         cursor.execute(query)
         messages = cursor.fetchall()
         if messages:
@@ -89,7 +89,6 @@ def show_messages(program_id):
                     file_path = temp_dict.get('m_file_path')
                 temp_dict['file_type'] = file_type(file_path)
                 message_list.append(temp_dict)
-            print(message_list)
             return message_list
 
 def file_type(file_path):
@@ -113,7 +112,6 @@ def show_viewed_messages(program_id, worker_id):
         WHERE [worker_id] = {worker_id}
         AND [message_id] IN 
         (SELECT [message_id] FROM [service].[dbo].[messenger_static_message] WHERE [program_id] = {program_id})'''
-        print(query)
         cursor.execute(query)
         viewed_messages = cursor.fetchall()
         if viewed_messages:
@@ -127,4 +125,4 @@ def insert_views(program_id_list):
         VALUES
         (%s, %s);'''
         cursor.executemany(query, program_id_list)
-        print(cursor.rowcount)
+        return cursor.rowcount

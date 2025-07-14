@@ -48,3 +48,12 @@ class Message(models.Model):
     class Meta:
         db_table = 'messenger_static_message'
         ordering = ['timestamp']
+
+class Notification(models.Model):
+    notice_id = AutoField(primary_key=True)
+    sender = IntegerField(default=1)
+    recipient = IntegerField(default=1)
+    program_id = IntegerField(default=None, blank=True, null=True)
+    message = models.TextField(default=None, blank=True, null=True)
+    is_read = models.BooleanField(default=0)
+    timestamp = models.DateTimeField(auto_now_add=True)

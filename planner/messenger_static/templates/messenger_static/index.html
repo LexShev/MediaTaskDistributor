@@ -3,7 +3,6 @@
 
 <main role="main">
 {% block body %}
-<script type="text/javascript" src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/messenger_static.css' %}">
 
 <div class="container-fluid px-lg-5 d-flex flex-column">
@@ -12,6 +11,18 @@
       <div class="col col-3 px-0 d-flex flex-column">
         <div class="chat-names flex-grow-1 overflow-auto">
             <ul class="list-group">
+                <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <h6><a class="stretched-link link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
+                               href="{% url 'notifications' %}">
+                            Уведомления
+                        </a></h6>
+                        <div class="ms-2">{{ last_notice.0.message|truncatechars:80 }}</div>
+                    </div>
+                    {% if unread_notifications %}
+                        <span class="badge text-bg-primary rounded-pill">{{ unread_notifications }}</span>
+                    {% endif %}
+                </li>
                 {% for program_id, message_list in all_messages.items %}
                     <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
                         <div class="ms-2 me-auto">
@@ -21,7 +32,9 @@
                             </a></h6>
                             <div class="ms-2">{{ message_list.messages.0.message|truncatechars:80 }}</div>
                         </div>
-                        <span class="badge text-bg-primary rounded-pill">{{ message_list.unread_num }}</span>
+                        {% if message_list.unread_num %}
+                            <span class="badge text-bg-primary rounded-pill">{{ message_list.unread_num }}</span>
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>
@@ -35,9 +48,6 @@
       </div>
   </div>
 </div>
-
-
-<script type="text/javascript" src="{% static 'js/messenger_static.js' %}"></script>
 
 {% endblock %}
 </main>

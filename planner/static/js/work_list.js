@@ -237,6 +237,55 @@ function ShowOTKComment() {
 
 };
 
+document.getElementById('tableFilter').addEventListener('keyup', fastSearch);
+document.getElementById('search_type').addEventListener('change', fastSearch);
+
+function fastSearch() {
+    let filter = document.getElementById('tableFilter').value.toLowerCase();
+    let tableBody = document.getElementById('tableBody');
+    let rows = tableBody.getElementsByTagName('tr');
+    let searchSettings = document.getElementById('search_type').value;
+    if (searchSettings == 0) {
+        for (let i = 0; i < rows.length; i++) {
+            let nameCell = rows[i].getElementsByTagName('td')[0];
+            if (nameCell) {
+                let idValue = nameCell.querySelector('input')?.value
+                rows[i].style.display = idValue.indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+    }
+    if (searchSettings == 1) {
+        for (let i = 0; i < rows.length; i++) {
+            let nameCell = rows[i].getElementsByTagName('td')[1];
+            if (nameCell) {
+                let textValue = (nameCell.textContent || nameCell.innerText).toLowerCase();
+                rows[i].style.display = textValue.indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+    }
+};
+
+document.getElementById('tableFilter').addEventListener('keyup', totalCalc);
+function totalCalc() {
+    let tableBody = document.getElementById('tableBody');
+    let rows = tableBody.getElementsByTagName('tr');
+    let totalNum = document.getElementById('total_num');
+    let totalDuration = document.getElementById('total_dur');
+    let visibleCount = 0;
+    let countDuration = 0;
+    for (let i = 0; i < rows.length; i++) {
+        if (rows[i].style.display !== 'none') {
+            let duration = parseFloat(rows[i].getElementsByTagName('td')[6].querySelector('input')?.value);
+            countDuration+=duration;
+            visibleCount++;
+        }
+    };
+
+    totalNum.textContent = `Всего: ${thousands(visibleCount)}`;
+    totalDuration.textContent = `Продолжительность: ${convertFramesToTime(countDuration)}`;
+    return visibleCount;
+};
+
 function ResetFilter() {
     const [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus] =
     ['ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status']
@@ -246,4 +295,34 @@ function ResetFilter() {
 
     document.getElementById('otk_form').submit();
 
+};
+
+function convertFramesToTime(frames, fps = 25) {
+    const sec = parseInt(frames) / fps;
+    const yy = Math.floor(Math.floor(sec / 3600 / 24) / 365);
+    const dd = Math.floor(Math.floor(sec / 3600 / 24) % 365);
+    const hh = Math.floor((sec / 3600) % 24);
+    const mm = Math.floor((sec % 3600) / 60);
+    const ss = Math.floor((sec % 3600) % 60);
+    const ff = Math.floor((sec % 1) * fps);
+
+    const formatNum = num => num.toString().padStart(2, '0');
+
+    if (yy < 1) {
+        if (dd < 1) {
+            return `${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        } else {
+            return `${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        }
+    } else {
+        if (0 < yy % 10 && yy % 10 < 5) {
+            return `${formatNum(yy)}г. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        } else {
+            return `${formatNum(yy)}л. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        }
+    }
+};
+
+function thousands(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };
