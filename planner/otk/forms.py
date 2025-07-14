@@ -1,5 +1,5 @@
 from django import forms
-from .models import OtkModel
+from .models import OtkModel, TaskSearch
 from main.form_choices import Choices
 
 
@@ -34,3 +34,18 @@ class OtkForm(forms.ModelForm):
                 attrs={'class': "form-select", 'id': "task_status"}, choices=choice.task_status),
         }
 
+class TaskSearchForm(forms.ModelForm):
+    class Meta:
+        model = TaskSearch
+        fields = ('search_type', 'sql_set')
+
+        labels = {'search_type': '', 'sql_set': 'Показать'}
+
+        widgets = {
+            'search_type': forms.Select(
+                attrs={'class': 'form-select', 'id': 'search_type', 'style': 'max-width: 8rem;'},
+                choices=((0, 'id'), (1, 'названию'))),
+            'sql_set': forms.Select(
+                attrs={'class': 'form-select', 'id': 'sql_set', 'style': 'max-width: 11rem;'},
+                choices=choice.sql_set()),
+        }

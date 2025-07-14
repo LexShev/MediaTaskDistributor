@@ -18,7 +18,6 @@
 </div>
 
 <div class="chat-container rounded-bottom p-0">
-    {{ program_info.program }}
     <h6 class="cur-chat-name text-center shadow p-2 mb-0">
         Комментарии к:
         <a href="{% url 'home' %}{{ program_info.program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
@@ -84,8 +83,7 @@
     </div>
 </form>
 
-
-
+<script type="text/javascript" src="{% static 'js/messenger_static.js' %}"></script>
 {% endblock %}
 
 

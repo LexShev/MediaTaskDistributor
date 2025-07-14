@@ -3,9 +3,9 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
-from .models import OtkModel
+from .models import OtkModel, TaskSearch
 from .otk_materials_list import task_info, change_task_status_batch, update_comment_batch
-from .forms import OtkForm
+from .forms import OtkForm, TaskSearchForm
 
 
 @login_required()
@@ -21,11 +21,25 @@ def work_list(request):
             default_filter = OtkModel(owner=worker_id)
             default_filter.save()
             init_dict = OtkModel.objects.get(owner=worker_id)
-            print("Новый фильтр создан")
+            print("Новый OtkModel фильтр создан")
+
+        try:
+            search_init_dict = TaskSearch.objects.get(owner=worker_id)
+        except ObjectDoesNotExist:
+            default_search = TaskSearch(owner=worker_id, search_type=1, sql_set=100)
+            default_search.save()
+            search_init_dict = TaskSearch.objects.get(owner=worker_id)
+            print("Новый TaskSearch фильтр создан")
+
     else:
         init_dict = OtkModel.objects.get(owner=0)
+        search_init_dict = TaskSearch.objects.get(owner=0)
 
     if request.method == 'POST':
+        search_form = TaskSearchForm(request.POST, instance=search_init_dict)
+        if search_form.is_valid():
+            search_form.save()
+
         approve = request.POST.get('approve_otk')
         otk_fail = request.POST.get('otk_fail')
         approve_fix = request.POST.get('approve_fix')
@@ -66,12 +80,14 @@ def work_list(request):
             field_dict = dict(zip(form.fields.keys(), field_vals))
             form.save()
     else:
+        search_form = TaskSearchForm(instance=search_init_dict)
         form = OtkForm(instance=init_dict)
     task_list, service_dict = task_info(field_dict)
     data = {
         'task_list': task_list,
         'service_dict': service_dict,
         'form': form,
+        'search_form': search_form,
         'permissions': ask_db_permissions(worker_id)
             }
     return render(request, 'otk/work_list.html', data)

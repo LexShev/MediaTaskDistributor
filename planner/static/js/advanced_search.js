@@ -6,9 +6,8 @@ window.addEventListener('load', search_update);
 
 search_id.addEventListener('change', search_update);
 function search_update() {
-    search_input.value = '';
     if (search_id.value == 3) {
-        console.log(3)
+        search_input.value = '';
         search_input.hidden = true
         engineers.hidden = false
     }

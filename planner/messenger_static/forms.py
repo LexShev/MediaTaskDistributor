@@ -40,3 +40,16 @@ class MessageForm(forms.ModelForm):
                 'placeholder': 'Напишите сообщение...'
             }),
         }
+
+# class NotificationForm(forms.ModelForm):
+#     class Meta:
+#         model = Message
+#         fields = ('notification',)
+#         labels = {'notification': 'notification',}
+#         widgets = {
+#             'notification': forms.Textarea(attrs={
+#                 'class': 'form-control m-0',
+#                 'rows': 4,
+#                 'placeholder': 'Напишите сообщение...'
+#             }),
+#         }

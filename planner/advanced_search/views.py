@@ -56,5 +56,6 @@ def dop_search(request):
             'permissions': ask_db_permissions(worker_id),
             'form': form,
             }
+    print(data)
     return render(request, 'advanced_search/advanced_search.html', data)
 

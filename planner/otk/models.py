@@ -11,3 +11,8 @@ class OtkModel(Model):
     material_type = CharField(default=None, max_length=50, null=True, blank=True)
     sched_id = IntegerField(default=None, null=True, blank=True)
     task_status = CharField(default=None, max_length=50, null=True, blank=True)
+
+class TaskSearch(Model):
+    owner = IntegerField('owner', primary_key=True, default=1)
+    search_type = IntegerField(default=1)
+    sql_set = IntegerField(default=100)

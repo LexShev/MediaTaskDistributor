@@ -14,6 +14,7 @@
 <!--    {{ form.search_id.label }}-->
     {{ form.search_id }}
 
+
     <input class="form-control" name="search_query" id="tableFilter" type="text" value="{% if search_query %}{{ search_query }}{% endif %}" placeholder="введите запрос ..." style="width: 100rem;">
     <button type="submit" class="btn btn-outline-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
@@ -22,6 +23,5 @@
     </button>
 </div>
 </form><br>
-
 
 <script type="text/javascript" src="{% static 'js/advanced_search.js' %}"></script>
