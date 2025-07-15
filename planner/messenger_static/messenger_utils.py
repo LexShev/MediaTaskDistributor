@@ -14,7 +14,7 @@ def all_messages(worker_id):
         columns = 'program_id', 'message', 'timestamp', 'Progs_name', 'Progs_production_year', 'read'
         query = f'''
         WITH LatestPrograms AS (
-            SELECT TOP (10)
+            SELECT TOP (50)
                 m.[program_id]
             FROM 
                 [service].[dbo].[messenger_static_message] m
@@ -58,11 +58,11 @@ def all_messages(worker_id):
                         'messages': [],
                         'Progs_name': message.get('Progs_name'),
                         'Progs_production_year': message.get('Progs_production_year'),
-                        'unread_num': 0
+                        'cur_unread': 0
                     }
                 message_sorted[program_id]['messages'].append(message)
                 if not message['read']:
-                    message_sorted[program_id]['unread_num'] += 1
+                    message_sorted[program_id]['cur_unread'] += 1
             return message_sorted
 
 

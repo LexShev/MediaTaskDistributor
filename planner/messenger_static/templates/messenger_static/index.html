@@ -8,7 +8,7 @@
 <div class="container-fluid px-lg-5 d-flex flex-column">
 
   <div class="row flex-grow-1">
-      <div class="col col-3 px-0 d-flex flex-column">
+      <div class="col col-3 ps-0 pe-2 d-flex flex-column">
         <div class="chat-names flex-grow-1 overflow-auto">
             <ul class="list-group">
                 <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
@@ -20,11 +20,13 @@
                         <div class="ms-2">{{ last_notice.0.message|truncatechars:80 }}</div>
                     </div>
                     {% if unread_notifications %}
-                        <span class="badge text-bg-primary rounded-pill">{{ unread_notifications }}</span>
+                        <span class="badge text-bg-primary rounded-pill" id="unread_notifications"
+                        style="{% if not unread_notifications %}display: none;{% endif %}">{{ unread_notifications }}</span>
                     {% endif %}
                 </li>
                 {% for program_id, message_list in all_messages.items %}
-                    <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                    <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-start"
+                        data-program-id="{{ program_id }}">
                         <div class="ms-2 me-auto">
                             <h6><a class="stretched-link link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
                                    href="{% url 'messenger' program_id=program_id %}">
@@ -32,9 +34,9 @@
                             </a></h6>
                             <div class="ms-2">{{ message_list.messages.0.message|truncatechars:80 }}</div>
                         </div>
-                        {% if message_list.unread_num %}
-                            <span class="badge text-bg-primary rounded-pill">{{ message_list.unread_num }}</span>
-                        {% endif %}
+                        <span class="badge unread-badge text-bg-primary rounded-pill"
+                        style="{% if not message_list.cur_unread %}display: none;{% endif %}">{{ message_list.cur_unread }}</span>
+
                     </li>
                 {% endfor %}
             </ul>

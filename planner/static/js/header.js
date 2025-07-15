@@ -18,3 +18,31 @@ function StartDistribution() {
         });
 };
 
+function updateTotalUnreadCount(newCount) {
+    const totalUnreadBadge = document.getElementById('total_unread_badge');
+    if (!totalUnreadBadge) return;
+
+    if (newCount > 0 && newCount <= 99) {
+        totalUnreadBadge.textContent = newCount;
+        totalUnreadBadge.style.display = '';
+    }
+    else if (newCount > 99) {
+        totalUnreadBadge.textContent = '99+';
+        totalUnreadBadge.style.display = '';
+    }
+    else {
+        totalUnreadBadge.style.display = 'none';
+    }
+
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch(`/update_total_unread_count/`)
+        .then(response => response.json())
+        .then(data => {
+            updateTotalUnreadCount(data.total_unread);
+        })
+        .catch(error => {
+            console.log(error, data.message);
+        });
+});
