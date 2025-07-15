@@ -9,7 +9,7 @@
     <div class="notifications flex-grow-1 overflow-auto" id="notifications" style="height: 59rem">
         {% for notice in all_notifications %}
             <div class="d-flex">
-                <div class="notice-item {% if notice.notice_id not in viewed_notifications %}new-notice{% endif %}"
+                <div class="notice-item {% if not notice.is_read %}new-notice{% endif %}"
                      data-notice-id="{{ notice.notice_id }}">
                     <h6>{{ notice.sender|worker_name }}</h6>
                     <div class="notice-text">{{ notice.message|linebreaks }}</div>
@@ -19,7 +19,5 @@
         {% endfor %}
     </div>
 </div>
-
+<script type="text/javascript" src="{% static 'js/notifications.js' %}"></script>
 {% endblock %}
-
-

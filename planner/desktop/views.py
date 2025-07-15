@@ -103,7 +103,6 @@ def update_order(request):
         with transaction.atomic():
             ModelCardsContainer.objects.filter(owner=worker_id).delete()
             for i in range(4):
-                print(data[i])
                 ModelCardsContainer.objects.bulk_create(read_program_list(worker_id, i, data[i]))
 
         return JsonResponse({'status': 'success', 'message': 'Order updated successfully'})

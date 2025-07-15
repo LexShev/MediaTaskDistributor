@@ -2,7 +2,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path("", index, name='home'),
+    path("", home, name='home'),
     path('home_calendar/', home_calendar, name='home_calendar'),
     path("day/", day),
     path("week/", week),
@@ -24,4 +24,5 @@ urlpatterns = [
     path("submit_cenz_data/", submit_cenz_data, name='submit_cenz_data'),
 
     path("get_movie_poster/", get_movie_poster, name='get_movie_poster'),
+    path("update_total_unread_count/", update_total_unread_count, name='update_total_unread_count'),
 ]

@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.template.loader import render_to_string
 
+from messenger_static.models import Message, Notification
 from on_air_report.report import report_calendar
 
 from .ffmpeg_info import ffmpeg_dict
@@ -32,20 +33,32 @@ from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacat
 
 
 @login_required()
-def index(request):
+def home(request):
     worker_id = request.user.id
     service_dict = {
         'today': date.today(),
         'cal_month': 1,
-
     }
     data = {
-
         'home_table': home_common_table(),
         'service_dict': service_dict,
         'permissions': ask_db_permissions(worker_id),
     }
     return render(request, 'main/home.html', data)
+
+def update_total_unread_count(request):
+    worker_id = request.user.id
+    try:
+        total_unread_count = Message.objects.exclude(views__worker_id=worker_id).count()
+        unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Updated successfully',
+            'total_unread': total_unread_count + unread_notifications,
+        })
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=405)
 
 def home_calendar(request):
     today = date.today()

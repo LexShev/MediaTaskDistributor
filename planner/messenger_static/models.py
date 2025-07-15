@@ -2,9 +2,7 @@ from django.db import models
 from django.db.models import IntegerField, AutoField
 
 
-class MessageViews(models.Model):
-    message_id = IntegerField(default=0)
-    worker_id = IntegerField(default=0)
+
 
 class Program(models.Model):
     program_id = models.IntegerField(primary_key=True)
@@ -48,6 +46,13 @@ class Message(models.Model):
     class Meta:
         db_table = 'messenger_static_message'
         ordering = ['timestamp']
+
+class MessageViews(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='views')
+    worker_id = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('message', 'worker_id')
 
 class Notification(models.Model):
     notice_id = AutoField(primary_key=True)

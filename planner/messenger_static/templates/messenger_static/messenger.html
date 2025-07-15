@@ -17,7 +17,7 @@
     </div>
 </div>
 
-<div class="chat-container rounded-bottom p-0">
+<div class="chat-container rounded-bottom p-0" id="program_id" data-program-id="{{ program_info.program_id }}">
     <h6 class="cur-chat-name text-center shadow p-2 mb-0">
         Комментарии к:
         <a href="{% url 'home' %}{{ program_info.program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
@@ -27,7 +27,7 @@
     <div class="messages flex-grow-1 overflow-auto" id="messages" style="height: 47rem">
         {% for message in messages %}
         <div class="d-flex">
-            <div class="message-item {% if message.message_id not in viewed_messages %}new-message{% endif %}
+            <div class="message-item {% if not message.is_read %}new-message{% endif %}
             {% if message.owner == request.user.id %}my-message{% else %}other-message{% endif %}"
                  data-message-id="{{ message.message_id }}">
                 <h6>{{ message.owner|worker_name }}</h6>

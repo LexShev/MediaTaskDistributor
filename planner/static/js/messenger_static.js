@@ -1,16 +1,102 @@
+const userId = document.body.dataset.userId || null;
+const programId = document.getElementById('program_id').dataset.programId || null;
+
 window.addEventListener('load', function(){
     let inputMessage = document.getElementById('id_message')
     inputMessage.focus()
 });
 
 window.addEventListener('load', function(){
-    let messages = Array.from(document.getElementsByClassName('message-item'))
+    let messages = Array.from(document.getElementsByClassName('message-item'));
     messages.forEach(function(elem) {
         elem.addEventListener('mouseenter', function() {
-        elem.classList.remove('new-message');
+            if (elem.classList.contains('new-message')) {
+                const messageId = elem.dataset.messageId;
+                readMessage(messageId);
+                elem.classList.remove('new-message');
+            }
         })
     })
 });
+
+function readMessage(messageId) {
+    fetch('/messenger/read_message/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify([userId, messageId, programId]),
+        credentials: 'same-origin'
+        })
+    .then(response => {
+        if (!response.ok) {
+             console.error(response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status !== 'success') {
+            console.error(data.message || 'Unknown server error');
+        }
+        console.log(data);
+        updateUnreadCount(data.cur_unread);
+        updateTotalUnreadCount(data.total_unread);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+};
+
+
+
+function updateUnreadCount(newCount) {
+    const chatItem = document.querySelector(`li[data-program-id="${programId}"]`);
+    if (!chatItem) return;
+    const badge = chatItem.querySelector('.unread-badge');
+    if (badge && newCount > 0) {
+        badge.textContent = newCount;
+        badge.style.display = '';
+    }
+    else if (badge) {
+        badge.style.display = 'none';
+    }
+};
+
+function updateTotalUnreadCount(newCount) {
+    const totalUnreadBadge = document.getElementById('total_unread_badge');
+    if (!totalUnreadBadge) return;
+
+    if (newCount > 0 && newCount <= 99) {
+        totalUnreadBadge.textContent = newCount;
+        totalUnreadBadge.style.display = '';
+    }
+    else if (newCount > 99) {
+        totalUnreadBadge.textContent = '99+';
+        totalUnreadBadge.style.display = '';
+    }
+    else {
+        totalUnreadBadge.style.display = 'none';
+    }
+
+};
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};
+
 
 let inputMessage = document.getElementById('id_message')
 let sendMessageBtn = document.getElementById('send_message')
@@ -28,7 +114,7 @@ function sendMessage() {
 
 function updateMessages() {
     $.ajax({
-        url: "{% url 'home' %}messenger/{{ program_id }}",
+        url: `/messenger/${programId}/`,
         type: "get",
         success: function(data) {
             let newDoc = new DOMParser().parseFromString(data, 'text/html');
