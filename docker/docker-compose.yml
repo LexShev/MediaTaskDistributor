@@ -16,5 +16,11 @@ services:
     env_file:
       - ../.env
     restart: unless-stopped
+    networks:
+      - planner-network
 
-    network_mode: bridge
+networks:
+  planner-network:
+    name: planner-network
+    external: true
+    driver: bridge
