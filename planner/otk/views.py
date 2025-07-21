@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
+from messenger_static.messenger_utils import create_notification
 from .models import OtkModel, TaskSearch
 from .otk_materials_list import task_info, change_task_status_batch, update_comment_batch
 from .forms import OtkForm, TaskSearchForm
@@ -45,8 +46,7 @@ def work_list(request):
         approve_fix = request.POST.get('approve_fix')
 
         if approve:
-            checked_list = request.POST.getlist('program_id')
-            program_id_list = [{'program_id': program_id.split(';')[0]} for program_id in checked_list]
+            program_id_list = request.POST.getlist('program_id')
 
             change_task_status_batch(program_id_list, 'otk')
             update_comment_batch(program_id_list, 'otk', worker_id)
@@ -54,9 +54,14 @@ def work_list(request):
         if otk_fail:
             otk_fail_prog_id = request.POST.getlist('otk_fail_prog_id')
             otk_fail_comment = request.POST.getlist('otk_fail_comment')
+            engineer_id_list = request.POST.getlist('otk_fail_engineer_id')
             otk_fail_list = []
-            for program_id, comment in zip(otk_fail_prog_id, otk_fail_comment):
+            for program_id, comment, engineer_id in zip(otk_fail_prog_id, otk_fail_comment, engineer_id_list):
                 otk_fail_list.append({'program_id': program_id, 'comment': comment})
+                create_notification(
+                    {'sender': worker_id, 'recipient': engineer_id, 'program_id': program_id,
+                     'message': comment, 'comment': 'Задача отправлена на доработку'}
+                )
 
             change_task_status_batch(otk_fail_list, 'otk_fail')
             update_comment_batch(otk_fail_list, 'otk_fail', worker_id)
@@ -65,10 +70,14 @@ def work_list(request):
             fix_id = request.POST.getlist('fix_prog_id')
             fix_comment = request.POST.getlist('fix_comment')
             fix_file_path = request.POST.getlist('fix_file_path')
-
+            engineer_id_list = request.POST.getlist('fix_engineer_id')
             otk_fix_list = []
-            for program_id, comment, file_path in zip(fix_id, fix_comment, fix_file_path):
+            for program_id, comment, file_path, engineer_id in zip(fix_id, fix_comment, fix_file_path, engineer_id_list):
                 otk_fix_list.append({'program_id': program_id, 'comment': comment, 'file_path': file_path})
+                create_notification(
+                    {'sender': worker_id, 'recipient': engineer_id, 'program_id': program_id,
+                     'message': comment, 'comment': 'Исходник исправлен'}
+                )
 
             change_task_status_batch(otk_fix_list, 'fix_ready')
             update_comment_batch(otk_fix_list, 'fix_ready', worker_id)

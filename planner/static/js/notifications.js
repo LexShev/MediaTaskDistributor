@@ -1,7 +1,9 @@
 const userId = document.body.dataset.userId || null;
 
 
-window.addEventListener('load', function(){
+window.addEventListener('DOMContentLoaded', function(){
+    const notificationsContainer = document.getElementById('notifications');
+    notificationsContainer.scrollTop = notificationsContainer.scrollHeight;
     let notifications = Array.from(document.getElementsByClassName('notice-item'));
     notifications.forEach(function(elem) {
         elem.addEventListener('mouseenter', function() {

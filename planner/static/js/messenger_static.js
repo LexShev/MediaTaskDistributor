@@ -1,7 +1,9 @@
 const userId = document.body.dataset.userId || null;
 const programId = document.getElementById('program_id').dataset.programId || null;
 
-window.addEventListener('load', function(){
+window.addEventListener('DOMContentLoaded', function(){
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
     let inputMessage = document.getElementById('id_message')
     inputMessage.focus()
 });
@@ -48,8 +50,6 @@ function readMessage(messageId) {
         console.error('Error:', error);
     });
 };
-
-
 
 function updateUnreadCount(newCount) {
     const chatItem = document.querySelector(`li[data-program-id="${programId}"]`);
@@ -112,6 +112,35 @@ function sendMessage() {
 
 };
 
+function sendNotice() {
+    let notice = {'sender': sender, 'recipient': recipient, 'program_id': program_id, 'message': message};
+    fetch('/messenger/send_notice/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(notice),
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+             console.error(response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status !== 'success') {
+            console.error(data.message || 'Unknown server error');
+        }
+        console.log(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+};
+
 function updateMessages() {
     $.ajax({
         url: `/messenger/${programId}/`,
@@ -124,29 +153,29 @@ function updateMessages() {
     });
 }
 
-<!--    setInterval(updateMessages, 5000);-->
+//setInterval(updateMessages, 5000);
 
-    document.getElementById('id_file_path').addEventListener('change', function(e) {
-        const file_path = e.target.files[0];
-        if (!file_path) return;
+document.getElementById('id_file_path').addEventListener('change', function(e) {
+    const file_path = e.target.files[0];
+    if (!file_path) return;
 
-        const preview = document.createElement('div');
-        preview.className = 'file-preview';
+    const preview = document.createElement('div');
+    preview.className = 'file-preview';
 
-        if (file_path.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(file_path);
-            img.style.maxWidth = '100px';
-            preview.appendChild(img);
-        } else {
-            preview.textContent = `Файл: ${file_path.name}`;
-        }
-
-        const messages = document.getElementById('messages');
-        messages.appendChild(preview);
-    });
-
-    function enlargeImage(img) {
-        document.getElementById('modalImage').src = img.src;
-        document.getElementById('imageModalLabel').textContent = img.alt || "Изображение";
+    if (file_path.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file_path);
+        img.style.maxWidth = '100px';
+        preview.appendChild(img);
+    } else {
+        preview.textContent = `Файл: ${file_path.name}`;
     }
+
+    const messages = document.getElementById('messages');
+    messages.appendChild(preview);
+});
+
+function enlargeImage(img) {
+    document.getElementById('modalImage').src = img.src;
+    document.getElementById('imageModalLabel').textContent = img.alt || "Изображение";
+}

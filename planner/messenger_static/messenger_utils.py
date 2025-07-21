@@ -1,5 +1,7 @@
 from django.db import connections
 
+from messenger_static.models import Notification
+
 
 def unique_program_id():
     with connections['service'].cursor() as cursor:
@@ -126,3 +128,14 @@ def insert_views(program_id_list):
         (%s, %s);'''
         cursor.executemany(query, program_id_list)
         return cursor.rowcount
+
+def create_notification(data):
+    try:
+        Notification.objects.create(
+            sender=data.get('sender'), recipient=data.get('recipient'), program_id=data.get('program_id'),
+            message=data.get('message'), comment=data.get('comment')
+        )
+        return 'success'
+    except Exception as e:
+        print(e)
+        return 'error'

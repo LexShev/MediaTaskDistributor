@@ -60,5 +60,6 @@ class Notification(models.Model):
     recipient = IntegerField(default=1)
     program_id = IntegerField(default=None, blank=True, null=True)
     message = models.TextField(default=None, blank=True, null=True)
+    comment = models.TextField(default=None, blank=True, null=True)
     is_read = models.BooleanField(default=0)
     timestamp = models.DateTimeField(auto_now_add=True)

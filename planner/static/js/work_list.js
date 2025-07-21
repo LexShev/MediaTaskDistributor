@@ -91,7 +91,11 @@ function ProgramIdList() {
         ApproveFIX.toggle();
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
-                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
+                let prog_id = checked_list[i].dataset.programId
+                let f_name = checked_list[i].dataset.fileName
+                let f_path = checked_list[i].dataset.filePath
+                let engineer_id = checked_list[i].dataset.engineerId
+//                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
 
                 let fix_prog_id = document.createElement("input");
                 fix_prog_id.type = 'hidden';
@@ -130,6 +134,12 @@ function ProgramIdList() {
                 fix_file_path.placeholder = `Старый: ${f_path}`;
                 FixList.appendChild(fix_file_path);
 
+                let fix_engineer_id = document.createElement("input");
+                fix_engineer_id.type = 'hidden';
+                fix_engineer_id.name = 'fix_engineer_id';
+                fix_engineer_id.value = engineer_id;
+                FixList.appendChild(fix_engineer_id);
+
                 let divider = document.createElement("hr");
                 divider.style = 'width: 40%; size: 2;';
                 FixList.appendChild(divider);
@@ -162,8 +172,11 @@ function ShowOTKFail() {
 
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
-
-                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
+                let prog_id = checked_list[i].dataset.programId
+                let f_name = checked_list[i].dataset.fileName
+                let f_path = checked_list[i].dataset.filePath
+                let engineer_id = checked_list[i].dataset.engineerId
+//                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
 
                 let otk_fail_prog_id = document.createElement("input");
                 otk_fail_prog_id.type = 'hidden';
@@ -188,6 +201,12 @@ function ShowOTKFail() {
                 otk_fail_comment.style = 'min-height: 130px';
                 otk_fail_comment.placeholder = '1. Таймкод - суть проблемы\n2. Таймкод - суть проблемы\n3. ...';
                 OTKFailList.appendChild(otk_fail_comment);
+
+                let otk_fail_engineer_id = document.createElement("input");
+                otk_fail_engineer_id.type = 'hidden';
+                otk_fail_engineer_id.name = 'otk_fail_engineer_id';
+                otk_fail_engineer_id.value = engineer_id;
+                OTKFailList.appendChild(otk_fail_engineer_id);
 
                 let divider = document.createElement("hr");
                 divider.style = 'width: 40%; size: 2;';
