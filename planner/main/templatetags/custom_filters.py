@@ -239,10 +239,14 @@ def file_ext(file_path):
 @register.filter
 def program_name(program_id):
     with connections['oplan3'].cursor() as cursor:
-        query = f'SELECT [name] FROM [oplan3].[dbo].[program] WHERE [program_id] = %s'
+        query = f'SELECT [name], [production_year] FROM [oplan3].[dbo].[program] WHERE [program_id] = %s'
         cursor.execute(query, (program_id,))
-        name = cursor.fetchone()
-        if name:
-            return name[0]
+        res = cursor.fetchone()
+        if res:
+            name, production_year = res
+            if name and production_year:
+                return f'{name} ({production_year})'
+            elif name:
+                return name
         else:
             return program_id

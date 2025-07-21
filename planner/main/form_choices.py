@@ -8,7 +8,6 @@ def program_custom_fields():
         FROM [oplan3].[dbo].[ProgramCustomFields]
         WHERE [CustomFieldID] IN (15, 18, 19)
         '''
-        print(query)
         cursor.execute(query)
         fields_list = cursor.fetchall()
         fields_dict = {}
@@ -46,7 +45,6 @@ class Choices:
         engineers_list = [('', label)]
         if engineers:
             for engineer in enumerate(engineers.split('\r\n')):
-                # print(engineer)
                 if engineer[1]:
                     engineers_list.append(engineer)
         return engineers_list

@@ -148,7 +148,10 @@
           <tr>
             <td>
               <input class="form-check-input me-1" type="checkbox"
-                     value="{{ task.Task_program_id }};{{ task.Progs_name }};{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
+                     data-program-id="{{ task.Task_program_id }}" data-file-name="{{ task.Progs_name }}"
+                     data-file-path="{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
+                     data-engineer-id="{{ task.Task_engineer_id }}"
+                     value="{{ task.Task_program_id }}"
                      name="program_id">
             </td>
             <td>

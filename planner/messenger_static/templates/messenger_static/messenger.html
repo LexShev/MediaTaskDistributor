@@ -12,7 +12,6 @@
             <div class="modal-body text-center">
                 <img id="modalImage" src="" class="img-fluid" alt="Увеличенное изображение">
             </div>
-
         </div>
     </div>
 </div>
@@ -25,7 +24,7 @@
         </a>{% if program_info.production_year %} ({{ program_info.production_year }}){% endif %}
     </h6>
     <div class="messages flex-grow-1 overflow-auto" id="messages" style="height: 47rem">
-        {% for message in messages %}
+      {% for message in messages %}
         <div class="d-flex">
             <div class="message-item {% if not message.is_read %}new-message{% endif %}
             {% if message.owner == request.user.id %}my-message{% else %}other-message{% endif %}"
@@ -55,7 +54,7 @@
             </div>
 
         </div>
-        {% endfor %}
+      {% endfor %}
     </div>
 </div>
 <form method="post" enctype="multipart/form-data" class="message-form my-2" id="message_form">

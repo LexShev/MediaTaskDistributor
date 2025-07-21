@@ -64,7 +64,7 @@ def poster_parser(query: Dict):
     program_name = program_name.split('сезон')[0]
     program_name = program_name.split('серия')[0]
     program_name = program_name.split('№')[0]
-    program_name = program_name[:35].rstrip()
+    program_name = program_name[:55].rstrip()
     program_name = program_name.replace(' ', '%20')
     program_year = clean_year(query['year'])
 

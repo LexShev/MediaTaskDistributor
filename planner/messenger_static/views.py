@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Case, When, BooleanField
@@ -7,7 +8,7 @@ from django.shortcuts import render, redirect
 
 from main.permission_pannel import ask_db_permissions
 from messenger_static.forms import MessageForm
-from .messenger_utils import show_messages, insert_views, all_messages, show_viewed_messages
+from .messenger_utils import all_messages, show_viewed_messages, create_notification
 from .models import Message, Program, Notification, MessageViews
 
 
@@ -37,6 +38,15 @@ def messenger(request, program_id):
             message.owner = worker_id
             message.program_id = program_id
             message.save()
+            MessageViews.objects.create(message=message, worker_id=worker_id)
+            message_text = form.cleaned_data.get('message')
+            mentions = re.findall(r'(?<!\w)@([a-zA-Z][a-zA-Z0-9.]*[a-zA-Z0-9])', message_text)
+            if mentions:
+                for mention in mentions:
+                    engineer_id = mention
+                    data = {'sender': worker_id, 'recipient': 1, 'program_id': program_id,
+                     'message': message_text, 'comment': 'Упоминание в чате'}
+                    create_notification(data)
             return redirect('messenger', program_id=program_id)
     form = MessageForm()
     read_message_ids = MessageViews.objects.filter(worker_id=worker_id).values_list('message_id', flat=True)
@@ -44,9 +54,7 @@ def messenger(request, program_id):
         is_read=Case(When(message_id__in=read_message_ids, then=True), default=False, output_field=BooleanField())
     ).order_by('timestamp')[:50] or []
     program_info = Program.objects.using('oplan3').get(program_id=program_id)
-    print('program_info', program_info)
 
-    # messages = show_messages(program_id)
     viewed_messages = show_viewed_messages(program_id, worker_id) or []
     last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
     unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
@@ -60,14 +68,7 @@ def messenger(request, program_id):
         'form': form,
         'permissions': ask_db_permissions(worker_id),
     }
-    # for message, (message_id, worker_id) in zip(messages, viewed_messages):
-    #     if message.get('message_id') != message_id:
-    #         print(message, message_id, worker_id)
 
-    # updated_views = [(message.message_id, worker_id) for message in messages if message.message_id not in viewed_messages]
-    # print(updated_views)
-    # if updated_views:
-    #     insert_views(updated_views)
     return render(request, 'messenger_static/messenger.html', data)
 
 def notificator(request):
@@ -84,6 +85,21 @@ def notificator(request):
     }
     return render(request, 'messenger_static/notificator.html', data)
 
+def send_notice(request):
+    try:
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+        data = json.loads(request.body)
+        if not data:
+            return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+        Notification.objects.create(
+            sender=data.get('sender'), recipient=data.get('recipient'),
+            program_id=data.get('program_id'), message=data.get('message')
+        )
+        return JsonResponse({'status': 'success', 'message': 'Noticed successfully'})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def read_message(request):
     try:
