@@ -1,8 +1,11 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 
 from .models import Message
+from main.form_choices import Choices
 
+choices = Choices()
 
 def validate_file_type(value):
     valid_types = [
@@ -20,6 +23,23 @@ def validate_file_type(value):
         print('Запрещённый формат', value.content_type)
         raise ValidationError('Недопустимый тип файла')
 
+
+class DropdownMenuWidget(forms.Widget):
+    def __init__(self, choices=None, attrs=None):
+        super().__init__(attrs)
+        self.choices = choices or []
+
+    def render(self, name, value, attrs=None, renderer=None):
+        html = ['<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">']
+        for choice_value, choice_label in self.choices:
+            html.append(
+                f'<li class="dropdown-item" onclick="modifyMessage(this)" data-engineer-id="{choice_value}">{choice_label}</li>'
+            )
+
+        html.append('</ul>')
+        print('\n'.join(html))
+        return mark_safe('\n'.join(html))
+
 class MessageForm(forms.ModelForm):
     file_path = forms.FileField(
         required=False,
@@ -29,6 +49,12 @@ class MessageForm(forms.ModelForm):
                 'accept': 'image/*, video/*, audio/*, .pdf, .doc, .docx, .srt'
             })
         )
+    engineers_mention = forms.ChoiceField(
+        required=False,
+        widget=DropdownMenuWidget(attrs={}),
+        choices=choices.engineers(exclude_init=True)
+    )
+
     class Meta:
         model = Message
         fields = ('message', 'file_path')
@@ -41,15 +67,3 @@ class MessageForm(forms.ModelForm):
             }),
         }
 
-# class NotificationForm(forms.ModelForm):
-#     class Meta:
-#         model = Message
-#         fields = ('notification',)
-#         labels = {'notification': 'notification',}
-#         widgets = {
-#             'notification': forms.Textarea(attrs={
-#                 'class': 'form-control m-0',
-#                 'rows': 4,
-#                 'placeholder': 'Напишите сообщение...'
-#             }),
-#         }

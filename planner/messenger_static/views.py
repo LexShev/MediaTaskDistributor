@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 
 from main.permission_pannel import ask_db_permissions
 from messenger_static.forms import MessageForm
-from .messenger_utils import all_messages, show_viewed_messages, create_notification
+from .messenger_utils import all_messages, show_viewed_messages, create_notification, find_engineers_name
 from .models import Message, Program, Notification, MessageViews
 
 
@@ -39,14 +39,20 @@ def messenger(request, program_id):
             message.program_id = program_id
             message.save()
             MessageViews.objects.create(message=message, worker_id=worker_id)
+
             message_text = form.cleaned_data.get('message')
-            mentions = re.findall(r'(?<!\w)@([a-zA-Z][a-zA-Z0-9.]*[a-zA-Z0-9])', message_text)
+            pattern_1 = r'(?<!\w)@([А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+)(?!\w)'
+            pattern_2 = r'(?<!\w)@([a-zA-Z][a-zA-Z0-9.]*[a-zA-Z0-9])(?=\s|$|[.,!?])'
+            mentions = []
+            if '@' in message_text:
+                mentions = re.findall(pattern_1, message_text, re.UNICODE) or re.findall(pattern_2, message_text, re.UNICODE)
             if mentions:
                 for mention in mentions:
-                    engineer_id = mention
-                    data = {'sender': worker_id, 'recipient': 1, 'program_id': program_id,
+                    engineer_id = find_engineers_name(mention)
+                    data = {'sender': worker_id, 'recipient': engineer_id, 'program_id': program_id,
                      'message': message_text, 'comment': 'Упоминание в чате'}
                     create_notification(data)
+
             return redirect('messenger', program_id=program_id)
     form = MessageForm()
     read_message_ids = MessageViews.objects.filter(worker_id=worker_id).values_list('message_id', flat=True)

@@ -49,6 +49,7 @@
                     {% endif %}
                 {% else %}
                     <div class="message-text">{{ message.message|linebreaks }}</div>
+
                 {% endif %}
                 <small class="text-muted d-block text-end">{{ message.timestamp|date:"d.m.Y H:i:s" }}</small>
             </div>
@@ -59,7 +60,13 @@
 </div>
 <form method="post" enctype="multipart/form-data" class="message-form my-2" id="message_form">
     {% csrf_token %}
+    <div class="btn-group dropup">
+      <button type="button" class="btn btn-secondary dropdown-toggle visually-hidden" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="0,7" id="mentionDropdown"></button>
+
+      {{ form.engineers_mention }}
+    </div>
     {{ form.message }}
+
     <div class="d-flex">
         <div class="file-upload-wrapper input-group my-2">
           <label class="input-group-text file-upload-label" for="id_file_path">Прикрепить файл</label>

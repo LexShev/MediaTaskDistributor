@@ -17,7 +17,6 @@ def program_custom_fields():
         return fields_dict
 
 
-
 class Choices:
     def __init__(self):
         self.custom_fields = program_custom_fields()
@@ -40,9 +39,11 @@ class Choices:
                     inoagents_list.append(inoagent)
         return inoagents_list
 
-    def engineers(self, label='-'):
+    def engineers(self, label='-', exclude_init=False):
         engineers = self.custom_fields.get(15)
         engineers_list = [('', label)]
+        if exclude_init:
+            engineers_list = []
         if engineers:
             for engineer in enumerate(engineers.split('\r\n')):
                 if engineer[1]:
