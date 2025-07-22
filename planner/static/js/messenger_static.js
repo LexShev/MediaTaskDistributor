@@ -107,9 +107,20 @@ inputMessage.addEventListener('keydown', function(e) {
         messageForm.submit(); // Отправляем форму
     }
 });
+inputMessage.addEventListener('keyup', function(e) {
+    if (e.key === '@') {
+        findMention();
+    }
+});
 
-function sendMessage() {
+function modifyMessage(element) {
+    inputMessage.value = inputMessage.value + element.textContent;
+};
 
+function findMention() {
+    const mentionDropdown = document.getElementById('mentionDropdown'); // или ваш триггер
+    const dropdown = new bootstrap.Dropdown(mentionDropdown);
+    dropdown.show();
 };
 
 function sendNotice() {

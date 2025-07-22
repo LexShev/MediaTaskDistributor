@@ -139,3 +139,20 @@ def create_notification(data):
     except Exception as e:
         print(e)
         return 'error'
+
+def find_engineers_name(name):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        SELECT [ItemsString]
+        FROM [oplan3].[dbo].[ProgramCustomFields]
+        WHERE [CustomFieldID] = 15
+        '''
+        cursor.execute(query)
+        engineers = cursor.fetchone()
+        if engineers and engineers[0]:
+            engineers_list = engineers[0].split('\r\n')
+            try:
+                return engineers_list.index(name)
+            except Exception as e:
+                print(e)
+                return -1
