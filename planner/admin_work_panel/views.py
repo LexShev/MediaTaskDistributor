@@ -48,7 +48,6 @@ def task_manager(request):
             filter_form.save()
 
         program_id_check = request.POST.getlist('program_id_check')
-        print('program_id_check', program_id_check)
         change_type = request.POST.get('change_type')
 
         if program_id_check:
@@ -62,7 +61,6 @@ def task_manager(request):
     else:
         filter_form = AdminForm(instance=filter_init_dict)
         search_form = TaskSearchForm(instance=search_init_dict)
-    print(field_dict, search_init_dict.sql_set)
     task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
     dynamic_selector_list = []
     for task in task_list:
