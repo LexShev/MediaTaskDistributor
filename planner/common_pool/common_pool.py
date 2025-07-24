@@ -28,7 +28,6 @@ def select_pool(sql_set):
                 (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
             '''
-        print(query)
         cursor.execute(query)
         return [dict(zip(django_columns, material)) for material in cursor.fetchall()]
 
@@ -89,3 +88,47 @@ def get_season_stats():
         season_count, season_dur = cursor.fetchone() or (0, 0)
     return {'season_count': season_count, 'season_dur': season_dur}
 
+def insert_in_common_task(data):
+    values = []
+    program_id_list, sched_date = data
+    for program_id in program_id_list:
+        file_path, duration = find_file_path(program_id)
+        task_status = 'not_ready'
+        if not file_path:
+            file_path = ''
+            task_status = 'no_material'
+        value = (program_id, duration, 1, sched_date, task_status, file_path)
+        values.append(value)
+
+    with connections['planner'].cursor() as cursor:
+        query = '''
+        INSERT INTO [planner].[dbo].[task_list] ([program_id], [duration], [sched_id], [sched_date], [task_status], [file_path])
+        VALUES (%s, %s, %s, %s, %s, %s)
+        '''
+        cursor.executemany(query, values)
+        cursor.execute("SELECT @@ROWCOUNT")
+        return cursor.fetchone()[0]
+
+def find_file_path(program_id):
+    with connections['oplan3'].cursor() as cursor:
+        query = f'''
+        SELECT Files.[Name], Progs.[duration]
+        FROM [oplan3].[dbo].[File] AS Files
+        JOIN [oplan3].[dbo].[Clip] AS Clips
+            ON Files.[ClipID] = Clips.[ClipID]
+        JOIN [oplan3].[dbo].[program] AS Progs
+            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        WHERE Files.[Deleted] = 0
+        AND Files.[PhysicallyDeleted] = 0
+        AND Clips.[Deleted] = 0
+        AND Progs.[deleted] = 0
+        AND Progs.[DeletedIncludeParent] = 0
+        AND Progs.[program_id] = {program_id}
+        '''
+        cursor.execute(query)
+        res = cursor.fetchone()
+        if res:
+            file_path, duration = res
+            return file_path, duration
+        else:
+            return None, None

@@ -166,7 +166,6 @@ def change_task_status_batch(program_list, task_status):
                 SET [task_status] = %s, [ready_date] = %s, [file_path] = %s
                 WHERE [program_id] = %s'''
                 update_data = (task_status, datetime.today(), file_path, program_id)
-                print(query, update_data, 'with file_path')
                 cursor.execute(query, update_data)
             else:
                 query = f'''

@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             document.getElementById('pool-table-container').innerHTML = data.html;
+            updateMainProgramId();
         })
         .catch(error => {
             document.getElementById('pool-table-container').innerHTML = `
@@ -35,7 +36,7 @@ document.getElementById('tableFilter').addEventListener('keyup', function() {
     let filter = this.value.toLowerCase();
     let tableBody = document.getElementById('tableBody');
     let rows = tableBody.getElementsByTagName('tr');
-    let searchSettings = document.getElementById('search_type').value;
+    let searchSettings = Number(document.getElementById('search_type').value)+1;
 
     for (let i = 0; i < rows.length; i++) {
         let nameCell = rows[i].getElementsByTagName('td')[searchSettings];
@@ -75,3 +76,164 @@ function convertFramesToTime(frames, fps = 25) {
 function thousands(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };
+
+
+function changeProgramIdCheckbox() {
+    let fullSelectCheckbox = document.getElementById('full_select');
+    let program_id_check_list = document.getElementsByName('program_id_check');
+    let checked_list = [];
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            if (program_id_check_list[i].checked) {
+                checked_list.push(program_id_check_list[i]);
+            }
+        };
+    if (checked_list.length > 0) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = false;
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            program_id_check_list[i].checked = false;
+        };
+    }
+    else {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = true;
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            program_id_check_list[i].checked = true;
+        };
+    }
+};
+
+
+function updateMainProgramId() {
+    let fullSelectCheckbox = document.getElementById('full_select');
+    let program_id_check_list = document.getElementsByName('program_id_check');
+    program_id_check_list.forEach(function(program_id_check) {
+        program_id_check.addEventListener('change', changeFullSelect);
+    });
+
+    function changeFullSelect() {
+        let checked_list = [];
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            if (program_id_check_list[i].checked) {
+                checked_list.push(program_id_check_list[i]);
+            }
+        };
+        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
+            fullSelectCheckbox.indeterminate = true;
+            fullSelectCheckbox.checked = false;
+        }
+        else if (checked_list.length == program_id_check_list.length) {
+            fullSelectCheckbox.indeterminate = false;
+            fullSelectCheckbox.checked = true;
+        }
+        else if (checked_list.length == 0) {
+            fullSelectCheckbox.indeterminate = false;
+            fullSelectCheckbox.checked = false;
+        }
+    };
+};
+
+function showApproveCommonTask() {
+    let program_id_check_list = document.getElementsByName('program_id_check');
+    let checked_list = [];
+    let program_name_check_list = [];
+    for (let i = 0; i < program_id_check_list.length; i++) {
+        if (program_id_check_list[i].checked) {
+            checked_list.push(program_id_check_list[i].value);
+            let programName = program_id_check_list[i].dataset.programName;
+                if (program_id_check_list[i].dataset.productionYear) {
+                    programName += ` (${program_id_check_list[i].dataset.productionYear})`;
+                }
+            program_name_check_list.push(programName);
+        }
+    }
+    if (checked_list.length > 0) {
+        ApproveCommonTask = new bootstrap.Modal(document.getElementById('ApproveCommonTask'));
+        let program_name_list = document.getElementById('program_name_list');
+        let dateInput = document.getElementById('work_date');
+        program_name_list.innerHTML = ''
+        dateInput.value = ''
+        for (let i = 0; i < program_name_check_list.length; i++) {
+            let list_item = document.createElement("li");
+            list_item.classList.add('list-group-item');
+            list_item.classList.add('list-group-item-action');
+            list_item.textContent = program_name_check_list[i];
+            program_name_list.appendChild(list_item);
+        }
+        ApproveCommonTask.toggle();
+    }
+    else {
+        console.log('error');
+        errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        error_message = document.getElementById('error_message');
+        error_message.textContent = 'Ни одна задача не выбрана!'
+        errorModal.toggle();
+    }
+};
+
+function addInCommonTask() {
+    let program_id_check_list = document.getElementsByName('program_id_check');
+    let checked_list = [];
+    for (let i = 0; i < program_id_check_list.length; i++) {
+        if (program_id_check_list[i].checked) {
+            checked_list.push(program_id_check_list[i].value)
+        }
+    };
+    let work_date = document.getElementById('work_date').value;
+    fetch('add_in_common_task/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify([checked_list, work_date]),
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+             console.error(response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status !== 'success') {
+            console.error(data.message || 'Unknown server error');
+            errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            error_message = document.getElementById('error_message');
+            error_message.textContent = data.message
+            errorModal.toggle();
+        }
+        console.log(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+
+    });
+};
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};
+
+function ValidateForm() {
+    let dateInput = document.getElementById('work_date');
+    if (!dateInput.value) {
+          dateInput.classList.add('is-invalid');
+          return;
+    }
+    dateInput.classList.remove('is-invalid');
+    addInCommonTask();
+
+}

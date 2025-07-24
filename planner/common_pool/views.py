@@ -1,11 +1,14 @@
+import json
+
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import connections
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
-from .common_pool import select_pool, get_total_count, get_film_stats, get_season_stats
+from .common_pool import select_pool, get_total_count, get_film_stats, get_season_stats, insert_in_common_task
 from .forms import CommonPoolForm
 from .models import CommonPool
 
@@ -46,6 +49,21 @@ def film_stats(request):
 def season_stats(request):
     return JsonResponse(get_season_stats())
 
+def add_in_common_task(request):
+    try:
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+        data = json.loads(request.body)
+        if not data:
+            return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+        rowcount = insert_in_common_task(data)
+        if rowcount > 0:
+            return JsonResponse({'status': 'success', 'message': 'Added in common task successfully'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Data was not added'}, status=400)
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def load_pool_table(request):
     worker_id = request.user.id

@@ -11,7 +11,7 @@ CREATE TABLE task_list
     duration INT NOT NULL,
 	sched_id INT,
 	sched_date DATE,
-	work_date DATE NOT NULL,
+	work_date DATE,
 	ready_date DATE,
 	task_status NVARCHAR(30) NOT NULL,
 	file_path NVARCHAR(MAX),
