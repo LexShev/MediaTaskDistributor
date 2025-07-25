@@ -187,9 +187,9 @@ def insert_value(field_id, program_id, new_value):
             INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]
             ({columns})
             VALUES
-            ({field_id}, {program_id}, '{new_value}', 0)
+            (%s, %s, %s, %s)
             '''
-            cursor.execute(query)
+            cursor.execute(query, (field_id, program_id, new_value, 0))
 
 def delete_value(field_id, program_id):
     with connections['oplan3'].cursor() as cursor:
@@ -202,6 +202,7 @@ def delete_value(field_id, program_id):
         return cursor.rowcount
 
 def update_value(field_id, program_id, new_value):
+    query = ''
     if field_id == 7:
         query = f'''
         UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
@@ -223,9 +224,6 @@ def update_value(field_id, program_id, new_value):
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
         '''
-    else:
-        query = ''
-
     if query:
         with connections['oplan3'].cursor() as cursor:
             cursor.execute(query)
@@ -241,7 +239,6 @@ def update_file_path(program_id, file_path):
             SET [file_path] = '{file_path}'
             WHERE [program_id] = {program_id}
             '''
-            print(query)
             cursor.execute(query)
             return cursor.rowcount
     else:
