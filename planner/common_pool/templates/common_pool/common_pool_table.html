@@ -37,6 +37,15 @@
   </div>
 </div>
 
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">
+        {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
 <h6>Всего на странице: {{ pool_list|length|thousands }}</h6>
 <hr width="100%" size="2"><br>
 <table class="table table-hover">

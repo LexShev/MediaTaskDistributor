@@ -80,26 +80,29 @@ function thousands(num) {
 
 function changeProgramIdCheckbox() {
     let fullSelectCheckbox = document.getElementById('full_select');
-    let program_id_check_list = document.getElementsByName('program_id_check');
-    let checked_list = [];
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            if (program_id_check_list[i].checked) {
-                checked_list.push(program_id_check_list[i]);
-            }
-        };
-    if (checked_list.length > 0) {
+    let tableBody = document.getElementById('tableBody');
+    let visibleCheckboxes = tableBody.querySelectorAll('tr:not([style*="display: none"]) input[name="program_id_check"]');
+    let checkedVisibleList = [];
+        visibleCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            checkedVisibleList.push(checkbox);
+        }
+    });
+
+    if (checkedVisibleList.length > 0) {
+        // Если есть выделенные видимые чекбоксы - снимаем выделение
         fullSelectCheckbox.indeterminate = false;
         fullSelectCheckbox.checked = false;
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            program_id_check_list[i].checked = false;
-        };
-    }
-    else {
+        visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+    } else {
+        // Если нет выделенных видимых чекбоксов - выделяем все видимые
         fullSelectCheckbox.indeterminate = false;
         fullSelectCheckbox.checked = true;
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            program_id_check_list[i].checked = true;
-        };
+        visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
     }
 };
 
@@ -148,7 +151,7 @@ function showApproveCommonTask() {
         }
     }
     if (checked_list.length > 0) {
-        ApproveCommonTask = new bootstrap.Modal(document.getElementById('ApproveCommonTask'));
+        const ApproveCommonTask = new bootstrap.Modal(document.getElementById('ApproveCommonTask'));
         let program_name_list = document.getElementById('program_name_list');
         let dateInput = document.getElementById('work_date');
         program_name_list.innerHTML = ''
@@ -164,7 +167,7 @@ function showApproveCommonTask() {
     }
     else {
         console.log('error');
-        errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
         error_message = document.getElementById('error_message');
         error_message.textContent = 'Ни одна задача не выбрана!'
         errorModal.toggle();
@@ -199,12 +202,16 @@ function addInCommonTask() {
     .then(data => {
         if (data.status !== 'success') {
             console.error(data.message || 'Unknown server error');
-            errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
             error_message = document.getElementById('error_message');
             error_message.textContent = data.message
+            const ApproveCommonTask = bootstrap.Modal.getInstance(document.getElementById('ApproveCommonTask')) ||
+             new bootstrap.Modal(document.getElementById('ApproveCommonTask'));
+            ApproveCommonTask.hide();
             errorModal.toggle();
         }
         console.log(data);
+        window.location.href = '/common_pool/'
     })
     .catch(error => {
         console.error('Error:', error);
