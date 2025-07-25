@@ -35,6 +35,7 @@ from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacat
 @login_required()
 def home(request):
     worker_id = request.user.id
+
     service_dict = {
         'today': date.today(),
         'cal_month': 1,
@@ -417,14 +418,17 @@ def material_card(request, program_id):
                 cenz_comment = request.POST.get('cenz_comment')
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
+                print('service_info_dict', service_info_dict)
                 text_message = change_task_status(service_info_dict, task_status)
                 if text_message:
                     update_comment(program_id, worker_id, task_status, cenz_comment)
             if cenz_info_change:
+                task_status = 'no_change'
                 cenz_comment = request.POST.get('cenz_comment')
                 change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
                 insert_history(service_info_dict, old_values_dict, new_values_dict)
                 update_comment(program_id, worker_id, comment=cenz_comment)
+                change_task_status(service_info_dict, task_status)
                 text_message = 'Изменения успешно внесены.'
             if ask_fix:
                 task_status = 'fix'

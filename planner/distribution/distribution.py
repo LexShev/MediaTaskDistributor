@@ -135,24 +135,6 @@ def kpi_min_obsolete(work_date):
                 kpi_list.append((engineer_id, kpi))
     return sorted(kpi_list, key=lambda x: x[1])
 
-def kpi_min_obsolette_2(work_date):
-    with connections['planner'].cursor() as cursor:
-        query = '''
-        SELECT Worker.[worker_id] AS engineer_id, CAST(COALESCE(SUM(Task.[duration]), 0) AS FLOAT) / 720000.0 AS kpi
-        FROM [planner].[dbo].[worker_list] AS Worker
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
-            ON Worker.[worker_id] = Task.[engineer_id] 
-            AND Task.[work_date] = %s
-        WHERE %s NOT IN (SELECT day_off FROM [planner].[dbo].[days_off])
-        AND [fired] = 'False'
-        GROUP BY Worker.[worker_id]
-        ORDER BY kpi ASC
-        '''
-        cursor.execute(query, (work_date, work_date))
-        res = cursor.fetchall()
-        print('res', res)
-        return res
-
 def kpi_min(work_date):
     with connections['planner'].cursor() as cursor:
         query = '''

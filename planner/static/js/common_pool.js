@@ -200,6 +200,7 @@ function addInCommonTask() {
         return response.json();
     })
     .then(data => {
+        console.log(data);
         if (data.status !== 'success') {
             console.error(data.message || 'Unknown server error');
             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
@@ -210,8 +211,9 @@ function addInCommonTask() {
             ApproveCommonTask.hide();
             errorModal.toggle();
         }
-        console.log(data);
-        window.location.href = '/common_pool/'
+        else {
+            window.location.href = '/common_pool/';
+        }
     })
     .catch(error => {
         console.error('Error:', error);

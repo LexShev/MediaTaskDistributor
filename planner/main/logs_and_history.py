@@ -79,14 +79,17 @@ def change_task_status(service_info_dict, task_status):
     with connections['planner'].cursor() as cursor:
         select = f'SELECT [task_status] FROM [planner].[dbo].[task_list] WHERE [program_id] = {program_id}'
         cursor.execute(select)
-        if cursor.fetchone():
+        db_task_status = cursor.fetchone()
+        if db_task_status and db_task_status[0]:
+            if task_status == 'no_change':
+                task_status = db_task_status[0]
             update_status = f'''
             UPDATE [planner].[dbo].[task_list]
-            SET [task_status] = '{task_status}', [ready_date] = GETDATE()
-            WHERE [program_id] = {program_id}
+            SET [engineer_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s
+            WHERE [program_id] = %s
             AND [task_status] IN ('ready', 'not_ready', 'fix_ready', 'otk_fail', 'no_material')
             '''
-            cursor.execute(update_status)
+            cursor.execute(update_status, (engineer_id, work_date, task_status, program_id))
             if cursor.rowcount:
                 return f'{program_name(program_id)} завершено.'
 
