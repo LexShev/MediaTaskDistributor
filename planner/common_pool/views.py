@@ -1,9 +1,10 @@
 import json
 
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
@@ -58,6 +59,7 @@ def add_in_common_task(request):
             return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
         rowcount = insert_in_common_task(data)
         if rowcount > 0:
+            messages.success(request, 'Успешно добавлено')
             return JsonResponse({'status': 'success', 'message': 'Added in common task successfully'})
         else:
             return JsonResponse({'status': 'error', 'message': 'Data was not added'}, status=400)
