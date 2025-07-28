@@ -6,7 +6,7 @@ from planner.settings import OPLAN_DB, PLANNER_DB
 
 def unique_program_id():
     with connections[PLANNER_DB].cursor() as cursor:
-        query = 'SELECT DISTINCT [program_id] FROM [service].[dbo].[messenger_static_message]'
+        query = 'SELECT DISTINCT [program_id] FROM [PLANNER_DB].[dbo].[messenger_static_message]'
         cursor.execute(query)
         programs = cursor.fetchall()
         if programs:
@@ -20,7 +20,7 @@ def all_messages(worker_id):
             SELECT TOP (50)
                 m.[program_id]
             FROM 
-                [service].[dbo].[messenger_static_message] m
+                [PLANNER_DB].[dbo].[messenger_static_message] m
             GROUP BY 
                 m.[program_id]
             ORDER BY 
@@ -38,8 +38,8 @@ def all_messages(worker_id):
                 ELSE CAST(0 AS BIT)
             END AS [read]
         FROM 
-            [service].[dbo].[messenger_static_message] AS m
-        LEFT JOIN [service].[dbo].[messenger_static_messageviews] AS v
+            [PLANNER_DB].[dbo].[messenger_static_message] AS m
+        LEFT JOIN [PLANNER_DB].[dbo].[messenger_static_messageviews] AS v
             ON m.[message_id] = v.[message_id] AND v.[worker_id] = {worker_id}
         LEFT JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON m.[program_id] = Progs.[program_id]
@@ -75,7 +75,7 @@ def show_messages(program_id):
 
         query = f'''
         SELECT m.[message_id], m.[owner], m.[program_id], m.[message], m.[file_path], Progs.[name], Progs.[production_year], m.[timestamp]
-        FROM [service].[dbo].[messenger_static_message] AS m
+        FROM [PLANNER_DB].[dbo].[messenger_static_message] AS m
         LEFT JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON m.[program_id] = Progs.[program_id]
         WHERE m.[program_id] = {program_id}
@@ -111,10 +111,10 @@ def show_viewed_messages(program_id, worker_id):
     with connections[PLANNER_DB].cursor() as cursor:
         query = f'''
         SELECT [message_id]
-        FROM [service].[dbo].[messenger_static_messageviews]
+        FROM [PLANNER_DB].[dbo].[messenger_static_messageviews]
         WHERE [worker_id] = {worker_id}
         AND [message_id] IN 
-        (SELECT [message_id] FROM [service].[dbo].[messenger_static_message] WHERE [program_id] = {program_id})'''
+        (SELECT [message_id] FROM [PLANNER_DB].[dbo].[messenger_static_message] WHERE [program_id] = {program_id})'''
         cursor.execute(query)
         viewed_messages = cursor.fetchall()
         if viewed_messages:
@@ -123,7 +123,7 @@ def show_viewed_messages(program_id, worker_id):
 def insert_views(program_id_list):
     with connections[PLANNER_DB].cursor() as cursor:
         query = '''
-        INSERT INTO [service].[dbo].[messenger_static_messageviews]
+        INSERT INTO [PLANNER_DB].[dbo].[messenger_static_messageviews]
         ([message_id], [worker_id])
         VALUES
         (%s, %s);'''
