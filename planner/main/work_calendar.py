@@ -40,7 +40,7 @@ def my_work_calendar(cal_year):
 
 def holidays_list():
     with connections[PLANNER_DB].cursor() as cursor:
-        query = 'SELECT [day_off] FROM [{PLANNER_DB}].[dbo].[days_off]'
+        query = f'SELECT [day_off] FROM [{PLANNER_DB}].[dbo].[days_off]'
         cursor.execute(query)
         return [day[0] for day in cursor.fetchall()]
 

@@ -7,7 +7,7 @@ urlpatterns = [
     path("day/", day),
     path("week/", week),
     path("week/<int:work_year>/<int:work_week>", week_date),
-    path("list/", full_list),
+    path("list/", full_list, name='list'),
     path("<int:program_id>/", material_card),
     path("kpi_info/", kpi_info),
     path("worker/<int:engineer_id>/", engineer_profile),
