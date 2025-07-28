@@ -1,10 +1,11 @@
 from django.db import connections
 
 from messenger_static.models import Notification
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 
 def unique_program_id():
-    with connections['service'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query = 'SELECT DISTINCT [program_id] FROM [service].[dbo].[messenger_static_message]'
         cursor.execute(query)
         programs = cursor.fetchall()
@@ -12,7 +13,7 @@ def unique_program_id():
             return [program[0] for program in programs]
 
 def all_messages(worker_id):
-    with connections['default'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = 'program_id', 'message', 'timestamp', 'Progs_name', 'Progs_production_year', 'read'
         query = f'''
         WITH LatestPrograms AS (
@@ -40,7 +41,7 @@ def all_messages(worker_id):
             [service].[dbo].[messenger_static_message] AS m
         LEFT JOIN [service].[dbo].[messenger_static_messageviews] AS v
             ON m.[message_id] = v.[message_id] AND v.[worker_id] = {worker_id}
-        LEFT JOIN [oplan3].[dbo].[program] AS Progs
+        LEFT JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON m.[program_id] = Progs.[program_id]
         WHERE m.[program_id] IN (SELECT [program_id] FROM LatestPrograms)
         ORDER BY
@@ -69,13 +70,13 @@ def all_messages(worker_id):
 
 
 def show_messages(program_id):
-    with connections['default'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = ('m_message_id', 'm_owner', 'm_program_id', 'm_message', 'm_file_path', 'Progs_name', 'Progs_production_year', 'm_timestamp')
 
         query = f'''
         SELECT m.[message_id], m.[owner], m.[program_id], m.[message], m.[file_path], Progs.[name], Progs.[production_year], m.[timestamp]
         FROM [service].[dbo].[messenger_static_message] AS m
-        LEFT JOIN [oplan3].[dbo].[program] AS Progs
+        LEFT JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON m.[program_id] = Progs.[program_id]
         WHERE m.[program_id] = {program_id}
         ORDER BY [timestamp]
@@ -107,7 +108,7 @@ def file_type(file_path):
     return None
 
 def show_viewed_messages(program_id, worker_id):
-    with connections['default'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query = f'''
         SELECT [message_id]
         FROM [service].[dbo].[messenger_static_messageviews]
@@ -120,7 +121,7 @@ def show_viewed_messages(program_id, worker_id):
             return [message_id[0] for message_id in viewed_messages]
 
 def insert_views(program_id_list):
-    with connections['default'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query = '''
         INSERT INTO [service].[dbo].[messenger_static_messageviews]
         ([message_id], [worker_id])
@@ -141,10 +142,10 @@ def create_notification(data):
         return 'error'
 
 def find_engineers_name(name):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT [ItemsString]
-        FROM [oplan3].[dbo].[ProgramCustomFields]
+        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFields]
         WHERE [CustomFieldID] = 15
         '''
         cursor.execute(query)

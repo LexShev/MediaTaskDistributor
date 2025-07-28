@@ -1,4 +1,4 @@
-INSERT INTO [planner].[dbo].[days_off]
+INSERT INTO [{PLANNER_DB}].[dbo].[days_off]
 VALUES
 ('2025-01-01'),
 ('2025-01-02'),

@@ -1,6 +1,7 @@
 from django.db import connections
 from datetime import datetime, date
 
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 def check_value(key, value):
     if value:
@@ -23,7 +24,7 @@ def check_deadline(value):
         return ''
 
 def task_info(field_dict):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
             ('Task', 'work_date'), ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
@@ -34,8 +35,8 @@ def task_info(field_dict):
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[task_list] AS Task
-        JOIN [oplan3].[dbo].[program] AS Progs
+        FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
@@ -65,13 +66,13 @@ def task_info(field_dict):
     return material_list, service_dict
 
 def find_file_path(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT Files.[Name]
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
         WHERE Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0
@@ -86,11 +87,11 @@ def find_file_path(program_id):
         return file_path[0]
 
 # def change_task_status_batch(program_id_tuple, task_status):
-#     with connections['planner'].cursor() as cursor:
+#     with connections[PLANNER_DB].cursor() as cursor:
 #         for program_id_list in program_id_tuple:
 #             program_id = program_id_list.split(';')[0]
 #             update = f'''
-#             UPDATE [planner].[dbo].[task_list]
+#             UPDATE [{PLANNER_DB}].[dbo].[task_list]
 #             SET [task_status] = '{task_status}', [ready_date] = GETDATE()
 #             WHERE [program_id] = {program_id}
 #             '''
@@ -99,11 +100,11 @@ def find_file_path(program_id):
 #     return 'Изменения успешно внесены'
 
 # def change_task_status_batch(program_list, task_status):
-#     with connections['planner'].cursor() as cursor:
+#     with connections[PLANNER_DB].cursor() as cursor:
 #         for program in program_list:
 #             program_id = program.get('program_id')
 #             query = f'''
-#             UPDATE [planner].[dbo].[task_list]
+#             UPDATE [{PLANNER_DB}].[dbo].[task_list]
 #             SET [task_status] = %s, [ready_date] = %s
 #             WHERE [program_id] = %s'''
 #             update_data = (task_status, datetime.today(), program_id)
@@ -113,19 +114,19 @@ def find_file_path(program_id):
 
 #
 # def update_comment_batch(program_id_tuple, task_status, worker_id, comment=None, deadline=None):
-#     with connections['planner'].cursor() as cursor:
+#     with connections[PLANNER_DB].cursor() as cursor:
 #         for program_id_list in program_id_tuple:
 #             program_id = program_id_list.split(';')[0]
 #             values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
 #             query = f'''
-#                 INSERT INTO [planner].[dbo].[comments_history]
+#                 INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
 #                 ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
 #                 VALUES (%s, %s, %s, %s, %s, %s);
 #                 '''
 #             cursor.execute(query, values)
 
 def update_comment_batch(program_list, task_status, worker_id):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         for program in program_list:
             program_id = program.get('program_id')
             comment = program.get('comment')
@@ -133,7 +134,7 @@ def update_comment_batch(program_list, task_status, worker_id):
 
             values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
             query = f'''
-                INSERT INTO [planner].[dbo].[comments_history]
+                INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
                 ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
                 VALUES (%s, %s, %s, %s, %s, %s);
                 '''
@@ -141,12 +142,12 @@ def update_comment_batch(program_list, task_status, worker_id):
 
 #
 # def update_comment_otk_fail(otk_fail_tuple, task_status, worker_id, deadline=None):
-#     with connections['planner'].cursor() as cursor:
+#     with connections[PLANNER_DB].cursor() as cursor:
 #         for material in otk_fail_tuple:
 #             program_id, comment = material
 #             values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
 #             query = f'''
-#                  INSERT INTO [planner].[dbo].[comments_history]
+#                  INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
 #                  ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
 #                  VALUES (%s, %s, %s, %s, %s, %s);
 #                  '''
@@ -154,7 +155,7 @@ def update_comment_batch(program_list, task_status, worker_id):
 #             cursor.execute(query, values)
 
 def change_task_status_batch(program_list, task_status):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         for program in program_list:
             program_id = program.get('program_id')
             file_path = program.get('file_path')
@@ -162,14 +163,14 @@ def change_task_status_batch(program_list, task_status):
                 if file_path.startswith('"') and file_path.endswith('"'):
                     file_path = file_path[1:-1]
                 query = f'''
-                UPDATE [planner].[dbo].[task_list]
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
                 SET [task_status] = %s, [ready_date] = %s, [file_path] = %s
                 WHERE [program_id] = %s'''
                 update_data = (task_status, datetime.today(), file_path, program_id)
                 cursor.execute(query, update_data)
             else:
                 query = f'''
-                UPDATE [planner].[dbo].[task_list]
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
                 SET [task_status] = %s, [ready_date] = %s
                 WHERE [program_id] = %s'''
                 update_data = (task_status, datetime.today(), program_id)
@@ -177,12 +178,12 @@ def change_task_status_batch(program_list, task_status):
     return 'Изменения успешно внесены'
 
 def comments_history(program_id, progs_name):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = 'worker_id', 'comment', 'deadline', 'time_of_change'
         sql_columns = ', '.join(columns)
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[comments_history]
+        FROM [{PLANNER_DB}].[dbo].[comments_history]
         WHERE program_id = {program_id}
         AND [task_status] = 'fix'
         ORDER BY [time_of_change]

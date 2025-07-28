@@ -3,6 +3,8 @@ from django.db import connections
 import os
 
 from main.settings.main_set import MainSettings
+from planner.settings import OPLAN_DB, PLANNER_DB
+
 
 
 @register.simple_tag
@@ -48,8 +50,8 @@ def engineer_name(engineer_id):
 @register.filter
 def worker_name(worker_id):
     if worker_id:
-        with connections['oplan3'].cursor() as cursor:
-            query = f'SELECT [user_name] FROM [oplan3].[dbo].[user] WHERE [user_id] = %s'
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f'SELECT [user_name] FROM [{OPLAN_DB}].[dbo].[user] WHERE [user_id] = %s'
             cursor.execute(query, (worker_id,))
             worker = cursor.fetchone()
             if worker:
@@ -238,8 +240,8 @@ def file_ext(file_path):
 
 @register.filter
 def program_name(program_id):
-    with connections['oplan3'].cursor() as cursor:
-        query = f'SELECT [name], [production_year] FROM [oplan3].[dbo].[program] WHERE [program_id] = %s'
+    with connections[OPLAN_DB].cursor() as cursor:
+        query = f'SELECT [name], [production_year] FROM [{OPLAN_DB}].[dbo].[program] WHERE [program_id] = %s'
         cursor.execute(query, (program_id,))
         res = cursor.fetchone()
         if res:

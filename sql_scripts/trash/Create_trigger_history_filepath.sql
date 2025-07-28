@@ -4,15 +4,15 @@ AFTER INSERT, UPDATE
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Для новых записей (INSERT)
-    INSERT INTO [planner].[dbo].[filepath_history] ([program_id], [file_path], [engineer_id], [duration], [task_status], [time_of_change])
+    -- пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (INSERT)
+    INSERT INTO [{PLANNER_DB}].[dbo].[filepath_history] ([program_id], [file_path], [engineer_id], [duration], [task_status], [time_of_change])
     SELECT i.program_id, i.file_path, i.[engineer_id], i.[duration], i.[task_status], GETDATE()
     FROM inserted i
     WHERE NOT EXISTS (
         SELECT 1 FROM deleted
     );
-    -- Для обновленных записей (UPDATE), где изменился file_path
-    INSERT INTO [planner].[dbo].[filepath_history] ([program_id], [file_path], [engineer_id], [duration], [task_status], [time_of_change])
+    -- пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (UPDATE), пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ file_path
+    INSERT INTO [{PLANNER_DB}].[dbo].[filepath_history] ([program_id], [file_path], [engineer_id], [duration], [task_status], [time_of_change])
     SELECT i.program_id, i.file_path, i.[engineer_id], i.[duration], i.[task_status], GETDATE()
     FROM inserted i
     JOIN deleted d ON i.program_id = d.program_id

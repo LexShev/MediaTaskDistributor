@@ -1,16 +1,16 @@
 SELECT Progs.[program_id], Progs.[parent_id], Progs.[program_type_id], Progs.[name], Progs.[production_year], Progs.[AnonsCaption], Progs.[episode_num], Progs.[duration], Sched.[schedule_name], SchedDay.[day_date]
-            FROM [oplan3].[dbo].[File] AS Files
-            JOIN [oplan3].[dbo].[Clip] AS Clips
+            FROM [{OPLAN_DB}].[dbo].[File] AS Files
+            JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
                 ON Files.[ClipID] = Clips.[ClipID]
-            JOIN [oplan3].[dbo].[program] AS Progs
+            JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
                 ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-            JOIN [oplan3].[dbo].[program_type] AS Types
+            JOIN [{OPLAN_DB}].[dbo].[program_type] AS Types
                 ON Progs.[program_type_id] = Types.[program_type_id]
-            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+            JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
                 ON Progs.[program_id] = SchedProg.[program_id]
-            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+            JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-            JOIN [oplan3].[dbo].[schedule] AS Sched
+            JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
             WHERE Files.[Deleted] = 0
             AND Files.[PhysicallyDeleted] = 0

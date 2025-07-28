@@ -1,13 +1,13 @@
 from django.db import connections
 import datetime
-
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 def parent_adult_name(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT Progs.[program_id], Progs.[parent_id], Adult.[Name]
-        FROM [oplan3].[dbo].[program] AS Progs
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[program_id] = {program_id}
         '''
@@ -23,7 +23,7 @@ def calc_deadline(task_date):
     return task_date - datetime.timedelta(days=14)
 
 def fast_search(program_name):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
                    ('Progs', 'duration'), ('Adult', 'Name'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
@@ -32,12 +32,12 @@ def fast_search(program_name):
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
         SELECT TOP (500) {sql_columns}
-        FROM [planner].[dbo].[task_list] AS Task
-        JOIN [oplan3].[dbo].[program] AS Progs
+        FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        JOIN [oplan3].[dbo].[schedule] AS Sched
+        JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
             ON Task.[sched_id] = Sched.[schedule_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[name] LIKE '%{program_name}%'

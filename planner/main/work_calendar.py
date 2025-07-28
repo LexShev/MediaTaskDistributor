@@ -4,6 +4,8 @@ from django.db import connections
 import calendar
 
 from .db_connection import program_custom_fields
+from planner.settings import OPLAN_DB, PLANNER_DB
+
 
 def workers_name(worker_id):
     workers_list = program_custom_fields().get(15)
@@ -37,28 +39,28 @@ def my_work_calendar(cal_year):
     return year_calendar
 
 def holidays_list():
-    with connections['planner'].cursor() as cursor:
-        query = 'SELECT [day_off] FROM [planner].[dbo].[days_off]'
+    with connections[PLANNER_DB].cursor() as cursor:
+        query = 'SELECT [day_off] FROM [{PLANNER_DB}].[dbo].[days_off]'
         cursor.execute(query)
         return [day[0] for day in cursor.fetchall()]
 
 def drop_day_off(work_date):
-    with connections['planner'].cursor() as cursor:
-        query = f"DELETE FROM [planner].[dbo].[days_off] WHERE [day_off] = '{work_date}'"
+    with connections[PLANNER_DB].cursor() as cursor:
+        query = f"DELETE FROM [{PLANNER_DB}].[dbo].[days_off] WHERE [day_off] = '{work_date}'"
         cursor.execute(query)
 
 def insert_day_off(work_date):
-    with connections['planner'].cursor() as cursor:
-        query = f"INSERT INTO[planner].[dbo].[days_off] ([day_off]) VALUES ('{work_date}');"
+    with connections[PLANNER_DB].cursor() as cursor:
+        query = f"INSERT INTO[{PLANNER_DB}].[dbo].[days_off] ([day_off]) VALUES ('{work_date}');"
         cursor.execute(query)
 
 def vacation_info(cal_year):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = ('vacation_id', 'worker_id', 'start_date', 'end_date', 'description')
         sql_columns = ', '.join([f'[{col}]' for col in columns])
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[vacation_schedule]
+        FROM [{PLANNER_DB}].[dbo].[vacation_schedule]
         WHERE year([start_date]) = {cal_year}'''
         cursor.execute(query)
         # [dict(zip(columns, val)) for val in cursor.fetchall()]
@@ -73,13 +75,13 @@ def vacation_info(cal_year):
         return vacation_list
 
 def insert_vacation(worker_id, start_date, end_date, description):
-    with connections['planner'].cursor() as cursor:
-        query = f'''INSERT INTO [planner].[dbo].[vacation_schedule]
+    with connections[PLANNER_DB].cursor() as cursor:
+        query = f'''INSERT INTO [{PLANNER_DB}].[dbo].[vacation_schedule]
         ([worker_id], [start_date], [end_date], [description])
         VALUES ({worker_id}, '{start_date}', '{end_date}', '{description}');'''
         cursor.execute(query)
 
 def drop_vacation(vacation_id):
-    with connections['planner'].cursor() as cursor:
-        query = f"DELETE FROM [planner].[dbo].[vacation_schedule] WHERE [vacation_id] = {vacation_id}"
+    with connections[PLANNER_DB].cursor() as cursor:
+        query = f"DELETE FROM [{PLANNER_DB}].[dbo].[vacation_schedule] WHERE [vacation_id] = {vacation_id}"
         cursor.execute(query)

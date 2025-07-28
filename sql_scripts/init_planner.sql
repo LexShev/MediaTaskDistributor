@@ -27,7 +27,7 @@ CREATE TABLE [vacation_schedule]
 
 INSERT INTO [planner].[dbo].[vacation_schedule]
 (worker_id, start_date, end_date)
-VALUES 
+VALUES
 (0, '2025-03-10', '2025-03-20'),
 (5, '2025-04-13', '2025-04-23');
 
@@ -40,7 +40,7 @@ CREATE TABLE worker_list
 
 INSERT INTO [planner].[dbo].[worker_list]
 (worker_id, permission_group, fired)
-VALUES 
+VALUES
 (0, 'preparation_engineer', 0),
 (1, 'preparation_engineer', 0),
 (2, 'preparation_engineer', 0),
@@ -75,7 +75,7 @@ CREATE TABLE permission_list
 
 INSERT INTO [planner].[dbo].[permission_list]
 ([permission_group], [home], [day], [on_air_report], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search], [task_manager], [messenger], [desktop])
-VALUES 
+VALUES
 ('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 ('preparation_engineer', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 ('broadcast_engineer', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1),

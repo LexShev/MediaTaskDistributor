@@ -1,5 +1,5 @@
 from django.db import connections
-
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 def query_selector(search_id, sql_set, search_query):
     if not search_query:
@@ -50,10 +50,10 @@ def query_selector(search_id, sql_set, search_query):
     # id
     query_0 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
-        FROM [oplan3].[dbo].[program] AS Progs
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
+        FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0
         AND Progs.[program_id] = {search_query}
@@ -62,10 +62,10 @@ def query_selector(search_id, sql_set, search_query):
     # name
     query_1 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
-        FROM [oplan3].[dbo].[program] AS Progs
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
+        FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
@@ -78,16 +78,16 @@ def query_selector(search_id, sql_set, search_query):
     # file_name
     query_2 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        JOIN [oplan3].[dbo].[program_type] AS Types
+        JOIN [{OPLAN_DB}].[dbo].[program_type] AS Types
             ON Progs.[program_type_id] = Types.[program_type_id]
         WHERE Progs.[deleted] = 0
         AND Files.[Deleted] = 0
@@ -102,12 +102,12 @@ def query_selector(search_id, sql_set, search_query):
     # !!!engineer
     query_3 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
-        FROM [oplan3].[dbo].[program] AS Progs
-        LEFT JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Fields
+        FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+        LEFT JOIN [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] AS Fields
             ON Progs.[program_id] = Fields.[ObjectId]
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
@@ -115,28 +115,28 @@ def query_selector(search_id, sql_set, search_query):
         AND Fields.[IntValue] = {search_query}
         OR Task.[engineer_id] = {search_query}
         AND Progs.[program_id] NOT IN
-            (SELECT program_id FROM [planner].[dbo].[task_list] WHERE [engineer_id] = {search_query})
+            (SELECT program_id FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [engineer_id] = {search_query})
         ORDER BY Progs.[program_id];
         '''
     # sched_date
     query_4 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-        JOIN [oplan3].[dbo].[program_type] AS Types
+        JOIN [{OPLAN_DB}].[dbo].[program_type] AS Types
             ON Progs.[program_type_id] = Types.[program_type_id]
-        JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+        JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
             ON Progs.[program_id] = SchedProg.[program_id]
-        JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+        JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
             ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-        JOIN [oplan3].[dbo].[schedule] AS Sched
+        JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
             ON SchedDay.[schedule_id] = Sched.[schedule_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
         WHERE Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0
@@ -153,22 +153,22 @@ def query_selector(search_id, sql_set, search_query):
     # last_date
     query_5 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-        JOIN [oplan3].[dbo].[program_type] AS Types
+        JOIN [{OPLAN_DB}].[dbo].[program_type] AS Types
             ON Progs.[program_type_id] = Types.[program_type_id]
-        JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+        JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
             ON Progs.[program_id] = SchedProg.[program_id]
-        JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+        JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
             ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-        JOIN [oplan3].[dbo].[schedule] AS Sched
+        JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
             ON SchedDay.[schedule_id] = Sched.[schedule_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
         WHERE Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0
@@ -185,7 +185,7 @@ def query_selector(search_id, sql_set, search_query):
     query_list = [query_0, query_1, query_2, query_3, query_4, query_5]
     query = query_list[search_id]
 
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         print(query)
         cursor.execute(query)
         result = cursor.fetchall()
@@ -215,11 +215,11 @@ def query_selector(search_id, sql_set, search_query):
     return search_list
 
 def cenz_info(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         columns = '[ProgramCustomFieldId], [IntValue], [DateValue]'
         query = f'''
         SELECT {columns}
-        FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] IN (7, 15)
         '''
@@ -237,11 +237,11 @@ def cenz_info(program_id):
     return custom_fields_dict
 
 def parent_adult_name(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT Progs.[program_id], Progs.[parent_id], Adult.[Name]
-        FROM [oplan3].[dbo].[program] AS Progs
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[program_id] = {program_id}
         '''
@@ -258,13 +258,13 @@ def find_file_path(program_id):
                ('Files', 'ModificationTime'), ('Progs', 'duration'))
     sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
     django_columns = [f'{col}_{val}' for col, val in columns]
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT {sql_columns}
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
         WHERE Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0
