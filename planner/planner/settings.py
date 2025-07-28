@@ -23,10 +23,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key-only-for-dev')
-DB_USER = os.getenv('DB_USER', 'alex')
-DB_PASSWORD = os.getenv('DB_PASSWORD', 'alex')
-DB_HOST = os.getenv('DB_HOST', 'localhost')
+
+OPLAN_DB = os.getenv('OPLAN_DB', 'planner')
+OPLAN_USER = os.getenv('OPLAN_USER', 'planner')
+OPLAN_PASSWORD = os.getenv('OPLAN_PASSWORD')
+OPLAN_HOST = os.getenv('OPLAN_HOST', 'mssql')
+
+PLANNER_DB = os.getenv('PLANNER_DB', 'planner')
+PLANNER_USER = os.getenv('PLANNER_USER', 'planner')
+PLANNER_PASSWORD = os.getenv('PLANNER_PASSWORD')
+PLANNER_HOST = os.getenv('PLANNER_HOST', 'mssql')
+
 ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
+
 MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
 MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
 
@@ -34,7 +43,6 @@ MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
-
 
 # Application definition
 
@@ -92,40 +100,36 @@ WSGI_APPLICATION = "planner.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.db.backends.sqlite3",
-    #     "NAME": BASE_DIR / "db.sqlite3",
-    # }
     "default": {
         "ENGINE": "mssql",
-        "NAME": 'service',
-        "USER": DB_USER,
-        "PASSWORD": DB_PASSWORD,
-        "HOST": DB_HOST,
+        "NAME": PLANNER_DB,
+        "USER": PLANNER_USER,
+        "PASSWORD": PLANNER_PASSWORD,
+        "HOST": PLANNER_HOST,
         # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
             "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
         },
     },
-    "oplan3": {
+    OPLAN_DB: {
         "ENGINE": "mssql",
-        "NAME": 'oplan3',
-        "USER": DB_USER,
-        "PASSWORD": DB_PASSWORD,
-        "HOST": DB_HOST,
+        "NAME": OPLAN_DB,
+        "USER": OPLAN_USER,
+        "PASSWORD": OPLAN_PASSWORD,
+        "HOST": OPLAN_HOST,
         # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
             "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
         },
     },
-    "planner": {
+    PLANNER_DB: {
         "ENGINE": "mssql",
-        "NAME": 'planner',
-        "USER": DB_USER,
-        "PASSWORD": DB_PASSWORD,
-        "HOST": DB_HOST,
+        "NAME": PLANNER_DB,
+        "USER": PLANNER_USER,
+        "PASSWORD": PLANNER_PASSWORD,
+        "HOST": PLANNER_HOST,
         # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,

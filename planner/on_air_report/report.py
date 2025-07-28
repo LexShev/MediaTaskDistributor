@@ -3,6 +3,8 @@ import datetime
 
 from django.core.cache import cache
 from django.db import connections
+from planner.settings import OPLAN_DB, PLANNER_DB
+
 
 program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
 schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
@@ -68,21 +70,21 @@ def tasks_info(month_calendar, task_list):
 
 def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
     start_date, end_date = dates
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         order = 'ASC'
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""
             SELECT {sql_columns}
-            FROM [oplan3].[dbo].[program] AS Progs
-            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+            FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+            JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
                 ON Progs.[program_id] = SchedProg.[program_id]
-            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+            JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-            JOIN [oplan3].[dbo].[schedule] AS Sched
+            JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
-            LEFT JOIN [planner].[dbo].[task_list] AS Task
+            LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
                 ON Progs.[program_id] = Task.[program_id]
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
@@ -161,10 +163,10 @@ def collect_channels_list(cal_day):
     return channels_list
 
 def oplan3_engineer(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query_oplan3 = f'''
         SELECT [IntValue]
-        FROM [oplan3].[dbo].[ProgramCustomFieldValues] 
+        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] 
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = 15
         '''
@@ -174,13 +176,13 @@ def oplan3_engineer(program_id):
             return oplan3_engineer_id[0]
 
 def find_file_path(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT Files.[Name]
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
         WHERE Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0

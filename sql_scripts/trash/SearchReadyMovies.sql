@@ -1,20 +1,20 @@
 SELECT Progs.[program_id], Progs.[parent_id], Progs.[name], Sched.[schedule_name], Progs.[program_type_id]
-    FROM [oplan3].[dbo].[File] AS Files
-    JOIN [oplan3].[dbo].[Clip] AS Clips
+    FROM [{OPLAN_DB}].[dbo].[File] AS Files
+    JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
         ON Files.[ClipID] = Clips.[ClipID]
-    JOIN [oplan3].[dbo].[program] AS Progs
+    JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
         ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-    JOIN [oplan3].[dbo].[program_type] AS Types
+    JOIN [{OPLAN_DB}].[dbo].[program_type] AS Types
         ON Progs.[program_type_id] = Types.[program_type_id]
-    JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+    JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
         ON Progs.[program_id] = SchedProg.[program_id]
-    JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+    JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
         ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-    JOIN [oplan3].[dbo].[schedule] AS Sched
+    JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
         ON SchedDay.[schedule_id] = Sched.[schedule_id]
-	LEFT JOIN [oplan3].[dbo].[ProgramCustomFieldValues] AS Val
+	LEFT JOIN [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] AS Val
 		ON Progs.[program_id] = Val.[ObjectId]
-	LEFT JOIN [planner].[dbo].[task_list] AS Task
+	LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
         ON Progs.[program_id] = Task.[program_id]
     WHERE Files.[Deleted] = 0
     AND Files.[PhysicallyDeleted] = 0

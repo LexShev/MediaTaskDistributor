@@ -5,7 +5,7 @@ from django.db import connections
 
 from .db_connection import parent_name, parent_adult_name
 from .settings.main_set import MainSettings
-
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 def check_data_type(value):
     if isinstance(value, NoneType):
@@ -24,7 +24,7 @@ def check_color_status(planner_status):
     return color_dict.get(planner_status)
 
 def full_info(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         columns = [
             ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'program_kind'),
             ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'annotation'), ('Progs', 'duration'),
@@ -44,10 +44,10 @@ def full_info(program_id):
         django_columns = [f'{col}_{val}' for col, val in columns]
         movie_query = f'''
         SELECT {sql_columns}
-        FROM [oplan3].[dbo].[program] AS Progs
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
@@ -80,13 +80,13 @@ def find_file_path(program_id):
                ('Files', 'ModificationTime'), ('Progs', 'duration'))
     sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
     django_columns = [f'{col}_{val}' for col, val in columns]
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT {sql_columns}
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
         WHERE Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0
@@ -101,7 +101,7 @@ def find_file_path(program_id):
         return dict(zip(django_columns, file_path_info))
 
 def find_episodes(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         episodes_columns = [
             ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'name'), ('Progs', 'orig_name'),
             ('Progs', 'DisplayMediumName'), ('Progs', 'duration'), ('Progs', 'episode_num'), ('Task', 'task_status')]
@@ -109,8 +109,8 @@ def find_episodes(program_id):
         django_episodes_columns = [f'{col}_{val}' for col, val in episodes_columns]
         episodes_query = f'''
             SELECT {episodes_sql_columns}
-            FROM [oplan3].[dbo].[program] AS Progs
-            LEFT JOIN [planner].[dbo].[task_list] AS Task
+            FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+            LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
                 ON Progs.[program_id] = Task.[program_id]
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
@@ -147,11 +147,11 @@ def find_out_status(program_id, full_info_dict):
 
 
 def cenz_info(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         columns = '[ProgramCustomFieldId], [TextValue], [IntValue], [DateValue]'
         query = f'''
             SELECT {columns}
-            FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+            FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
             WHERE [ObjectId] = {program_id}
             '''
         cursor.execute(query)
@@ -182,9 +182,9 @@ def insert_value(field_id, program_id, new_value):
         columns = ''
 
     if columns:
-        with connections['oplan3'].cursor() as cursor:
+        with connections[OPLAN_DB].cursor() as cursor:
             query = f'''
-            INSERT INTO [oplan3].[dbo].[ProgramCustomFieldValues]
+            INSERT INTO [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
             ({columns})
             VALUES
             (%s, %s, %s, %s)
@@ -192,9 +192,9 @@ def insert_value(field_id, program_id, new_value):
             cursor.execute(query, (field_id, program_id, new_value, 0))
 
 def delete_value(field_id, program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
-        DELETE FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+        DELETE FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
         '''
@@ -205,27 +205,27 @@ def update_value(field_id, program_id, new_value):
     query = ''
     if field_id == 7:
         query = f'''
-        UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
+        UPDATE [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
         SET [DateValue] = '{new_value}'
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
         '''
     elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
         query = f'''
-        UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
+        UPDATE [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
         SET [TextValue] = '{new_value}'
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
         '''
     elif field_id in (14, 15, 17):
         query = f'''
-        UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
+        UPDATE [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
         SET [IntValue] = {new_value}
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
         '''
     if query:
-        with connections['oplan3'].cursor() as cursor:
+        with connections[OPLAN_DB].cursor() as cursor:
             cursor.execute(query)
             return cursor.rowcount
 
@@ -233,9 +233,9 @@ def update_file_path(program_id, file_path):
     if file_path:
         if file_path.startswith('"') and file_path.endswith('"'):
             file_path = file_path[1:-1]
-        with connections['planner'].cursor() as cursor:
+        with connections[PLANNER_DB].cursor() as cursor:
             query = f'''
-            UPDATE [planner].[dbo].[task_list]
+            UPDATE [{PLANNER_DB}].[dbo].[task_list]
             SET [file_path] = '{file_path}'
             WHERE [program_id] = {program_id}
             '''
@@ -257,12 +257,12 @@ def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
             update_value(old_field_id, program_id, new_value)
 
 def schedule_info(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         columns = ['ChannelId', 'ChannelName', 'DateTime']
         sql_columns = ', '.join(columns)
         query = f'''
         SELECT {sql_columns}
-        FROM [oplan3].[dbo].[ScheduledInfo]
+        FROM [{OPLAN_DB}].[dbo].[ScheduledInfo]
         WHERE [ProgramId] = {program_id}
         '''
         cursor.execute(query)
@@ -270,8 +270,8 @@ def schedule_info(program_id):
     return schedule_dict
 
 def calc_otk_deadline():
-    # with connections['planner'].cursor() as cursor:
-    #     cursor.execute(f'SELECT day_off FROM [planner].[dbo].[days_off] WHERE day_off = "{work_day}"')
+    # with connections[PLANNER_DB].cursor() as cursor:
+    #     cursor.execute(f'SELECT day_off FROM [{PLANNER_DB}].[dbo].[days_off] WHERE day_off = "{work_day}"')
     #     day_off = cursor.fetchone()
     # deadline = date.today()
     # for day in range(5):
@@ -280,12 +280,12 @@ def calc_otk_deadline():
     return date.today() + timedelta(days=5)
 
 def comments_history(program_id):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = 'task_status', 'worker_id', 'comment', 'deadline', 'time_of_change'
         sql_columns = ', '.join(columns)
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[comments_history]
+        FROM [{PLANNER_DB}].[dbo].[comments_history]
         WHERE program_id = {program_id}
         ORDER BY [time_of_change]
         '''
@@ -293,16 +293,16 @@ def comments_history(program_id):
         return [dict(zip(columns, val)) for val in cursor.fetchall()]
 
 def unblock_object(program_id, worker_id):
-    with connections['oplan3'].cursor() as cursor:
-        query = f'DELETE FROM [oplan3].[dbo].[ObjectLock] WHERE [ObjectID] = {program_id} AND [UserID] = {worker_id}'
+    with connections[OPLAN_DB].cursor() as cursor:
+        query = f'DELETE FROM [{OPLAN_DB}].[dbo].[ObjectLock] WHERE [ObjectID] = {program_id} AND [UserID] = {worker_id}'
         cursor.execute(query)
         return cursor.rowcount
 
 # DELETE!
 def block_object_oplan3(program_id, worker_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
-        INSERT INTO [oplan3].[dbo].[ObjectLock]
+        INSERT INTO [{OPLAN_DB}].[dbo].[ObjectLock]
         ([ObjectID], [ObjectType], [UserID], [LockTime])
         VALUES
         ({program_id}, 'PTeam.Model.SingleProgram', {worker_id}, GETDATE());
@@ -311,19 +311,19 @@ def block_object_oplan3(program_id, worker_id):
         return cursor.rowcount
 
 def insert_filepath_history(program_id, worker_id, task_status, comment, time_of_change):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         values = (program_id, worker_id, task_status, comment, time_of_change)
         query = f'''
-        INSERT INTO [planner].[dbo].[filepath_history] (program_id, worker_id, task_status, comment, time_of_change)
+        INSERT INTO [{PLANNER_DB}].[dbo].[filepath_history] (program_id, worker_id, task_status, comment, time_of_change)
         VALUES (%s, %s, %s, %s, %s)
         '''
         cursor.execute(query, values)
         return cursor.rowcount
 
 def select_filepath_history(program_id):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = 'program_id', 'file_path', 'task_status', 'time_of_change'
         sql_columns = ', '.join(columns)
-        query = f'SELECT {sql_columns} FROM [planner].[dbo].[filepath_history] WHERE [program_id] = {program_id}'
+        query = f'SELECT {sql_columns} FROM [{PLANNER_DB}].[dbo].[filepath_history] WHERE [program_id] = {program_id}'
         cursor.execute(query)
         return [dict(zip(columns, val)) for val in cursor.fetchall()]

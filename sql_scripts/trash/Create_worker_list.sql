@@ -8,18 +8,18 @@ CREATE TABLE worker_list
 	fired BIT
 );
 
-INSERT INTO [planner].[dbo].[worker_list]
+INSERT INTO [{PLANNER_DB}].[dbo].[worker_list]
 (worker_id, worker, permission_group)
 VALUES 
-(0, 'Александр Кисляков', 'preparation_engineer'),
-(1, 'Ольга Кузовкина', 'preparation_engineer'),
-(2, 'Дмитрий Гатенян', 'preparation_engineer'),
-(3, 'Мария Сучкова', 'preparation_engineer'),
-(4, 'Андрей Антипин', 'preparation_engineer'),
-(5, 'Роман Рогачев', 'preparation_engineer'),
-(6, 'Анастасия Чебакова', 'broadcast_engineer'),
-(7, 'Никита Кузаков', 'preparation_engineer'),
-(8, 'Олег Кашежев', 'preparation_engineer'),
-(9, 'Марфа Тарусина', 'preparation_engineer'),
-(10, 'Евгений Доманов', 'preparation_engineer'),
-(11, 'Евгений Доманов', 'admin');
+(0, 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(1, 'пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(2, 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(3, 'пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(4, 'пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(5, 'пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(6, 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'broadcast_engineer'),
+(7, 'пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(8, 'пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(9, 'пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(10, 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'preparation_engineer'),
+(11, 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ', 'admin');

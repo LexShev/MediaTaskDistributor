@@ -1,8 +1,8 @@
 from django.db import connections
-
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 def select_pool(sql_set):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         columns = [
             ('Progs', 'program_id'),
             ('Progs', 'parent_id'),
@@ -16,73 +16,73 @@ def select_pool(sql_set):
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
             SELECT TOP ({sql_set}) {sql_columns}
-            FROM [oplan3].[dbo].[program] AS Progs
+            FROM [{OPLAN_DB}].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
             AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
             AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12)
             AND Progs.[program_kind] IN (0, 3)
             AND Progs.[program_id] NOT IN
-                (SELECT Task.[program_id] FROM [planner].[dbo].[task_list] AS Task)
+                (SELECT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)
             AND Progs.[program_id] NOT IN
-                (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+                (SELECT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
             '''
         cursor.execute(query)
         return [dict(zip(django_columns, material)) for material in cursor.fetchall()]
 
 def get_total_count():
-    with connections['oplan3'].cursor() as cursor:
-        cursor.execute('''
+    with connections[OPLAN_DB].cursor() as cursor:
+        cursor.execute(f'''
             SELECT COUNT(Progs.[program_id]) AS total_count
-            FROM [oplan3].[dbo].[program] AS Progs
+            FROM [{OPLAN_DB}].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
             AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
             AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12)
             AND Progs.[program_kind] IN (0, 3)
             AND Progs.[program_id] NOT IN
-                (SELECT Task.[program_id] FROM [planner].[dbo].[task_list] AS Task)
+                (SELECT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)
             AND Progs.[program_id] NOT IN
-                (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+                (SELECT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
         ''')
         total_count = cursor.fetchone()[0] or 0
     return {'total_count': total_count}
 
 def get_film_stats():
-    with connections['oplan3'].cursor() as cursor:
-        cursor.execute('''
+    with connections[OPLAN_DB].cursor() as cursor:
+        cursor.execute(f'''
             SELECT COUNT(Progs.[program_id]) AS film_count, SUM(Progs.[duration]) AS film_dur
-            FROM [oplan3].[dbo].[program] AS Progs
+            FROM [{OPLAN_DB}].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
             AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
             AND Progs.[program_type_id] IN (5, 6, 10, 11)
             AND Progs.[program_kind] IN (0, 3)
             AND Progs.[program_id] NOT IN
-                (SELECT Task.[program_id] FROM [planner].[dbo].[task_list] AS Task)
+                (SELECT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)
             AND Progs.[program_id] NOT IN
-                (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+                (SELECT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
         ''')
         film_count, film_dur = cursor.fetchone() or (0, 0)
     return {'film_count': film_count, 'film_dur': film_dur}
 
 def get_season_stats():
-    with connections['oplan3'].cursor() as cursor:
-        cursor.execute('''
+    with connections[OPLAN_DB].cursor() as cursor:
+        cursor.execute(f'''
             SELECT COUNT(Progs.[program_id]) AS season_count, SUM(Progs.[duration]) AS season_dur
-            FROM [oplan3].[dbo].[program] AS Progs
+            FROM [{OPLAN_DB}].[dbo].[program] AS Progs
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
             AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
             AND Progs.[program_type_id] IN (4, 12)
             AND Progs.[program_kind] IN (0, 3)
             AND Progs.[program_id] NOT IN
-                (SELECT Task.[program_id] FROM [planner].[dbo].[task_list] AS Task)
+                (SELECT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)
             AND Progs.[program_id] NOT IN
-                (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+                (SELECT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
                 WHERE [ProgramCustomFieldId] = 15)
         ''')
         season_count, season_dur = cursor.fetchone() or (0, 0)
@@ -100,9 +100,9 @@ def insert_in_common_task(data):
         value = (program_id, duration, 1, sched_date, task_status, file_path)
         values.append(value)
 
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query = '''
-        INSERT INTO [planner].[dbo].[task_list] ([program_id], [duration], [sched_id], [sched_date], [task_status], [file_path])
+        INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ([program_id], [duration], [sched_id], [sched_date], [task_status], [file_path])
         VALUES (%s, %s, %s, %s, %s, %s)
         '''
         cursor.executemany(query, values)
@@ -110,13 +110,13 @@ def insert_in_common_task(data):
         return cursor.fetchone()[0]
 
 def find_file_path(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT Files.[Name], Progs.[duration]
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
         WHERE Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0

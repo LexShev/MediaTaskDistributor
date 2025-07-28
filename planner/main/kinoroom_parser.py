@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 from rapidfuzz import fuzz
 
+from planner.settings import PLANNER_DB
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
@@ -204,8 +205,8 @@ def search(query: Dict, threshold: float = 0.7) -> Dict:
 
 def check_db(program_id):
     image_filename = os.path.join(settings.STATIC_BANNERS, f'{program_id}.jpg')
-    with connections['planner'].cursor() as cursor:
-        query = f'SELECT [exists] FROM [planner].[dbo].[banner_list] WHERE [program_id] = {program_id}'
+    with connections[PLANNER_DB].cursor() as cursor:
+        query = f'SELECT [exists] FROM [{PLANNER_DB}].[dbo].[banner_list] WHERE [program_id] = {program_id}'
         cursor.execute(query)
         if cursor.fetchone() and os.path.exists(image_filename):
             return True
@@ -213,9 +214,9 @@ def check_db(program_id):
 
 def insert_into_db(program_id):
     try:
-        with connections['planner'].cursor() as cursor:
+        with connections[PLANNER_DB].cursor() as cursor:
             query = f'''
-            INSERT INTO [planner].[dbo].[banner_list]
+            INSERT INTO [{PLANNER_DB}].[dbo].[banner_list]
             ([program_id], [date_of_addition], [exists]) VALUES 
             (%s, GETDATE(), %s)
             '''

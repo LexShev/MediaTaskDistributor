@@ -1,6 +1,6 @@
 import datetime
 from django.db import connections
-
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 def check_param(param):
     if len(param) == 1:
@@ -17,7 +17,7 @@ def check_mat_type(param):
         return 4, 5, 6, 10, 11, 12
 
 def oplan_task_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
         schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         order = 'ASC'
@@ -27,20 +27,20 @@ def oplan_task_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""
             SELECT {sql_columns}
-            FROM [oplan3].[dbo].[File] AS Files
-            JOIN [oplan3].[dbo].[Clip] AS Clips
+            FROM [{OPLAN_DB}].[dbo].[File] AS Files
+            JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
                 ON Files.[ClipID] = Clips.[ClipID]
-            JOIN [oplan3].[dbo].[program] AS Progs
+            JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
                 ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-            JOIN [oplan3].[dbo].[program_type] AS Types
+            JOIN [{OPLAN_DB}].[dbo].[program_type] AS Types
                 ON Progs.[program_type_id] = Types.[program_type_id]
-            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+            JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
                 ON Progs.[program_id] = SchedProg.[program_id]
-            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+            JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-            JOIN [oplan3].[dbo].[schedule] AS Sched
+            JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
-            LEFT JOIN [planner].[dbo].[task_list] AS Task
+            LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
                 ON Progs.[program_id] = Task.[program_id]
             WHERE Files.[Deleted] = 0
             AND Files.[PhysicallyDeleted] = 0
@@ -57,7 +57,7 @@ def oplan_task_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
         return material_list_sql, django_columns
 
 def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
         schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         order = 'ASC'
@@ -72,20 +72,20 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""
             SELECT {sql_columns}
-            FROM [oplan3].[dbo].[File] AS Files
-            JOIN [oplan3].[dbo].[Clip] AS Clips
+            FROM [{OPLAN_DB}].[dbo].[File] AS Files
+            JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
                 ON Files.[ClipID] = Clips.[ClipID]
-            JOIN [oplan3].[dbo].[program] AS Progs
+            JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
                 ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-            JOIN [oplan3].[dbo].[program_type] AS Types
+            JOIN [{OPLAN_DB}].[dbo].[program_type] AS Types
                 ON Progs.[program_type_id] = Types.[program_type_id]
-            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+            JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
                 ON Progs.[program_id] = SchedProg.[program_id]
-            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+            JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-            JOIN [oplan3].[dbo].[schedule] AS Sched
+            JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
-            LEFT JOIN [planner].[dbo].[task_list] AS Task
+            LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
                 ON Progs.[program_id] = Task.[program_id]
             WHERE Files.[Deleted] = 0
             AND Files.[PhysicallyDeleted] = 0
@@ -133,7 +133,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
     task_status = check_param(task_status)
     start_date, end_date = work_dates
 
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         order = 'ASC'
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
@@ -143,14 +143,14 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[task_list] AS Task
-        JOIN [oplan3].[dbo].[program] AS Progs
+        FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
-        JOIN [oplan3].[dbo].[program_type] AS Types
+        JOIN [{OPLAN_DB}].[dbo].[program_type] AS Types
             ON Progs.[program_type_id] = Types.[program_type_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        JOIN [oplan3].[dbo].[schedule] AS Sched
+        JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
             ON Task.[sched_id] = Sched.[schedule_id]
         WHERE Progs.[deleted] = 0
         AND Task.[sched_id] IN {schedules_id}
@@ -165,17 +165,17 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
     return material_list_sql, django_columns
 
 def parent_name(program_id):
-    with connections['oplan3'].cursor() as cursor:
-        query = f'SELECT [name] FROM [oplan3].[dbo].[program] WHERE [program_id] = {program_id}'
+    with connections[OPLAN_DB].cursor() as cursor:
+        query = f'SELECT [name] FROM [{OPLAN_DB}].[dbo].[program] WHERE [program_id] = {program_id}'
         cursor.execute(query)
         for name in cursor.fetchone():
             return name
 
 def planner_task_list(program_id):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query_planner = f'''
         SELECT engineer_id, engineer, work_date, task_status
-        FROM [planner].[dbo].[task_list]
+        FROM [{PLANNER_DB}].[dbo].[task_list]
         WHERE [program_id] = {program_id}'''
         cursor.execute(query_planner)
         task_list = cursor.fetchone()
@@ -185,10 +185,10 @@ def planner_task_list(program_id):
             return None, None, None, None
 
 def oplan3_engineer(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query_oplan3 = f'''
         SELECT [IntValue]
-        FROM [oplan3].[dbo].[ProgramCustomFieldValues]
+        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = 15
         '''
@@ -199,10 +199,10 @@ def oplan3_engineer(program_id):
 
 
 def program_custom_fields():
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT [CustomFieldID], [ItemsString]
-        FROM [oplan3].[dbo].[ProgramCustomFields]
+        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFields]
         WHERE [CustomFieldID] IN (15, 18, 19)
         '''
         cursor.execute(query)
@@ -214,11 +214,11 @@ def program_custom_fields():
         return fields_dict
 
 def parent_adult_name(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT Progs.[program_id], Progs.[parent_id], Adult.[Name]
-        FROM [oplan3].[dbo].[program] AS Progs
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[program_id] = {program_id}
         '''

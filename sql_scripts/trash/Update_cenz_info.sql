@@ -1,6 +1,6 @@
-UPDATE [oplan3].[dbo].[ProgramCustomFieldValues]
+UPDATE [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
 SET [TextValue] = (CASE
-	WHEN ([ProgramCustomFieldId] = 5) THEN 'Приключенческий боевик с Крисом Хемсвортом. Группа моряков борется за выживание в открытом океане.'
+	WHEN ([ProgramCustomFieldId] = 5) THEN 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.'
 	WHEN ([ProgramCustomFieldId] = 12) THEN 'mat' END),
 [DateValue] = (CASE
 	WHEN ([ProgramCustomFieldId] = 7) THEN '2023-03-28 00:00:00.000' END),

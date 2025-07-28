@@ -19,7 +19,7 @@ CREATE TABLE permission_list
 	[desktop] BIT NOT NULL,
 );
 
-INSERT INTO [planner].[dbo].[permission_list]
+INSERT INTO [{PLANNER_DB}].[dbo].[permission_list]
 ([permission_group], [home], [day], [on_air_report], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search], [task_manager], [messenger], [desktop])
 VALUES 
 ('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),

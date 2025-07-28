@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import connections
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 
 # @register.filter
@@ -23,7 +24,7 @@ def check_value(key, value):
         return ''
 
 def summary_task_list(field_dict):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
             ('Task', 'work_date'), ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
@@ -35,12 +36,12 @@ def summary_task_list(field_dict):
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[task_list] AS Task
-        JOIN [oplan3].[dbo].[program] AS Progs
+        FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Progs.[SuitableMaterialForScheduleID] = Clips.[MaterialID]
-        JOIN [oplan3].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[File] AS Files
             ON Clips.[ClipID] = Files.[ClipID]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
@@ -87,7 +88,7 @@ def kpi_summary_calc(field_dict):
 
 
 def personal_task_list(field_dict):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = [('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
                    ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year')]
@@ -95,8 +96,8 @@ def personal_task_list(field_dict):
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[task_list] AS Task
-        JOIN [oplan3].[dbo].[program] AS Progs
+        FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0

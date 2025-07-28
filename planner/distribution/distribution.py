@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, date
 
 from django.db import connections
-
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 def main_distribution():
     work_date = datetime.today().date()
@@ -43,21 +43,21 @@ def oplan_material_list(start_date, work_duration, program_type=(4, 5, 6, 10, 11
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Progs', 'SuitableMaterialForScheduleID'), ('SchedDay', 'day_date')
     ]
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         order = 'ASC'
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""
             SELECT {sql_columns}
-            FROM [oplan3].[dbo].[program] AS Progs
-            JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
+            FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+            JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
                 ON Progs.[program_id] = SchedProg.[program_id]
-            JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
+            JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-            JOIN [oplan3].[dbo].[schedule] AS Sched
+            JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
                 ON SchedDay.[schedule_id] = Sched.[schedule_id]
-            LEFT JOIN [planner].[dbo].[task_list] AS Task
+            LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
                 ON Progs.[program_id] = Task.[program_id]
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
@@ -67,9 +67,9 @@ def oplan_material_list(start_date, work_duration, program_type=(4, 5, 6, 10, 11
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
             AND Progs.[program_id] NOT IN
-                (SELECT [ObjectId] FROM [oplan3].[dbo].[ProgramCustomFieldValues] WHERE [ProgramCustomFieldId] = 15)
+                (SELECT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] WHERE [ProgramCustomFieldId] = 15)
             AND Progs.[program_id] NOT IN
-                (SELECT [program_id] FROM [planner].[dbo].[task_list])
+                (SELECT [program_id] FROM [{PLANNER_DB}].[dbo].[task_list])
             AND Task.[engineer_id] IS NULL
             ORDER BY SchedProg.[DateTime] {order}
             """
@@ -78,13 +78,13 @@ def oplan_material_list(start_date, work_duration, program_type=(4, 5, 6, 10, 11
     return material_list_sql, django_columns
 
 def find_file_path(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT Files.[Name]
-        FROM [oplan3].[dbo].[File] AS Files
-        JOIN [oplan3].[dbo].[Clip] AS Clips
+        FROM [{OPLAN_DB}].[dbo].[File] AS Files
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [oplan3].[dbo].[program] AS Progs
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
         WHERE Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0
@@ -111,11 +111,11 @@ def date_seek(work_date, duration):
 
 def kpi_min_obsolete(work_date):
     kpi_list = []
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query_01 = f'''
         SELECT [worker_id]
-        FROM [planner].[dbo].[worker_list]
-        WHERE '{work_date}' NOT IN (SELECT day_off FROM [planner].[dbo].[days_off])
+        FROM [{PLANNER_DB}].[dbo].[worker_list]
+        WHERE '{work_date}' NOT IN (SELECT day_off FROM [{PLANNER_DB}].[dbo].[days_off])
         AND [fired] = 'False'
         '''
         cursor.execute(query_01)
@@ -126,7 +126,7 @@ def kpi_min_obsolete(work_date):
                 engineer_id = engineer[0]
                 query_02 = f'''
                 SELECT Task.[engineer_id], Task.[duration]
-                FROM [planner].[dbo].[task_list] AS Task
+                FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
                 WHERE Task.[work_date] = '{work_date}'
                 AND Task.[engineer_id] = '{engineer_id}'
                 '''
@@ -136,7 +136,7 @@ def kpi_min_obsolete(work_date):
     return sorted(kpi_list, key=lambda x: x[1])
 
 def kpi_min(work_date):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query = '''
         DECLARE @target_date DATE
         SET @target_date = %s
@@ -148,14 +148,14 @@ def kpi_min(work_date):
                 ELSE CAST(COALESCE(SUM(t.[duration]), 0) AS FLOAT) / 720000.0
             END AS kpi
         FROM
-            [planner].[dbo].[worker_list] w
+            [{PLANNER_DB}].[dbo].[worker_list] w
         LEFT JOIN
-            [planner].[dbo].[task_list] t ON w.[worker_id] = t.[engineer_id]
+            [{PLANNER_DB}].[dbo].[task_list] t ON w.[worker_id] = t.[engineer_id]
             AND t.[work_date] = CONVERT(DATE, @target_date)
         LEFT JOIN
-            [planner].[dbo].[days_off] d ON d.[day_off] = CONVERT(DATE, @target_date)
+            [{PLANNER_DB}].[dbo].[days_off] d ON d.[day_off] = CONVERT(DATE, @target_date)
         LEFT JOIN
-            [planner].[dbo].[vacation_schedule] v ON w.[worker_id] = v.[worker_id]
+            [{PLANNER_DB}].[dbo].[vacation_schedule] v ON w.[worker_id] = v.[worker_id]
             AND CONVERT(DATE, @target_date) BETWEEN v.[start_date] AND v.[end_date]
         WHERE
             w.[fired] = 0
@@ -171,11 +171,11 @@ def kpi_min(work_date):
         return sorted([item for item in res if item[1] is not None], key=lambda x: x[1])
 
 def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path=''):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = '[program_id], [engineer_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path]'
         values = (program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path)
         query = f'''
-        INSERT INTO [planner].[dbo].[task_list] ({columns})
+        INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ({columns})
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
         cursor.execute(query, values)
@@ -183,10 +183,10 @@ def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_da
         # print(f'{program_id}, {engineer_id} successfully added')
 
 def planner_engineer(program_id):
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query_planner = f'''
         SELECT engineer_id
-        FROM [planner].[dbo].[task_list]
+        FROM [{PLANNER_DB}].[dbo].[task_list]
         WHERE [program_id] = {program_id}'''
         cursor.execute(query_planner)
         planner_engineer_id = cursor.fetchone()
@@ -196,10 +196,10 @@ def planner_engineer(program_id):
             return None
 
 def oplan3_engineer(program_id):
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query_oplan3 = f'''
         SELECT [IntValue]
-        FROM [oplan3].[dbo].[ProgramCustomFieldValues] 
+        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] 
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = 15
         '''

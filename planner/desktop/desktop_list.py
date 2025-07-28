@@ -1,6 +1,8 @@
 from django.db import connections
 
 from main.db_connection import parent_adult_name, check_mat_type
+from planner.settings import OPLAN_DB, PLANNER_DB
+
 
 def prepare_exclusion_list(exclusion_list):
     if not exclusion_list:
@@ -13,7 +15,7 @@ def task_info(engineer_id, schedules, material_type, task_status, work_dates, ex
     start_date, end_date = work_dates
     material_type = check_mat_type(material_type)
 
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'), ('Task', 'work_date'),
             ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
@@ -24,10 +26,10 @@ def task_info(engineer_id, schedules, material_type, task_status, work_dates, ex
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[task_list] AS Task
-        JOIN [oplan3].[dbo].[program] AS Progs
+        FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
@@ -60,15 +62,15 @@ def cards_container(program_list):
     ]
     sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
     django_columns = [f'{col}_{val}' for col, val in columns]
-    with connections['planner'].cursor() as cursor:
+    with connections[PLANNER_DB].cursor() as cursor:
         query = f'''
         SELECT {sql_columns}
-        FROM [planner].[dbo].[task_list] AS Task
-        JOIN [oplan3].[dbo].[program] AS Progs
+        FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
+        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
         JOIN [service].[dbo].[desktop_modelcardscontainer] AS Cont
             ON Task.[program_id] = Cont.[program_id]
-        LEFT JOIN [oplan3].[dbo].[AdultType] AS Adult
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0

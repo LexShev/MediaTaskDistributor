@@ -31,5 +31,5 @@ SELECT TOP (1000) [action_id]
       ,[new_other]
       ,[old_editor]
       ,[new_editor]
-  FROM [planner].[dbo].[history_list]
+  FROM [{PLANNER_DB}].[dbo].[history_list]
   WHERE [program_id] = 7129

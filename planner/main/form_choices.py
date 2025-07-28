@@ -1,11 +1,12 @@
 from django.db import connections
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 
 def program_custom_fields():
-    with connections['oplan3'].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT [CustomFieldID], [ItemsString]
-        FROM [oplan3].[dbo].[ProgramCustomFields]
+        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFields]
         WHERE [CustomFieldID] IN (15, 18, 19)
         '''
         cursor.execute(query)
