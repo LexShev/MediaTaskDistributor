@@ -30,22 +30,16 @@ def cenz_name(cenz_id):
 @register.filter
 def engineer_name(engineer_id):
     if engineer_id:
-        engineer_id = int(engineer_id)
-    engineer_dict = {
-        0: 'Александр Кисляков',
-        1: 'Ольга Кузовкина',
-        2: 'Дмитрий Гатенян',
-        3: 'Мария Сучкова',
-        4: 'Андрей Антипин',
-        5: 'Роман Рогачев',
-        6: 'Анастасия Чебакова',
-        7: 'Никита Кузаков',
-        8: 'Олег Кашежев',
-        9: 'Марфа Тарусина',
-        10: 'Евгений Доманов',
-        11: 'Алексей Шевченко'
-    }
-    return engineer_dict.get(engineer_id, 'Не назначен')
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f'SELECT [full_name] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
+            cursor.execute(query, (engineer_id,))
+            engineer = cursor.fetchone()
+            if engineer:
+                return engineer[0]
+            else:
+                return 'Аноним'
+    else:
+        return ''
 
 @register.filter
 def worker_name(worker_id):
@@ -56,6 +50,35 @@ def worker_name(worker_id):
             worker = cursor.fetchone()
             if worker:
                 return worker[0]
+            else:
+                return 'Аноним'
+    else:
+        return ''
+
+@register.filter
+def planner_worker_username(worker_id):
+    if worker_id:
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
+            cursor.execute(query, (worker_id,))
+            worker = cursor.fetchone()
+            if worker:
+                return worker[0]
+            else:
+                return 'Аноним'
+    else:
+        return ''
+
+@register.filter
+def planner_worker_name(worker_id):
+    if worker_id:
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
+            cursor.execute(query, (worker_id,))
+            worker = cursor.fetchone()
+            if worker:
+                username, first_name, last_name = worker
+                return f'{first_name} {last_name}'
             else:
                 return 'Аноним'
     else:

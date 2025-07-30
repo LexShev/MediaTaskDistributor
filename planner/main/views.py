@@ -14,6 +14,7 @@ from on_air_report.report import report_calendar
 
 from .ffmpeg_info import ffmpeg_dict
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
+from .home_kpi import common_kpi, daily_kpi
 from .home_table import home_common_table
 from .js_requests import program_name
 from .kinoroom_parser import download_poster, search, check_db
@@ -46,6 +47,12 @@ def home(request):
         'permissions': ask_db_permissions(worker_id),
     }
     return render(request, 'main/home.html', data)
+
+def load_daily_kpi_chart(request):
+    return JsonResponse(daily_kpi())
+
+def load_kpi_chart(request):
+    return JsonResponse(common_kpi())
 
 def update_total_unread_count(request):
     worker_id = request.user.id

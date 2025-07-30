@@ -5,7 +5,7 @@ from planner.settings import OPLAN_DB, PLANNER_DB
 
 def main_distribution():
     work_date = datetime.today().date()
-    # work_date = date(day=7, month=7, year=2025)
+    work_date = date(day=7, month=3, year=2025)
 
     material_list_sql, django_columns = oplan_material_list(start_date=work_date, work_duration=28)
     program_id_list = []
@@ -48,7 +48,7 @@ def oplan_material_list(start_date, work_duration, program_type=(4, 5, 6, 10, 11
         order = 'ASC'
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
-        query = f"""
+        query = f'''
             SELECT {sql_columns}
             FROM [{OPLAN_DB}].[dbo].[program] AS Progs
             JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
@@ -72,7 +72,7 @@ def oplan_material_list(start_date, work_duration, program_type=(4, 5, 6, 10, 11
                 (SELECT [program_id] FROM [{PLANNER_DB}].[dbo].[task_list])
             AND Task.[engineer_id] IS NULL
             ORDER BY SchedProg.[DateTime] {order}
-            """
+            '''
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
     return material_list_sql, django_columns
@@ -109,60 +109,32 @@ def date_seek(work_date, duration):
     work_date += timedelta(days=1)
     return date_seek(work_date, duration)
 
-def kpi_min_obsolete(work_date):
-    kpi_list = []
-    with connections[PLANNER_DB].cursor() as cursor:
-        query_01 = f'''
-        SELECT [worker_id]
-        FROM [{PLANNER_DB}].[dbo].[worker_list]
-        WHERE '{work_date}' NOT IN (SELECT day_off FROM [{PLANNER_DB}].[dbo].[days_off])
-        AND [fired] = 'False'
-        '''
-        cursor.execute(query_01)
-        engineer_list = cursor.fetchall()
-
-        if engineer_list:
-            for engineer in engineer_list:
-                engineer_id = engineer[0]
-                query_02 = f'''
-                SELECT Task.[engineer_id], Task.[duration]
-                FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
-                WHERE Task.[work_date] = '{work_date}'
-                AND Task.[engineer_id] = '{engineer_id}'
-                '''
-                cursor.execute(query_02)
-                kpi = sum([duration for engineer_id, duration in cursor.fetchall()])/720000.0
-                kpi_list.append((engineer_id, kpi))
-    return sorted(kpi_list, key=lambda x: x[1])
-
 def kpi_min(work_date):
     with connections[PLANNER_DB].cursor() as cursor:
-        query = '''
+        query = f'''
         DECLARE @target_date DATE
         SET @target_date = %s
         SELECT
-            w.[worker_id] AS engineer_id,
+            Eng.[engineer_id] AS engineer_id,
             CASE
-                WHEN d.[day_off] IS NOT NULL THEN NULL
-                WHEN v.[vacation_id] IS NOT NULL THEN NULL
-                ELSE CAST(COALESCE(SUM(t.[duration]), 0) AS FLOAT) / 720000.0
+                WHEN Days.[day_off] IS NOT NULL THEN NULL
+                WHEN Vac.[vacation_id] IS NOT NULL THEN NULL
+                ELSE CAST(COALESCE(SUM(Task.[duration]), 0) AS FLOAT) / 720000.0
             END AS kpi
         FROM
-            [{PLANNER_DB}].[dbo].[worker_list] w
-        LEFT JOIN
-            [{PLANNER_DB}].[dbo].[task_list] t ON w.[worker_id] = t.[engineer_id]
-            AND t.[work_date] = CONVERT(DATE, @target_date)
-        LEFT JOIN
-            [{PLANNER_DB}].[dbo].[days_off] d ON d.[day_off] = CONVERT(DATE, @target_date)
-        LEFT JOIN
-            [{PLANNER_DB}].[dbo].[vacation_schedule] v ON w.[worker_id] = v.[worker_id]
-            AND CONVERT(DATE, @target_date) BETWEEN v.[start_date] AND v.[end_date]
-        WHERE
-            w.[fired] = 0
+            [{PLANNER_DB}].[dbo].[engineers_list] AS Eng
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
+            ON Eng.[engineer_id] = Task.[engineer_id]
+            AND Task.[work_date] = CONVERT(DATE, @target_date)
+        LEFT JOIN [{PLANNER_DB}].[dbo].[days_off] AS Days
+            ON Days.[day_off] = CONVERT(DATE, @target_date)
+        LEFT JOIN [{PLANNER_DB}].[dbo].[vacation_schedule] AS Vac
+            ON Eng.[engineer_id] = Vac.[engineer_id]
+            AND CONVERT(DATE, @target_date) BETWEEN Vac.[start_date] AND Vac.[end_date]
         GROUP BY
-            w.[worker_id],
-            d.[day_off],
-            v.[vacation_id]
+            Eng.[engineer_id],
+            Days.[day_off],
+            Vac.[vacation_id]
         ORDER BY
             kpi ASC;
         '''

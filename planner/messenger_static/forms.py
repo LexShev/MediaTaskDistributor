@@ -33,7 +33,7 @@ class DropdownMenuWidget(forms.Widget):
         html = ['<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">']
         for choice_value, choice_label in self.choices:
             html.append(
-                f'<li class="dropdown-item" onclick="modifyMessage(this)" data-engineer-id="{choice_value}">{choice_label}</li>'
+                f'<li class="dropdown-item" onclick="modifyMessage(this)" data-planner-worker-id="{choice_value}">{choice_label}</li>'
             )
 
         html.append('</ul>')
@@ -52,7 +52,7 @@ class MessageForm(forms.ModelForm):
     engineers_mention = forms.ChoiceField(
         required=False,
         widget=DropdownMenuWidget(attrs={}),
-        choices=choices.engineers(exclude_init=True)
+        choices=choices.planner_workers(exclude_init=True)
     )
 
     class Meta:

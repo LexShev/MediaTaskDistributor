@@ -51,6 +51,20 @@ class Choices:
                     engineers_list.append(engineer)
         return engineers_list
 
+    def planner_workers(self, label='-', exclude_init=False):
+        with connections[PLANNER_DB].cursor() as cursor:
+            query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user]'
+            cursor.execute(query)
+            planner_workers = cursor.fetchall()
+
+            planner_workers_list = [('', label)]
+            if exclude_init:
+                planner_workers_list = []
+            if planner_workers:
+                for username, first_name, last_name in planner_workers:
+                    planner_workers_list.append((username, f'{first_name} {last_name}'))
+            return planner_workers_list
+
     def rate(self, label='-'):
         return (('', label), (0, '0+'), (1, '6+'), (2, '12+'), (3, '16+'), (4, '18+'))
 
