@@ -61,13 +61,6 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
         channels_id = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
         schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         order = 'ASC'
-
-        # columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
-        #            ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
-        #            ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        #            ('Progs', 'duration'), ('Files', 'Name'), ('SchedDay', 'day_date'),
-        #            ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        #            ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""

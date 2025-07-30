@@ -29,7 +29,7 @@
             <div class="message-item {% if not message.is_read %}new-message{% endif %}
             {% if message.owner == request.user.id %}my-message{% else %}other-message{% endif %}"
                  data-message-id="{{ message.message_id }}">
-                <h6>{{ message.owner|worker_name }}</h6>
+                <h6>{{ message.owner|planner_worker_name }}</h6>
                 {% if message.is_file %}
                     {% if message.file_type == 'image' %}
                         <img src="{{ message.file_path.url }}" class="chat-image" data-bs-toggle="modal"

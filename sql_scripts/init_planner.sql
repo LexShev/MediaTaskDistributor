@@ -1,7 +1,3 @@
-CREATE DATABASE oplan3;
-CREATE DATABASE planner;
-CREATE DATABASE service;
-
 USE planner;
 
 CREATE TABLE task_list
@@ -19,40 +15,40 @@ CREATE TABLE task_list
 
 CREATE TABLE [vacation_schedule]
 (	[vacation_id] INT PRIMARY KEY IDENTITY NOT NULL,
-    [worker_id] INT NOT NULL,
+    [engineer_id] INT NOT NULL,
 	[start_date] DATE,
 	[end_date] DATE,
 	[description] NVARCHAR(MAX)
 );
 
 INSERT INTO [planner].[dbo].[vacation_schedule]
-(worker_id, start_date, end_date)
+([engineer_id], [start_date], [end_date])
 VALUES
 (0, '2025-03-10', '2025-03-20'),
 (5, '2025-04-13', '2025-04-23');
 
-CREATE TABLE worker_list
+use planner
+CREATE TABLE engineers_list
 (
-    worker_id INT NOT NULL,
-	permission_group NVARCHAR(50) NOT NULL,
-	fired BIT
+    engineer_id INT PRIMARY KEY,
+	worker_id INT NOT NULL,
+	full_name NVARCHAR(50)
 );
 
-INSERT INTO [planner].[dbo].[worker_list]
-(worker_id, permission_group, fired)
+INSERT INTO [planner].[dbo].[engineers_list]
+(engineer_id, worker_id, full_name)
 VALUES
-(0, 'preparation_engineer', 0),
-(1, 'preparation_engineer', 0),
-(2, 'preparation_engineer', 0),
-(3, 'preparation_engineer', 0),
-(4, 'preparation_engineer', 1),
-(5, 'preparation_engineer', 0),
-(6, 'broadcast_engineer', 0),
-(7, 'preparation_engineer', 0),
-(8, 'preparation_engineer', 0),
-(9, 'preparation_engineer', 0),
-(10, 'preparation_engineer', 0),
-(11, 'admin', 0);
+
+(0, 3, 'Александр Кисляков'),
+(1, 5, 'Ольга Кузовкина'),
+(2, 4, 'Дмитрий Гатенян'),
+(3, 7, 'Мария Сучкова'),
+(5, 8, 'Роман Рогачев'),
+(6, 9, 'Анастасия Чебакова'),
+(8, 10, 'Олег Кашежев'),
+(9, 11, 'Марфа Тарусина'),
+(10, 12, 'Евгений Доманов'),
+(11, 13, 'Арина Анастасеева');
 
 CREATE TABLE permission_list
 (
@@ -77,10 +73,10 @@ INSERT INTO [planner].[dbo].[permission_list]
 ([permission_group], [home], [day], [on_air_report], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search], [task_manager], [messenger], [desktop])
 VALUES
 ('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-('preparation_engineer', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-('broadcast_engineer', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-('otk_engineer', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-('editor', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+('preparation_engineers', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+('broadcast_engineers', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+('otk_engineers', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+('moderators', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 
 
 CREATE TABLE material_lock

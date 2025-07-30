@@ -114,11 +114,11 @@ inputMessage.addEventListener('keyup', function(e) {
 });
 
 function modifyMessage(element) {
-    inputMessage.value = inputMessage.value + element.textContent;
+    inputMessage.value = inputMessage.value + element.dataset.plannerWorkerId;
 };
 
 function findMention() {
-    const mentionDropdown = document.getElementById('mentionDropdown'); // или ваш триггер
+    const mentionDropdown = document.getElementById('mentionDropdown');
     const dropdown = new bootstrap.Dropdown(mentionDropdown);
     dropdown.show();
 };

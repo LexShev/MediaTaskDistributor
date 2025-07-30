@@ -1,5 +1,5 @@
 from django.db import connections
-from planner.settings import OPLAN_DB, PLANNER_DB
+from planner.settings import PLANNER_DB
 
 def ask_db_permissions(worker_id):
     with connections[PLANNER_DB].cursor() as cursor:
@@ -7,10 +7,12 @@ def ask_db_permissions(worker_id):
                      'full_info_card', 'otk', 'advanced_search', 'task_manager', 'messenger', 'desktop')
         columns = ', '.join([f'[{perm}]' for perm in perm_list])
         query = f'''
-        SELECT {columns} FROM [{PLANNER_DB}].[dbo].[worker_list] AS Worker
+        SELECT {columns} FROM [{PLANNER_DB}].[dbo].[auth_user_groups] AS Groups
+        JOIN [{PLANNER_DB}].[dbo].[auth_group] AS GroupName
+            ON Groups.[group_id] = GroupName.[id]
         JOIN [{PLANNER_DB}].[dbo].[permission_list] AS Perm
-            ON Worker.[permission_group] = Perm.[permission_group]
-        WHERE Worker.[worker_id] = {worker_id}
+            ON GroupName.[name] = Perm.[permission_group]
+        WHERE Groups.[user_id] = {worker_id}
         '''
         cursor.execute(query)
         perm_val = cursor.fetchone()

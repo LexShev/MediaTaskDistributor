@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 
 from main.permission_pannel import ask_db_permissions
 from messenger_static.forms import MessageForm
-from .messenger_utils import all_messages, show_viewed_messages, create_notification, find_engineers_name
+from .messenger_utils import all_messages, show_viewed_messages, create_notification, find_worker_id
 from .models import Message, Program, Notification, MessageViews
 
 
@@ -48,8 +48,8 @@ def messenger(request, program_id):
                 mentions = re.findall(pattern_1, message_text, re.UNICODE) or re.findall(pattern_2, message_text, re.UNICODE)
             if mentions:
                 for mention in mentions:
-                    engineer_id = find_engineers_name(mention)
-                    data = {'sender': worker_id, 'recipient': engineer_id, 'program_id': program_id,
+                    planner_worker_id = find_worker_id(mention)
+                    data = {'sender': worker_id, 'recipient': planner_worker_id, 'program_id': program_id,
                      'message': message_text, 'comment': 'Упоминание в чате'}
                     create_notification(data)
 

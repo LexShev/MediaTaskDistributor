@@ -76,7 +76,7 @@ def update_task_list(request):
             if params[0] in program_id_check
         ]
         with connections[PLANNER_DB].cursor() as cursor:
-            query = '''
+            query = f'''
             UPDATE [{PLANNER_DB}].[dbo].[task_list]
             SET [engineer_id] = %s, [work_date] = %s, [task_status] = %s, [file_path] = %s
             WHERE [program_id] = %s
@@ -99,7 +99,7 @@ def add_in_common_task(request):
             if params[0] in program_id_check
         ]
         with connections[PLANNER_DB].cursor() as cursor:
-            query = '''
+            query = f'''
             UPDATE [{PLANNER_DB}].[dbo].[task_list]
             SET [engineer_id] = %s, [sched_id] = %s, [sched_date] = %s, [ready_date] = %s
             WHERE [program_id] = %s
@@ -113,7 +113,7 @@ def del_task(request):
     if program_id_check:
         program_id_list = [(program_id,) for program_id in program_id_check]
         with connections[PLANNER_DB].cursor() as cursor:
-            query = '''
+            query = f'''
             DELETE FROM [{PLANNER_DB}].[dbo].[task_list]
             WHERE [program_id] IN (%s)
             '''

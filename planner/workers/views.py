@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
+from workers.create_users import create_users_in_groups
+
 
 def login_worker(request):
     next_request = request.GET.get('next')
@@ -25,6 +27,7 @@ def login_worker(request):
     return render(request, 'authenticate/login.html')
 
 def logout_worker(request):
+    # create_users_in_groups()
     logout(request)
     messages.success(request, 'Вы вышли из системы')
     return redirect('login_worker')

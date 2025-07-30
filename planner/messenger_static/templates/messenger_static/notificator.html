@@ -11,7 +11,7 @@
             <div class="d-flex">
                 <div class="notice-item {% if not notice.is_read %}new-notice{% endif %}"
                      data-notice-id="{{ notice.notice_id }}">
-                    <h6>{{ notice.sender|worker_name }}</h6>
+                    <h6>{{ notice.sender|planner_worker_name }}</h6>
                     <div class="notice-text">
                         {% if notice.program_id %}
                             <a href="{% url 'home' %}{{ notice.program_id }}"
