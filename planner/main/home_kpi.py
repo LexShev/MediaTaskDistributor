@@ -36,14 +36,14 @@ def daily_kpi():
     with connections[PLANNER_DB].cursor() as cursor:
         query = f'''
         SELECT 
-        COUNT(CASE WHEN task_status != 'final' THEN 1 END) AS not_final,
-        COUNT(CASE WHEN task_status = 'ready' THEN 1 END) AS ready,
-        COUNT(CASE WHEN task_status = 'no_material' THEN 1 END) AS no_material,
-        COUNT(CASE WHEN task_status IN ('otk_fail', 'fix', 'ready_fail') THEN 1 END) AS fix
+        COUNT(CASE WHEN task_status NOT IN ('ready', 'final', 'otk') AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS not_final,
+        COUNT(CASE WHEN task_status IN ('ready', 'final', 'otk') AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS ready,
+        COUNT(CASE WHEN task_status = 'no_material' AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS no_material,
+        COUNT(CASE WHEN task_status IN ('otk_fail', 'fix', 'ready_fail') AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS fix
         FROM [{PLANNER_DB}].[dbo].[task_list]
         '''
         cursor.execute(query)
-        labels = ['Не выполнено', 'Выполнено', 'На доработке']
+        labels = ['Не выполнено', 'Выполнено', 'Нет материала', 'На доработке']
         values = cursor.fetchone()
         if values:
-            return {'labels': ('not_final', 'ready', 'no_material', 'fix'), 'values': values}
+            return {'labels': labels, 'values': values}

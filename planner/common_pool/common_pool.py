@@ -101,7 +101,7 @@ def insert_in_common_task(data):
         values.append(value)
 
     with connections[PLANNER_DB].cursor() as cursor:
-        query = '''
+        query = f'''
         INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ([program_id], [duration], [sched_id], [sched_date], [task_status], [file_path])
         VALUES (%s, %s, %s, %s, %s, %s)
         '''

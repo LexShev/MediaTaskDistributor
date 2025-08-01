@@ -14,6 +14,7 @@ from on_air_report.report import report_calendar
 
 from .ffmpeg_info import ffmpeg_dict
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
+from .home_calendar import calendar_skeleton, update_info
 from .home_kpi import common_kpi, daily_kpi
 from .home_table import home_common_table
 from .js_requests import program_name
@@ -36,12 +37,13 @@ from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacat
 @login_required()
 def home(request):
     worker_id = request.user.id
-
+    today = date.today()
     service_dict = {
-        'today': date.today(),
-        'cal_month': 1,
+        'today': today,
+        'cal_month': today.month,
     }
     data = {
+        'home_calendar': calendar_skeleton(),
         'home_table': home_common_table(),
         'service_dict': service_dict,
         'permissions': ask_db_permissions(worker_id),
@@ -68,17 +70,25 @@ def update_total_unread_count(request):
         print(e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=405)
 
-def home_calendar(request):
-    today = date.today()
-    cal_year, cal_month = today.year, today.month
-    # cal_year, cal_month = 2025, 1
-    html = render_to_string(
-        'main/home_calendar.html',
-        {'month_calendar': report_calendar(cal_year, cal_month), 'cal_month': cal_month},
-        request=request
-    )
+def load_calendar_info(request):
+    date_str = request.GET.get('date')
+    try:
+        current_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid date'}, status=400)
+    return JsonResponse(update_info(current_date))
 
-    return JsonResponse({'html': html})
+# def home_calendar(request):
+#     today = date.today()
+#     cal_year, cal_month = today.year, today.month
+#     # cal_year, cal_month = 2025, 1
+#     html = render_to_string(
+#         'main/home_calendar.html',
+#         {'month_calendar': report_calendar(cal_year, cal_month), 'cal_month': cal_month},
+#         request=request
+#     )
+#
+#     return JsonResponse({'html': html})
     # return JsonResponse({'month_calendar': report_calendar(cal_year, cal_month)})
 
 def day(request):

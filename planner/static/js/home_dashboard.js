@@ -24,17 +24,19 @@ function initDailyChart() {
         data: {
           labels: data.labels,
           datasets: [{
-            label: 'Статистика за день',
+            label: 'Всего сегодня',
             data: data.values,
             backgroundColor: [
               getBootstrapColor('--bs-danger-bg-subtle'),
               getBootstrapColor('--bs-success-bg-subtle'),
-              getBootstrapColor('--bs-warning-bg-subtle')
+              getBootstrapColor('--bs-warning-bg-subtle'),
+              getBootstrapColor('--bs-info-bg-subtle')
             ],
             borderColor: [
               getBootstrapColor('--bs-danger-border-subtle'),
               getBootstrapColor('--bs-success-border-subtle'),
-              getBootstrapColor('--bs-warning-border-subtle')
+              getBootstrapColor('--bs-warning-border-subtle'),
+              getBootstrapColor('--bs-info-border-subtle')
             ],
             borderWidth: 2,
             hoverOffset: 3
