@@ -6,8 +6,8 @@ from django.db import connections
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 
-program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
-schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+# program_type = (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
+
 
 
 def calc_prev_month(cal_year, cal_month):
@@ -41,10 +41,11 @@ def tasks_info(month_calendar, task_list):
                 if task.get('SchedDay_day_date').date() == day:
                     total_task_list.append(task)
                     program_id_list.append(task.get('Progs_program_id'))
-
             total_tasks = len(total_task_list)
-            ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status') == 'ready' and task.get('SchedDay_day_date').date() == day))
-            not_ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status') == 'not_ready' and task.get('SchedDay_day_date').date() == day))
+            ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status')
+                                   in ('ready', 'final', 'otk') and task.get('SchedDay_day_date').date() == day))
+            not_ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status')
+                                       not in ('ready', 'final', 'otk') and task.get('SchedDay_day_date').date() == day))
             try:
                 ready_index = (ready_tasks * 100) / total_tasks
             except Exception as e:
@@ -53,9 +54,9 @@ def tasks_info(month_calendar, task_list):
             #     проверка на отсутствие задач в текущий день
             if ready_index == 'day_off':
                 color = ''
-            elif ready_index > 3:
+            elif ready_index > 70:
                 color = 'btn-outline-success'
-            elif 1 < ready_index < 3:
+            elif 30 < ready_index < 70:
                 color = 'btn-outline-warning'
             else:
                 color = 'btn-outline-danger'
@@ -68,10 +69,9 @@ def tasks_info(month_calendar, task_list):
         colorized_calendar.append(colorized_weeks)
     return colorized_calendar
 
-def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
+def oplan_material_list(columns, dates, schedules_id=(3, 5, 6, 7, 8, 9, 10, 11, 12, 20), program_type=(4, 5, 6, 10, 11, 12)):
     start_date, end_date = dates
     with connections[OPLAN_DB].cursor() as cursor:
-        schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         order = 'ASC'
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -95,7 +95,6 @@ def oplan_material_list(columns, dates, program_type=(4, 5, 6, 10, 11, 12)):
             AND Progs.[program_id] > 0
             ORDER BY SchedProg.[DateTime] {order}
             """
-        # print(query)
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
     return material_list_sql, django_columns
@@ -114,7 +113,7 @@ def report_calendar(cal_year, cal_month):
 
     columns = [('Progs', 'program_id'), ('SchedDay', 'day_date'), ('Task', 'task_status')]
 
-    material_task_list, django_task_columns = oplan_material_list(columns=columns, dates=(start_date, end_date), program_type=program_type)
+    material_task_list, django_task_columns = oplan_material_list(columns=columns, dates=(start_date, end_date))
     task_list = [dict(zip(django_task_columns, material)) for material in material_task_list]
     colorized_calendar = tasks_info(month_calendar, task_list)
     cache.set(cache_key, colorized_calendar, timeout=60*60*24)  # Кеш на 24 часа
@@ -142,8 +141,8 @@ def collect_channels_list(cal_day):
         ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
         ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
     ]
-    material_list, django_columns = oplan_material_list(columns=columns, dates=(cal_day, cal_day), program_type=program_type)
-
+    material_list, django_columns = oplan_material_list(columns=columns, dates=(cal_day, cal_day))
+    schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
     channels_list = []
     for schedule_id in schedules_id:
         program_id_list = []

@@ -1,5 +1,5 @@
 <div class="col text-center">
-  <h5>{{ cal_month|month_name }}</h5>
+  <h5>{{ service_dict.cal_month|month_name }}</h5>
 </div>
 <table cellpadding="4" class="month">
   <thead class="text-center text-secondary mb-2">
@@ -16,17 +16,14 @@
   </thead>
 
   <tbody class="table-group-divider">
-    {% for week in month_calendar %}
+    {% for week in home_calendar %}
       <tr>
-        <th class="text-secondary">{{ week.0.day|date:"W" }}</th>
-        {% for date in week %}
-          {% if date.day|date:"n" == cal_month|stringformat:"s" %}
+        <th class="text-secondary">{{ week.number }}</th>
+        {% for day in week.days %}
+          {% if day.is_current_month %}
             <td>
-              <button class="btn cal-btn w-100 p-1 {{ date.color }}"
-                      name="cal_day" value="{{ date.day|date:'Y-m-d' }}"
-                      type="submit"
-                      title="Выполнено: {{ date.ready_tasks }}&#10;Осталось: {{ date.not_ready_tasks }}">
-                {{ date.day|date:"j" }}
+              <button class="btn cal-btn w-100 p-1 loading-day" name="cal_day" value="{{ day.date|date:'Y-m-d' }}" type="button">
+                {{ day.day }}
               </button></td>
           {% else %}
             <td>
