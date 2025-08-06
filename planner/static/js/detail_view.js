@@ -70,17 +70,83 @@ async function getWorkerName(workerId) {
     }
 }
 
-function ValidateForm() {
-    const form = document.querySelector('.needs-validation')
-    const CenzApproveModal = bootstrap.Modal.getInstance(document.getElementById('CenzApprove')) ||
-                        new bootstrap.Modal(document.getElementById('CenzApprove'));
+function ValidateCenzApprove() {
+    let workDate = document.getElementById('work_date_form')
+    let cenzRate = document.getElementById('cenz_rate_form')
+    let engineers = document.getElementById('engineers_form')
 
-    if (form.checkValidity()) {
-        CenzApproveModal.toggle();
-    }
-    else {
-        form.classList.add('was-validated');
-    }
+    if (!workDate.value || !cenzRate.value || !engineers.value) {
+        workDate.classList.add('is-invalid');
+        cenzRate.classList.add('is-invalid');
+        engineers.classList.add('is-invalid');
+        return;
+        }
+    workDate.classList.remove('is-invalid');
+    cenzRate.classList.remove('is-invalid');
+    engineers.classList.remove('is-invalid');
+
+    const CenzApproveModal = bootstrap.Modal.getInstance(document.getElementById('CenzApproveModal')) ||
+                        new bootstrap.Modal(document.getElementById('CenzApproveModal'));
+    CenzApproveModal.toggle()
+};
+
+function ValidateAskFix(task) {
+    let deadline = document.getElementById('deadline')
+
+    if (!deadline.value) {
+        deadline.classList.add('is-invalid');
+        return;
+        }
+    deadline.classList.remove('is-invalid');
+
+    CenzApprove(task);
+
+}
+
+function CenzApprove(task) {
+    const cenzFormElements = document.getElementById('cenz_form').elements;
+    let forms = {'program_id': programId}
+    Array.from(cenzFormElements).forEach(element => {
+        if (element.name) {
+            forms[element.name] = element.value;
+        };
+    });
+    console.log(task.name);
+    console.log(`/${task.name}/`);
+    fetch(`/${task.name}/`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': forms['csrfmiddlewaretoken'],
+        'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(forms),
+    credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.href = `/${programId}/`;
+        }
+        else {
+            console.log('error', data.message)
+
+            const CenzApproveModal = bootstrap.Modal.getInstance(document.getElementById('CenzApproveModal')) ||
+                        new bootstrap.Modal(document.getElementById('CenzApproveModal'));
+            const AskFixModal = bootstrap.Modal.getInstance(document.getElementById('AskFixModal')) ||
+                        new bootstrap.Modal(document.getElementById('AskFixModal'));
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            error_message = document.getElementById('error_message');
+            error_message.textContent = data.message;
+
+            CenzApproveModal.hide();
+            AskFixModal.hide();
+            errorModal.toggle();
+        }
+    })
+    .catch(error => {
+        console.error('Error sending info:', error);
+    });
 };
 
 document.addEventListener('DOMContentLoaded', function() {

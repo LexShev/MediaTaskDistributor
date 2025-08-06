@@ -27,4 +27,8 @@ urlpatterns = [
     path("update_total_unread_count/", update_total_unread_count, name='update_total_unread_count'),
     path("load_daily_kpi_chart/", load_daily_kpi_chart, name='load_daily_kpi_chart'),
     path("load_kpi_chart/", load_kpi_chart, name='load_kpi_chart'),
+
+    path("status_ready/", status_ready, name='status_ready'),
+    path("ask_fix/", ask_fix, name='ask_fix'),
+    path("cenz_info_change/", cenz_info_change, name='cenz_info_change'),
 ]

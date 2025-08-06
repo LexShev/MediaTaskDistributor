@@ -1,3 +1,5 @@
+from typing import Dict
+
 from django.db import connections
 from datetime import datetime, date
 
@@ -30,6 +32,39 @@ def insert_history(service_info_dict, old_values_dict, new_values_dict):
                 query = f'''
                 INSERT INTO [{PLANNER_DB}].[dbo].[history_list] ({sql_columns})
                 VALUES ({program_id}, {old_field_id}, '', '', {worker_id}, GETDATE(), '{old_value}', '{new_value}');
+                '''
+                cursor.execute(query)
+
+def insert_history_new(worker_id, old_values, new_values):
+    columns = ('program_id', 'CustomFieldID', 'action_description', 'action_comment',
+               'worker_id', 'time_of_change', 'old_value', 'new_value')
+    sql_columns = ', '.join(columns)
+
+    values_list = (
+        (17, 'meta_form'),
+        (7, 'work_date_form'),
+        (14, 'cenz_rate_form'),
+        (15, 'engineers_form'),
+        (18, 'tags_form'),
+        (19, 'inoagent_form'),
+        (22, 'narc_select_form'),
+        (8, 'lgbt_form'),
+        (9, 'sig_form'),
+        (10, 'obnazh_form'),
+        (11, 'narc_form'),
+        (12, 'mat_form'),
+        (13, 'other_form'),
+        (16, 'editor_form')
+    )
+    program_id = new_values.get('program_id')
+    for num_key, name_key in values_list:
+        old_value, new_value = old_values.get(num_key), new_values.get(name_key)
+        old_value, new_value = check_data_type(old_value), check_data_type(new_value)
+        if str(old_value) != str(new_value):
+            with connections[PLANNER_DB].cursor() as cursor:
+                query = f'''
+                INSERT INTO [{PLANNER_DB}].[dbo].[history_list] ({sql_columns})
+                VALUES ({program_id}, {num_key}, '', '', {worker_id}, GETDATE(), '{old_value}', '{new_value}');
                 '''
                 cursor.execute(query)
 
@@ -111,6 +146,41 @@ def change_task_status(service_info_dict, task_status):
             cursor.execute(query, values)
             return f'{program_name(program_id)} был добавлен в базу.'
 
+def change_task_status_new(new_values, task_status, db_task_status) -> Dict:
+    program_id = new_values.get('program_id')
+    engineer_id = new_values.get('engineers_form')
+    work_date = new_values.get('work_date_form')
+    program = program_name(program_id)
+    with connections[PLANNER_DB].cursor() as cursor:
+        if db_task_status:
+            if task_status == 'no_change':
+                task_status = db_task_status
+            update_status = f'''
+                    UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                    SET [engineer_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s
+                    WHERE [program_id] = %s
+                    '''
+            cursor.execute(update_status, (engineer_id, work_date, task_status, program_id))
+            if cursor.rowcount:
+                return {'status': 'success', 'message': f'{program} завершено.'}
+
+        else:
+            file_path_dict = find_file_path(program_id)
+            file_path = file_path_dict.get('Files_Name')
+            duration = file_path_dict.get('Progs_duration')
+            if not file_path:
+                return {'status': 'error', 'message':  f'Ошибка! Изменения не были внесены. Медиафайл для {program} отсутствует.'}
+
+            columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
+            values = (program_id, engineer_id, duration, work_date, datetime.today(), task_status, file_path)
+            query = f'''
+                    INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ({columns})
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    '''
+            cursor.execute(query, values)
+            return {'status': 'success', 'message': f'{program} был добавлен в базу.'}
+
+
 def update_comment(program_id, worker_id, task_status=None, comment=None, deadline=None):
     with connections[PLANNER_DB].cursor() as cursor:
         values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
@@ -122,3 +192,11 @@ def update_comment(program_id, worker_id, task_status=None, comment=None, deadli
             '''
         cursor.execute(query, values)
     return 'Изменения успешно внесены!'
+
+def get_task_status(program_id):
+    with connections[PLANNER_DB].cursor() as cursor:
+        cursor.execute(f'SELECT [task_status] FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [program_id] = %s', (program_id,))
+        res = cursor.fetchone()
+        if res and res[0]:
+            return res[0]
+        return None

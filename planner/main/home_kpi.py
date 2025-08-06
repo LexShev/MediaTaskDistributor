@@ -24,13 +24,14 @@ def common_kpi():
         cursor.execute(query, (start_date,))
         result = cursor.fetchall()
         days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+        labels = []
+        kpis = []
         if result:
-            labels = []
-            kpis = []
             for label, kpi in result:
                 labels.append(days[label.weekday()])
                 kpis.append(kpi)
             return {'labels': labels, 'kpis': kpis}
+        return {'labels': days, 'kpis': kpis}
 
 def daily_kpi():
     with connections[PLANNER_DB].cursor() as cursor:
@@ -47,3 +48,4 @@ def daily_kpi():
         values = cursor.fetchone()
         if values:
             return {'labels': labels, 'values': values}
+        return {'labels': labels, 'values': (0, 0, 0, 0)}

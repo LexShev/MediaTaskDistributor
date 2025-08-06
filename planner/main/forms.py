@@ -8,7 +8,6 @@ choice = Choices()
 
 
 def validate_file_type(value):
-    print('value', value)
     valid_types = [
         'image/jpeg', 'image/png', 'image/gif',
         'video/mp4', 'video/quicktime',
@@ -113,13 +112,13 @@ class CenzFormDropDown(forms.Form):
         label='Meta', choices=((0, 'Нет'), (1, 'Да')), required=False)
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}, format='%Y-%m-%d'),
-        label='Дата отсмотра', required=True)
+        label='Дата отсмотра', required=False)
     cenz_rate_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "cenz_rate_form"}),
-        label='Ценз отсмотра', choices=choice.rate(), required=True)
+        label='Ценз отсмотра', choices=choice.rate(), required=False)
     engineers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "engineers_form"}),
-        label='Тайтл проверил', choices=choice.engineers, required=True)
+        label='Тайтл проверил', choices=choice.engineers, required=False)
     # tags_form = forms.ChoiceField(widget=forms.Select(
     #     attrs={'class': "form-select", 'id': "tags_form"}),
     #     label='Теги', choices=choice.tags(), required=False)

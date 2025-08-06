@@ -1,8 +1,12 @@
 {% extends  'main/index.html' %}
 {% load static %}
 
+
 <main role="main">
 {% block body %}
+<link rel="stylesheet" href="{% static 'css/work_list.css' %}">
+
+
 <div class="container-flex px-lg-5">
 <br>
 
@@ -69,7 +73,6 @@
           </div>
           <div class="modal-body">
             <div id="otk_fail_list">
-
             </div>
           </div>
           <div class="modal-footer">
@@ -80,7 +83,7 @@
       </div>
     </div>
 
-    <div class="modal fade" id="OTKComment" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="OTKComment" tabindex="-1" aria-hidden="true" style="z-index: 1050;">
       <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
@@ -89,10 +92,8 @@
           </div>
           <div class="modal-body">
             <div id="otk_comment_body">
-
             </div>
           </div>
-
         </div>
       </div>
     </div>
