@@ -161,13 +161,11 @@ def cenz_info(program_id):
         field_id, text_value, int_value, date_value = cenz
         # Дата отсмотра
         if field_id == 7:
-            custom_fields_dict[field_id] = date_value
+            custom_fields_dict[field_id] = date_value.strftime('%Y-%m-%d')
         elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
             custom_fields_dict[field_id] = text_value
         elif field_id in (14, 15, 17):
-            # custom_fields_dict[field_id] = items_string.split('\r\n')[int_value]
             custom_fields_dict[field_id] = int_value
-            # .split(';')
     return custom_fields_dict
 
 
@@ -255,6 +253,35 @@ def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
             delete_value(old_field_id, program_id)
         elif old_value and new_value and str(old_value) != str(new_value):
             update_value(old_field_id, program_id, new_value)
+            
+def change_oplan_cenz_info(old_values, new_values):
+    values_list = (
+        (17, 'meta_form'),
+        (7, 'work_date_form'),
+        (14, 'cenz_rate_form'),
+        (15, 'engineers_form'),
+        (18, 'tags_form'),
+        (19, 'inoagent_form'),
+        (22, 'narc_select_form'),
+        (8, 'lgbt_form'),
+        (9, 'sig_form'),
+        (10, 'obnazh_form'),
+        (11, 'narc_form'),
+        (12, 'mat_form'),
+        (13, 'other_form'),
+        (16, 'editor_form')
+    )
+    program_id = new_values.get('program_id')
+    for num_key, name_key in values_list:
+        old_value, new_value = old_values.get(num_key), new_values.get(name_key)
+        old_value, new_value = check_data_type(old_value), check_data_type(new_value)
+        if not old_value and new_value:
+            insert_value(num_key, program_id, new_value)
+        elif old_value and not new_value:
+            delete_value(num_key, program_id)
+        elif old_value and new_value and str(old_value) != str(new_value):
+            update_value(num_key, program_id, new_value)
+
 
 def schedule_info(program_id):
     with connections[OPLAN_DB].cursor() as cursor:

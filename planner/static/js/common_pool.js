@@ -200,7 +200,6 @@ function addInCommonTask() {
         return response.json();
     })
     .then(data => {
-        console.log(data);
         if (data.status !== 'success') {
             console.error(data.message || 'Unknown server error');
             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));

@@ -1,79 +1,92 @@
 {% extends  'main/block_cenz.html' %}
 
 {% block buttons %}
-<div class="d-flex">
-    <a type="button" class="btn btn-outline-secondary text-start me-auto mx-1 my-2 {% if lock_material %}disabled{% endif %}"
-            href="{% if full_info.Progs_program_id %}{% url 'messenger' program_id=full_info.Progs_program_id %}{% endif %}">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
-        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
-      </svg>
-    </a>
-    <button type="button" class="btn btn-outline-success mx-1 my-2 {% if lock_material %}disabled{% endif %}"
-            id="cenz_approve_btn" onclick="ValidateForm()">Сохранить
-    </button>
-    <button type="button" class="btn btn-outline-warning mx-1 my-2 {% if lock_material %}disabled{% endif %}"
-            id="ask_fix_btn" data-bs-toggle="modal" data-bs-target="#AskFix">Запросить FIX
-    </button>
-    <button type="reset" class="btn btn-sm btn-outline-danger align-bottom mx-1 my-2 mt-auto {% if lock_material %}disabled{% endif %}">
-      Сбросить
-    </button>
-</div>
-
-<div class="modal fade" id="CenzApprove" tabindex="-1" aria-labelledby="CenzApproveLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-            <h4 class="modal-title" id="CenzApproveLabel">
-              {% if full_info.TaskInf_task_status == 'not_ready' %}
-                Вы подтверждаете выполнение задачи?
-              {% else %}
-                Вы подтверждаете изменения?
-              {% endif %}
-            </h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <h6>Укажите путь к готовому файлу</h6>
-          <div class="input-group">
-            <input class="form-control custom-file-input"
-                   type="text" id="upload_ready_file_form"
-                   placeholder="Ctrl+Shift+C -> Ctrl+V"
-                   style="font-style: italic"
-                   name="upload_ready_file" accept="">
-          </div><br>
-          <h6>Комментарий к материалу</h6>
-            <textarea class="form-control" id="cenz_comment" name="cenz_comment" style="min-height: 130px">CENZ не требуется</textarea><br>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" name="status_ready" id="status_ready" value="True" class="btn btn-outline-warning ms-2 me-auto">Завершить задачу</button>
-          <button type="submit" name="cenz_info_change" id="cenz_info_change" value="True" class="btn btn-outline-success">Применить изменения</button>
-          <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Ошибка!</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <h6 id="error_message"></h6>
+          </div>
         </div>
       </div>
     </div>
-</div>
+    <div class="d-flex">
+        <a type="button" class="btn btn-outline-secondary text-start me-auto mx-1 my-2 {% if lock_material %}disabled{% endif %}"
+                href="{% if full_info.Progs_program_id %}{% url 'messenger' program_id=full_info.Progs_program_id %}{% endif %}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+          </svg>
+        </a>
+        <button type="button" class="btn btn-outline-success mx-1 my-2 {% if lock_material %}disabled{% endif %}"
+                id="cenz_approve_btn" onclick="ValidateCenzApprove()">Сохранить
+        </button>
+        <button type="button" class="btn btn-outline-warning mx-1 my-2 {% if lock_material %}disabled{% endif %}"
+                id="ask_fix_btn" data-bs-toggle="modal" data-bs-target="#AskFixModal">Запросить FIX
+        </button>
+        <button type="reset" class="btn btn-sm btn-outline-danger align-bottom mx-1 my-2 mt-auto {% if lock_material %}disabled{% endif %}">
+          Сбросить
+        </button>
+    </div>
+    <div class="modal fade" id="CenzApproveModal" tabindex="-1" aria-labelledby="CenzApproveLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="CenzApproveLabel">
+                  {% if full_info.TaskInf_task_status == 'not_ready' %}
+                    Вы подтверждаете выполнение задачи?
+                  {% else %}
+                    Вы подтверждаете изменения?
+                  {% endif %}
+                </h4>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <h6>Укажите путь к готовому файлу</h6>
+              <div class="input-group">
+                <input class="form-control custom-file-input"
+                       type="text" id="upload_ready_file_form"
+                       placeholder="Ctrl+Shift+C -> Ctrl+V"
+                       style="font-style: italic"
+                       name="upload_ready_file" accept="">
+              </div><br>
+              <h6>Комментарий к материалу</h6>
+                <textarea class="form-control" id="cenz_comment" name="cenz_comment" style="min-height: 130px">CENZ не требуется</textarea><br>
+            </div>
+            <div class="modal-footer">
+              <button type="button" onclick="CenzApprove(this)" name="status_ready" id="status_ready" class="btn btn-outline-warning ms-2 me-auto">Завершить задачу</button>
+              <button type="button" onclick="CenzApprove(this)" name="cenz_info_change" id="cenz_info_change" class="btn btn-outline-success">Применить изменения</button>
+              <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+            </div>
+          </div>
+        </div>
+    </div>
 
-  <div class="modal fade" id="AskFix" tabindex="-1" aria-labelledby="AskFixLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-            <h4 class="modal-title" id="AskFixLabel">
-              Запросить FIX?
-            </h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <h6>Комментарий по исправлению</h6>
-            <textarea class="form-control" style="min-height: 130px" name="fix_comment" id="fix_comment"
-                      placeholder="1. Таймкод - суть проблемы&#10;2. Таймкод - суть проблемы&#10;3. ..."></textarea><br>
-          <h6>Установить крайний срок</h6>
-            <input class="form-control" type="date" id="deadline" name="deadline" value="{{ deadline|date:'Y-m-d' }}">
-        </div>
-        <div class="modal-footer">
-          <button type="submit" name="ask_fix" id="ask_fix" value="True" class="btn btn-outline-warning">Запросить</button>
-          <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+      <div class="modal fade" id="AskFixModal" tabindex="-1" aria-labelledby="AskFixModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="AskFixModalLabel">
+                  Запросить FIX?
+                </h4>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <h6>Комментарий по исправлению</h6>
+                <textarea class="form-control" style="min-height: 130px" name="fix_comment" id="fix_comment"
+                          placeholder="1. Таймкод - суть проблемы&#10;2. Таймкод - суть проблемы&#10;3. ..."></textarea><br>
+              <h6>Установить крайний срок</h6>
+                <input class="form-control" type="date" id="deadline" name="deadline" value="{{ deadline|date:'Y-m-d' }}">
+                <div class="invalid-feedback">Необходимо заполнить</div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" onclick="ValidateAskFix(this)" name="ask_fix" id="ask_fix" class="btn btn-outline-warning">Запросить</button>
+              <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 {% endblock %}

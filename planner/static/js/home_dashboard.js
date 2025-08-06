@@ -12,6 +12,7 @@ const charts = {
 // Функция инициализации/обновления круговой диаграммы
 function initDailyChart() {
   const dailyChart = document.getElementById('dailyChart');
+  const dailyChartContainer = document.getElementById('dailyChartContainer');
 
   if (charts.daily) charts.daily.destroy();
 
@@ -19,6 +20,10 @@ function initDailyChart() {
     .then(response => response.json())
     .then(data => {
     console.log(data);
+      if (data.values && data.values.every(item => item === 0)) {
+        dailyChartContainer.innerHTML = `<h4 class="text-center">Нет распределённых задач</div>`;
+        return
+      };
       charts.daily = new Chart(dailyChart, {
         type: 'doughnut',
         data: {
@@ -51,13 +56,14 @@ function initDailyChart() {
       });
     })
     .catch(error => {
-      dailyChart.innerHTML = `<div class="alert alert-danger">Ошибка загрузки данных</div>`;
+      dailyChartContainer.innerHTML = `<div class="alert alert-danger">Ошибка загрузки данных</div>`;
     });
 }
 
 // Функция инициализации/обновления линейного графика
 function initWeekChart() {
   const weekChart = document.getElementById('weekChart');
+  const weekChartContainer = document.getElementById('weekChartContainer');
 
   if (charts.week) charts.week.destroy();
 
@@ -79,6 +85,8 @@ function initWeekChart() {
           }]
         },
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
             tooltip: { boxPadding: 3 }
@@ -87,7 +95,7 @@ function initWeekChart() {
       });
     })
     .catch(error => {
-        weekChart.innerHTML = `<div class="alert alert-danger">Ошибка загрузки данных</div>`;
+        weekChartContainer.innerHTML = `<div class="alert alert-danger">Ошибка загрузки данных</div>`;
     });
 }
 
