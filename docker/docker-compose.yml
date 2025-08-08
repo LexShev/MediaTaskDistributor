@@ -47,7 +47,7 @@ services:
       - ../static:/app/static:ro  # Статика Django
       - ../media:/app/media:ro    # Медиа файлы
     depends_on:
-      - web
+      - prod
     networks:
       - planner-network
 
