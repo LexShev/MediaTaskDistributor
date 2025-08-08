@@ -24,8 +24,8 @@ def download_poster(program_id, movie_id):
         'https://en-images-s.kinorium.com/movie/400/',
     ]
 
-    os.makedirs(settings.STATIC_BANNERS, exist_ok=True)
-    image_filename = os.path.join(settings.STATIC_BANNERS, f'{program_id}.jpg')
+    os.makedirs(settings.MEDIA_POSTERS, exist_ok=True)
+    image_filename = os.path.join(settings.MEDIA_POSTERS, f'{program_id}.jpg')
 
     if os.path.exists(image_filename):
         return 'success'
@@ -58,7 +58,6 @@ def download_poster(program_id, movie_id):
 
 
 def poster_parser(query: Dict):
-    print(query)
     program_name = query['title'].replace('ё', 'е')
     program_name = program_name.replace('`', '')
     program_name = program_name.replace('’', '')
@@ -74,7 +73,6 @@ def poster_parser(query: Dict):
     response = requests.get(search_url, headers=headers)
     if response.status_code == 200:
         work_url = response.url
-        print(work_url)
         soup = BeautifulSoup(response.text, 'html.parser')
         if work_url.startswith('https://ru.kinorium.com/search/'):
             movie_list = soup.find('div', {'class': 'movieList'})
@@ -151,7 +149,7 @@ def calculate_year_score(query_year, movie_year):
         return 0
 
 def normalize_similarity(value: float) -> float:
-    return max(0, min(1, value / 100))
+    return max(0.0, min(1.0, value / 100))
 
 
 def calculate_match_score(query: Dict, movie: Dict) -> tuple:
@@ -177,7 +175,7 @@ def calculate_match_score(query: Dict, movie: Dict) -> tuple:
     return title_score, year_score, country_score
 
 def search(query: Dict, threshold: float = 0.7) -> Dict:
-    image_filename = os.path.join(settings.STATIC_BANNERS, f"{query['program_id']}.jpg")
+    image_filename = os.path.join(settings.MEDIA_POSTERS, f"{query['program_id']}.jpg")
     if os.path.exists(image_filename):
         return {}
     results = []
@@ -204,9 +202,9 @@ def search(query: Dict, threshold: float = 0.7) -> Dict:
 
 
 def check_db(program_id):
-    image_filename = os.path.join(settings.STATIC_BANNERS, f'{program_id}.jpg')
+    image_filename = os.path.join(settings.MEDIA_POSTERS, f'{program_id}.jpg')
     with connections[PLANNER_DB].cursor() as cursor:
-        query = f'SELECT [exists] FROM [{PLANNER_DB}].[dbo].[banner_list] WHERE [program_id] = {program_id}'
+        query = f'SELECT [exists] FROM [{PLANNER_DB}].[dbo].[poster_list] WHERE [program_id] = {program_id}'
         cursor.execute(query)
         if cursor.fetchone() and os.path.exists(image_filename):
             return True
@@ -216,7 +214,7 @@ def insert_into_db(program_id):
     try:
         with connections[PLANNER_DB].cursor() as cursor:
             query = f'''
-            INSERT INTO [{PLANNER_DB}].[dbo].[banner_list]
+            INSERT INTO [{PLANNER_DB}].[dbo].[poster_list]
             ([program_id], [date_of_addition], [exists]) VALUES 
             (%s, GETDATE(), %s)
             '''

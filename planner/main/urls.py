@@ -2,8 +2,6 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path("", home, name='home'),
-    path('load_calendar_info/', load_calendar_info, name='load_calendar_info'),
     path("day/", day),
     path("week/", week),
     path("week/<int:work_year>/<int:work_week>", week_date),
@@ -24,9 +22,6 @@ urlpatterns = [
     path("submit_cenz_data/", submit_cenz_data, name='submit_cenz_data'),
 
     path("get_movie_poster/", get_movie_poster, name='get_movie_poster'),
-    path("update_total_unread_count/", update_total_unread_count, name='update_total_unread_count'),
-    path("load_daily_kpi_chart/", load_daily_kpi_chart, name='load_daily_kpi_chart'),
-    path("load_kpi_chart/", load_kpi_chart, name='load_kpi_chart'),
 
     path("status_ready/", status_ready, name='status_ready'),
     path("ask_fix/", ask_fix, name='ask_fix'),

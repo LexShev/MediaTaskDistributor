@@ -1,9 +1,0 @@
-<!-- jQuery -->
-<script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
-
-<!-- SortableJS с CDN -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
-<!-- Ваши скрипты -->
-<script src="{% static 'js/jquery-sortable.js' %}"></script>
-<script src="{% static 'js/desktop.js' %}"></script>

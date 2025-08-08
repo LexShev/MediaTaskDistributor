@@ -164,11 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (materialType === 'film') {
         query = [programId, name, year, country]
-        src = `/static/banners/${programId}.jpg`
+        src = `/media/posters/${programId}.jpg`
     }
     else {
         query = [parentId, name, year, country]
-        src = `/static/banners/${parentId}.jpg`
+        src = `/media/posters/${parentId}.jpg`
     };
 
     function checkPoster() {

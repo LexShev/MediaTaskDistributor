@@ -2,13 +2,12 @@
 /planner/mongodb_data/
 /planner/mongosh/
 /planner/media
-/planner/static/waveforms
-/planner/static/banners
 /planner/static/bootstrap-5.3.3-dist
 /planner/static/Semantic-UI-master
 /planner/static/SortableJS
 /planner/static/ChartJS
 /planner/static/jquery
+/ssl
 .idea
 .env
 **/migrations/

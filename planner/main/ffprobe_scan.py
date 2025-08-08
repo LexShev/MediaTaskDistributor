@@ -1,26 +1,47 @@
-import os
-from ffmpeg import FFmpeg
+import hashlib
 import json
-import datetime
+import subprocess
 
-start = datetime.datetime.now()
-print('start:', start, '\n')
+from main.ffmpeg_info import mongo_connection
+
 
 def ffmpeg_scan(file_path):
-    parent_directory = os.path.dirname(os.path.abspath(__file__))
-    parent_directory = r'C:\Users\a.shevchenko.st14\PycharmProjects\Viewing_planner\planner'
-    ffprobe_directory = os.path.join(parent_directory, r'ffmpeg\bin\ffprobe.exe')
-    ffprobe = FFmpeg(executable=ffprobe_directory).input(
-        file_path,
-        print_format="json",  # ffprobe will output the results in JSON format
-        show_streams=None,
-        show_format=None,
+    command = [
+        "ffprobe",
+        "-hide_banner",
+        "-loglevel", "quiet",
+        "-i", f"{file_path}",
+        "-print_format", "json",
+        "-show_streams",
+        "-show_format"
+    ]
+
+    output = subprocess.check_output(
+        command,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        encoding='utf-8',
+        errors='replace',
+        bufsize=1,
+        creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
+        shell=False
     )
+    ffprobe_info = json.loads(output)
+    scan_result = update_scan_result(file_path, ffprobe_info)
+    print('scan_result', scan_result)
+    # insert_db(scan_result)
 
-    media = ffprobe.execute()
-    print(json.loads(media))
-    return json.loads(media)
 
-end = datetime.datetime.now()
-print('\nend:', end)
-print('total:', end-start)
+def update_scan_result(file_path, ffprobe_info):
+    ffprobe_info['_id'] = hashlib.md5(file_path.encode('utf-8')).hexdigest()
+    ffprobe_info['file_path'] = file_path
+    ffprobe_info['ffmpeg_scanners'] = {}
+    return ffprobe_info
+
+
+def insert_db(ffprobe_info):
+    try:
+        with mongo_connection('ffmpeg') as collection:
+            collection.insert_one(ffprobe_info)
+    except Exception as e:
+        print(e)

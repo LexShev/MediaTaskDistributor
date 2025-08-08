@@ -1,7 +1,7 @@
 <div class="card mx-1 my-2 boarder">
   <small class="text-body-secondary mx-3 my-2">R128</small>
 
-  <img id="r_128" src="{% if ffmpeg.waveforms %}/static/waveforms/{{ ffmpeg|get_value:'_id' }}.png{% else %}/static/waveforms/no_wave.png{% endif %}"
+  <img id="r_128" src="{% if ffmpeg.waveforms %}/media/waveforms/{{ ffmpeg|get_value:'_id' }}.png{% else %}/media/waveforms/no_wave.png{% endif %}"
        class="mx-auto my-2" style="height: 260px; width: 100%; object-fit: cover;">
   <h5 class="text-body-secondary text-center mb-2">
     {% if ffmpeg.ffmpeg_scanners.r128 %}

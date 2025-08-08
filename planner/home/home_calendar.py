@@ -40,9 +40,9 @@ def update_info(current_date):
 
         if ready_index == 'day_off':
             color = ''
-        elif ready_index > 70:
+        elif ready_index == 100:
             color = 'btn-outline-success'
-        elif 30 < ready_index <= 70:
+        elif 30 < ready_index <= 99:
             color = 'btn-outline-warning'
         else:
             color = 'btn-outline-danger'
