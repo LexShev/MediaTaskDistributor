@@ -3,21 +3,17 @@ from datetime import datetime, date
 import ast
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.template.loader import render_to_string
 
 from messenger_static.messenger_utils import create_notification
-from messenger_static.models import Message, Notification
-from on_air_report.report import report_calendar
 
 from .ffmpeg_info import ffmpeg_dict
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
-from .home_calendar import calendar_skeleton, update_info
-from .home_kpi import common_kpi, daily_kpi
-from .home_table import home_common_table
+
 from .js_requests import program_name
 from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment, insert_history_new, \
@@ -30,68 +26,10 @@ from .permission_pannel import ask_db_permissions
 from .templatetags.custom_filters import worker_name
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
-from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, update_file_path, calc_otk_deadline, \
+from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, calc_otk_deadline, \
     comments_history, select_filepath_history, change_oplan_cenz_info
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 
-
-
-@login_required()
-def home(request):
-    worker_id = request.user.id
-    today = date.today()
-    service_dict = {
-        'today': today,
-        'cal_month': today.month,
-    }
-    data = {
-        'home_calendar': calendar_skeleton(),
-        'home_table': home_common_table(),
-        'service_dict': service_dict,
-        'permissions': ask_db_permissions(worker_id),
-    }
-    return render(request, 'main/home.html', data)
-
-def load_daily_kpi_chart(request):
-    return JsonResponse(daily_kpi())
-
-def load_kpi_chart(request):
-    return JsonResponse(common_kpi())
-
-def update_total_unread_count(request):
-    worker_id = request.user.id
-    try:
-        total_unread_count = Message.objects.exclude(views__worker_id=worker_id).count()
-        unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Updated successfully',
-            'total_unread': total_unread_count + unread_notifications,
-        })
-    except Exception as e:
-        print(e)
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=405)
-
-def load_calendar_info(request):
-    date_str = request.GET.get('date')
-    try:
-        current_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    except (ValueError, TypeError):
-        return JsonResponse({'error': 'Invalid date'}, status=400)
-    return JsonResponse(update_info(current_date))
-
-# def home_calendar(request):
-#     today = date.today()
-#     cal_year, cal_month = today.year, today.month
-#     # cal_year, cal_month = 2025, 1
-#     html = render_to_string(
-#         'main/home_calendar.html',
-#         {'month_calendar': report_calendar(cal_year, cal_month), 'cal_month': cal_month},
-#         request=request
-#     )
-#
-#     return JsonResponse({'html': html})
-    # return JsonResponse({'month_calendar': report_calendar(cal_year, cal_month)})
 
 def day(request):
     return render(request, 'main/day.html')

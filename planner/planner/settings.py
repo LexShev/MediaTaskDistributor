@@ -44,9 +44,16 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
 
+# Для работы HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 # Application definition
 
 INSTALLED_APPS = [
+    "home",
     "main",
     "workers",
     "desktop",
@@ -201,10 +208,11 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-STATIC_BANNERS = os.path.join(BASE_DIR, 'static/banners')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_POSTERS = os.path.join(BASE_DIR, 'media/posters')
+
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 

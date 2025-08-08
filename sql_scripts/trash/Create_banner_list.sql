@@ -1,6 +1,6 @@
 USE planner;
  
-CREATE TABLE banner_list
+CREATE TABLE poster_list
 (
     program_id INT PRIMARY KEY NOT NULL,
 	date_of_addition DATE NOT NULL,
