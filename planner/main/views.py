@@ -45,7 +45,6 @@ def page_not_found(request, exception):
 def server_error(request):
     return render(request, 'main/error.html', status=500)
 
-
 def day(request):
     return render(request, 'main/day.html')
 
