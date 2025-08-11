@@ -30,6 +30,21 @@ from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_inf
     comments_history, select_filepath_history, change_oplan_cenz_info
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 
+from django.shortcuts import render
+
+
+def bad_request(request, exception):
+    return render(request, 'main/error.html', status=400)
+
+def permission_denied(request, exception):
+    return render(request, 'main/error.html', status=403)
+
+def page_not_found(request, exception):
+    return render(request, 'main/error.html', status=404)
+
+def server_error(request):
+    return render(request, 'main/error.html', status=500)
+
 
 def day(request):
     return render(request, 'main/day.html')
@@ -57,7 +72,6 @@ def week_date(request, work_year, work_week):
             task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
 
         else:
-            # channels = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12)
             schedules = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
             engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
             task_status = ('not_ready', 'ready', 'fix')
