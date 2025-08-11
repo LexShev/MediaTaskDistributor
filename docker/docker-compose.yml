@@ -23,7 +23,20 @@ services:
     build:
       context: ..  # Собираем из корня проекта
       dockerfile: docker/Dockerfile  # Путь к Dockerfile относительно контекста
-    command: gunicorn --bind 0.0.0.0:8000 planner.wsgi:application --workers 12
+    command: >
+      sh -c "
+      cd /app/planner &&
+      gunicorn planner.wsgi:application 
+      --bind 0.0.0.0:8000 
+      --workers 10 
+      --timeout 120 
+      --access-logfile - 
+      --error-logfile -
+      "
+    environment:
+      - DJANGO_SETTINGS_MODULE=planner.settings
+      - PYTHONPATH=/app
+      - BIND=0.0.0.0:8000
     volumes:
       - ..:/app
     working_dir: /app
@@ -38,14 +51,13 @@ services:
   nginx:
     container_name: media_task_nginx
     image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../ssl:/etc/nginx/ssl
-      - ../static:/app/static:ro  # Статика Django
-      - ../media:/app/media:ro    # Медиа файлы
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../ssl:/etc/nginx/ssl:ro
+      - ../planner/static:/app/planner/static:ro
+      - ../planner/media:/app/planner/media:ro
+    ports:
+      - "8000:8000"
     depends_on:
       - prod
     networks:

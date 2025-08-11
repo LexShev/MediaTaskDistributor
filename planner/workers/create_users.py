@@ -10,7 +10,7 @@ def create_users_in_groups():
         'otk_engineers': Group.objects.get_or_create(name='otk_engineers')[0]
     }
 
-    with open('workers/.users.json', 'r', encoding='utf-8') as f:
+    with open('planner/workers/.users.json', 'r', encoding='utf-8') as f:
         users_data = json.load(f)
 
         for user_data in users_data:
