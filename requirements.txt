@@ -3,7 +3,7 @@ beautifulsoup4==4.13.3
 bs4==0.0.2
 certifi==2025.1.31
 charset-normalizer==3.4.1
-Django==5.0.14
+Django==5.0.13
 dnspython==2.7.0
 gunicorn==23.0.0
 idna==3.10
