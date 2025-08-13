@@ -29,7 +29,8 @@ def cenz_name(cenz_id):
 
 @register.filter
 def engineer_name(engineer_id):
-    if engineer_id:
+    engineer_id = str(engineer_id)
+    if engineer_id or engineer_id == '0' :
         with connections[OPLAN_DB].cursor() as cursor:
             query = f'SELECT [full_name] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
             cursor.execute(query, (engineer_id,))
@@ -38,6 +39,7 @@ def engineer_name(engineer_id):
                 return engineer[0]
             else:
                 return 'Аноним'
+
     else:
         return ''
 

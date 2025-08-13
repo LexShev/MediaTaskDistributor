@@ -6,19 +6,15 @@
 
 <div class="container-xxl text-start p-0">
     <br><h3>Общий пул</h3>
-    <h6>Материалов в базе не отсмотрено:  <span id="total-count">Загрузка...</span></h6>
-    <h6>Из них фильмов:  <span id="film-count">Загрузка...</span></h6>
-    <h6>Из них сериалов:  <span id="season-count">Загрузка...</span></h6>
+    <h6>Материалов в базе не отсмотрено: <span id="total-count">Загрузка...</span></h6>
+    <h6>Из них фильмов: <span id="film-count">Загрузка...</span></h6>
+    <h6>Из них сериалов: <span id="season-count">Загрузка...</span></h6>
     <br>
     <form method="POST" id="poolForm">
         {% csrf_token %}
         <div class="input-group mb-3">
             <label class="input-group-text" for="search_type">Поиск по</label>
             {{ form.search_type }}
-<!--            <select class="form-select" id="search_type" style="width: 6rem;">-->
-<!--                <option value="0">id</option>-->
-<!--                <option value="1" selected>названию</option>-->
-<!--            </select>-->
             <input class="form-control" id="tableFilter" type="text" placeholder="введите название передачи ..." style="width: 60rem;">
 
             {{ form.sql_set }}

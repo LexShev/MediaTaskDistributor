@@ -19,7 +19,7 @@ def login_worker(request):
                 homepage_dict = {0: 'home',
                                  1: 'list',
                                  2: 'home'}
-                return redirect(homepage_dict.get(request.user.id, 0))
+                return redirect(homepage_dict.get(request.user.id, 'home'))
         else:
             messages.success(request, 'Неверный логин или пароль')
             return redirect('login_worker')

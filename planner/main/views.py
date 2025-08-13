@@ -14,6 +14,7 @@ from messenger_static.messenger_utils import create_notification
 from .ffmpeg_info import ffmpeg_dict
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
 
+from main.helpers import get_engineer_id
 from .js_requests import program_name
 from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment, insert_history_new, \
@@ -33,17 +34,36 @@ from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacat
 from django.shortcuts import render
 
 
+def handle_error(request, status_code, exception=None):
+    # Словарь с описаниями ошибок
+    error_messages = {
+        400: "Неверный запрос (Bad Request)",
+        403: "Доступ запрещён (Forbidden)",
+        404: "Страница не найдена (Not Found)",
+        500: "Ошибка сервера (Server Error)",
+    }
+
+    context = {
+        'error_code': status_code,
+        'error_message': error_messages.get(status_code, "Неизвестная ошибка"),
+        'exception': str(exception) if exception else None,
+    }
+
+    return render(request, 'main/errors.html', context, status=status_code)
+
+from django.shortcuts import render
+
 def bad_request(request, exception):
-    return render(request, 'main/error.html', status=400)
+    return render(request, 'main/errors.html', status=400)
 
 def permission_denied(request, exception):
-    return render(request, 'main/error.html', status=403)
+    return render(request, 'main/errors.html', status=403)
 
 def page_not_found(request, exception):
-    return render(request, 'main/error.html', status=404)
+    return render(request, 'main/errors.html', status=404)
 
 def server_error(request):
-    return render(request, 'main/error.html', status=500)
+    return render(request, 'main/errors.html', status=500)
 
 def day(request):
     return render(request, 'main/day.html')
@@ -269,7 +289,6 @@ def submit_cenz_data(request):
                 text = f'{program_name(program_id)} заблокирован в {lockType} пользователем: {worker_name(workerId)} в {lockTime}.'
                 error_messages.append(text)
                 continue
-            service_info_dict = {'program_id': program_id, 'worker_id': worker_id}
             custom_fields = cenz_info(program_id)
             old_values_dict = {
                 17: custom_fields.get(17),
@@ -287,8 +306,10 @@ def submit_cenz_data(request):
                 13: custom_fields.get(13),
                 16: custom_fields.get(16)
             }
-
-            change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
+            work_date = new_values_dict.get(7, old_values_dict.get(7))
+            service_info_dict = {'program_id': program_id, 'worker_id': worker_id, 'work_date': work_date}
+            # change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
+            change_oplan_cenz_info(old_values_dict, new_values_dict)
             insert_history(service_info_dict, old_values_dict, new_values_dict)
             update_comment(program_id, worker_id, comment=cenz_comment)
 
@@ -507,8 +528,8 @@ def kpi_info(request):
     return render(request, 'main/kpi_admin_panel.html', data)
 
 @login_required()
-def engineer_profile(request, engineer_id):
-    worker_id = request.user.id
+def engineer_profile(request, worker_id):
+    engineer_id = get_engineer_id(worker_id)
     work_date = datetime.today().date()
     task_status = ''
     material_type = ''
@@ -527,8 +548,8 @@ def engineer_profile(request, engineer_id):
     task_list, summary_dict = kpi_personal_calc(
         {'work_date': work_date, 'engineer_id': engineer_id,
          'material_type': material_type, 'task_status': task_status})
-
-    data = {'engineer_id': engineer_id,
+# worker_id need to fix
+    data = {'worker_id': engineer_id,
             'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.today().date(),

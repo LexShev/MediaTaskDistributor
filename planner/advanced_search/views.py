@@ -39,7 +39,6 @@ def dop_search(request):
             print("Новый поиск создан")
     else:
         init_dict = AdvancedSearch.objects.get(owner=0)
-    print('search_query', search_query)
     if search_query:
         form = AdvancedSearchForm(request.GET, instance=init_dict)
         print('try to save data')
