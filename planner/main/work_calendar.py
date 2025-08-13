@@ -7,10 +7,10 @@ from .db_connection import program_custom_fields
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 
-def workers_name(worker_id):
+def workers_name(engineer_id):
     workers_list = program_custom_fields().get(15)
     try:
-        return workers_list.split('\r\n')[int(worker_id)]
+        return workers_list.split('\r\n')[int(engineer_id)]
     except Exception as e:
         print(e)
         return None
@@ -56,7 +56,7 @@ def insert_day_off(work_date):
 
 def vacation_info(cal_year):
     with connections[PLANNER_DB].cursor() as cursor:
-        columns = ('vacation_id', 'worker_id', 'start_date', 'end_date', 'description')
+        columns = ('vacation_id', 'engineer_id', 'start_date', 'end_date', 'description')
         sql_columns = ', '.join([f'[{col}]' for col in columns])
         query = f'''
         SELECT {sql_columns}
@@ -74,11 +74,11 @@ def vacation_info(cal_year):
             vacation_list.append(vacation_dict)
         return vacation_list
 
-def insert_vacation(worker_id, start_date, end_date, description):
+def insert_vacation(engineer_id, start_date, end_date, description):
     with connections[PLANNER_DB].cursor() as cursor:
         query = f'''INSERT INTO [{PLANNER_DB}].[dbo].[vacation_schedule]
-        ([worker_id], [start_date], [end_date], [description])
-        VALUES ({worker_id}, '{start_date}', '{end_date}', '{description}');'''
+        ([engineer_id], [start_date], [end_date], [description])
+        VALUES ({engineer_id}, '{start_date}', '{end_date}', '{description}');'''
         cursor.execute(query)
 
 def drop_vacation(vacation_id):

@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import IntegerField, AutoField
-
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 
 
@@ -23,7 +23,7 @@ class Message(models.Model):
 
     @property
     def program(self):
-        return Program.objects.using('oplan3').get(program_id=self.program_id)
+        return Program.objects.using(OPLAN_DB).get(program_id=self.program_id)
 
     @property
     def is_file(self):

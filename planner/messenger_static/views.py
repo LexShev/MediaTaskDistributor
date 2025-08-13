@@ -10,7 +10,7 @@ from main.permission_pannel import ask_db_permissions
 from messenger_static.forms import MessageForm
 from .messenger_utils import all_messages, show_viewed_messages, create_notification, find_worker_id
 from .models import Message, Program, Notification, MessageViews
-
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 @login_required()
 def index(request):
@@ -59,7 +59,7 @@ def messenger(request, program_id):
     messages = Message.objects.filter(program_id=program_id).annotate(
         is_read=Case(When(message_id__in=read_message_ids, then=True), default=False, output_field=BooleanField())
     ).order_by('timestamp')[:50] or []
-    program_info = Program.objects.using('oplan3').get(program_id=program_id)
+    program_info = Program.objects.using(OPLAN_DB).get(program_id=program_id)
 
     viewed_messages = show_viewed_messages(program_id, worker_id) or []
     last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []

@@ -255,6 +255,7 @@ def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
             update_value(old_field_id, program_id, new_value)
             
 def change_oplan_cenz_info(old_values, new_values):
+    print('change_oplan_cenz_info', old_values, new_values)
     values_list = (
         (17, 'meta_form'),
         (7, 'work_date_form'),

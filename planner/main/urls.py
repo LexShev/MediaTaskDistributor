@@ -1,12 +1,5 @@
 from django.urls import path
 from .views import *
-from django.conf.urls import handler400, handler403, handler404, handler500
-
-
-handler400 = 'main.views.bad_request'
-handler403 = 'main.views.permission_denied'
-handler404 = 'main.views.page_not_found'
-handler500 = 'main.views.server_error'
 
 urlpatterns = [
     path("day/", day),
@@ -15,7 +8,7 @@ urlpatterns = [
     path("list/", full_list, name='list'),
     path("<int:program_id>/", material_card),
     path("kpi_info/", kpi_info),
-    path("worker/<int:engineer_id>/", engineer_profile),
+    path("worker/<int:worker_id>/", engineer_profile),
     path("test_page/", test_page),
     path("work_calendar/", work_calendar),
     path("work_calendar/<int:cal_year>/", work_year_calendar),

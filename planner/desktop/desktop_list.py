@@ -11,7 +11,7 @@ def prepare_exclusion_list(exclusion_list):
         exclusion_list = exclusion_list[0], exclusion_list[0]
     return f'AND Task.[program_id] NOT IN {exclusion_list}'
 
-def task_info(engineer_id, schedules, material_type, task_status, work_dates, exclusion_list):
+def task_info(worker_id, schedules, material_type, task_status, work_dates, exclusion_list):
     start_date, end_date = work_dates
     material_type = check_mat_type(material_type)
 
@@ -31,12 +31,14 @@ def task_info(engineer_id, schedules, material_type, task_status, work_dates, ex
             ON Task.[program_id] = Progs.[program_id]
         LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
+        JOIN [{PLANNER_DB}].[dbo].[engineers_list] AS Eng
+            ON Task.[engineer_id] = Eng.[engineer_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
-        AND Task.[engineer_id] = {engineer_id}
+        AND Eng.[worker_id] = {worker_id}
         AND Task.[sched_id] IN {tuple(schedules)}
         AND Progs.[program_type_id] IN {tuple(material_type)}
-        AND Task.[work_date] BETWEEN '{start_date}' AND DATEADD(DAY, 21, '{end_date}')
+        AND Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'
         AND Task.[task_status] IN {tuple(task_status)}
         {prepare_exclusion_list(exclusion_list)}
         ORDER BY Progs.[name];
