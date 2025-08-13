@@ -79,7 +79,9 @@ def load_pool_table(request):
     sql_set = request.GET.get('sql_set', init_dict.sql_set)
     html = render_to_string(
         'common_pool/common_pool_table.html',
-        {'pool_list': select_pool(sql_set)},
+        {'pool_list': select_pool(sql_set),
+         'permissions': ask_db_permissions(worker_id),
+         },
         request=request
     )
     return JsonResponse({'html': html})

@@ -4,6 +4,7 @@ from django.db import connections
 from datetime import datetime, date
 
 from main.js_requests import program_name
+from main.helpers import get_engineer_id
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 
@@ -107,10 +108,9 @@ def find_file_path(program_id):
     if file_path_info:
         return dict(zip(django_columns, file_path_info))
 
-
 def change_task_status(service_info_dict, task_status):
     program_id = service_info_dict.get('program_id')
-    engineer_id = service_info_dict.get('engineer_id')
+    engineer_id = get_engineer_id(service_info_dict.get('worker_id'))
     work_date = service_info_dict.get('work_date')
 
     with connections[PLANNER_DB].cursor() as cursor:
@@ -120,6 +120,7 @@ def change_task_status(service_info_dict, task_status):
         if db_task_status and db_task_status[0]:
             if task_status == 'no_change':
                 task_status = db_task_status[0]
+            print(engineer_id, work_date, task_status, program_id)
             update_status = f'''
             UPDATE [{PLANNER_DB}].[dbo].[task_list]
             SET [engineer_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s
