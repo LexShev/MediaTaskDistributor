@@ -76,16 +76,18 @@ def show_desktop(request):
         'permissions': ask_db_permissions(worker_id),
         'full_list': task_info(worker_id, schedules, material_type, task_status, work_dates, exclusion_list),
         'list_names': dict(map(lambda items: (items['list_id'], items['name']), dict_names)),
-        'cards_container_1': cards_container(cards_list_01),
-        'cards_container_2': cards_container(cards_list_02),
-        'cards_container_3': cards_container(cards_list_03),
-        'cards_container_4': cards_container(cards_list_04),
+        'cards_container_1': cards_container(worker_id, cards_list_01),
+        'cards_container_2': cards_container(worker_id, cards_list_02),
+        'cards_container_3': cards_container(worker_id, cards_list_03),
+        'cards_container_4': cards_container(worker_id, cards_list_04),
         'desktop_form': desktop_form,
     }
     return render(request, 'desktop/index.html', data)
 
 def read_cards_list(i, worker_id):
-    return tuple(ModelCardsContainer.objects.filter(container=i, owner=worker_id).values_list('program_id', flat=True))
+    return tuple(ModelCardsContainer.objects.filter(container=i, owner=worker_id)
+                 .order_by('order')
+                .values_list('program_id', flat=True))
 
 def read_program_list(worker_id, i, order):
     return [ModelCardsContainer(container=i, owner=worker_id, order=num, program_id=program_id) for num, program_id in enumerate(order)]
@@ -96,11 +98,14 @@ def update_order(request):
         if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
         data = json.loads(request.body)
-
         if not data:
             return JsonResponse({'status': 'error', 'message': 'No order data provided'}, status=400)
 
+        all_program_ids = [pid for container in data for pid in container]
         with transaction.atomic():
+            all_program_ids = [pid for container in data for pid in container]
+
+            # Удаляем карточки, которые больше не нужны
             ModelCardsContainer.objects.filter(owner=worker_id).delete()
             for i in range(4):
                 ModelCardsContainer.objects.bulk_create(read_program_list(worker_id, i, data[i]))
@@ -111,7 +116,6 @@ def update_order(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def update_marker_name(request):
-    print(request.body)
     worker_id = request.user.id
     try:
         if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -120,7 +124,6 @@ def update_marker_name(request):
 
         if not data:
             return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
-        print(data, type(data))
         with transaction.atomic():
             ModelListNames.objects.filter(owner=worker_id, list_id=data[0]).delete()
             ModelListNames(owner=worker_id, list_id=data[0], name=data[1]).save()

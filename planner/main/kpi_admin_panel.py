@@ -18,7 +18,7 @@ def check_mat_type(param):
         return 4, 5, 6, 10, 11, 12
 
 def check_value(key, value):
-    if value:
+    if value or value == 0:
         return f"AND Task.[{key}] = '{value}'"
     else:
         return ''
