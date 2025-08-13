@@ -27,13 +27,14 @@ def common_pool(request):
             init_dict = CommonPool.objects.get(owner=worker_id)
     else:
         init_dict = CommonPool.objects.get(owner=0)
-
     if request.method == 'POST':
         form = CommonPoolForm(request.POST, instance=init_dict)
         if form.is_valid():
             form.save()
     else:
-        form = CommonPoolForm(initial={'sql_set': init_dict.sql_set, 'search_type': init_dict.search_type})
+        form = CommonPoolForm(
+            initial={'sql_set': init_dict.sql_set, 'search_type': init_dict.search_type}
+        )
 
     data = {'pool_list': [],
             'permissions': ask_db_permissions(worker_id),
