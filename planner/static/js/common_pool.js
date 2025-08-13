@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             document.getElementById('pool-table-container').innerHTML = data.html;
             updateMainProgramId();
+            fastSearch(document.getElementById('search_input'));
         })
         .catch(error => {
             document.getElementById('pool-table-container').innerHTML = `
@@ -32,8 +33,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-document.getElementById('tableFilter').addEventListener('keyup', function() {
-    let filter = this.value.toLowerCase();
+
+document.getElementById('search_input').addEventListener('keyup', function(event) {
+    fastSearch(event.target);
+});
+
+function fastSearch(searchInput) {
+    let filter = searchInput.value.toLowerCase();
     let tableBody = document.getElementById('tableBody');
     let rows = tableBody.getElementsByTagName('tr');
     let searchSettings = Number(document.getElementById('search_type').value)+1;
@@ -45,7 +51,7 @@ document.getElementById('tableFilter').addEventListener('keyup', function() {
             rows[i].style.display = textValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
         }
     }
-});
+};
 
 function convertFramesToTime(frames, fps = 25) {
     const sec = parseInt(frames) / fps;

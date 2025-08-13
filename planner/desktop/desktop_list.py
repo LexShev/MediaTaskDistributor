@@ -51,7 +51,7 @@ def task_info(worker_id, schedules, material_type, task_status, work_dates, excl
                 material_dict['Adult_Name'] = parent_adult_name(material_dict.get('Progs_parent_id'))
     return material_list
 
-def cards_container(program_list):
+def cards_container(worker_id, program_list):
     if not program_list:
         return []
     if isinstance(program_list, tuple) and len(program_list) == 1:
@@ -72,6 +72,7 @@ def cards_container(program_list):
             ON Task.[program_id] = Progs.[program_id]
         JOIN [{PLANNER_DB}].[dbo].[desktop_modelcardscontainer] AS Cont
             ON Task.[program_id] = Cont.[program_id]
+            AND Cont.[owner] = {worker_id}
         LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0

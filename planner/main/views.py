@@ -511,7 +511,7 @@ def kpi_info(request):
             task_status = form.cleaned_data.get('task_status_form')
     else:
         form = KpiForm(initial={
-            'work_date_form': work_date,
+            'work_date_form': str(work_date),
             'engineers_form': engineers,
             'material_type_form': material_type,
             'task_status': task_status})
@@ -541,7 +541,7 @@ def engineer_profile(request, worker_id):
             task_status = form.cleaned_data.get('task_status_form')
     else:
         form = KpiForm(initial={
-            'work_date_form': work_date,
+            'work_date_form': str(work_date),
             'material_type': material_type,
             'task_status': task_status})
 

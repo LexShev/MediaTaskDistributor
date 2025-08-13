@@ -51,9 +51,7 @@
 <table class="table table-hover">
     <thead>
         <tr>
-            {% if permissions.task_manager %}
-                <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
-            {% endif %}
+            <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
             <th scope="col" class="col-1">Program_id</th>
             <th scope="col" class="col-6">Название</th>
             <th scope="col" class="col-1">Длительность</th>
@@ -63,12 +61,10 @@
         {% for material in pool_list %}
             <tr>
                 <td>
-                    {% if permissions.task_manager %}
-                        <input class="form-check-input me-1" type="checkbox"
-                               data-program-id="{{ material.Progs_program_id }}" data-program-name="{{ material.Progs_name }}"
-                               data-production-year="{{ material.Progs_production_year }}" value="{{ material.Progs_program_id }}"
-                               name="program_id_check">
-                    {% endif %}
+                    <input class="form-check-input me-1" type="checkbox"
+                           data-program-id="{{ material.Progs_program_id }}" data-program-name="{{ material.Progs_name }}"
+                           data-production-year="{{ material.Progs_production_year }}" value="{{ material.Progs_program_id }}"
+                           name="program_id_check">
                 <td><a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                     {{ material.Progs_program_id }}
                 </a></td>

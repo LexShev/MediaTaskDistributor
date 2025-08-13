@@ -15,6 +15,9 @@ class ModelCardsContainer(Model):
     order = IntegerField(default=0)
     timestamp = DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = (('owner', 'program_id'),)
+
 class ModelListNames(Model):
     owner = IntegerField(default=1)
     list_id = IntegerField(default=1)
