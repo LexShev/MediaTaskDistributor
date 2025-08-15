@@ -36,7 +36,7 @@ def insert_history(service_info_dict, old_values_dict, new_values_dict):
                 '''
                 cursor.execute(query)
 
-def insert_history_new(worker_id, old_values, new_values):
+def insert_history_new(program_id, worker_id, old_values, new_values):
     columns = ('program_id', 'CustomFieldID', 'action_description', 'action_comment',
                'worker_id', 'time_of_change', 'old_value', 'new_value')
     sql_columns = ', '.join(columns)
@@ -57,7 +57,6 @@ def insert_history_new(worker_id, old_values, new_values):
         (13, 'other_form'),
         (16, 'editor_form')
     )
-    program_id = new_values.get('program_id')
     for num_key, name_key in values_list:
         old_value, new_value = old_values.get(num_key), new_values.get(name_key)
         old_value, new_value = check_data_type(old_value), check_data_type(new_value)
@@ -112,6 +111,7 @@ def change_task_status(service_info_dict, task_status):
     program_id = service_info_dict.get('program_id')
     engineer_id = get_engineer_id(service_info_dict.get('worker_id'))
     work_date = service_info_dict.get('work_date')
+    print('service_info_dict', engineer_id, work_date, task_status, program_id)
 
     with connections[PLANNER_DB].cursor() as cursor:
         select = f'SELECT [task_status] FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [program_id] = {program_id}'
@@ -120,7 +120,6 @@ def change_task_status(service_info_dict, task_status):
         if db_task_status and db_task_status[0]:
             if task_status == 'no_change':
                 task_status = db_task_status[0]
-            print(engineer_id, work_date, task_status, program_id)
             update_status = f'''
             UPDATE [{PLANNER_DB}].[dbo].[task_list]
             SET [engineer_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s
@@ -147,8 +146,7 @@ def change_task_status(service_info_dict, task_status):
             cursor.execute(query, values)
             return f'{program_name(program_id)} был добавлен в базу.'
 
-def change_task_status_new(new_values, task_status, db_task_status) -> Dict:
-    program_id = new_values.get('program_id')
+def change_task_status_new(program_id, new_values, task_status, db_task_status) -> Dict[str, str]:
     engineer_id = new_values.get('engineers_form')
     work_date = new_values.get('work_date_form')
     program = program_name(program_id)
@@ -164,6 +162,8 @@ def change_task_status_new(new_values, task_status, db_task_status) -> Dict:
             cursor.execute(update_status, (engineer_id, work_date, task_status, program_id))
             if cursor.rowcount:
                 return {'status': 'success', 'message': f'{program} завершено.'}
+            else:
+                return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {program}'}
 
         else:
             file_path_dict = find_file_path(program_id)

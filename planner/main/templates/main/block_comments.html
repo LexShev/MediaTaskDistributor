@@ -18,7 +18,7 @@
           <td>{{ comment.task_status|status_name }}</td>
           <td><textarea class="form-control pb-2 m-0 border-0" rows="" style="height: auto; min-height: 20px;" disabled>{{ comment.comment }}</textarea></td>
           <td>{{ comment.deadline|date:"d.m.Y" }}</td>
-          <td>{{ comment.worker_id|worker_name }}</td>
+          <td>{{ comment.worker_id|planner_worker_name }}</td>
 
       </tr>
         {% endfor %}

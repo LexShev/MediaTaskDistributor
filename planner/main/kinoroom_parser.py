@@ -49,11 +49,11 @@ def download_poster(program_id, movie_id):
                     for chunk in response.iter_content(8192):
                         f.write(chunk)
                     insert_into_db(program_id)
-                    print('poster downloaded')
                     return 'success'
 
         except (requests.RequestException, OSError) as e:
             print(e)
+            return 'error'
     return 'error'
 
 
