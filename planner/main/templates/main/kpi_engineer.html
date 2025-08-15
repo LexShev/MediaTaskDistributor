@@ -5,13 +5,14 @@
 {% block body %}
 <div class="container-flex p-4">
   <div class="row">
-    <div class="col col-2">
+    <div class="col-lg-2 col-md-3 d-print-none d-lg-block d-md-none d-none">
       <div class="row sticky-top">
         <div class="col text-center m-2">
           <h4>{{ worker_id|engineer_name }}</h4>
         </div>
-        <div class="col m-2">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+
+        <div class="col-12 my-2">
+          <div class="card text-center border-secondary p-0 w-100" style="width: 18rem;">
             <div class="card-header border-warning">
               <h5>KPI</h5>
             </div>
@@ -20,8 +21,9 @@
             </div>
           </div>
         </div>
-        <div class="col m-2">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+
+        <div class="col-12 my-2">
+          <div class="card text-center border-secondary p-0 w-100" style="width: 18rem;">
             <div class="card-header border-info">
               <h5>Всего задач в работе</h5>
             </div>
@@ -30,8 +32,9 @@
             </div>
           </div>
         </div>
-        <div class="col m-2">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+
+        <div class="col-12 my-2">
+          <div class="card text-center border-secondary p-0 w-100" style="width: 18rem;">
             <div class="card-header border-success">
               <h5>Завершено</h5>
             </div>
@@ -40,8 +43,9 @@
             </div>
           </div>
         </div>
-        <div class="col m-2">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+
+        <div class="col-12 my-2">
+          <div class="card text-center border-secondary p-0 w-100" style="width: 18rem;">
             <div class="card-header border-danger">
               <h5>Осталось</h5>
             </div>
@@ -50,8 +54,9 @@
             </div>
           </div>
         </div>
-        <div class="col m-2">
-          <div class="card text-center border-light p-0" style="width: 18rem;">
+
+        <div class="col-12 my-2">
+          <div class="card text-center border-secondary p-0 w-100" style="width: 18rem;">
             <div class="card-header border-primary">
               <h5>Общий хронометраж</h5>
             </div>
@@ -63,57 +68,62 @@
       </div>
     </div>
 
-    <div class="col col-10 pe-5">
-      <form method="post" id="kpi_engineer_form" class="container p-0 m-0 d-flex align-items-center justify-content-start">
+    <div class="col-lg-10 col-md-9 col-12">
+      <form method="post" id="kpi_engineer_form" class="container-fluid p-0 m-0">
         {% csrf_token %}
-        <div class="row ms-0 m-2 align-items-center">
-          <div class="col ps-0">
-            <div class="form-floating" style="width:200px;">
+        <div class="row g-2 m-0 align-items-center flex-nowrap">
+          <!-- Поля формы -->
+          <div class="col-auto ps-0 flex-grow-1" style="min-width: 150px; max-width: 200px;">
+            <div class="form-floating w-100">
               {{ form.work_date_form }}
               {{ form.work_date_form.label_tag }}
             </div>
           </div>
-          <div class="col ps-0">
-            <div class="form-floating" style="width:200px;">
+          <div class="col-auto ps-0 flex-grow-1" style="min-width: 150px; max-width: 200px;">
+            <div class="form-floating w-100">
               {{ form.material_type_form }}
               {{ form.material_type_form.label_tag }}
             </div>
           </div>
-          <div class="col ps-0">
-            <div class="form-floating" style="width:200px;">
+          <div class="col-auto ps-0 flex-grow-1" style="min-width: 150px; max-width: 200px;">
+            <div class="form-floating w-100">
               {{ form.task_status_form }}
               {{ form.task_status_form.label_tag }}
             </div>
           </div>
-        </div>
-        <div class="col ps-0 m-0">
-          <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
-          <button type="button" onclick="ResetFilter()" class="btn btn-sm register-button btn-outline-secondary">Сбросить</button>
+
+          <!-- Кнопки - будут в одной строке на md и больше -->
+          <div class="col-auto ps-0 d-flex align-items-center">
+            <button type="submit" class="btn register-button btn-outline-secondary ms-0 me-1">Применить</button>
+            <button type="button" onclick="ResetFilter()" class="btn btn-sm register-button btn-outline-secondary ms-0 me-1">Сбросить</button>
+          </div>
         </div>
       </form>
 
-      <table class="table table-striped table-hover">
-        <thead>
-          <tr>
-            <th scope="col" class="col-5">Название</th>
-            <th scope="col" class="col-1">Длительность</th>
-            <th scope="col" class="col-1">Дата отсмотра</th>
-            <th scope="col" class="col-1">Статус</th>
-          </tr>
-        </thead>
-        <tbody class="table-group-divider">
-          {% for task in task_list|dictsort:"Progs_name" %}
+      <div class="table-responsive mt-3">
+        <table class="table table-striped table-hover">
+          <thead>
             <tr>
-              <td>
-                <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                  {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
-              <td>{{ task.Task_duration|convert_frames_to_time }}</td>
-              <td>{{ task.Task_work_date|date:'d.m.Y' }}</td>
-              <td>{{ task.Task_task_status|status_name }}</td>
+              <th scope="col" class="col-5">Название</th>
+              <th scope="col" class="col-1">Длительность</th>
+              <th scope="col" class="col-1">Дата отсмотра</th>
+              <th scope="col" class="col-1">Статус</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          </thead>
+          <tbody class="table-group-divider">
+            {% for task in task_list|dictsort:"Progs_name" %}
+              <tr>
+                <td>
+                  <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                    {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
+                <td>{{ task.Task_duration|convert_frames_to_time }}</td>
+                <td>{{ task.Task_work_date|date:'d.m.Y' }}</td>
+                <td>{{ task.Task_task_status|status_name }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

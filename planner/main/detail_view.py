@@ -254,8 +254,7 @@ def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
         elif old_value and new_value and str(old_value) != str(new_value):
             update_value(old_field_id, program_id, new_value)
             
-def change_oplan_cenz_info(old_values, new_values):
-    print('change_oplan_cenz_info', old_values, new_values)
+def change_oplan_cenz_info(program_id, old_values, new_values):
     values_list = (
         (17, 'meta_form'),
         (7, 'work_date_form'),
@@ -272,7 +271,6 @@ def change_oplan_cenz_info(old_values, new_values):
         (13, 'other_form'),
         (16, 'editor_form')
     )
-    program_id = new_values.get('program_id')
     for num_key, name_key in values_list:
         old_value, new_value = old_values.get(num_key), new_values.get(name_key)
         old_value, new_value = check_data_type(old_value), check_data_type(new_value)

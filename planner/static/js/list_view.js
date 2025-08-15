@@ -74,10 +74,8 @@ function ShowTaskReady(program_id) {
             episodeCheckboxes.push(checkbox.value);
             }
     };
-    let taskReady = document.getElementById('task_ready');
-    taskReady.value = Array.from(episodeCheckboxes);
-    let cenzInfoChange = document.getElementById('cenz_info_change');
-    cenzInfoChange.value = Array.from(episodeCheckboxes);
+    let programIdList = document.getElementById('program_id_list');
+    programIdList.dataset.programId = JSON.stringify(episodeCheckboxes);
     let readyCenzInfo = document.getElementById('ready_cenz_info');
     let modalLabel = document.getElementById('TaskReadyLabel');
     const TaskReadyModal = new bootstrap.Modal(document.getElementById('TaskReady'));
@@ -97,7 +95,6 @@ function ShowTaskReady(program_id) {
         })
         .then(response => response.json())
         .then(cenz_data => {
-            console.log(cenz_data);
             if (cenz_data && cenz_data.html) {
                 const fragment = document.createRange().createContextualFragment(cenz_data.html);
                 readyCenzInfo.innerHTML = '';
@@ -111,6 +108,49 @@ function ShowTaskReady(program_id) {
 
 };
 
+function CenzApproveBatch(task_status) {
+    let programIdList = JSON.parse(document.getElementById('program_id_list').dataset.programId);
+    const cenzFormElements = document.getElementById('cenz_form').elements;
+    let forms = {}
+    Array.from(cenzFormElements).forEach(element => {
+        if (element.name) {
+            forms[element.name] = element.value;
+        };
+    });
+    console.log(forms);
+    fetch('/cenz_batch/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': forms['csrfmiddlewaretoken'],
+        'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify([task_status, programIdList, forms]),
+    credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.href = `/list/`;
+        }
+        else {
+            console.log('error', data.message)
+
+            const CenzComment = bootstrap.Modal.getInstance(document.getElementById('CenzComment')) ||
+                        new bootstrap.Modal(document.getElementById('CenzComment'));
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            error_message = document.getElementById('error_message');
+            error_message.textContent = data.message;
+
+            CenzComment.hide();
+            AskFixModal.hide();
+            errorModal.toggle();
+        }
+    })
+    .catch(error => {
+        console.error('Error sending info:', error);
+    });
+};
 
 function getCookie(name) {
     let cookieValue = null;

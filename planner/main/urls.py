@@ -9,7 +9,6 @@ urlpatterns = [
     path("<int:program_id>/", material_card),
     path("kpi_info/", kpi_info),
     path("worker/<int:worker_id>/", engineer_profile),
-    path("test_page/", test_page),
     path("work_calendar/", work_calendar),
     path("work_calendar/<int:cal_year>/", work_year_calendar),
 
@@ -26,4 +25,6 @@ urlpatterns = [
     path("status_ready/", status_ready, name='status_ready'),
     path("ask_fix/", ask_fix, name='ask_fix'),
     path("cenz_info_change/", cenz_info_change, name='cenz_info_change'),
+
+    path("cenz_batch/", cenz_batch, name='cenz_batch'),
 ]

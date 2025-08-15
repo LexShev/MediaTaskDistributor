@@ -111,8 +111,6 @@ function CenzApprove(task) {
             forms[element.name] = element.value;
         };
     });
-    console.log(task.name);
-    console.log(`/${task.name}/`);
     fetch(`/${task.name}/`, {
     method: 'POST',
     headers: {

@@ -114,7 +114,7 @@
   {% endif %}
 
 <script type="text/javascript" src="{% static 'js/list_view.js' %}"></script>
-<form method="post" action="{% url 'submit_cenz_data' %}" class="needs-validation" novalidate>
+<form method="post" class="needs-validation" novalidate>
   {% csrf_token %}
   <div class="modal fade" id="TaskReady" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="TaskReadyLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-xl">
@@ -152,13 +152,27 @@
             <textarea class="form-control" id="cenz_comment" name="cenz_comment" style="min-height: 130px">CENZ не требуется</textarea><br>
         </div>
         <div class="modal-footer">
+          <input id="program_id_list" data-program-id="[]" class="visually-hidden">
           <button type="button" class="btn btn-outline-secondary me-auto" data-bs-target="#TaskReady" data-bs-toggle="modal">Назад</button>
-          <button type="submit" name="task_ready" id="task_ready" value="" class="btn btn-outline-warning ms-2">Завершить</button>
-          <button type="submit" name="cenz_info_change" id="cenz_info_change" value="" class="btn btn-outline-success">Изменить</button>
+          <button type="button" onclick="CenzApproveBatch('ready')" name="cenz_batch" id="cenz_batch" class="btn btn-outline-warning ms-2">Завершить</button>
+          <button type="button" onclick="CenzApproveBatch('no_change')" name="info_change_batch" id="info_change_batch" class="btn btn-outline-success">Изменить</button>
         </div>
       </div>
     </div>
 </div>
+<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Ошибка!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h6 id="error_message"></h6>
+        </div>
+      </div>
+    </div>
+  </div>
 </form>
 <br>
 {% endblock %}

@@ -48,6 +48,8 @@ function initDailyChart() {
           }]
         },
         options: {
+          maintainAspectRatio: true,
+          aspectRatio: 1,
           plugins: {
             legend: { display: false },
             tooltip: { boxPadding: 2 }
