@@ -24,7 +24,7 @@ from .list_view import list_material_list
 from .object_block import unblock_object_planner, block_object_planner, check_planner_lock, \
     check_oplan3_lock
 from .permission_pannel import ask_db_permissions
-from .templatetags.custom_filters import worker_name
+from .templatetags.custom_filters import worker_name, planner_worker_name
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, calc_otk_deadline, \
@@ -286,7 +286,7 @@ def submit_cenz_data(request):
             check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
             if check_lock:
                 [lockType, [workerId, lockTime]] = check_lock
-                text = f'{program_name(program_id)} заблокирован в {lockType} пользователем: {worker_name(workerId)} в {lockTime}.'
+                text = f'{program_name(program_id)} заблокирован в {lockType} пользователем: {planner_worker_name(workerId)} в {lockTime}.'
                 error_messages.append(text)
                 continue
             custom_fields = cenz_info(program_id)
@@ -306,10 +306,11 @@ def submit_cenz_data(request):
                 13: custom_fields.get(13),
                 16: custom_fields.get(16)
             }
+            print('new_values_dict', new_values_dict)
             work_date = new_values_dict.get(7, old_values_dict.get(7))
             service_info_dict = {'program_id': program_id, 'worker_id': worker_id, 'work_date': work_date}
             # change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
-            change_oplan_cenz_info(old_values_dict, new_values_dict)
+            change_oplan_cenz_info(program_id, old_values_dict, new_values_dict)
             insert_history(service_info_dict, old_values_dict, new_values_dict)
             update_comment(program_id, worker_id, comment=cenz_comment)
 
@@ -333,6 +334,46 @@ def submit_cenz_data(request):
             messages.error(request, 'Ошибка!')
     print(success_messages, error_messages)
     return redirect(full_list)
+
+def cenz_batch(request):
+    success_messages = []
+    error_messages = []
+
+    worker_id = request.user.id
+    data = json.loads(request.body)
+
+    if not data:
+        return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
+    task_status, task_ready_list, new_values = data
+    cenz_comment = new_values.get('cenz_comment')
+
+    for program_id in task_ready_list:
+        check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
+        if check_lock:
+            [lockType, [workerId, lockTime]] = check_lock
+            text = f'{program_name(program_id)} заблокирован в {lockType} пользователем: {planner_worker_name(workerId)} в {lockTime}.'
+            error_messages.append(text)
+            continue
+        old_values = cenz_info(program_id)
+
+        db_task_status = get_task_status(program_id)
+        if db_task_status in ('fix', 'otk_fail', 'final'):
+            return JsonResponse(
+                {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
+        answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
+        if answer.get('status') == 'success':
+            change_oplan_cenz_info(program_id, old_values, new_values)
+            insert_history_new(program_id, worker_id, old_values, new_values)
+            update_comment(program_id, worker_id, task_status, cenz_comment)
+            success_messages.append(answer.get('message'))
+        else:
+            error_messages.append(answer.get('message'))
+
+    if success_messages:
+        messages.success(request, '\n'.join(success_messages))
+    if error_messages:
+        messages.error(request, '\n'.join(error_messages))
+    return JsonResponse({'status': 'success', 'message': 'message'})
 
 @login_required()
 def material_card(request, program_id):
@@ -385,6 +426,7 @@ def material_card(request, program_id):
     attached_files = AttachedFiles.objects.filter(program_id=program_id).order_by('timestamp')
     full_info_dict = full_info(program_id)
     file_id = full_info_dict.get('Files_FileID', '')
+    print('custom_fields', custom_fields)
     data = {'full_info': full_info_dict,
             'custom_fields': custom_fields,
             'comments_history': comments_history(program_id),
@@ -405,7 +447,6 @@ def material_card(request, program_id):
 def status_ready(request):
     worker_id = request.user.id
     new_values = json.loads(request.body)
-    print('status_ready', new_values)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
     program_id = new_values.get('program_id')
@@ -416,10 +457,10 @@ def status_ready(request):
     db_task_status = get_task_status(program_id)
     if db_task_status in ('fix', 'otk_fail', 'final'):
         return JsonResponse({'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
-    answer = change_task_status_new(new_values, task_status, db_task_status)
+    answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     if answer.get('status') == 'success':
-        change_oplan_cenz_info(old_values, new_values)
-        insert_history_new(worker_id, old_values, new_values)
+        change_oplan_cenz_info(program_id, old_values, new_values)
+        insert_history_new(program_id, worker_id, old_values, new_values)
         update_comment(program_id, worker_id, task_status, cenz_comment)
     else:
         return JsonResponse(answer)
@@ -430,7 +471,6 @@ def status_ready(request):
 def ask_fix(request):
     worker_id = request.user.id
     new_values = json.loads(request.body)
-    print('ask_fix', new_values)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
     program_id = new_values.get('program_id')
@@ -439,7 +479,7 @@ def ask_fix(request):
     fix_comment = new_values.get('fix_comment')
     db_task_status = get_task_status(program_id)
 
-    answer = change_task_status_new(new_values, task_status, db_task_status)
+    answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     if answer.get('status') == 'success':
         create_notification(
             {'sender': worker_id, 'recipient': 6, 'program_id': program_id,
@@ -455,7 +495,6 @@ def ask_fix(request):
 def cenz_info_change(request):
     worker_id = request.user.id
     new_values = json.loads(request.body)
-    print('cenz_info_change', new_values)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'message'})
 
@@ -465,10 +504,10 @@ def cenz_info_change(request):
     db_task_status = get_task_status(program_id)
 
     task_status = 'no_change'
-    answer = change_task_status_new(new_values, task_status, db_task_status)
+    answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     if answer.get('status') == 'success':
-        change_oplan_cenz_info(old_values, new_values)
-        insert_history_new(worker_id, old_values, new_values)
+        change_oplan_cenz_info(program_id, old_values, new_values)
+        insert_history_new(program_id, worker_id, old_values, new_values)
         update_comment(program_id, worker_id, comment=cenz_comment)
     message = 'Успешно обновлено'
     messages.success(request, message)
@@ -484,7 +523,7 @@ def unblock_card(request, program_id, worker_id):
     return JsonResponse({'response': unblock_object_planner(program_id, worker_id)})
 
 def get_worker_name(request, worker_id):
-    return JsonResponse({'worker_name': worker_name(worker_id)})
+    return JsonResponse({'worker_name': planner_worker_name(worker_id)})
 
 def get_movie_poster(request):
     program_id, program_name, year, country = json.loads(request.body)
@@ -556,10 +595,6 @@ def engineer_profile(request, worker_id):
             'permissions': ask_db_permissions(worker_id),
             'form': form}
     return render(request, 'main/kpi_engineer.html', data)
-
-def test_page(request):
-    return render(request, 'main/daterange_picker.html')
-
 
 @login_required()
 def work_year_calendar(request, cal_year):
