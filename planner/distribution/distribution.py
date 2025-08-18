@@ -12,7 +12,7 @@ def main_distribution():
     # work_date = date(day=1, month=9, year=2025)
 
     material_list_sql, django_columns = oplan_material_list(start_date=work_date, work_duration=28)
-    # , schedules_id = (12, 12)
+    # , schedules_id = (8, 9, 12)
     program_id_list = []
     for i, program_info in enumerate(material_list_sql, 1):
         print('working', i)
