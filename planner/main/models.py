@@ -35,3 +35,8 @@ class AttachedFiles(Model):
 
     class Meta:
         ordering = ['timestamp']
+
+class ModelSorting(Model):
+    owner = IntegerField(default=1)
+    user_order = TextField(default='sched_date')
+    order_type = TextField(default='ASC')

@@ -16,34 +16,60 @@
   font-size: 0.9em;
   }
 </style>
+<form method="post">
+  {% csrf_token %}
+  <div class="container d-flex align-items-center justify-content-start p-0">
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary dropdown-toggle mx-1" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" data-bs-offset="[0, 12]" aria-expanded="false">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+        <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+      </svg>
+      </button>
 
-<div class="dropdown">
-  <button class="btn btn-outline-secondary dropdown-toggle mx-2" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" data-bs-offset="[0, 12]" aria-expanded="false">
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
-    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
-  </svg>
-  </button>
+      <div class="dropdown-menu dropdown-menu-end shadow p-2" id="main_filter" style="z-index: 1030; min-height: 30rem; width: 50rem;">
 
-  <div class="dropdown-menu shadow p-2" id="main_filter" style="z-index: 1030; min-height: 30rem; width: 50rem;">
-  <form method="post" class="container d-flex align-items-center justify-content-start p-0">
-    <div class="form-floating">
-      {% csrf_token %}
-      {% for field in form %}
-      <div class="row mx-2 my-4 p-0">{{ field }}</div>
-    {% endfor %}
-      <br>
-      <div class="d-flex justify-content-end m-0 p-0">
-          <div class="m-2 p-0">
-              <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+        <div class="form-floating">
+          {% for field in form %}
+          <div class="row mx-2 my-4 p-0">{{ field }}</div>
+          {% endfor %}
+          <div class="d-flex justify-content-end m-0 p-0">
+              <div class="m-2 p-0">
+                  <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+              </div>
           </div>
+        </div>
+      </div>
+      <script type="text/javascript" src="{% static 'js/main_modelfilter.js' %}"></script>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary dropdown-toggle mx-1" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-offset="[0, 12]" aria-expanded="false">
+        {% if sorting_form.order_type.value == 'ASC' %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down-alt" viewBox="0 0 16 16">
+            <path d="M3.5 3.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 12.293V3.5zm4 .5a.5.5 0 0 1 0-1h1a.5.5 0 0 1 0 1h-1zm0 3a.5.5 0 0 1 0-1h3a.5.5 0 0 1 0 1h-3zm0 3a.5.5 0 0 1 0-1h5a.5.5 0 0 1 0 1h-5zM7 12.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 0-1h-7a.5.5 0 0 0-.5.5z"/>
+          </svg>
+        {% else %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16">
+          <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+        </svg>
+        {% endif %}
+      </button>
+      <div class="dropdown-menu dropdown-menu-start p-2" style="z-index: 1030; min-width: 22rem;">
+        <div class="input-group mb-3">
+          <label class="input-group-text" for="user_order">Сортировка по</label>
+          {{ sorting_form.user_order }}
+        </div>
+        {{ sorting_form.order_type }}
+        <div class="d-flex justify-content-end m-0 p-0">
+            <div class="p-0">
+                <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+            </div>
+        </div>
       </div>
     </div>
-  </form>
-  <script type="text/javascript" src="{% static 'js/main_modelfilter.js' %}"></script>
   </div>
-</div>
+</form>
 
-<form method="get" action="{% url 'fast_search' %}" class="mb-0" role="search">
+<form method="get" action="{% url 'fast_search' %}" class="ms-1 mb-0" role="search">
   <div class="input-group">
   <input type="search" name="fast_search" id="fast_search" class="form-control border border-outline-secondary" placeholder="Поиск..." aria-label="Search" style="width: 250px">
   <button type="submit" class="btn btn-outline-secondary">

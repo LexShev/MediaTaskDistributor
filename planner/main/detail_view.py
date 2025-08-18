@@ -320,19 +320,10 @@ def comments_history(program_id):
 
 def unblock_object(program_id, worker_id):
     with connections[OPLAN_DB].cursor() as cursor:
-        query = f'DELETE FROM [{OPLAN_DB}].[dbo].[ObjectLock] WHERE [ObjectID] = {program_id} AND [UserID] = {worker_id}'
-        cursor.execute(query)
-        return cursor.rowcount
-
-# DELETE!
-def block_object_oplan3(program_id, worker_id):
-    with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
-        INSERT INTO [{OPLAN_DB}].[dbo].[ObjectLock]
-        ([ObjectID], [ObjectType], [UserID], [LockTime])
-        VALUES
-        ({program_id}, 'PTeam.Model.SingleProgram', {worker_id}, GETDATE());
-        '''
+        DELETE FROM [{OPLAN_DB}].[dbo].[ObjectLock]
+        WHERE [ObjectID] = {program_id}
+        AND [UserID] = {worker_id}'''
         cursor.execute(query)
         return cursor.rowcount
 
@@ -340,7 +331,8 @@ def insert_filepath_history(program_id, worker_id, task_status, comment, time_of
     with connections[PLANNER_DB].cursor() as cursor:
         values = (program_id, worker_id, task_status, comment, time_of_change)
         query = f'''
-        INSERT INTO [{PLANNER_DB}].[dbo].[filepath_history] (program_id, worker_id, task_status, comment, time_of_change)
+        INSERT INTO [{PLANNER_DB}].[dbo].[filepath_history]
+        (program_id, worker_id, task_status, comment, time_of_change)
         VALUES (%s, %s, %s, %s, %s)
         '''
         cursor.execute(query, values)

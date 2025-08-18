@@ -15,25 +15,22 @@ def task_manager(request):
     worker_id = request.user.id
     field_dict = AdminModel.objects.filter(owner=worker_id).values()
     if field_dict: field_dict = field_dict[0]
-    if worker_id:
-        try:
-            filter_init_dict = AdminModel.objects.get(owner=worker_id)
-        except ObjectDoesNotExist:
-            default_filter = AdminModel(owner=worker_id)
-            default_filter.save()
-            filter_init_dict = AdminModel.objects.get(owner=worker_id)
-            print("Новый фильтр создан")
+    try:
+        filter_init_dict = AdminModel.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        default_filter = AdminModel(owner=worker_id)
+        default_filter.save()
+        filter_init_dict = AdminModel.objects.get(owner=worker_id)
+        print("Новый фильтр создан")
 
-        try:
-            search_init_dict = TaskSearch.objects.get(owner=worker_id)
-        except ObjectDoesNotExist:
-            default_search = TaskSearch(owner=worker_id, search_type=1, sql_set=100)
-            default_search.save()
-            search_init_dict = TaskSearch.objects.get(owner=worker_id)
-            print("Новый фильтр создан")
-    else:
-        filter_init_dict = AdminModel.objects.get(owner=0)
-        search_init_dict = TaskSearch.objects.get(owner=0)
+    try:
+        search_init_dict = TaskSearch.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        default_search = TaskSearch(owner=worker_id, search_type=1, sql_set=100)
+        default_search.save()
+        search_init_dict = TaskSearch.objects.get(owner=worker_id)
+        print("Новый фильтр создан")
+
 
     if request.method == 'POST':
         search_form = TaskSearchForm(request.POST, instance=search_init_dict)

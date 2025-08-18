@@ -51,6 +51,14 @@ class Choices:
                     engineers_list.append(engineer)
         return engineers_list
 
+    def sorting(self):
+        return (
+            ('sched_date', 'дате эфира'),
+            ('work_date', 'дате выполнения'),
+            ('name', 'названию'),
+            ('duration', 'хронометражу')
+        )
+
     def planner_workers(self, label='-', exclude_init=False):
         with connections[PLANNER_DB].cursor() as cursor:
             query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user]'

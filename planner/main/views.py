@@ -12,14 +12,15 @@ from django.template.loader import render_to_string
 from messenger_static.messenger_utils import create_notification
 
 from .ffmpeg_info import ffmpeg_dict
-from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm
+from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm, \
+    SortingForm
 
 from main.helpers import get_engineer_id
 from .js_requests import program_name
 from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, change_task_status, update_comment, insert_history_new, \
     change_task_status_new, get_task_status
-from .models import ModelFilter, AttachedFiles
+from .models import ModelFilter, AttachedFiles, ModelSorting
 from .list_view import list_material_list
 from .object_block import unblock_object_planner, block_object_planner, check_planner_lock, \
     check_oplan3_lock
@@ -76,82 +77,125 @@ def week(request):
 @login_required()
 def week_date(request, work_year, work_week):
     worker_id = request.user.id
-    if worker_id:
-        init_dict = ModelFilter.objects.get(owner=worker_id)
-    else:
-        init_dict = ModelFilter.objects.get(owner=0)
-    if request.method == 'POST':
-        form = WeekFilter(request.POST, instance=init_dict)
-        if form.is_valid():
-            form.save()
+    try:
+        inst_dict = ModelFilter.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+        start_date = datetime.today()
+        work_dates = (start_date, start_date)
+        task_status = ('not_ready', 'ready', 'fix')
+        material_type = ('film', 'season')
 
-            schedules = ast.literal_eval(form.cleaned_data.get('schedules'))
-            engineers = ast.literal_eval(form.cleaned_data.get('engineers'))
-            material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
-            task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
+        default_filter = ModelFilter(
+            owner=worker_id, schedules=schedules,
+            engineers=[worker_id], material_type=material_type,
+            work_dates=' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
+            task_status=task_status
+        )
+        default_filter.save()
+        inst_dict = ModelFilter.objects.get(owner=worker_id)
+        print("Новый фильтр создан")
+
+    try:
+        sorting_inst_dict = ModelSorting.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        default_sorting = ModelSorting(owner=worker_id, user_order='sched_date', order_type='ASC')
+        default_sorting.save()
+        sorting_inst_dict = ModelSorting.objects.get(owner=worker_id)
+        print("Новая сортировка создана")
+
+    if request.method == 'POST':
+        filter_form = WeekFilter(request.POST, instance=inst_dict)
+        sorting_form = SortingForm(request.POST, instance=sorting_inst_dict)
+        if filter_form.is_valid() and sorting_form.is_valid():
+            filter_form.save()
+            sorting_form.save()
+
+            schedules = ast.literal_eval(filter_form.cleaned_data.get('schedules'))
+            engineers = ast.literal_eval(filter_form.cleaned_data.get('engineers'))
+            material_type = ast.literal_eval(filter_form.cleaned_data.get('material_type'))
+            task_status = ast.literal_eval(filter_form.cleaned_data.get('task_status'))
+
+            user_order = sorting_form.cleaned_data.get('user_order')
+            order_type = sorting_form.cleaned_data.get('order_type')
 
         else:
             schedules = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
             engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
+
+            user_order = 'sched_date'
+            order_type = 'ASC'
     else:
-        schedules = ast.literal_eval(init_dict.schedules)
-        engineers = ast.literal_eval(init_dict.engineers)
-        material_type = ast.literal_eval(init_dict.material_type)
-        task_status = ast.literal_eval(init_dict.task_status)
+        schedules = ast.literal_eval(inst_dict.schedules)
+        engineers = ast.literal_eval(inst_dict.engineers)
+        material_type = ast.literal_eval(inst_dict.material_type)
+        task_status = ast.literal_eval(inst_dict.task_status)
+
+        user_order = sorting_inst_dict.user_order
+        order_type = sorting_inst_dict.order_type
 
         initial_dict = {'schedules': schedules,
                         'engineers': engineers,
                         'material_type': material_type,
                         'task_status': task_status}
-        form = WeekFilter(initial=initial_dict)
-    material_list, service_dict = week_material_list(schedules, engineers, material_type, task_status, work_year, work_week)
-    data = {'week_material_list': material_list,
-            'service_dict': service_dict,
-            'permissions': ask_db_permissions(worker_id),
-            'form': form}
+        filter_form = WeekFilter(initial=initial_dict)
+        sorting_form = SortingForm(initial={'user_order': user_order, 'order_type': order_type})
+    material_list, service_dict = week_material_list(schedules, engineers, material_type, task_status, work_year, work_week, user_order, order_type)
+    data = {
+        'week_material_list': material_list,
+        'service_dict': service_dict,
+        'permissions': ask_db_permissions(worker_id),
+        'form': filter_form,
+        'sorting_form': sorting_form
+    }
     return render(request, 'main/week.html', data)
 
 
 @login_required()
 def full_list(request):
     worker_id = request.user.id
-    if worker_id:
-        try:
-            inst_dict = ModelFilter.objects.get(owner=worker_id)
-            print('inst_dict', inst_dict)
-        except ObjectDoesNotExist:
-            schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
-            start_date = datetime.today()
-            work_dates = (start_date, start_date)
-            task_status = ('not_ready', 'ready', 'fix')
-            material_type = ('film', 'season')
+    try:
+        inst_dict = ModelFilter.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+        start_date = datetime.today()
+        work_dates = (start_date, start_date)
+        task_status = ('not_ready', 'ready', 'fix')
+        material_type = ('film', 'season')
 
-            default_filter = ModelFilter(
-                owner=worker_id, schedules=schedules,
-                engineers=[worker_id], material_type=material_type,
-                work_dates=' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
-                task_status=task_status
-            )
-
-            default_filter.save()
-            inst_dict = ModelFilter.objects.get(owner=worker_id)
-            print("Новый фильтр создан")
-
-    else:
-        inst_dict = ModelFilter.objects.get(owner=0)
-
+        default_filter = ModelFilter(
+            owner=worker_id, schedules=schedules,
+            engineers=[worker_id], material_type=material_type,
+            work_dates=' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
+            task_status=task_status
+        )
+        default_filter.save()
+        inst_dict = ModelFilter.objects.get(owner=worker_id)
+        print("Новый фильтр создан")
+    try:
+        sorting_inst_dict = ModelSorting.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        default_sorting = ModelSorting(owner=worker_id, user_order='sched_date', order_type='ASC')
+        default_sorting.save()
+        sorting_inst_dict = ModelSorting.objects.get(owner=worker_id)
+        print("Новая сортировка создана")
     if request.method == 'POST':
-        form = ListFilter(request.POST, instance=inst_dict)
-        if form.is_valid():
-            form.save()
+        filter_form = ListFilter(request.POST, instance=inst_dict)
+        sorting_form = SortingForm(request.POST, instance=sorting_inst_dict)
+        if filter_form.is_valid() and sorting_form.is_valid():
+            filter_form.save()
+            sorting_form.save()
 
-            schedules = ast.literal_eval(form.cleaned_data.get('schedules'))
-            engineers = ast.literal_eval(form.cleaned_data.get('engineers'))
-            material_type = ast.literal_eval(form.cleaned_data.get('material_type'))
-            work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), form.cleaned_data.get('work_dates').split(' - ')))
-            task_status = ast.literal_eval(form.cleaned_data.get('task_status'))
+            schedules = ast.literal_eval(filter_form.cleaned_data.get('schedules'))
+            engineers = ast.literal_eval(filter_form.cleaned_data.get('engineers'))
+            material_type = ast.literal_eval(filter_form.cleaned_data.get('material_type'))
+            work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), filter_form.cleaned_data.get('work_dates').split(' - ')))
+            task_status = ast.literal_eval(filter_form.cleaned_data.get('task_status'))
+
+            user_order = sorting_form.cleaned_data.get('user_order')
+            order_type = sorting_form.cleaned_data.get('order_type')
 
         else:
             schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
@@ -160,6 +204,9 @@ def full_list(request):
             engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
+
+            user_order = 'sched_date'
+            order_type = 'ASC'
     else:
         schedules = ast.literal_eval(inst_dict.schedules)
         engineers = ast.literal_eval(inst_dict.engineers)
@@ -167,15 +214,18 @@ def full_list(request):
         work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), inst_dict.work_dates.split(' - ')))
         task_status = ast.literal_eval(inst_dict.task_status)
 
+        user_order = sorting_inst_dict.user_order
+        order_type = sorting_inst_dict.order_type
+
         initial_dict = {'schedules': schedules,
                         'engineers': engineers,
                         'material_type': material_type,
                         'work_dates': ' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
                         'task_status': task_status}
-        form = ListFilter(initial=initial_dict)
-
-    data = {'material_list': list_material_list(schedules, engineers, material_type, work_dates, task_status),
-            'form': form, 'permissions': ask_db_permissions(worker_id)}
+        filter_form = ListFilter(initial=initial_dict)
+        sorting_form = SortingForm(initial={'user_order': user_order, 'order_type': order_type})
+    data = {'material_list': list_material_list(schedules, engineers, material_type, work_dates, task_status, user_order, order_type),
+            'form': filter_form, 'sorting_form': sorting_form, 'permissions': ask_db_permissions(worker_id)}
     return render(request, 'main/list.html', data)
 
 def get_field_comparison(program_id_list, fields_to_compare):
