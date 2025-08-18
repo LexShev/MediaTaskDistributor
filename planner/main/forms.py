@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import ModelFilter, AttachedFiles
+from .models import ModelFilter, AttachedFiles, ModelSorting
 from .form_choices import Choices
 
 choice = Choices()
@@ -104,12 +104,6 @@ class CenzFormText(forms.Form):
 
 
 class CenzFormDropDown(forms.Form):
-    narc_select_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': 'form-select', 'id': "narc_select_form"}),
-        label='Наркотики', choices=((0, 'Нет'), (1, 'Да')), required=False)
-    meta_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': 'form-select', 'id': "meta_form"}),
-        label='Meta', choices=((0, 'Нет'), (1, 'Да')), required=False)
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}, format='%Y-%m-%d'),
         label='Дата отсмотра', required=False)
@@ -118,13 +112,19 @@ class CenzFormDropDown(forms.Form):
         label='Ценз отсмотра', choices=choice.rate(), required=False)
     engineers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "engineers_form"}),
-        label='Тайтл проверил', choices=choice.engineers, required=False)
+        label='Тайтл проверил', choices=choice.engineers(), required=False)
     # tags_form = forms.ChoiceField(widget=forms.Select(
     #     attrs={'class': "form-select", 'id': "tags_form"}),
     #     label='Теги', choices=choice.tags(), required=False)
     inoagent_form = forms.ChoiceField(
         widget=forms.Select(attrs={'class': "form-select", 'id': "inoagent_form"}),
         label='Иноагент', choices=choice.inoagents, required=False)
+    narc_select_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': 'form-select', 'id': "narc_select_form"}),
+        label='Наркотики', choices=((0, 'Нет'), (1, 'Да')), required=False)
+    meta_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': 'form-select', 'id': "meta_form"}),
+        label='Meta', choices=((0, 'Нет'), (1, 'Да')), required=False)
 
     def __init__(self, *args, **kwargs):
         comparison_data = kwargs.pop('comparison_data', {})
@@ -148,7 +148,7 @@ class KpiForm(forms.Form):
         label='Дата отсмотра', required=False)
     engineers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "engineers_form"}),
-        label='Выполняет', choices=choice.engineers, required=False)
+        label='Выполняет', choices=choice.engineers(), required=False)
     material_type_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "material_type_form"}),
         label='Тип материала', choices=choice.material_type(), required=False)
@@ -161,7 +161,7 @@ class KpiForm(forms.Form):
 class VacationForm(forms.Form):
     engineers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "engineers_form"}),
-        label='Сотрудник', choices=choice.engineers, required=True)
+        label='Сотрудник', choices=choice.engineers(), required=True)
     start_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "start_date_form"}),
         label='Начало отпуска', required=True)
@@ -193,4 +193,19 @@ class AttachedFilesForm(forms.ModelForm):
                 'style': 'min-width: 51%;',
                 'placeholder': 'Добавьте описание...'
             }),
+        }
+
+class SortingForm(forms.ModelForm):
+    class Meta:
+        model = ModelSorting
+        fields = ('user_order', 'order_type')
+        widgets = {
+            'user_order': forms.Select(
+                attrs={'class': 'form-select text-end', 'id': 'user_order'},
+                choices=choice.sorting()
+            ),
+            'order_type': forms.Select(
+                attrs={'class': 'form-select text-end mb-3', 'id': 'order_type'},
+                choices=(('ASC', 'возрастанию'), ('DESC', 'убыванию'))
+            ),
         }

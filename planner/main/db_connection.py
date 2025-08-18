@@ -116,10 +116,17 @@ def date_splitter(work_dates):
     end_date = datetime.datetime.strptime(end_date, '%d/%m/%Y')
     return start_date, end_date
 
+def get_order(user_order='sched_date', order_type='ASC'):
+    order_dict = {
+        'sched_date': 'Task.[sched_date]',
+        'work_date': 'Task.[work_date]',
+        'name': 'Progs.[name]',
+        'duration': 'Progs.[duration]'
+    }
+    return f'{order_dict.get(user_order)} {order_type}'
 
 
-
-def planner_material_list(schedules_id, engineer_id, material_type, work_dates, task_status):
+def planner_material_list(schedules_id, engineer_id, material_type, work_dates, task_status, user_order, order_type):
     schedules_id = check_param(schedules_id)
     engineer_id = check_param(engineer_id)
     material_type = check_mat_type(material_type)
@@ -127,7 +134,6 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
     start_date, end_date = work_dates
 
     with connections[PLANNER_DB].cursor() as cursor:
-        order = 'ASC'
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
                    ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Adult', 'Name'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
@@ -151,7 +157,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
         AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'
         AND Task.[task_status] IN {task_status}
-        ORDER BY Task.[sched_date] {order}
+        ORDER BY {get_order(user_order, order_type)}
         '''
         cursor.execute(query)
         material_list_sql = cursor.fetchall()

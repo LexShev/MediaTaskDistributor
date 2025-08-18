@@ -25,7 +25,7 @@ def repeat_index_search(material_list, parent_id):
         if parent_id == program.get('Progs_parent_id'):
             return num
 
-def week_material_list(schedules_id, engineer_id, material_type, task_status, work_year, work_week):
+def week_material_list(schedules_id, engineer_id, material_type, task_status, work_year, work_week, user_order, order_type):
     start_day = date.fromisocalendar(work_year, work_week, 1)
     print('start_day', start_day)
     end_day = start_day + timedelta(6)
@@ -40,7 +40,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
 
     # dates = tuple((start_day + timedelta(day_num)).strftime('%Y-%m-%d') for day_num in range(7))
     material_list_sql, django_columns = planner_material_list(
-        schedules_id, engineer_id, material_type, (start_day, end_day), task_status
+        schedules_id, engineer_id, material_type, (start_day, end_day), task_status, user_order, order_type
     )
 
     service_dict = {'start_day': start_day, 'prev_year': prev_year, 'prev_week': prev_week,
