@@ -152,7 +152,19 @@ def change_task_status_new(program_id, new_values, task_status, db_task_status) 
     program = program_name(program_id)
     with connections[PLANNER_DB].cursor() as cursor:
         if db_task_status:
-            if task_status == 'no_change':
+            if task_status == 'fix':
+                update_status = f'''
+                    UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                    SET [task_status] = %s
+                    WHERE [program_id] = %s
+                    '''
+                cursor.execute(update_status, (task_status, program_id))
+                if cursor.rowcount:
+                    return {'status': 'success', 'message': f'{program} завершено.'}
+                else:
+                    return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {program}'}
+
+            elif task_status == 'no_change':
                 task_status = db_task_status
             update_status = f'''
                     UPDATE [{PLANNER_DB}].[dbo].[task_list]

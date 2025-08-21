@@ -18,15 +18,13 @@ from .models import CommonPool
 def common_pool(request):
     worker_id = request.user.id
 
-    if worker_id:
-        try:
-            init_dict = CommonPool.objects.get(owner=worker_id)
-        except ObjectDoesNotExist:
-            default_filter = CommonPool(owner=worker_id, search_type=1, sql_set=100)
-            default_filter.save()
-            init_dict = CommonPool.objects.get(owner=worker_id)
-    else:
-        init_dict = CommonPool.objects.get(owner=0)
+    try:
+        init_dict = CommonPool.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        default_filter = CommonPool(owner=worker_id, search_type=1, sql_set=100)
+        default_filter.save()
+        init_dict = CommonPool.objects.get(owner=worker_id)
+
     if request.method == 'POST':
         form = CommonPoolForm(request.POST, instance=init_dict)
         if form.is_valid():
@@ -70,13 +68,11 @@ def add_in_common_task(request):
 
 def load_pool_table(request):
     worker_id = request.user.id
-    if worker_id:
-        try:
-            init_dict = CommonPool.objects.get(owner=worker_id)
-        except ObjectDoesNotExist:
-            init_dict = CommonPool.objects.get(owner=worker_id)
-    else:
-        init_dict = CommonPool.objects.get(owner=0)
+    try:
+        init_dict = CommonPool.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        init_dict = CommonPool.objects.get(owner=worker_id)
+
     sql_set = request.GET.get('sql_set', init_dict.sql_set)
     html = render_to_string(
         'common_pool/common_pool_table.html',

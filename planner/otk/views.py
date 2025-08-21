@@ -1,6 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
 from messenger_static.messenger_utils import create_notification
@@ -15,26 +17,22 @@ def work_list(request):
     field_dict = OtkModel.objects.filter(owner=worker_id).values()
     if field_dict:
         field_dict = field_dict[0]
-    if worker_id:
-        try:
-            init_dict = OtkModel.objects.get(owner=worker_id)
-        except ObjectDoesNotExist:
-            default_filter = OtkModel(owner=worker_id)
-            default_filter.save()
-            init_dict = OtkModel.objects.get(owner=worker_id)
-            print("Новый OtkModel фильтр создан")
+    try:
+        init_dict = OtkModel.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        default_filter = OtkModel(owner=worker_id)
+        default_filter.save()
+        init_dict = OtkModel.objects.get(owner=worker_id)
+        print("Новый OtkModel фильтр создан")
 
-        try:
-            search_init_dict = TaskSearch.objects.get(owner=worker_id)
-        except ObjectDoesNotExist:
-            default_search = TaskSearch(owner=worker_id, search_type=1, sql_set=100)
-            default_search.save()
-            search_init_dict = TaskSearch.objects.get(owner=worker_id)
-            print("Новый TaskSearch фильтр создан")
+    try:
+        search_init_dict = TaskSearch.objects.get(owner=worker_id)
+    except ObjectDoesNotExist:
+        default_search = TaskSearch(owner=worker_id, search_type=1, sql_set=100)
+        default_search.save()
+        search_init_dict = TaskSearch.objects.get(owner=worker_id)
+        print("Новый TaskSearch фильтр создан")
 
-    else:
-        init_dict = OtkModel.objects.get(owner=0)
-        search_init_dict = TaskSearch.objects.get(owner=0)
 
     if request.method == 'POST':
         search_form = TaskSearchForm(request.POST, instance=search_init_dict)
@@ -50,7 +48,6 @@ def work_list(request):
 
             change_task_status_batch(program_id_list, 'otk')
             update_comment_batch(program_id_list, 'otk', worker_id)
-            print('approve', program_id_list)
         if otk_fail:
             otk_fail_prog_id = request.POST.getlist('otk_fail_prog_id')
             otk_fail_comment = request.POST.getlist('otk_fail_comment')
@@ -65,7 +62,6 @@ def work_list(request):
 
             change_task_status_batch(otk_fail_list, 'otk_fail')
             update_comment_batch(otk_fail_list, 'otk_fail', worker_id)
-            print('otk_fail', otk_fail_list)
         if approve_fix:
             fix_id = request.POST.getlist('fix_prog_id')
             fix_comment = request.POST.getlist('fix_comment')
@@ -81,22 +77,38 @@ def work_list(request):
 
             change_task_status_batch(otk_fix_list, 'fix_ready')
             update_comment_batch(otk_fix_list, 'fix_ready', worker_id)
-            print('otk_fix_list', otk_fix_list)
-        form = OtkForm(request.POST, instance=init_dict)
-        if form.is_valid():
-            field_vals = [form.cleaned_data.get(field_key) for field_key in form.fields.keys()]
-            # field_info = tuple(zip(form.fields.keys(), field_vals))
-            field_dict = dict(zip(form.fields.keys(), field_vals))
-            form.save()
+        filter_form = OtkForm(request.POST, instance=init_dict)
+        if filter_form.is_valid():
+            # field_vals = [form.cleaned_data.get(field_key) for field_key in form.fields.keys()]
+            # field_dict = dict(zip(form.fields.keys(), field_vals))
+            filter_form.save()
     else:
-        search_form = TaskSearchForm(instance=search_init_dict)
-        form = OtkForm(instance=init_dict)
-    task_list, service_dict = task_info(field_dict)
+        search_form = TaskSearchForm(initial={'sql_set': search_init_dict.sql_set, 'search_type': search_init_dict.search_type})
+        filter_form = OtkForm(instance=init_dict)
     data = {
-        'task_list': task_list,
-        'service_dict': service_dict,
-        'form': form,
+        'form': filter_form,
         'search_form': search_form,
         'permissions': ask_db_permissions(worker_id)
             }
     return render(request, 'otk/work_list.html', data)
+
+def load_otk_task_table(request):
+    worker_id = request.user.id
+
+    field_dict = OtkModel.objects.filter(owner=worker_id).values()
+    if field_dict:
+        field_dict = field_dict[0]
+    search_init_dict = TaskSearch.objects.get(owner=worker_id)
+
+    task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
+
+    html = render_to_string(
+        'otk/otk_task_table.html',
+        {
+            'task_list': task_list,
+            'service_dict': service_dict,
+            'permissions': ask_db_permissions(worker_id),
+        },
+        request=request
+    )
+    return JsonResponse({'html': html})
