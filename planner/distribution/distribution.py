@@ -8,14 +8,13 @@ DEFAULT_PROGRAM_TYPES = (4, 5, 6, 10, 11, 12)
 DEFAULT_SCHEDULES_IDS = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
 
 def main_distribution():
-    work_date = datetime.today().date()
-    # work_date = date(day=1, month=9, year=2025)
+    # work_date = datetime.today().date()
+    work_date = date(day=1, month=10, year=2025)
 
-    material_list_sql, django_columns = oplan_material_list(start_date=work_date, work_duration=28)
-    # , schedules_id = (8, 9, 12)
+    material_list_sql, django_columns = oplan_material_list(start_date=work_date, schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12), work_duration=31)
+    # , schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12)
     program_id_list = []
     for i, program_info in enumerate(material_list_sql, 1):
-        print('working', i)
         if not program_info:
             continue
         program_id = program_info[0]
@@ -30,7 +29,7 @@ def main_distribution():
         duration = temp_dict.get('Progs_duration')
         suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
 
-        engineer_id, kpi, work_date = date_seek(work_date, duration)
+        engineer_id, kpi, work_date = date_seek(date(day=1, month=9, year=2025), duration)
 
         if suitable_material:
             file_path = find_file_path(program_id)
@@ -46,14 +45,13 @@ def oplan_material_list(start_date, work_duration, program_type=DEFAULT_PROGRAM_
     columns = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Progs', 'SuitableMaterialForScheduleID'), ('SchedDay', 'day_date')
+        ('Progs', 'duration'), ('Progs', 'SuitableMaterialForScheduleID'), ('SchedDay', 'day_date'), ('SchedProg', 'DateTime')
     ]
     with connections[OPLAN_DB].cursor() as cursor:
-        order = 'ASC'
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
-            SELECT {sql_columns}
+            SELECT DISTINCT {sql_columns}
             FROM [{OPLAN_DB}].[dbo].[program] AS Progs
             JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
                 ON Progs.[program_id] = SchedProg.[program_id]
@@ -71,11 +69,13 @@ def oplan_material_list(start_date, work_duration, program_type=DEFAULT_PROGRAM_
             AND Progs.[program_type_id] IN {program_type}
             AND Progs.[program_id] > 0
             AND Progs.[program_id] NOT IN
-                (SELECT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] WHERE [ProgramCustomFieldId] = 15)
+                (SELECT DISTINCT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
+                WHERE [ProgramCustomFieldId] = 15
+                OR [ProgramCustomFieldId] = 7)
             AND Progs.[program_id] NOT IN
                 (SELECT [program_id] FROM [{PLANNER_DB}].[dbo].[task_list])
             AND Task.[engineer_id] IS NULL
-            ORDER BY SchedProg.[DateTime] {order}
+            ORDER BY SchedProg.[DateTime] ASC
             '''
         cursor.execute(query)
         material_list_sql = cursor.fetchall()

@@ -1,8 +1,10 @@
 from datetime import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
 from .models import AdminModel, TaskSearch
@@ -13,8 +15,6 @@ from .forms import AdminForm, DynamicSelector, TaskSearchForm
 @login_required()
 def task_manager(request):
     worker_id = request.user.id
-    field_dict = AdminModel.objects.filter(owner=worker_id).values()
-    if field_dict: field_dict = field_dict[0]
     try:
         filter_init_dict = AdminModel.objects.get(owner=worker_id)
     except ObjectDoesNotExist:
@@ -39,9 +39,8 @@ def task_manager(request):
 
         filter_form = AdminForm(request.POST, instance=filter_init_dict)
         if filter_form.is_valid():
-            field_vals = [filter_form.cleaned_data.get(field_key) for field_key in filter_form.fields.keys()]
-            # field_info = tuple(zip(form.fields.keys(), field_vals))
-            field_dict = dict(zip(filter_form.fields.keys(), field_vals))
+            # field_vals = [filter_form.cleaned_data.get(field_key) for field_key in filter_form.fields.keys()]
+            # field_dict = dict(zip(filter_form.fields.keys(), field_vals))
             filter_form.save()
 
         program_id_check = request.POST.getlist('program_id_check')
@@ -54,10 +53,23 @@ def task_manager(request):
                 add_in_common_task(request)
             elif change_type == '3':
                 del_task(request)
-
     else:
         filter_form = AdminForm(instance=filter_init_dict)
-        search_form = TaskSearchForm(instance=search_init_dict)
+        search_form = TaskSearchForm(initial={'sql_set': search_init_dict.sql_set, 'search_type': search_init_dict.search_type})
+
+    data = {
+
+        'filter_form': filter_form,
+        'search_form': search_form,
+        'permissions': ask_db_permissions(worker_id)
+    }
+    return render(request, 'admin_work_panel/task_manager.html', data)
+
+def load_admin_task_table(request):
+    worker_id = request.user.id
+    field_dict = AdminModel.objects.filter(owner=worker_id).values()
+    if field_dict: field_dict = field_dict[0]
+    search_init_dict = TaskSearch.objects.get(owner=worker_id)
     task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
     dynamic_selector_list = []
     for task in task_list:
@@ -70,12 +82,14 @@ def task_manager(request):
                      'file_path': file_path or '',
                      }),
         )
-    data = {
-        'task_list_zip': zip(task_list, dynamic_selector_list),
-        'service_dict': service_dict,
-        'filter_form': filter_form,
-        'search_form': search_form,
-        'permissions': ask_db_permissions(worker_id)
-    }
-    return render(request, 'admin_work_panel/task_manager.html', data)
+    html = render_to_string(
+        'admin_work_panel/admin_task_table.html',
+        {
+            'task_list_zip': zip(task_list, dynamic_selector_list),
+            'service_dict': service_dict,
+            'permissions': ask_db_permissions(worker_id),
+        },
+        request=request
+    )
+    return JsonResponse({'html': html})
 

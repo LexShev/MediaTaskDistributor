@@ -1,0 +1,56 @@
+<div class="d-flex mb-3">
+  <h6 class="pe-5" id="total_num">Всего: {{ service_dict.total_count|thousands }}</h6>
+  <h6 id="total_dur">Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
+</div>
+<table class="table table-hover align-middle">
+  <thead>
+    <tr>
+      <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
+      <th style="width: 23%;">Название</th>
+      <th style="width: 10%;">Исполнитель</th>
+      <th style="width: 6%;">Дата отсмотра</th>
+      <th style="width: 6%;">Дата эфира</th>
+      <th style="width: 11%;">Статус</th>
+      <th style="width: 6%;">Длительность</th>
+      <th style="width: 36%;">Полное имя файла</th>
+    </tr>
+  </thead>
+  <tbody class="table-group-divider" id="tableBody">
+    {% for task, dynamic_selector in task_list_zip %}
+      <tr>
+        <td>
+          <input class="form-check-input me-1" type="checkbox"
+                 value="{{ task.Task_program_id }}"
+                 name="program_id_check">
+          <input class="visually-hidden" type="text" value="{{ task.Task_program_id }}" name="program_id">
+        </td>
+        <td>
+        <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+        {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a>
+          {% if task.comments %}
+          <div class="btn-group dropend">
+            <button type="button" class="btn btn-sm dropdown-toggle align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill ms-4" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }} </button>
+            <div class="dropdown-menu p-3" style="min-width: 560px;">
+              <h5>{{ task.comments.0.Progs_name }}</h5>
+              <div class="dropdown-divider"></div>
+              {% for comment in task.comments %}
+                  <h6>Исправить до: {{ comment.deadline }}</h6>
+                  <textarea class="form-control" style="min-height: 60px;" disabled>{{ comment.comment }}</textarea>
+                  <div class="dropdown-divider"></div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </td>
+        <td>{{ dynamic_selector.engineers_selector }}</td>
+        <td>{{ dynamic_selector.work_date_selector }}</td>
+        <td>{{ task.Task_sched_date|date:'d.m.Y' }}</td>
+        <td>{{ dynamic_selector.status_selector }}</td>
+        <td>{{ task.Task_duration|convert_frames_to_time }}
+          <input value="{{ task.Task_duration }}" id="dur_{{ task.Task_program_id }}" class="visually-hidden">
+        </td>
+        <td>{{ dynamic_selector.file_path }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

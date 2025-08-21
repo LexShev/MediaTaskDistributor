@@ -32,6 +32,21 @@ window.addEventListener('load', function() {
     };
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/task_manager/load_admin_task_table/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('admin_task_table').innerHTML = data.html;
+            fastSearch();
+            totalCalc();
+        })
+        .catch(error => {
+            document.getElementById('admin_task_table').innerHTML = `
+                <div class="alert alert-danger">Ошибка загрузки данных</div>
+            `;
+    });
+});
+
 function changeProgramIdCheckbox() {
     let fullSelectCheckbox = document.getElementById('full_select');
     let program_id_check_list = document.getElementsByName('program_id_check');
@@ -75,11 +90,11 @@ function showApproveTaskChange() {
     }
 };
 
-document.getElementById('tableFilter').addEventListener('keyup', fastSearch);
+document.getElementById('search_input').addEventListener('keyup', fastSearch);
 document.getElementById('search_type').addEventListener('change', fastSearch);
 
 function fastSearch() {
-    let filter = document.getElementById('tableFilter').value.toLowerCase();
+    let filter = document.getElementById('search_input').value.toLowerCase();
     let tableBody = document.getElementById('tableBody');
     let rows = tableBody.getElementsByTagName('tr');
     let searchSettings = document.getElementById('search_type').value;
@@ -103,7 +118,7 @@ function fastSearch() {
     }
 };
 
-document.getElementById('tableFilter').addEventListener('keyup', totalCalc);
+document.getElementById('search_input').addEventListener('keyup', totalCalc);
 function totalCalc() {
     let tableBody = document.getElementById('tableBody');
     let rows = tableBody.getElementsByTagName('tr');

@@ -32,6 +32,22 @@ window.addEventListener('load', function() {
     };
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/otk/load_otk_task_table/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('otk_task_table').innerHTML = data.html;
+            updateMainProgramId();
+            fastSearch();
+            totalCalc();
+        })
+        .catch(error => {
+            document.getElementById('otk_task_table').innerHTML = `
+                <div class="alert alert-danger">Ошибка загрузки данных</div>
+            `;
+    });
+});
+
 function changeProgramIdCheckbox() {
     let fullSelectCheckbox = document.getElementById('full_select');
     let program_id_list = document.getElementsByName('program_id');
@@ -55,6 +71,36 @@ function changeProgramIdCheckbox() {
             program_id_list[i].checked = true;
         };
     }
+};
+
+function updateMainProgramId() {
+    let fullSelectCheckbox = document.getElementById('full_select');
+    let program_id_check_list = document.getElementsByName('program_id_check');
+    program_id_check_list.forEach(function(program_id_check) {
+        program_id_check.addEventListener('change', changeFullSelect);
+    });
+
+    function changeFullSelect() {
+        console.log('click');
+        let checked_list = [];
+        for (let i = 0; i < program_id_check_list.length; i++) {
+            if (program_id_check_list[i].checked) {
+                checked_list.push(program_id_check_list[i]);
+            }
+        };
+        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
+            fullSelectCheckbox.indeterminate = true;
+            fullSelectCheckbox.checked = false;
+        }
+        else if (checked_list.length == program_id_check_list.length) {
+            fullSelectCheckbox.indeterminate = false;
+            fullSelectCheckbox.checked = true;
+        }
+        else if (checked_list.length == 0) {
+            fullSelectCheckbox.indeterminate = false;
+            fullSelectCheckbox.checked = false;
+        }
+    };
 };
 
 function ShowApproveOTK() {
@@ -256,11 +302,11 @@ function ShowOTKComment() {
 
 };
 
-document.getElementById('tableFilter').addEventListener('keyup', fastSearch);
+document.getElementById('search_input').addEventListener('keyup', fastSearch);
 document.getElementById('search_type').addEventListener('change', fastSearch);
 
 function fastSearch() {
-    let filter = document.getElementById('tableFilter').value.toLowerCase();
+    let filter = document.getElementById('search_input').value.toLowerCase();
     let tableBody = document.getElementById('tableBody');
     let rows = tableBody.getElementsByTagName('tr');
     let searchSettings = document.getElementById('search_type').value;
@@ -284,7 +330,7 @@ function fastSearch() {
     }
 };
 
-document.getElementById('tableFilter').addEventListener('keyup', totalCalc);
+document.getElementById('search_input').addEventListener('keyup', totalCalc);
 function totalCalc() {
     let tableBody = document.getElementById('tableBody');
     let rows = tableBody.getElementsByTagName('tr');

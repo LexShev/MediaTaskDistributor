@@ -72,6 +72,7 @@ def show_desktop(request):
 
     # [ModelListNames(owner=worker_id, list_id=i, name=f'Список_{i}').save() for i in range(1, 5)]
     dict_names = ModelListNames.objects.filter(owner=worker_id).values('list_id', 'name')
+    print('schedules', schedules, type(schedules))
     data = {
         'permissions': ask_db_permissions(worker_id),
         'full_list': task_info(worker_id, schedules, material_type, task_status, work_dates, exclusion_list),

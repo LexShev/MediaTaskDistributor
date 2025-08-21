@@ -149,7 +149,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
             ON Progs.[program_type_id] = Types.[program_type_id]
         LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
+        LEFT JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
             ON Task.[sched_id] = Sched.[schedule_id]
         WHERE Progs.[deleted] = 0
         AND Task.[sched_id] IN {schedules_id}
