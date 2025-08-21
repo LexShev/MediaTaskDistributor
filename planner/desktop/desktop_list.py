@@ -7,13 +7,18 @@ from planner.settings import OPLAN_DB, PLANNER_DB
 def prepare_exclusion_list(exclusion_list):
     if not exclusion_list:
         return ''
-    if isinstance(exclusion_list, tuple) and len(exclusion_list) == 1:
-        exclusion_list = exclusion_list[0], exclusion_list[0]
-    return f'AND Task.[program_id] NOT IN {exclusion_list}'
+    return f'AND Task.[program_id] NOT IN {check_tuple(exclusion_list)}'
+
+def check_tuple(value) -> tuple:
+    if len(value) == 1:
+        return value[0], value[0]
+    else:
+        return tuple(value)
 
 def task_info(worker_id, schedules, material_type, task_status, work_dates, exclusion_list):
     start_date, end_date = work_dates
     material_type = check_mat_type(material_type)
+
 
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
@@ -36,10 +41,10 @@ def task_info(worker_id, schedules, material_type, task_status, work_dates, excl
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         AND Eng.[worker_id] = {worker_id}
-        AND Task.[sched_id] IN {tuple(schedules)}
-        AND Progs.[program_type_id] IN {tuple(material_type)}
+        AND Task.[sched_id] IN {check_tuple(schedules)}
+        AND Progs.[program_type_id] IN {check_tuple(material_type)}
         AND Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'
-        AND Task.[task_status] IN {tuple(task_status)}
+        AND Task.[task_status] IN {check_tuple(task_status)}
         {prepare_exclusion_list(exclusion_list)}
         ORDER BY Progs.[name];
         '''
@@ -54,8 +59,6 @@ def task_info(worker_id, schedules, material_type, task_status, work_dates, excl
 def cards_container(worker_id, program_list):
     if not program_list:
         return []
-    if isinstance(program_list, tuple) and len(program_list) == 1:
-        program_list = program_list[0], program_list[0]
     columns = [
         ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'), ('Task', 'work_date'),
         ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
@@ -77,7 +80,7 @@ def cards_container(worker_id, program_list):
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
-        AND Task.[program_id] IN {program_list}
+        AND Task.[program_id] IN {check_tuple(program_list)}
         ORDER BY Cont.[order];
         '''
         cursor.execute(query)

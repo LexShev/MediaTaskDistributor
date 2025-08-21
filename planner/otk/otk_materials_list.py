@@ -23,7 +23,7 @@ def check_deadline(value):
     else:
         return ''
 
-def task_info(field_dict):
+def task_info(field_dict, sql_set):
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
@@ -34,7 +34,7 @@ def task_info(field_dict):
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
-        SELECT {sql_columns}
+        SELECT TOP ({sql_set}) {sql_columns}
         FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
         JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
@@ -49,7 +49,6 @@ def task_info(field_dict):
         {check_material_type(field_dict.get('material_type'))}
         ORDER BY Task.[work_date];
         '''
-        print(query)
         cursor.execute(query)
         result = cursor.fetchall()
     material_list = [dict(zip(django_columns, task)) for task in result]
@@ -62,7 +61,6 @@ def task_info(field_dict):
     total_duration = sum(duration)
     total_count = len(material_list)
     service_dict = {'total_duration': total_duration, 'total_count': total_count}
-    print(material_list)
     return material_list, service_dict
 
 def find_file_path(program_id):

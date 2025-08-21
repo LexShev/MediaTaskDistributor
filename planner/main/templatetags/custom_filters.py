@@ -9,7 +9,6 @@ from planner.settings import OPLAN_DB, PLANNER_DB
 
 @register.simple_tag
 def is_active(request, url):
-    print('url', request.path, url)
     if request.path.startswith(url):
         return "active"
     return ""
@@ -29,8 +28,7 @@ def cenz_name(cenz_id):
 
 @register.filter
 def engineer_name(engineer_id):
-    engineer_id = str(engineer_id)
-    if engineer_id or engineer_id == '0' :
+    if engineer_id or str(engineer_id) == '0' :
         with connections[OPLAN_DB].cursor() as cursor:
             query = f'SELECT [full_name] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
             cursor.execute(query, (engineer_id,))
@@ -87,6 +85,17 @@ def planner_worker_name(worker_id):
         return ''
 
 @register.filter
+def engineer_id_to_worker_id(engineer_id) -> int:
+    with connections[PLANNER_DB].cursor() as cursor:
+        query = f'SELECT [worker_id] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
+        cursor.execute(query, (engineer_id,))
+        worker = cursor.fetchone()
+        if worker and worker[0]:
+            return worker[0]
+        else:
+            return 0
+
+@register.filter
 def fields_name(field_id):
     if field_id:
         field_id = int(field_id)
@@ -104,7 +113,8 @@ def fields_name(field_id):
         16: 'Редакторские замечания',
         17: 'Meta',
         18: 'Теги',
-        19: 'Иноагент'}
+        19: 'Иноагент'
+    }
     return fields_dict.get(field_id)
 
 @register.filter
@@ -125,8 +135,8 @@ def convert_khz(data):
     try:
         val = f'{float(data) / 1000} kHz'
         return val
-    except Exception:
-        pass
+    except Exception as e:
+        print(e)
 
 @register.filter
 def convert_bytes(size, unit="bit/s"):
@@ -139,6 +149,8 @@ def convert_bytes(size, unit="bit/s"):
             size /= power
             n += 1
         return f'{round(size, 2)} {labels[n]}{unit}'
+    return ''
+
 
 @register.filter
 def convert_sec_to_time(sec, fps=25):
@@ -149,6 +161,7 @@ def convert_sec_to_time(sec, fps=25):
         ss = int((sec % 3600) % 60 // 1)
         ff = int(sec % 1 * fps)
         return f'{hh:02}:{mm:02}:{ss:02}.{ff:02}'
+    return ''
 
 
 # @register.filter
@@ -202,6 +215,8 @@ def dir_name(full_path):
 def dir_no_host_name(full_path):
     if full_path:
         return full_path.replace('\\\\192.168.80.3\\', "")
+    return ''
+
 
 @register.filter
 def schedule_name(schedule_id):
@@ -275,5 +290,6 @@ def program_name(program_id):
                 return f'{name} ({production_year})'
             elif name:
                 return name
+            return ''
         else:
             return program_id

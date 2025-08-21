@@ -1,7 +1,7 @@
 from django.db import connections
 from planner.settings import PLANNER_DB
 
-def ask_db_permissions(worker_id):
+def ask_db_permissions(worker_id) -> dict:
     with connections[PLANNER_DB].cursor() as cursor:
         perm_list = ('home', 'day', 'on_air_report', 'week', 'list', 'kpi_info', 'work_calendar', 'common_pool',
                      'full_info_card', 'otk', 'advanced_search', 'task_manager', 'messenger', 'desktop')
@@ -18,3 +18,4 @@ def ask_db_permissions(worker_id):
         perm_val = cursor.fetchone()
         if perm_val:
             return dict(zip(perm_list, perm_val))
+        return {}
