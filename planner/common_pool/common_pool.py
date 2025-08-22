@@ -123,9 +123,9 @@ def find_file_path(program_id):
         AND Clips.[Deleted] = 0
         AND Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
-        AND Progs.[program_id] = {program_id}
+        AND Progs.[program_id] = %s
         '''
-        cursor.execute(query)
+        cursor.execute(query, (program_id,))
         res = cursor.fetchone()
         if res:
             file_path, duration = res
