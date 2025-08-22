@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             document.getElementById('admin_task_table').innerHTML = data.html;
+            updateMainProgramId();
             fastSearch();
             totalCalc();
         })
@@ -49,27 +50,59 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function changeProgramIdCheckbox() {
     let fullSelectCheckbox = document.getElementById('full_select');
+    let tableBody = document.getElementById('tableBody');
+    let visibleCheckboxes = tableBody.querySelectorAll('tr:not([style*="display: none"]) input[name="program_id_check"]');
+    let checkedVisibleList = [];
+        visibleCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            checkedVisibleList.push(checkbox);
+        }
+    });
+
+    if (checkedVisibleList.length > 0) {
+        // Если есть выделенные видимые чекбоксы - снимаем выделение
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = false;
+        visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+    } else {
+        // Если нет выделенных видимых чекбоксов - выделяем все видимые
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = true;
+        visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+    }
+};
+
+function updateMainProgramId() {
+    let fullSelectCheckbox = document.getElementById('full_select');
     let program_id_check_list = document.getElementsByName('program_id_check');
-    let checked_list = [];
+    program_id_check_list.forEach(function(program_id_check) {
+        program_id_check.addEventListener('change', changeFullSelect);
+    });
+
+    function changeFullSelect() {
+        let checked_list = [];
         for (let i = 0; i < program_id_check_list.length; i++) {
             if (program_id_check_list[i].checked) {
                 checked_list.push(program_id_check_list[i]);
             }
         };
-    if (checked_list.length > 0) {
-        fullSelectCheckbox.indeterminate = false;
-        fullSelectCheckbox.checked = false;
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            program_id_check_list[i].checked = false;
-        };
-    }
-    else {
-        fullSelectCheckbox.indeterminate = false;
-        fullSelectCheckbox.checked = true;
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            program_id_check_list[i].checked = true;
-        };
-    }
+        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
+            fullSelectCheckbox.indeterminate = true;
+            fullSelectCheckbox.checked = false;
+        }
+        else if (checked_list.length == program_id_check_list.length) {
+            fullSelectCheckbox.indeterminate = false;
+            fullSelectCheckbox.checked = true;
+        }
+        else if (checked_list.length == 0) {
+            fullSelectCheckbox.indeterminate = false;
+            fullSelectCheckbox.checked = false;
+        }
+    };
 };
 
 function showApproveTaskChange() {

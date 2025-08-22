@@ -1,3 +1,5 @@
+import re
+
 from django.template.defaulttags import register
 from django.db import connections
 import os
@@ -200,14 +202,15 @@ def convert_frames_to_time(frames, fps=25):
 @register.filter
 def file_name(full_path):
     if full_path:
-        return os.path.basename(full_path)
+        return os.path.basename(full_path.replace('\\', '/').replace('//', '/'))
     else:
         return '-'
 
 @register.filter
 def dir_name(full_path):
     if full_path:
-        return os.path.dirname(full_path).replace('\\\\192.168.80.3\\', "")
+        dir_path = re.sub(r'^\\\\\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\\\\?', '', full_path)
+        return os.path.dirname(dir_path.replace('\\', '/'))
     else:
         return '-'
 

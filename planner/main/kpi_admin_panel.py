@@ -75,7 +75,7 @@ def kpi_summary_calc(field_dict):
     summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
                     'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
                     'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
-    engineer_id = field_dict.get('engineer_id')
+    engineer_id = field_dict.get('engineers')
     if engineer_id:
         engineer_id = int(engineer_id)
     material_type = field_dict.get('material_type')

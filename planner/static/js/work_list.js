@@ -1,6 +1,6 @@
 window.addEventListener('load', function() {
     let fullSelectCheckbox = document.getElementById('full_select');
-    let program_id_list = document.getElementsByName('program_id');
+    let program_id_list = document.getElementsByName('program_id_check');
     program_id_list.forEach(function(program_id) {
         program_id.addEventListener('change', changeFullSelect);
     });
@@ -50,26 +50,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function changeProgramIdCheckbox() {
     let fullSelectCheckbox = document.getElementById('full_select');
-    let program_id_list = document.getElementsByName('program_id');
-    let checked_list = [];
-        for (let i = 0; i < program_id_list.length; i++) {
-            if (program_id_list[i].checked) {
-                checked_list.push(program_id_list[i]);
-            }
-        };
-    if (checked_list.length > 0) {
+    let tableBody = document.getElementById('tableBody');
+    let visibleCheckboxes = tableBody.querySelectorAll('tr:not([style*="display: none"]) input[name="program_id_check"]');
+    let checkedVisibleList = [];
+        visibleCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            checkedVisibleList.push(checkbox);
+        }
+    });
+
+    if (checkedVisibleList.length > 0) {
+        // Если есть выделенные видимые чекбоксы - снимаем выделение
         fullSelectCheckbox.indeterminate = false;
         fullSelectCheckbox.checked = false;
-        for (let i = 0; i < program_id_list.length; i++) {
-            program_id_list[i].checked = false;
-        };
-    }
-    else {
+        visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+    } else {
+        // Если нет выделенных видимых чекбоксов - выделяем все видимые
         fullSelectCheckbox.indeterminate = false;
         fullSelectCheckbox.checked = true;
-        for (let i = 0; i < program_id_list.length; i++) {
-            program_id_list[i].checked = true;
-        };
+        visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
     }
 };
 
@@ -81,7 +84,6 @@ function updateMainProgramId() {
     });
 
     function changeFullSelect() {
-        console.log('click');
         let checked_list = [];
         for (let i = 0; i < program_id_check_list.length; i++) {
             if (program_id_check_list[i].checked) {
@@ -104,7 +106,7 @@ function updateMainProgramId() {
 };
 
 function ShowApproveOTK() {
-    let checked_list = document.getElementsByName('program_id');
+    let checked_list = document.getElementsByName('program_id_check');
     let program_id_list = [];
     for (let i = 0; i < checked_list.length; i++) {
         if (checked_list[i].checked) {
@@ -125,7 +127,7 @@ function ProgramIdList() {
     let FixList = document.getElementById('fix_list');
     FixList.innerHTML = ''
 
-    let checked_list = document.getElementsByName('program_id');
+    let checked_list = document.getElementsByName('program_id_check');
     let program_id_list = []
     for (let i = 0; i < checked_list.length; i++) {
         if (checked_list[i].checked) {
@@ -206,7 +208,7 @@ function ShowOTKFail() {
     let OTKFailList = document.getElementById('otk_fail_list');
     OTKFailList.innerHTML = ''
 
-    let checked_list = document.getElementsByName('program_id');
+    let checked_list = document.getElementsByName('program_id_check');
     let program_id_list = [];
     for (let i = 0; i < checked_list.length; i++) {
         if (checked_list[i].checked) {
