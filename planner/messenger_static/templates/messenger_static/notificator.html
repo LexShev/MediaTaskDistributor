@@ -20,7 +20,7 @@
                             </a>
                         {% endif %}
                         <p>
-                            {{ notice.comment }}
+                            {{ notice.comment|linebreaks }}
                         </p>
                         {% if notice.message %}
                         <div class="ms-2">

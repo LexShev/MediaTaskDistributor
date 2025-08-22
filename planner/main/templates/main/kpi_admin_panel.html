@@ -3,85 +3,83 @@
 
 <main role="main">
 {% block body %}
-<div class="container-fluid p-4">
+<div class="container-flex p-4">
   <div class="row">
-    <div class="col col-2">
-
-      <div class="row sticky-top">
-        <div class="col m-2">
-          <div class="card text-center border-secondary p-0" style="width: 16rem;">
-            <div class="card-header border-warning">
-              <h5>KPI отдела</h5>
-            </div>
-            <div class="card-body">
-              <h3 class="card-title">{{ summary_dict.ready_kpi|floatformat:2 }}</h3>
-            </div>
-          </div>
-        </div>
-        <div class="col m-2">
-          <div class="card text-center border-secondary p-0" style="width: 16rem;">
-            <div class="card-header border-info">
-              <h5>Всего задач в работе</h5>
-            </div>
-            <div class="card-body">
-              <h3 class="card-title">{{ summary_dict.total_count }}</h3>
+      <div class="col-lg-2 col-md-3 d-print-none d-lg-block d-md-none d-none">
+        <div class="row sticky-top">
+          <div class="col-12 my-2">
+            <div class="card text-center border-secondary p-0 w-100">
+              <div class="card-header border-warning">
+                <h5>KPI отдела</h5>
+              </div>
+              <div class="card-body">
+                <h3 class="card-title">{{ summary_dict.ready_kpi|floatformat:2 }}</h3>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col m-2">
-          <div class="card text-center border-secondary p-0" style="width: 16rem;">
-            <div class="card-header border-success">
-              <h5>Завершено</h5>
-            </div>
-            <div class="card-body">
-              <h3 class="card-title">{{ summary_dict.ready_tasks }}</h3>
-            </div>
-          </div>
-        </div>
-        <div class="col m-2">
-          <div class="card text-center border-secondary p-0" style="width: 16rem;">
-            <div class="card-header border-danger">
-              <h5>Осталось</h5>
-            </div>
-            <div class="card-body">
-              <h3 class="card-title">{{ summary_dict.not_ready_tasks }}</h3>
+          <div class="col-12 my-2">
+            <div class="card text-center border-secondary p-0 w-100">
+              <div class="card-header border-info">
+                <h5>Всего задач в работе</h5>
+              </div>
+              <div class="card-body">
+                <h3 class="card-title">{{ summary_dict.total_count }}</h3>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col m-2">
-          <div class="card text-center border-secondary p-0" style="width: 16rem;">
-            <div class="card-header border-primary">
-              <h5>Общий хронометраж</h5>
+          <div class="col-12 my-2">
+            <div class="card text-center border-secondary p-0 w-100">
+              <div class="card-header border-success">
+                <h5>Завершено</h5>
+              </div>
+              <div class="card-body">
+                <h3 class="card-title">{{ summary_dict.ready_tasks }}</h3>
+              </div>
             </div>
-            <div class="card-body border-secondary">
-              <h3 class="card-title">{{ summary_dict.total_dur|convert_frames_to_time }}</h3>
+          </div>
+          <div class="col-12 my-2">
+            <div class="card text-center border-secondary p-0 w-100">
+              <div class="card-header border-danger">
+                <h5>Осталось</h5>
+              </div>
+              <div class="card-body">
+                <h3 class="card-title">{{ summary_dict.not_ready_tasks }}</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 my-2">
+            <div class="card text-center border-secondary p-0 w-100">
+              <div class="card-header border-primary">
+                <h5>Общий хронометраж</h5>
+              </div>
+              <div class="card-body border-secondary">
+                <h3 class="card-title">{{ summary_dict.total_dur|convert_frames_to_time }}</h3>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
+    <div class="col-lg-10 col-md-9 col-12">
 
-    </div>
-    <div class="col col-10 pe-5">
-
-      <form method="post" id="kpi_form" class="container p-0 m-0 d-flex align-items-center justify-content-start">
+      <form method="post" id="kpi_form" class="container-fluid p-0 m-0">
         {% csrf_token %}
-        <div class="row ms-0 m-2 align-items-center">
+        <div class="row g-2 m-0 align-items-center flex-nowrap">
           {% for field in form %}
-            <div class="col ps-0">
-              <div class="form-floating" style="width:200px;">
+            <div class="col-auto ps-0 flex-grow-1" style="min-width: 150px; max-width: 200px;">
+              <div class="form-floating w-100">
                 {{ field }}
                 {{ field.label_tag }}
               </div>
             </div>
           {% endfor %}
-          <div class="col ps-0 m-0">
-            <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
-            <button type="button" onclick="ResetFilter()" class="btn btn-sm register-button btn-outline-secondary">Сбросить</button>
+          <div class="col-auto ps-0 d-flex align-items-center">
+            <button type="submit" class="btn register-button btn-outline-secondary ms-0 me-1">Применить</button>
+            <button type="button" onclick="ResetFilter()"
+                    class="btn btn-sm register-button btn-outline-secondary ms-0 me-1">Сбросить</button>
           </div>
         </div>
       </form>
-
       {% include 'main/task_table.html' %}
     </div>
   </div>

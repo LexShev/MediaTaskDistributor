@@ -25,7 +25,7 @@
                  data-file-path="{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
                  data-engineer-id="{{ task.Task_engineer_id }}"
                  value="{{ task.Task_program_id }}"
-                 name="program_id">
+                 name="program_id_check">
         </td>
         <td>
         <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
@@ -48,7 +48,7 @@
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
         <td>
-          <a href="{% url 'home' %}worker/{{ task.Task_engineer_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+          <a href="{% url 'home' %}worker/{{ task.Task_engineer_id|engineer_id_to_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
             {{ task.Task_engineer_id|engineer_name }}</a></td>
         <td>{{ task.Task_sched_date|date:'d.m.Y' }}</td>
         <td>{{ task.Task_duration|convert_frames_to_time }}

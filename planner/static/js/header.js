@@ -1,7 +1,6 @@
-function StartDistribution() {
+function startDistribution() {
     svg_spinner = document.getElementById('svg_spinner');
     svg_spinner.classList.add('spinner');
-    console.log(svg_spinner);
     fetch('/start_distribution/')
         .then(response => response.json())
         .then(data => {
@@ -16,6 +15,26 @@ function StartDistribution() {
         .catch(error => {
             console.error(error);
         });
+};
+
+function updateNoMaterial() {
+    noMaterialBtn = document.getElementById('update_no_material');
+    noMaterialBtn.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+    fetch('/tools/update_no_material/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = '/'
+                console.log(data.status);
+            }
+            else {
+                console.log(data.status);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
 };
 
 function updateTotalUnreadCount(newCount) {

@@ -38,6 +38,7 @@ urlpatterns = ([
     path("task_manager/", include('admin_work_panel.urls')),
     path("", include('distribution.urls')),
     path("desktop/", include('desktop.urls')),
+    path("tools/", include('tools.urls')),
     path("authorize/", include('django.contrib.auth.urls')),
     path("authorize/", include('workers.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
+from main.templatetags.custom_filters import engineer_id_to_worker_id
 from messenger_static.messenger_utils import create_notification
 from .models import OtkModel, TaskSearch
 from .otk_materials_list import task_info, change_task_status_batch, update_comment_batch
@@ -55,8 +56,9 @@ def work_list(request):
             otk_fail_list = []
             for program_id, comment, engineer_id in zip(otk_fail_prog_id, otk_fail_comment, engineer_id_list):
                 otk_fail_list.append({'program_id': program_id, 'comment': comment})
+                recipient_id = engineer_id_to_worker_id(engineer_id)
                 create_notification(
-                    {'sender': worker_id, 'recipient': engineer_id, 'program_id': program_id,
+                    {'sender': worker_id, 'recipient': recipient_id, 'program_id': program_id,
                      'message': comment, 'comment': 'Задача отправлена на доработку'}
                 )
 
@@ -70,8 +72,9 @@ def work_list(request):
             otk_fix_list = []
             for program_id, comment, file_path, engineer_id in zip(fix_id, fix_comment, fix_file_path, engineer_id_list):
                 otk_fix_list.append({'program_id': program_id, 'comment': comment, 'file_path': file_path})
+                recipient_id = engineer_id_to_worker_id(engineer_id)
                 create_notification(
-                    {'sender': worker_id, 'recipient': engineer_id, 'program_id': program_id,
+                    {'sender': worker_id, 'recipient': recipient_id, 'program_id': program_id,
                      'message': comment, 'comment': 'Исходник исправлен'}
                 )
 

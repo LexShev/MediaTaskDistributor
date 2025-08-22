@@ -141,8 +141,8 @@ class CenzFormDropDown(forms.Form):
                     self.fields[field_name].label = f'{label} <{field_value}>'
                     self.fields[field_name].initial = ''
 
-class KpiForm(forms.Form):
 
+class KpiForm(forms.Form):
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
         label='Дата отсмотра', required=False)
@@ -155,7 +155,6 @@ class KpiForm(forms.Form):
     task_status_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "task_status_form"}),
         label='Статус задачи', choices=choice.task_status(), required=False)
-
 
 
 class VacationForm(forms.Form):
