@@ -36,7 +36,7 @@ class AdminForm(forms.ModelForm):
 class TaskSearchForm(forms.ModelForm):
     class Meta:
         model = TaskSearch
-        fields = ('search_type', 'search_input', 'sql_set')
+        fields = ('search_type', 'search_input', 'sql_set', 'order', 'order_type')
 
         labels = {'search_type': '', 'search_input': '', 'sql_set': 'Показать'}
 
@@ -50,6 +50,12 @@ class TaskSearchForm(forms.ModelForm):
             'sql_set': forms.Select(
                 attrs={'class': 'form-select', 'id': 'sql_set', 'style': 'max-width: 11rem;'},
                 choices=choice.sql_set()),
+            'order': forms.TextInput(
+                attrs={'class': 'visually-hidden', 'id': 'order'},
+            ),
+            'order_type': forms.TextInput(
+                attrs={'class': 'visually-hidden', 'id': 'order_type'},
+            ),
         }
 
 class DynamicSelector(forms.Form):

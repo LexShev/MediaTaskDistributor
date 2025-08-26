@@ -8,12 +8,12 @@ from .settings.main_set import MainSettings
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 def check_data_type(value):
-    if isinstance(value, NoneType):
+    if isinstance(value, NoneType) or value == '':
         return None
     elif isinstance(value, datetime) or isinstance(value, date):
         return value.strftime('%Y-%m-%d %H:%M:%S')
     else:
-        return str(value)
+        return value
 
 def check_planner_status(planner_status):
     status_dict = MainSettings.status_dict
@@ -73,6 +73,7 @@ def full_info(program_id):
             full_info_dict['material_type'] = 'season'
         else:
             full_info_dict['material_type'] = 'film'
+        print(full_info_dict)
         return full_info_dict
 
 def find_file_path(program_id):
@@ -125,8 +126,8 @@ def find_episodes(program_id):
 def find_out_status(program_id, full_info_dict):
     oplan3_cenz_info = cenz_info(program_id)
     oplan3_work_date = oplan3_cenz_info.get(7)
-    oplan3_cenz_rate = check_data_type(oplan3_cenz_info.get(14))
-    oplan3_engineer = check_data_type(oplan3_cenz_info.get(15))
+    oplan3_cenz_rate = oplan3_cenz_info.get(14)
+    oplan3_engineer = oplan3_cenz_info.get(15)
 
     # planner_ready_date = full_info_dict.get('Task_ready_date')
     planner_status = full_info_dict.get('Task_task_status')
@@ -134,10 +135,10 @@ def find_out_status(program_id, full_info_dict):
         material_status = check_planner_status(planner_status)
         color = check_color_status(planner_status)
     else:
-        if oplan3_engineer or oplan3_work_date:
+        if oplan3_engineer is not None or oplan3_work_date:
             material_status = 'Отсмотрен через Oplan'
             color = 'text-success'
-        elif not oplan3_engineer and not oplan3_cenz_rate and not oplan3_work_date:
+        elif oplan3_engineer is None and oplan3_cenz_rate is None and oplan3_work_date is None:
             material_status = 'Материал из общего пула'
             color = 'text-info'
         else:
@@ -164,17 +165,19 @@ def cenz_info(program_id):
             custom_fields_dict[field_id] = date_value.strftime('%Y-%m-%d')
         elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
             custom_fields_dict[field_id] = text_value
-        elif field_id in (14, 15, 17):
+        elif field_id in (14, 15, 17, 22):
             custom_fields_dict[field_id] = int_value
     return custom_fields_dict
 
 
 def insert_value(field_id, program_id, new_value):
+    if field_id in (17, 22) and new_value == '0':
+        return
     if field_id == 7:
         columns = '[ProgramCustomFieldId], [ObjectId], [DateValue], [ObjectType]'
     elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
         columns = '[ProgramCustomFieldId], [ObjectId], [TextValue], [ObjectType]'
-    elif field_id in (14, 15, 17):
+    elif field_id in (14, 15, 17, 22):
         columns = '[ProgramCustomFieldId], [ObjectId], [IntValue], [ObjectType]'
     else:
         columns = ''
@@ -190,6 +193,7 @@ def insert_value(field_id, program_id, new_value):
             cursor.execute(query, (field_id, program_id, new_value, 0))
 
 def delete_value(field_id, program_id):
+    print('delete', field_id)
     with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         DELETE FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
@@ -200,6 +204,7 @@ def delete_value(field_id, program_id):
         return cursor.rowcount
 
 def update_value(field_id, program_id, new_value):
+    print('update', field_id, new_value)
     query = ''
     if field_id == 7:
         query = f'''
@@ -215,7 +220,7 @@ def update_value(field_id, program_id, new_value):
         WHERE [ObjectId] = {program_id}
         AND [ProgramCustomFieldId] = {field_id}
         '''
-    elif field_id in (14, 15, 17):
+    elif field_id in (14, 15, 17, 22):
         query = f'''
         UPDATE [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
         SET [IntValue] = {new_value}
@@ -274,11 +279,12 @@ def change_oplan_cenz_info(program_id, old_values, new_values):
     for num_key, name_key in values_list:
         old_value, new_value = old_values.get(num_key), new_values.get(name_key)
         old_value, new_value = check_data_type(old_value), check_data_type(new_value)
-        if not old_value and new_value:
+        # print(num_key, name_key, 'old_value:', old_value, 'new_value:', new_value)
+        if old_value is None and new_value is not None:
             insert_value(num_key, program_id, new_value)
-        elif old_value and not new_value:
+        elif old_value is not None and new_value is None:
             delete_value(num_key, program_id)
-        elif old_value and new_value and str(old_value) != str(new_value):
+        elif old_value is not None and new_value is not None and str(old_value) != str(new_value):
             update_value(num_key, program_id, new_value)
 
 

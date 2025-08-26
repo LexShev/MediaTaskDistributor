@@ -30,7 +30,10 @@
 
         <div class="form-floating">
           {% for field in form %}
-          <div class="row mx-2 my-4 p-0">{{ field }}</div>
+            <div class="row mx-2 my-4 p-0">
+              <div class="text-secondary p-1">{{ field.label }}</div>
+              {{ field }}
+            </div>
           {% endfor %}
           <div class="d-flex justify-content-end m-0 p-0">
               <div class="m-2 p-0">

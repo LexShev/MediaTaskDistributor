@@ -22,7 +22,19 @@ def check_deadline(value):
     else:
         return ''
 
-def task_info(field_dict, sql_set):
+def choose_order(name):
+    order_dict = {
+        'progs_name': 'Progs.[name]',
+        'engineers': 'Eng.[full_name]',
+        'work_date': 'Task.[work_date]',
+        'sched_date': 'Task.[sched_date]',
+        'status': 'Task.[task_status]',
+        'duration': 'Task.[duration]',
+        'file_path': 'Task.[file_path]'
+    }
+    return order_dict.get(name, 'Progs.[name]')
+
+def task_info(field_dict, search_init_dict):
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
@@ -33,10 +45,12 @@ def task_info(field_dict, sql_set):
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
-        SELECT TOP ({sql_set}) {sql_columns}
+        SELECT TOP ({search_init_dict.sql_set}) {sql_columns}
         FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
         JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
+        JOIN [planner].[dbo].[engineers_list] AS Eng
+            ON Task.[engineer_id] = Eng.[engineer_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         {check_value('ready_date', field_dict.get('ready_date'))}
@@ -46,7 +60,7 @@ def task_info(field_dict, sql_set):
         {check_value('sched_id', field_dict.get('sched_id'))}
         {check_value('task_status', field_dict.get('task_status'))}
         {check_material_type(field_dict.get('material_type'))}
-        ORDER BY Progs.[name];
+        ORDER BY {choose_order(search_init_dict.order)} {search_init_dict.order_type};
         '''
         cursor.execute(query)
         result = cursor.fetchall()
@@ -59,8 +73,11 @@ def task_info(field_dict, sql_set):
             material['Files_Name'] = find_file_path(material.get('Task_program_id'))
     total_duration = sum(duration)
     total_count = len(material_list)
-    service_dict = {'total_duration': total_duration, 'total_count': total_count}
-    # print(material_list)
+    service_dict = {
+        'total_duration': total_duration, 'total_count': total_count,
+        'order': search_init_dict.order, 'order_type': search_init_dict.order_type
+    }
+    print('service_dict', service_dict)
     return material_list, service_dict
 
 def update_task_list(request):

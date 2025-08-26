@@ -17,10 +17,14 @@
       {% if material.type == 'film' %}
         <div class="card shadow my-2 p-0" style="border-color: {{ material.color }};">
           <div class="card-header p-2">
-            <h6 class="my-0 mx-1">
+            <h6 class="d-flex align-items-center my-0 mx-1">
               <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                 {{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}
               </a>
+              {% if material.Task_task_status == 'no_material' %}
+                <span class="badge rounded-circle bg-danger d-inline-flex align-items-center justify-content-center ms-auto"
+                      style="width: 16px; height: 16px;" title="Материал отсутствует">!</span>
+              {% endif %}
             </h6>
           </div>
           <div class="card-body p-2">
@@ -79,6 +83,10 @@
                     <a href="{% url 'home' %}{{ episode.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                     <h6 class="my-0 mx-1">{{ episode.Progs_name }}</h6>
                     </a>
+                    {% if episode.Task_task_status == 'no_material' %}
+                      <span class="badge rounded-circle bg-danger d-inline-flex align-items-center justify-content-center ms-auto"
+                            style="width: 16px; height: 16px;" title="Материал отсутствует">!</span>
+                    {% endif %}
                   </div>
                   <div class="card-body p-2">
                     <div class="row">

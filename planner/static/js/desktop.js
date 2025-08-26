@@ -53,6 +53,7 @@ function WriteOrder() {
         if (data.status !== 'success') {
             console.error(data.message || 'Unknown server error');
         }
+        calculateDuration();
 
     })
     .catch(error => {
@@ -106,6 +107,7 @@ clearBtn.addEventListener('click', function() {
   FastSearch();
 });
 
+calculateDuration();
 
 let currentEditingLabel = null;
 
@@ -179,31 +181,78 @@ function finishEditing(label) {
 
 function WriteMarkerName(markerName) {
     fetch('update_marker_name/', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken'),
-        'X-Requested-With': 'XMLHttpRequest'
-    },
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
 
-    body: JSON.stringify([markerName.dataset.listId, markerName.value]),
-    credentials: 'same-origin'
-    })
-    .then(response => {
-        if (!response.ok) {
-             console.error(response.status);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('data', data)
-        if (data.status !== 'success') {
-            console.error(data.message || 'Unknown server error');
-        }
+        body: JSON.stringify([markerName.dataset.listId, markerName.value]),
+        credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                 console.error(response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('data', data)
+            if (data.status !== 'success') {
+                console.error(data.message || 'Unknown server error');
+            }
 
-    })
-    .catch(error => {
-        console.error('Error:', error);
+        })
+        .catch(error => {
+            console.error('Error:', error);
     });
 };
 
+function calculateDuration() {
+    containers.forEach((container, index) => {
+        const cards = container.getElementsByClassName('card');
+        const durations = Array.from(cards).map(card => parseInt(card.dataset.duration) || 0);
+        const totalDuration = durations.reduce((sum, duration) => sum + duration, 0);
+
+        const containerParent = container.parentNode;
+        const resultElement = containerParent.querySelector('.total-duration');
+        console.log(resultElement);
+
+
+        // Или создаем новый элемент, если нужно
+        // const resultElement = document.createElement('div');
+        // resultElement.className = 'total-duration';
+        // container.appendChild(resultElement);
+
+        if (resultElement) {
+            resultElement.textContent = `Всего: ${convertFramesToTime(totalDuration)}`;
+        }
+    });
+};
+
+function convertFramesToTime(frames, fps = 25) {
+    const sec = parseInt(frames) / fps;
+    const yy = Math.floor(Math.floor(sec / 3600 / 24) / 365);
+    const dd = Math.floor(Math.floor(sec / 3600 / 24) % 365);
+    const hh = Math.floor((sec / 3600) % 24);
+    const mm = Math.floor((sec % 3600) / 60);
+    const ss = Math.floor((sec % 3600) % 60);
+    const ff = Math.floor((sec % 1) * fps);
+
+    const formatNum = num => num.toString().padStart(2, '0');
+
+    if (yy < 1) {
+        if (dd < 1) {
+            return `${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        } else {
+            return `${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        }
+    } else {
+        if (0 < yy % 10 && yy % 10 < 5) {
+            return `${formatNum(yy)}г. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        } else {
+            return `${formatNum(yy)}л. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        }
+    }
+};

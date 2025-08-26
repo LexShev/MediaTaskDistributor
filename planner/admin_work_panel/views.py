@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -55,10 +56,14 @@ def task_manager(request):
                 del_task(request)
     else:
         filter_form = AdminForm(instance=filter_init_dict)
-        search_form = TaskSearchForm(initial={'sql_set': search_init_dict.sql_set, 'search_type': search_init_dict.search_type})
+        search_form = TaskSearchForm(initial={
+            'sql_set': search_init_dict.sql_set,
+            'search_type': search_init_dict.search_type,
+            'order': search_init_dict.order,
+            'order_type': search_init_dict.order_type,
+        })
 
     data = {
-
         'filter_form': filter_form,
         'search_form': search_form,
         'permissions': ask_db_permissions(worker_id)
@@ -70,7 +75,7 @@ def load_admin_task_table(request):
     field_dict = AdminModel.objects.filter(owner=worker_id).values()
     if field_dict: field_dict = field_dict[0]
     search_init_dict = TaskSearch.objects.get(owner=worker_id)
-    task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
+    task_list, service_dict = task_info(field_dict, search_init_dict)
     dynamic_selector_list = []
     for task in task_list:
         file_path = task.get('Task_file_path', '')
@@ -93,3 +98,23 @@ def load_admin_task_table(request):
     )
     return JsonResponse({'html': html})
 
+def sort_table(request):
+    worker_id = request.user.id
+    try:
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+        data = json.loads(request.body)
+        print(data)
+        if data:
+            order, order_type = data
+            sort_model = TaskSearch.objects.filter(owner=worker_id).update(
+                order=order,
+                order_type=order_type
+            )
+            if not sort_model == 0:
+                return JsonResponse({'status': 'success', 'message': 'Sorted successfully', 'data': data})
+
+        return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

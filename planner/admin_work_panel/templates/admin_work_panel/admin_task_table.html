@@ -2,17 +2,127 @@
   <h6 class="pe-5" id="total_num">Всего: {{ service_dict.total_count|thousands }}</h6>
   <h6 id="total_dur">Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
 </div>
+
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+    <symbol id="sort_ASC_active" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+      <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+    </symbol>
+    <symbol id="sort_DESC_active" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+      <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+    </symbol>
+    <symbol id="sort_ASC" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+      <path d="M3.204 11h9.592L8 5.519 3.204 11zm-.753-.659 4.796-5.48a1 1 0 0 1 1.506 0l4.796 5.48c.566.647.106 1.659-.753 1.659H3.204a1 1 0 0 1-.753-1.659z"/>
+    </symbol>
+    <symbol id="sort_DESC" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+      <path d="M3.204 5h9.592L8 10.481 3.204 5zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659z"/>
+    </symbol>
+</svg>
+
 <table class="table table-hover align-middle">
   <thead>
     <tr>
       <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
-      <th style="width: 23%;">Название</th>
-      <th style="width: 10%;">Исполнитель</th>
-      <th style="width: 6%;">Дата отсмотра</th>
-      <th style="width: 6%;">Дата эфира</th>
-      <th style="width: 11%;">Статус</th>
-      <th style="width: 6%;">Длительность</th>
-      <th style="width: 36%;">Полное имя файла</th>
+      <th style="width: 23%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
+             data-order="progs_name" style="cursor: pointer;">
+          <span>Название</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              {% if service_dict.order == 'progs_name' %}
+                <use xlink:href="#sort_{{service_dict.order_type}}_active"/>
+              {% else %}
+                <use xlink:href="#sort_{{service_dict.order_type}}"/>
+              {% endif %}
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 10%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
+          data-order="engineers" style="cursor: pointer;">
+          <span>Исполнитель</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              {% if service_dict.order == 'engineers' %}
+                <use xlink:href="#sort_{{service_dict.order_type}}_active"/>
+              {% else %}
+                <use xlink:href="#sort_{{service_dict.order_type}}"/>
+              {% endif %}
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 6%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
+          data-order="work_date" style="cursor: pointer;">
+          <span>Дата отсмотра</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              {% if service_dict.order == 'work_date' %}
+                <use xlink:href="#sort_{{service_dict.order_type}}_active"/>
+              {% else %}
+                <use xlink:href="#sort_{{service_dict.order_type}}"/>
+              {% endif %}
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 6%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
+          data-order="sched_date" style="cursor: pointer;">
+          <span>Дата эфира</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              {% if service_dict.order == 'sched_date' %}
+                <use xlink:href="#sort_{{service_dict.order_type}}_active"/>
+              {% else %}
+                <use xlink:href="#sort_{{service_dict.order_type}}"/>
+              {% endif %}
+            </svg>
+          </span>
+        </div></th>
+      <th style="width: 11%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
+          data-order="status" style="cursor: pointer;">
+          <span>Статус</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              {% if service_dict.order == 'status' %}
+                <use xlink:href="#sort_{{service_dict.order_type}}_active"/>
+              {% else %}
+                <use xlink:href="#sort_{{service_dict.order_type}}"/>
+              {% endif %}
+            </svg>
+          </span>
+        </div></th>
+      <th style="width: 6%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
+          data-order="duration" style="cursor: pointer;">
+          <span>Длительность</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              {% if service_dict.order == 'duration' %}
+                <use xlink:href="#sort_{{service_dict.order_type}}_active"/>
+              {% else %}
+                <use xlink:href="#sort_{{service_dict.order_type}}"/>
+              {% endif %}
+            </svg>
+          </span>
+        </div></th>
+      <th style="width: 36%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
+          data-order="file_path" style="cursor: pointer;">
+          <span>Полное имя файла</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              {% if service_dict.order == 'file_path' %}
+                <use xlink:href="#sort_{{service_dict.order_type}}_active"/>
+              {% else %}
+                <use xlink:href="#sort_{{service_dict.order_type}}"/>
+              {% endif %}
+            </svg>
+          </span>
+        </div></th>
     </tr>
   </thead>
   <tbody class="table-group-divider" id="tableBody">
