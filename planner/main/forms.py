@@ -27,7 +27,11 @@ class ListFilter(forms.ModelForm):
     class Meta:
         model = ModelFilter
         fields = ('schedules', 'engineers', 'material_type', 'work_dates', 'task_status')
-
+        labels = {
+            'schedules': 'Каналы', 'engineers': 'Исполнители',
+            'material_type': 'Тип материала', 'work_dates': 'Назначенная дата исполнения',
+            'task_status': 'Статус материала',
+        }
         widgets = {
             'schedules': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'schedules'},
@@ -49,6 +53,10 @@ class WeekFilter(forms.ModelForm):
     class Meta:
         model = ModelFilter
         fields = ('schedules', 'engineers', 'material_type', 'task_status')
+        labels = {
+            'schedules': 'Каналы', 'engineers': 'Исполнители',
+            'material_type': 'Тип материала', 'task_status': 'Статус материала',
+        }
         widgets = {
             'schedules': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'schedules'},

@@ -27,7 +27,6 @@
                    data-country="{{ full_info.Progs_production_country }}">
             </div>
 
-
             <div class="col px-1" style="flex: 0 0 85%; max-width: 85%;">
               <div class="row mb-2 mx-0 align-items-center">
                 <div class="col">
@@ -42,8 +41,15 @@
                 </div>
               </div>
               <div class="row mb-2 mx-0 align-items-center">
-                <div class="col-md-6">
-                  <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
+                <div class="col-md-6 d-flex align-items-center">
+                  {% if full_info.material_type == 'season' %}
+                    <a class="link-body-emphasis link-offset-3-hover link-underline-opacity-0" href="{% url 'home' %}{{ full_info.Progs_parent_id }}">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
+                      </svg>
+                    </a>
+                  {% endif %}
+                  <h5 class="p-1 m-0" title="{{ full_info.Progs_orig_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
                     {{ full_info.Progs_name }}{% if full_info.Adult_Name %}. {{ full_info.Adult_Name }}{% endif %}
                   </h5>
                 </div>

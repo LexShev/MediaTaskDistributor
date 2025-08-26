@@ -17,3 +17,5 @@ class TaskSearch(Model):
     search_type = IntegerField(default=1)
     search_input = CharField(max_length=200, default=None, null=True, blank=True)
     sql_set = IntegerField(default=100)
+    order = CharField(max_length=20, default='progs_name', null=True, blank=True)
+    order_type = CharField(max_length=5, default='ASC', null=True, blank=True)

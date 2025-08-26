@@ -65,7 +65,7 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                          'Task_work_date': temp_dict.get('Task_work_date'),
                          'Task_sched_date': temp_dict.get('Task_sched_date'),
                          'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
-                         'status': temp_dict.get('Task_task_status'),
+                         'Task_task_status': temp_dict.get('Task_task_status'),
                          'Task_engineer_id': temp_dict.get('Task_engineer_id')
                          }
                     ]
@@ -82,7 +82,7 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                     'Task_work_date': temp_dict.get('Task_work_date'),
                      'Task_sched_date': temp_dict.get('Task_sched_date'),
                     'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
-                    'status': temp_dict.get('Task_task_status'),
+                    'Task_task_status': temp_dict.get('Task_task_status'),
                     'Task_engineer_id': temp_dict.get('Task_engineer_id')
                     })
                 program_id_list.append(program_id)
@@ -101,7 +101,7 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                 'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
                 'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
                 'type': 'film',
-                'status': temp_dict.get('Task_task_status'),
+                'Task_task_status': temp_dict.get('Task_task_status'),
                 'Task_engineer_id': temp_dict.get('Task_engineer_id')
                 }
             material_list.append(program_info_dict)

@@ -213,3 +213,60 @@ function convertFramesToTime(frames, fps = 25) {
 function thousands(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };
+
+function sortTable(element) {
+    let order = element.dataset.order;
+
+    let curOrder = document.getElementById('order').value
+    let curOrderType = document.getElementById('order_type').value
+    console.log(curOrder, curOrderType)
+
+    if (order === curOrder) {
+        if (curOrderType === 'DESC') {
+            curOrderType = 'ASC';
+        }
+        else {
+            curOrderType = 'DESC'
+        }
+    }
+    else {
+        curOrderType = 'ASC'
+    }
+
+    fetch('/task_manager/sort_table/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify([order, curOrderType]),
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.error('HTTP error! status:', response.status);
+        }
+        console.log('Success: Table sorted successfully');
+
+        window.location.href = '/task_manager/'
+    })
+    .catch(error => {
+        console.error('Error:', error.message);
+    });
+};
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};

@@ -356,7 +356,6 @@ def submit_cenz_data(request):
                 13: custom_fields.get(13),
                 16: custom_fields.get(16)
             }
-            print('new_values_dict', new_values_dict)
             work_date = new_values_dict.get(7, old_values_dict.get(7))
             service_info_dict = {'program_id': program_id, 'worker_id': worker_id, 'work_date': work_date}
             # change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
@@ -374,15 +373,12 @@ def submit_cenz_data(request):
                 text = f'{program_name(program_id)} изменено.'
                 success_messages.append(text)
 
-            print(program_id, 'was added')
-
         if success_messages:
             messages.success(request, '\n'.join(success_messages))
         if error_messages:
             messages.error(request, '\n'.join(error_messages))
         if not success_messages and not error_messages:
             messages.error(request, 'Ошибка!')
-    print(success_messages, error_messages)
     return redirect(full_list)
 
 def cenz_batch(request):
@@ -470,7 +466,6 @@ def material_card(request, program_id):
                 'other_form': custom_fields.get(13),
                 'editor_form': custom_fields.get(16)
             })
-
     form_attached_files = AttachedFilesForm()
 
     attached_files = AttachedFiles.objects.filter(program_id=program_id).order_by('timestamp')
