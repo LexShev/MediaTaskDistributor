@@ -333,10 +333,12 @@ def submit_cenz_data(request):
             task_ready_list = cenz_info_change.split(',')
         cenz_comment = request.POST.get('cenz_comment')
         for program_id in task_ready_list:
-            check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
-            if check_lock:
-                [lockType, [workerId, lockTime]] = check_lock
-                text = f'{program_name(program_id)} заблокирован в {lockType} пользователем: {planner_worker_name(workerId)} в {lockTime}.'
+            check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id, worker_id)
+            if check_lock and check_lock.get('message') == 'locked':
+                app = check_lock.get('app')
+                worker_name = check_lock.get('worker_name')
+                lock_time = check_lock.get('lock_time')
+                text = f'{program_name(program_id)} заблокирован в {app} пользователем: {worker_name} в {lock_time}.'
                 error_messages.append(text)
                 continue
             custom_fields = cenz_info(program_id)
@@ -394,10 +396,12 @@ def cenz_batch(request):
     cenz_comment = new_values.get('cenz_comment')
 
     for program_id in task_ready_list:
-        check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
-        if check_lock:
-            [lockType, [workerId, lockTime]] = check_lock
-            text = f'{program_name(program_id)} заблокирован в {lockType} пользователем: {planner_worker_name(workerId)} в {lockTime}.'
+        check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id, worker_id)
+        if check_lock and check_lock.get('message') == 'locked':
+            app = check_lock.get('app')
+            worker_name = check_lock.get('worker_name')
+            lock_time = check_lock.get('lock_time')
+            text = f'{program_name(program_id)} заблокирован в {app} пользователем: {worker_name} в {lock_time}.'
             error_messages.append(text)
             continue
         old_values = cenz_info(program_id)
@@ -471,7 +475,6 @@ def material_card(request, program_id):
     attached_files = AttachedFiles.objects.filter(program_id=program_id).order_by('timestamp')
     full_info_dict = full_info(program_id)
     file_id = full_info_dict.get('Files_FileID', '')
-    print('custom_fields', custom_fields)
     data = {'full_info': full_info_dict,
             'custom_fields': custom_fields,
             'comments_history': comments_history(program_id),
@@ -558,11 +561,11 @@ def cenz_info_change(request):
     messages.success(request, message)
     return JsonResponse({'status': 'success', 'message': message})
 
-def check_lock_card(request, program_id):
-    return JsonResponse({'locked': check_oplan3_lock(program_id) or check_planner_lock(program_id)})
+def check_lock_card(request, program_id, worker_id):
+    return JsonResponse(check_planner_lock(program_id, worker_id) or check_oplan3_lock(program_id))
 
 def block_card(request, program_id, worker_id):
-    return JsonResponse({'response': block_object_planner(program_id, worker_id)})
+    return JsonResponse(block_object_planner(program_id, worker_id))
 
 def unblock_card(request, program_id, worker_id):
     return JsonResponse({'response': unblock_object_planner(program_id, worker_id)})

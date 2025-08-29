@@ -1,0 +1,111 @@
+{% extends  'main/index.html' %}
+{% load static %}
+
+<main>
+{% block body %}
+<link href="{% static '/css/on_air_calendar.css' %}"  rel="stylesheet">
+<script type="text/javascript" src="{% static 'js/on_air_calendar.js' %}"></script>
+
+<div class="container-fluid px-lg-5 py-2">
+  <h4 class="text-center mt-3">Эфирный отчёт</h4>
+  <br>
+  <div class="row">
+    <div class="col-lg-6 col-md-12">
+      <div class="card h-100 p-4">
+        <div id="calendar-container">
+          <div class="row align-items-center">
+            <div class="col d-flex justify-content-start">
+              <a href="{% url 'home' %}on-air-report/{{ service_dict.prev_year }}/{{ service_dict.prev_month }}" class="btn cal-btn" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+                </svg>
+              </a>
+            </div>
+            <div class="col text-center">
+              <h5>{{ service_dict.cal_month|month_name }}</h5>
+            </div>
+            <div class="col d-flex justify-content-end">
+              <a href="{% url 'home' %}on-air-report/{{ service_dict.next_year }}/{{ service_dict.next_month }}" class="btn cal-btn" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+          <table cellpadding="4" class="month">
+            <thead class="text-center text-secondary mb-2">
+              <tr>
+                <th class="p-2 week-number"></th>
+                <th class="mon p-2">Пн</th>
+                <th class="tue p-2">Вт</th>
+                <th class="wed p-2">Ср</th>
+                <th class="thu p-2">Чт</th>
+                <th class="fri p-2">Пт</th>
+                <th class="sat p-2">Сб</th>
+                <th class="sun p-2">Вс</th>
+              </tr>
+            </thead>
+
+            <tbody class="table-group-divider">
+              {% for week in on_air_calendar %}
+                <tr>
+                  <th class="text-secondary">{{ week.number }}</th>
+                    {% for day in week.days %}
+                      {% if day.is_current_month %}
+                        <td>
+                          <button class="btn cal-btn w-100 p-1 loading-day {% if day.is_today %}active{% endif %}"
+                                  name="cal_day" value="{{ day.date|date:'Y-m-d' }}" type="button"
+                                  onclick="selectDay(this);">
+                            {{ day.day }}
+                          </button>
+                        </td>
+                      {% else %}
+                        <td>
+                          <button class="btn cal-btn w-100 border-0 p-1" type="button" disabled>
+                            {{ day.day }}
+                          </button>
+                        </td>
+                    {% endif %}
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Правая колонка - список действий (занимает 6 колонок на больших экранах) -->
+    <div class="col-lg-6 col-md-12">
+      <div class="card h-100 p-4">
+        <div class="d-flex justify-content-start align-items-center mb-3">
+          <h5 id="report_date">Выберите день</h5>
+        </div>
+
+        <table class="table table-hover">
+          <tbody class="table-group-divider" id="tableBody">
+            {% for id, title in summary_table %}
+              <tr>
+                <td class="col-2">
+                  {{ title }}
+                </td>
+                <td class="col-1" id="{{ id }}">
+                  -
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <a type="button" class="btn btn-outline-secondary" style="display: none;" id="day_link"
+          href="" >
+          Подробнее
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+</main>

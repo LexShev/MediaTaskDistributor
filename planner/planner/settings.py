@@ -40,7 +40,7 @@ MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
 MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
 
@@ -50,7 +50,6 @@ SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-
 
 # Application definition
 
@@ -192,7 +191,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -216,8 +214,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_POSTERS = os.path.join(BASE_DIR, 'media/posters')
 
-
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000000
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
@@ -225,7 +222,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'planner-cash',  # Уникальное имя для локал кэша
+        'LOCATION': 'planner-cash',  # Уникальное имя для локального кэша
     }
 }
 # Default primary key field type
@@ -234,8 +231,6 @@ CACHES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = '/authorize/login_worker/'
-
-
 
 # DATE_INPUT_FORMATS = ["%d.%m.%Y", "%d-%m-%Y"]
 # USE_L10N = False

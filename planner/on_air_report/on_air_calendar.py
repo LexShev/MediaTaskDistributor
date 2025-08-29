@@ -6,15 +6,15 @@ from django.db import connections
 from planner.settings import PLANNER_DB
 
 
-def calendar_skeleton():
+def calendar_skeleton(cal_year, cal_month):
     today = date.today()
-    cal_year, cal_month = today.year, today.month
     month_dates = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
     weeks = []
     for week in month_dates:
         week_data = {'number': week[0].isocalendar()[1], 'days': []}
         for day in week:
-            week_data['days'].append({'date': day, 'day': day.day, 'is_current_month': day.month == cal_month,
+            week_data['days'].append({'date': day, 'day': day.day,
+                                      'is_current_month': day.month == cal_month,
                                       'is_today': day == today})
         weeks.append(week_data)
     return weeks
@@ -53,3 +53,21 @@ def update_info(current_date):
             'ready': ready,
             'color': color
         }
+
+def calc_prev_month(cal_year, cal_month):
+    if cal_month > 1:
+        prev_month = cal_month - 1
+        prev_year = cal_year
+    else:
+        prev_month = 12
+        prev_year = cal_year - 1
+    return prev_year, prev_month
+
+def calc_next_month(cal_year, cal_month):
+    if cal_month < 12:
+        next_month = cal_month + 1
+        next_year = cal_year
+    else:
+        next_month = 1
+        next_year = cal_year + 1
+    return next_year, next_month

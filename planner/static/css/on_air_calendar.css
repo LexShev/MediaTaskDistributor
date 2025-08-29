@@ -1,0 +1,22 @@
+.month {
+    width: 100%;
+}
+
+.cal-btn {
+    aspect-ratio: 1/1;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.week-number {
+    width: 2rem;
+}
+
+/* Дополнительные стили для адаптивности */
+@media (max-width: 992px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+}

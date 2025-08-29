@@ -1,8 +1,14 @@
 <div class="card shadow-sm mx-1 my-2" style="border-color: {{ material.color }};">
   <div class="card-header p-2">
-    <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-      <h6 class="m-0">{{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</h6>
-    </a>
+    <h6 class="d-flex align-items-center m-0">
+      <a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+        {{ material.Progs_name }}{% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}
+      </a>
+      {% if material.Task_task_status == 'no_material' %}
+        <span class="badge rounded-circle bg-danger d-inline-flex align-items-center justify-content-center ms-auto"
+              style="width: 16px; height: 16px;" title="Материал отсутствует">!</span>
+      {% endif %}
+    </h6>
   </div>
   <div class="card-body p-2">
     <div class="card-text m-0"><small class="text-body-secondary">Канал: </small>
@@ -10,6 +16,11 @@
           {% if material.Task_sched_id %}{{ material.Task_sched_id|schedule_name }}
           {% elif not material.Task_sched_id %}{{ material.Sched_schedule_id|schedule_name }}
           {% endif %}
+        </small>
+    </div>
+    <div class="card-text m-0"><small class="text-body-secondary">Дата эфира: </small>
+        <small class="text-body-primary">
+          {{ material.Task_sched_date|date:"d E Y" }}
         </small>
     </div>
     <div class="card-text m-0"><small class="text-body-secondary">Возрастная категория: </small>

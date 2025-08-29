@@ -296,3 +296,9 @@ def program_name(program_id):
             return ''
         else:
             return program_id
+
+@register.filter
+def desktop_visibility(task_status):
+    if task_status in ('ready', 'otk', 'final'):
+        return True
+    return False
