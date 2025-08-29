@@ -15,31 +15,35 @@ window.addEventListener('beforeunload', function(e) {
 
 async function CheckLockCard() {
     try {
-        let response = await fetch(`/check_lock_card/${programId}/`);
+        let response = await fetch(`/check_lock_card/${programId}/${userId}/`);
         let data = await response.json();
-        if (!data?.locked) {
+        // Если карточка НЕ заблокирована, то блокируем ее
+        if (!data || data.message === 'not_locked') {
             await fetch(`/block_card/${programId}/${userId}/`)
                 .then(response => response.json())
-                .then(data => {
-                    console.log(data.response);
+                .then(check => {
+                    console.log(check.message);
+                    console.log('Was not blocked. LockCard');
                 })
                 .catch(error => {
                     console.log('Block error:', error);
                 });
             return;
-        }
-        let [lockType, [workerId, lockTime]] = data.locked;
-        let workerName = await getWorkerName(workerId);
-
-        let messageContainer = document.getElementById('message_container');
-        messageContainer.innerHTML = `
-            <div class="alert alert-warning alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">
-                Карточка материала заблокирована в ${lockType} пользователем: ${workerName} в ${FormatDate(lockTime)}
-            </div>`;
-        let cenzApproveBtn = document.getElementById('cenz_approve_btn');
-        let askFixBtn = document.getElementById('ask_fix_btn');
-        cenzApproveBtn.disabled = true;
-        askFixBtn.disabled = true;
+        };
+        if (data.status === 'error') {
+            console.error(data.message);
+        };
+        if (data.message === 'locked') {
+            let messageContainer = document.getElementById('message_container');
+            messageContainer.innerHTML = `
+                <div class="alert alert-warning alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">
+                    Карточка материала заблокирована в ${data.app} пользователем: ${data.worker_name} в ${FormatDate(data.lock_time)}
+                </div>`;
+            let cenzApproveBtn = document.getElementById('cenz_approve_btn');
+            let askFixBtn = document.getElementById('ask_fix_btn');
+            cenzApproveBtn.disabled = true;
+            askFixBtn.disabled = true;
+        };
     } catch (error) {
         console.log('Loading error:', error);
     }
@@ -64,7 +68,8 @@ async function getWorkerName(workerId) {
         const response = await fetch(`/get_worker_name/${workerId}`);
         const data = await response.json();
         return data.worker_name;
-    } catch (error) {
+    }
+    catch (error) {
         console.error('Getting name error:', error);
         return 'Аноним';
     }

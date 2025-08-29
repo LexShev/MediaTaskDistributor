@@ -44,6 +44,9 @@
 .clear-input {
 }
 
+.cards_container #dur_head {
+    display: none;
+}
 #markerName_1 {
   background-color: var(--bs-info-bg-subtle);
   color: var(--bs-info-text);

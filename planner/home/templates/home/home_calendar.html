@@ -22,13 +22,14 @@
         {% for day in week.days %}
           {% if day.is_current_month %}
             <td>
-              <button class="btn cal-btn w-100 p-1 loading-day" name="cal_day" value="{{ day.date|date:'Y-m-d' }}" type="button">
+              <button class="btn cal-btn w-100 p-1 loading-day {% if day.is_today %}active{% endif %}"
+                      name="cal_day" value="{{ day.date|date:'Y-m-d' }}" type="button">
                 {{ day.day }}
               </button></td>
           {% else %}
             <td>
-              <button class="btn cal-btn w-100 p-2" type="button" disabled>
-                {{ date.day|date:"j" }}</button></td>
+              <button class="btn cal-btn w-100 p-1" type="button" disabled>
+                {{ day.day }}</button></td>
           {% endif %}
         {% endfor %}
       </tr>

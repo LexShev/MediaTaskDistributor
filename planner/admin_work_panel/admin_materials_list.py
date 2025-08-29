@@ -77,7 +77,6 @@ def task_info(field_dict, search_init_dict):
         'total_duration': total_duration, 'total_count': total_count,
         'order': search_init_dict.order, 'order_type': search_init_dict.order_type
     }
-    print('service_dict', service_dict)
     return material_list, service_dict
 
 def update_task_list(request):

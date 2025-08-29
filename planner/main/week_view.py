@@ -85,7 +85,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                          'Adult_Name': temp_dict.get('Adult_Name'),
                          'Task_work_date': temp_dict.get('Task_work_date'),
                          'Task_sched_date': temp_dict.get('Task_sched_date'),
-                         'status': temp_dict.get('Task_task_status'),
+                         'Task_task_status': temp_dict.get('Task_task_status'),
                          'Task_engineer_id': temp_dict.get('Task_engineer_id')
                          }
                     ]
@@ -101,7 +101,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                     'Adult_Name': temp_dict.get('Adult_Name'),
                     'Task_work_date': temp_dict.get('Task_work_date'),
                     'Task_sched_date': temp_dict.get('Task_sched_date'),
-                    'status': temp_dict.get('Task_task_status'),
+                    'Task_task_status': temp_dict.get('Task_task_status'),
                     'Task_engineer_id': temp_dict.get('Task_engineer_id')
                      })
                 program_id_list.append(program_id)
@@ -119,7 +119,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                 'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
                 'Task_sched_date': temp_dict.get('Task_sched_date'),
                 'type': 'film',
-                'status': temp_dict.get('Task_task_status'),
+                'Task_task_status': temp_dict.get('Task_task_status'),
                 'Task_engineer_id': temp_dict.get('Task_engineer_id')
             }
             material_list[day_num].append(program_info_dict)

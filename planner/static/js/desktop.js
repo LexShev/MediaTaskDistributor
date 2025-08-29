@@ -217,8 +217,6 @@ function calculateDuration() {
 
         const containerParent = container.parentNode;
         const resultElement = containerParent.querySelector('.total-duration');
-        console.log(resultElement);
-
 
         // Или создаем новый элемент, если нужно
         // const resultElement = document.createElement('div');

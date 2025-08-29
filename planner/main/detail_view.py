@@ -73,7 +73,7 @@ def full_info(program_id):
             full_info_dict['material_type'] = 'season'
         else:
             full_info_dict['material_type'] = 'film'
-        print(full_info_dict)
+        # print(full_info_dict)
         return full_info_dict
 
 def find_file_path(program_id):
