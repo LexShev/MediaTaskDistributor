@@ -4,66 +4,113 @@
 {% block body %}
 <link href="{% static '/css/dropdowns.css' %}"  rel="stylesheet">
 
-<div class="container-flex px-lg-5">
-  <br>
-  <div class="row">
-    <div class="col text-center p-0">
-      <h4>Отчёт о готовности материала на эфир: {{ service_dict.cal_day|date:'d-m-Y' }}</h4>
-    </div>
-    <div class="row row-cols-1 p-0 ps-4">
-      {% for channel in channels_list %}
-        {% for schedule_id, task_list in channel.items %}
-        <div class="col px-0 py-2">
-          <h5>{{ schedule_id|schedule_name }}</h5>
-          <div class="card py-2">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th scope="col" class="col-3">Название</th>
-                  <th scope="col" class="col-1">Директория</th>
-                  <th scope="col" class="col-4">Имя файла</th>
-                  <th scope="col" class="col-2">Исполнитель</th>
-                  <th scope="col" class="col-1">Длительность</th>
-            <!--            <th scope="col">Дата отсмотра</th>-->
-                  <th scope="col" class="col-1">Статус</th>
-                </tr>
-              </thead>
-              <tbody class="table-group-divider" id="tableBody">
-                {% for task in task_list %}
-                  <tr>
-                    <td hidden>
-                      {{ task.Task_sched_date|date:'Y-m-d' }}
-                    </td>
-                    <td>
-                    <a href="{% url 'home' %}{{ task.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                    {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
-                    <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
-                    <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
-                    <td>
-                      <a href="{% url 'home' %}worker/{{ task.Task_engineer_id|engineer_id_to_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                        {{ task.Task_engineer_id|engineer_name }}</a></td>
-                    <td>{{ task.Progs_duration|convert_frames_to_time }}</td>
-                    {% if task.Task_task_status == 'not_ready' %}
-                      <td class="table-danger">Не готов</td>
-                    {% elif task.Task_task_status == 'ready' %}
-                      <td class="table-success">Готов</td>
-                    {% elif not task.Task_task_status and task.Files_Name %}
-                      <td class="table-info">Oplan</td>
-                    {% elif not task.Task_file_path and not task.Files_Name %}
-                      <td class="table-danger">Нет материала</td>
-                    {% else %}
-                      <td class="table-info">{{ task.Task_task_status|status_name }}</td>
-                    {% endif %}
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          </div><br>
-        {% endfor %}
-      {% endfor %}
+
+<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Ошибка!</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h5>Ни одна задача не выбрана!</h5>
+      </div>
     </div>
   </div>
 </div>
 
+<div class="modal fade" id="ApproveFinal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Утвердить выбранные задачи?</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-footer">
+        <button name="approve_final" id="approve_final" value="True" type="submit" class="btn btn-success">Утвердить</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="ReadyFail" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Отправить на доработку выбранные задачи?</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="ready_fail_list">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button name="otk_fail" id="otk_fail" value="True" type="submit" class="btn btn-warning">На доработку</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container-flex px-lg-5">
+  <br>
+  <div class="row align-items-center mb-3">
+    <div class="col d-flex align-items-center justify-content-end">
+      <a href="{% url 'home' %}on-air-report/{{ service_dict.prev_date|date:'Y' }}/{{ service_dict.prev_date|date:'m' }}/{{ service_dict.prev_date|date:'d' }}" class="btn cal-btn" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+        </svg>
+      </a>
+    </div>
+    <div class="col d-flex align-items-center justify-content-center">
+      <h4 class="text-center">Отчёт о готовности материала на эфир: {{ service_dict.cal_date|date:'d-m-Y' }}</h4>
+    </div>
+    <div class="col d-flex align-items-center justify-content-start">
+      <a href="{% url 'home' %}on-air-report/{{ service_dict.next_date|date:'Y' }}/{{ service_dict.next_date|date:'m' }}/{{ service_dict.next_date|date:'d' }}" class="btn cal-btn" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+  <div class="accordion">
+  {% for schedule_id in schedule_id_list %}
+    <div class="accordion-item">
+      <h5 class="accordion-header">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#accordion_{{schedule_id}}" aria-expanded="true" aria-controls="accordion_{{schedule_id}}">
+          {{ schedule_id|schedule_name }}
+        </button>
+      </h5>
+      <div id="accordion_{{schedule_id}}" class="accordion-collapse collapse show">
+        <div class="accordion-body p-0">
+          <div class="channel-container" data-schedule-id="{{ schedule_id }}" data-schedule-date="{{ service_dict.cal_date|date:'Y-m-d' }}">
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                  <span class="visually-hidden">Загрузка данных...</span>
+              </div>
+              <p class="mt-3">Идет загрузка таблицы...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+
+</div>
+<div style="height: 70px;" id="spacer"></div>
+<div class="fixed-bottom bg-body" id="controller">
+  <div class="container-flex px-lg-5">
+    <div class="d-flex border-top py-2">
+      <div class="me-auto">
+        <button type="button" onclick="ShowApproveFinal()" class="btn register-button btn-outline-success mx-2">Утвердить на эфир</button>
+        <button type="button" onclick="ShowReadyFail()" class="btn register-button btn-outline-danger mx-2">На доработку</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript" src="{% static 'js/on_air_report.js' %}"></script>
 {% endblock %}

@@ -55,16 +55,6 @@
           </div>
         </div>
 
-        <div class="col-12 my-2">
-          <div class="card text-center border-secondary p-0 w-100" style="width: 18rem;">
-            <div class="card-header border-primary">
-              <h5>Общий хронометраж</h5>
-            </div>
-            <div class="card-body border-light">
-              <h3 class="card-title">{{ summary_dict.total_dur|convert_frames_to_time }}</h3>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -107,6 +97,7 @@
               <th scope="col" class="col-5">Название</th>
               <th scope="col" class="col-1">Длительность</th>
               <th scope="col" class="col-1">Дата отсмотра</th>
+              <th scope="col" class="col-1">Дата эфира</th>
               <th scope="col" class="col-1">Статус</th>
             </tr>
           </thead>
@@ -118,10 +109,18 @@
                     {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
                 <td>{{ task.Task_duration|convert_frames_to_time }}</td>
                 <td>{{ task.Task_work_date|date:'d.m.Y' }}</td>
+                <td>{{ task.Task_sched_date|date:'d.m.Y' }}</td>
                 <td>{{ task.Task_task_status|status_name }}</td>
               </tr>
             {% endfor %}
           </tbody>
+          <tfoot class="table-group-divider">
+            <tr class="table-body">
+              <td><strong>Итог</strong></td>
+              <td><strong>{{ summary_dict.filtered_dur|convert_frames_to_time }}</strong></td>
+              <td colspan="3"></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>

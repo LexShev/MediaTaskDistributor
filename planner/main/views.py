@@ -561,11 +561,18 @@ def cenz_info_change(request):
     messages.success(request, message)
     return JsonResponse({'status': 'success', 'message': message})
 
-def check_lock_card(request, program_id, worker_id):
-    return JsonResponse(check_planner_lock(program_id, worker_id) or check_oplan3_lock(program_id))
+def check_lock_card(request, program_id):
+    return JsonResponse(check_planner_lock(program_id) or check_oplan3_lock(program_id))
 
 def block_card(request, program_id, worker_id):
-    return JsonResponse(block_object_planner(program_id, worker_id))
+    try:
+        result = block_object_planner(program_id, worker_id)
+        return JsonResponse(result)
+    except Exception as error:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Internal server error: {str(error)}'
+        }, status=500)
 
 def unblock_card(request, program_id, worker_id):
     return JsonResponse({'response': unblock_object_planner(program_id, worker_id)})

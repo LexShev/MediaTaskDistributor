@@ -89,8 +89,8 @@ def kpi_summary_calc(field_dict):
 
 def personal_task_list(field_dict):
     with connections[PLANNER_DB].cursor() as cursor:
-        columns = [('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
-                   ('Task', 'work_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
+        columns = [('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'), ('Task', 'work_date'),
+                   ('Task', 'sched_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -111,20 +111,23 @@ def personal_task_list(field_dict):
 def kpi_personal_calc(field_dict):
     task_list = personal_task_list(field_dict)
     total_count = len(task_list)
-    total_dur = sum(task.get('Task_duration') for task in task_list)
     ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
     not_ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'not_ready', task_list)))
     ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'ready')
     not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'not_ready')
-    total_kpi = total_dur / 720000.0
-    ready_kpi = ready_dur / 720000.0
-    summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
-                    'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
-                    'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
+
     material_type = field_dict.get('material_type')
     task_status = field_dict.get('task_status')
     filtered_task_list = filter(lambda task: task.get('Progs_program_type_id') in check_mat_type(material_type) or not material_type, task_list)
-    filtered_task_list = filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list)
+    filtered_task_list = list(filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list))
+
+    total_dur = sum(task.get('Task_duration') for task in task_list)
+    filtered_dur = sum(task.get('Task_duration') for task in filtered_task_list)
+    total_kpi = total_dur / 720000.0
+    ready_kpi = ready_dur / 720000.0
+    summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'filtered_dur': filtered_dur, 'ready_tasks': ready_tasks,
+                    'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
+                    'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
     return filtered_task_list, summary_dict
 
 

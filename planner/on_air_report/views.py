@@ -3,10 +3,12 @@ from datetime import datetime, date
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
 from .on_air_calendar import calendar_skeleton, calc_next_month, calc_prev_month, update_info
-from .report import report_calendar, collect_channels_list, prepare_service_dict
+from .report import collect_channels_list, prepare_service_dict, task_list_for_channel
+
 
 def report(request):
     today = date.today()
@@ -37,7 +39,8 @@ def month_report(request, cal_year, cal_month):
         ('otk', 'Прошёл ОТК'),
         ('otk_fail', 'На доработке'),
         ('final', 'Готов к эфиру'),
-        ('ready_fail', 'На пересмотр')
+        ('ready_fail', 'На пересмотр'),
+        ('ready_oplan3', 'Завершено в Oplan3')
     ]
     data = {
         'on_air_calendar': calendar_skeleton(cal_year, cal_month),
@@ -56,17 +59,33 @@ def load_on_air_calendar_info(request):
     return JsonResponse(update_info(current_date))
 
 @login_required()
-def report_date(request, cal_year, cal_month, day):
+def report_date(request, cal_year, cal_month, cal_day):
     worker_id = request.user.id
-    cal_day = date(cal_year, cal_month, day=day)
-    if isinstance(cal_day, str):
-        cal_day = datetime.strptime(cal_day, '%Y-%m-%d')
+    cal_date = date(cal_year, cal_month, cal_day)
+    # if isinstance(cal_day, str):
+    #     cal_day = datetime.strptime(cal_day, '%Y-%m-%d')
     # month_calendar = report_calendar(cal_year, cal_month)
-    channels_list = collect_channels_list(cal_day)
+    schedule_id_list = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
     data = {
-        # 'month_calendar': month_calendar,
-        'channels_list': channels_list,
-        'service_dict': prepare_service_dict(cal_year, cal_month, cal_day),
+        'schedule_id_list': schedule_id_list,
+        'service_dict': prepare_service_dict(cal_year, cal_month, cal_day, cal_date),
         'permissions': ask_db_permissions(worker_id)
     }
     return render(request, 'on_air_report/on_air_report.html', data)
+
+def get_schedule_table(request, sched_date, schedule_id):
+    worker_id = request.user.id
+    try:
+        html = render_to_string(
+            'on_air_report/schedule_table.html',
+            {
+                'task_list': task_list_for_channel(sched_date, schedule_id),
+                # 'service_dict': prepare_service_dict(cal_year, cal_month, cal_day),
+                'permissions': ask_db_permissions(worker_id),
+            },
+            request=request
+        )
+        return JsonResponse({'html': html})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'error': str(e)}, status=500)

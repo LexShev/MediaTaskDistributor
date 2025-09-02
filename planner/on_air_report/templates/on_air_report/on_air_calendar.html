@@ -53,10 +53,12 @@
                     {% for day in week.days %}
                       {% if day.is_current_month %}
                         <td>
-                          <button class="btn cal-btn w-100 p-1 loading-day {% if day.is_today %}active{% endif %}"
+                          <button class="btn cal-btn w-100 p-1 loading-day {% if day.is_today %}active{% endif %} position-relative"
                                   name="cal_day" value="{{ day.date|date:'Y-m-d' }}" type="button"
                                   onclick="selectDay(this);">
                             {{ day.day }}
+                            <span class="badge total-otk text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle position-absolute m-2"
+                                  style="display: none;"></span>
                           </button>
                         </td>
                       {% else %}
