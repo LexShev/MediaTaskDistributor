@@ -24,22 +24,22 @@ def check_oplan3_lock(program_id):
     except Exception as error:
         return {'status': 'error', 'message': str(error)}
 
-def check_planner_lock(program_id, worker_id):
+def check_planner_lock(program_id):
     try:
         with connections[PLANNER_DB].cursor() as cursor:
-            query = f'''SELECT Us.[first_name], Us.[last_name], Mat.[lock_time]
+            cursor.execute(f'DELETE FROM [{PLANNER_DB}].[dbo].[material_lock] WHERE lock_time < DATEADD(HOUR, -2, GETDATE())')
+            query = f'''SELECT Mat.[worker_id], Us.[first_name], Us.[last_name], Mat.[lock_time]
             FROM [{PLANNER_DB}].[dbo].[material_lock] AS Mat
             JOIN [{PLANNER_DB}].[dbo].[auth_user] AS Us
                 ON Mat.[worker_id] = Us.[id]
             WHERE Mat.[program_id] = %s
-            AND Mat.[worker_id] != %s
             '''
-            cursor.execute(query, (program_id, worker_id))
+            cursor.execute(query, (program_id,))
             lock = cursor.fetchone()
-            if lock and len(lock) == 3:
-                first_name, last_name, lock_time = lock
+            if lock and len(lock) == 4:
+                worker_id, first_name, last_name, lock_time = lock
                 return {'status': 'success', 'message': 'locked', 'app': 'Planner',
-                 'worker_name': f'{first_name} {last_name}', 'lock_time': lock_time}
+                 'worker_id': worker_id, 'worker_name': f'{first_name} {last_name}', 'lock_time': lock_time}
             else:
                 return {'status': 'success', 'message': 'not_locked'}
     except Exception as error:
@@ -55,7 +55,7 @@ def block_object_planner(program_id, worker_id):
             (%s, %s, %s);
             '''
             cursor.execute(query, (program_id, worker_id, datetime.now()))
-            if cursor.rowcount:
+            if cursor.rowcount > 0:
                 return  {'status': 'success', 'message': f'{program_id} was blocked'}
             else:
                 return {'status': 'error', 'message': 'not_blocked'}

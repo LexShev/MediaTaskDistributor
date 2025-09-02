@@ -15,15 +15,19 @@ window.addEventListener('beforeunload', function(e) {
 
 async function CheckLockCard() {
     try {
-        let response = await fetch(`/check_lock_card/${programId}/${userId}/`);
+        let response = await fetch(`/check_lock_card/${programId}/`);
         let data = await response.json();
         // Если карточка НЕ заблокирована, то блокируем ее
-        if (!data || data.message === 'not_locked') {
+        if (!data) {
+            return
+        };
+
+        if (data.message === 'not_locked') {
+            console.log('Was not blocked. LockCard');
             await fetch(`/block_card/${programId}/${userId}/`)
                 .then(response => response.json())
                 .then(check => {
                     console.log(check.message);
-                    console.log('Was not blocked. LockCard');
                 })
                 .catch(error => {
                     console.log('Block error:', error);
@@ -33,7 +37,7 @@ async function CheckLockCard() {
         if (data.status === 'error') {
             console.error(data.message);
         };
-        if (data.message === 'locked') {
+        if (data.message === 'locked' && data.worker_id !== userId) {
             let messageContainer = document.getElementById('message_container');
             messageContainer.innerHTML = `
                 <div class="alert alert-warning alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">

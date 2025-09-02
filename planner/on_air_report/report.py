@@ -119,17 +119,21 @@ def report_calendar(cal_year, cal_month):
     cache.set(cache_key, colorized_calendar, timeout=60*60*24)  # Кеш на 24 часа
     return colorized_calendar
 
-def prepare_service_dict(cal_year, cal_month, cal_day):
-    prev_year, prev_month = calc_prev_month(cal_year, cal_month)
-    next_year, next_month = calc_next_month(cal_year, cal_month)
+def prepare_service_dict(cal_year, cal_month, cal_day, cal_date):
+    # prev_year, prev_month = calc_prev_month(cal_year, cal_month)
+    # next_year, next_month = calc_next_month(cal_year, cal_month)
+    print(cal_year, cal_month, cal_day, cal_date)
+    if isinstance(cal_date, str):
+        cal_date = datetime.datetime.strptime(cal_date, '%Y-%m-%d')
+    prev_date = cal_date - datetime.timedelta(days=1)
+    next_date = cal_date + datetime.timedelta(days=1)
     service_dict = {
         'cal_year': cal_year,
         'cal_month': cal_month,
         'cal_day': cal_day,
-        'prev_year': prev_year,
-        'next_year': next_year,
-        'prev_month': prev_month,
-        'next_month': next_month
+        'cal_date': cal_date,
+        'prev_date': prev_date,
+        'next_date': next_date,
     }
     return service_dict
 
@@ -160,6 +164,54 @@ def collect_channels_list(cal_day):
                 program_id_list.append(material[0])
         channels_list.append(channel)
     return channels_list
+
+def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 10, 11, 12)):
+    columns = [
+        ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
+        ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
+        ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'), ('Progs', 'duration'),
+        ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
+        ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
+    ]
+    with connections[OPLAN_DB].cursor() as cursor:
+        sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+        django_columns = [f'{col}_{val}' for col, val in columns]
+        query = f"""
+            SELECT {sql_columns}
+            FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+            JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
+                ON Progs.[program_id] = SchedProg.[program_id]
+            JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
+                ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
+            JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
+                ON SchedDay.[schedule_id] = Sched.[schedule_id]
+            LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
+                ON Progs.[program_id] = Task.[program_id]
+            WHERE Progs.[deleted] = 0
+            AND Progs.[DeletedIncludeParent] = 0
+            AND SchedProg.[Deleted] = 0
+            AND SchedDay.[schedule_id] = {schedule_id}
+            AND SchedDay.[day_date] = '{sched_date}'
+            AND Progs.[program_type_id] IN {program_type}
+            AND Progs.[program_id] > 0
+            ORDER BY SchedProg.[DateTime] ASC
+            """
+        cursor.execute(query)
+        material_list = cursor.fetchall()
+        task_list = []
+        program_id_list = []
+        for material in material_list:
+            if material[2] == schedule_id:
+                if material[0] in program_id_list:
+                    continue
+                temp_dict = dict(zip(django_columns, material))
+                if not temp_dict.get('Task_file_path'):
+                    temp_dict['Files_Name'] = find_file_path(temp_dict.get('Progs_program_id'))
+                if not temp_dict.get('Task_engineer_id') and temp_dict.get('Task_engineer_id') != 0:
+                    temp_dict['Task_engineer_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
+                task_list.append(temp_dict)
+        # print(task_list)
+        return task_list
 
 def oplan3_engineer(program_id):
     with connections[OPLAN_DB].cursor() as cursor:

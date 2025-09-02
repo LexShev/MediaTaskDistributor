@@ -45,10 +45,10 @@ def work_list(request):
         approve_fix = request.POST.get('approve_fix')
 
         if approve:
-            program_id_list = request.POST.getlist('program_id')
-
-            change_task_status_batch(program_id_list, 'otk')
-            update_comment_batch(program_id_list, 'otk', worker_id)
+            program_id_list = request.POST.getlist('program_id_check')
+            approve_list = [{'program_id': program_id} for program_id in program_id_list]
+            change_task_status_batch(approve_list, 'otk')
+            update_comment_batch(approve_list, 'otk', worker_id)
         if otk_fail:
             otk_fail_prog_id = request.POST.getlist('otk_fail_prog_id')
             otk_fail_comment = request.POST.getlist('otk_fail_comment')
