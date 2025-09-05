@@ -1,11 +1,16 @@
+import json
 from datetime import datetime, date
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
+from django.contrib import messages
 
+from main.logs_and_history import get_task_status, change_task_status_final, insert_history_status, update_comment
 from main.permission_pannel import ask_db_permissions
+from main.templatetags.custom_filters import engineer_id_to_worker_id
+from messenger_static.messenger_utils import create_notification
 from .on_air_calendar import calendar_skeleton, calc_next_month, calc_prev_month, update_info
 from .report import collect_channels_list, prepare_service_dict, task_list_for_channel
 
@@ -37,9 +42,9 @@ def month_report(request, cal_year, cal_month):
         ('fix_ready', 'Исходник исправлен'),
         ('ready', 'Отсмотрен'),
         ('otk', 'Прошёл ОТК'),
-        ('otk_fail', 'На доработке'),
+        ('otk_fail', 'Не прошёл ОТК'),
         ('final', 'Готов к эфиру'),
-        ('ready_fail', 'На пересмотр'),
+        ('final_fail', 'Не прошёл ЭК'),
         ('ready_oplan3', 'Завершено в Oplan3')
     ]
     data = {
@@ -89,3 +94,86 @@ def get_schedule_table(request, sched_date, schedule_id):
     except Exception as e:
         print(e)
         return JsonResponse({'error': str(e)}, status=500)
+
+def apply_final_batch(request):
+    success_messages = []
+    error_messages = []
+
+    worker_id = request.user.id
+    print(json.loads(request.body))
+    try:
+        approve_list_list = json.loads(request.body)
+
+        if not approve_list_list:
+            return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
+
+        for program_id in approve_list_list:
+            db_task_status = get_task_status(program_id)
+            if db_task_status in ('no_material', 'not_ready', 'fix', 'otk_fail', 'final_fail'):
+                return JsonResponse(
+                    {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
+            answer = change_task_status_final(program_id, 'final', db_task_status)
+            if answer.get('status') == 'success':
+                insert_history_status(program_id, worker_id, db_task_status, 'final')
+                success_messages.append(answer.get('message'))
+            else:
+                error_messages.append(answer.get('message'))
+
+        if success_messages:
+            messages.success(request, '\n'.join(success_messages))
+        if error_messages:
+            messages.error(request, '\n'.join(error_messages))
+        return JsonResponse({'status': 'success', 'message': 'message'})
+    except Exception as error:
+        print(error)
+        return JsonResponse({'error': str(error)}, status=500)
+
+
+def final_fail_batch(request):
+    success_messages = []
+    error_messages = []
+
+    worker_id = request.user.id
+    print(json.loads(request.body))
+    try:
+        program_list = json.loads(request.body)
+
+        if not program_list:
+            return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
+
+        for material in program_list:
+            program_id= material.get('program_id')
+            recipient = material.get('recipient')
+            comment = material.get('comment')
+            print(material, recipient, type(recipient))
+
+            if recipient == 'otk':
+                recipient = 6
+            else:
+                recipient = engineer_id_to_worker_id(recipient)
+            db_task_status = get_task_status(program_id)
+            if db_task_status in ('no_material', 'not_ready', 'fix', 'otk_fail', 'final_fail'):
+                return JsonResponse(
+                    {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
+            answer = change_task_status_final(program_id, 'final_fail', db_task_status)
+            if answer.get('status') == 'success':
+                insert_history_status(program_id, worker_id, db_task_status, 'final_fail')
+                if comment:
+                    update_comment(program_id, worker_id, task_status='final_fail', comment=comment, deadline=None)
+                notification_data = {
+                    'sender': worker_id, 'recipient': recipient, 'program_id': program_id,
+                    'message': comment, 'comment': 'Материал не прошёл эфирный контроль'
+                }
+                create_notification(notification_data)
+                success_messages.append(answer.get('message'))
+            else:
+                error_messages.append(answer.get('message'))
+
+        if success_messages:
+            messages.success(request, '\n'.join(success_messages))
+        if error_messages:
+            messages.error(request, '\n'.join(error_messages))
+        return JsonResponse({'status': 'success', 'message': 'message'})
+    except Exception as error:
+        print(error)
+        return JsonResponse({'error': str(error)}, status=500)

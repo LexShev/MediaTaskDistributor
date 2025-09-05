@@ -3,8 +3,10 @@ from typing import Dict
 from django.db import connections
 from datetime import datetime, date
 
+from main.detail_view import cenz_info
 from main.js_requests import program_name
 from main.helpers import get_engineer_id
+from main.templatetags.custom_filters import status_name
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 
@@ -67,6 +69,18 @@ def insert_history_new(program_id, worker_id, old_values, new_values):
                 VALUES ({program_id}, {num_key}, '', '', {worker_id}, GETDATE(), '{old_value}', '{new_value}');
                 '''
                 cursor.execute(query)
+
+def insert_history_status(program_id, worker_id, old_status, new_status):
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            query = f'''
+            INSERT INTO [{PLANNER_DB}].[dbo].[history_status_list]
+            ([program_id], [worker_id], [time_of_change], [old_status], [new_status])
+            VALUES (%s, %s, %s, %s, %s);
+            '''
+            cursor.execute(query, (program_id, worker_id, datetime.today(), old_status, new_status))
+    except Exception as error:
+        print(error)
 
 def select_actions(program_id):
     columns = ('program_id', 'CustomFieldID', 'action_description', 'action_comment',
@@ -213,3 +227,35 @@ def get_task_status(program_id):
         if res and res[0]:
             return res[0]
         return None
+
+def change_task_status_final(program_id, task_status, db_task_status):
+    program = program_name(program_id)
+    task_name = status_name(task_status)
+    file_path_dict = find_file_path(program_id)
+    file_path = file_path_dict.get('Files_Name')
+    if not file_path:
+        return {'status': 'error', 'message':  f'Ошибка! Изменения не были внесены. Медиафайл для {program} отсутствует.'}
+    duration = file_path_dict.get('Progs_duration')
+    with connections[PLANNER_DB].cursor() as cursor:
+        if db_task_status:
+            update_status = f'''
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                SET [duration] = %s, [task_status] = %s, [file_path] = %s
+                WHERE [program_id] = %s
+                '''
+            cursor.execute(update_status, (duration, task_status, file_path, program_id))
+            if cursor.rowcount:
+                return {'status': 'success', 'message': f'{program} статус изменён на {task_name}.'}
+            else:
+                return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {program}'}
+        return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {program} передача отсмотрена в Oplan.'}
+        # else:
+        #     oplan_info = cenz_info(program_id)
+        #     columns = '[program_id], [engineer_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
+        #     values = (program_id, oplan_info.get(15), duration, oplan_info.get(7), datetime.today(), task_status, file_path)
+        #     query = f'''
+        #             INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ({columns})
+        #             VALUES (%s, %s, %s, %s, %s, %s, %s)
+        #             '''
+        #     cursor.execute(query, values)
+        #     return {'status': 'success', 'message': f'{program} был добавлен в базу.'}

@@ -40,7 +40,7 @@ def daily_kpi():
         COUNT(CASE WHEN task_status NOT IN ('ready', 'final', 'otk') AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS not_final,
         COUNT(CASE WHEN task_status IN ('ready', 'final', 'otk') AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS ready,
         COUNT(CASE WHEN task_status = 'no_material' AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS no_material,
-        COUNT(CASE WHEN task_status IN ('otk_fail', 'fix', 'ready_fail') AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS fix
+        COUNT(CASE WHEN task_status IN ('otk_fail', 'fix', 'final_fail') AND [work_date] = CONVERT(DATE, GETDATE()) THEN 1 END) AS fix
         FROM [{PLANNER_DB}].[dbo].[task_list]
         '''
         cursor.execute(query)

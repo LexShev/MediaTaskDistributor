@@ -4,7 +4,7 @@ from django.db import connections
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 
-DEFAULT_PROGRAM_TYPES = (4, 5, 6, 10, 11, 12)
+DEFAULT_PROGRAM_TYPES = (4, 5, 6, 10, 11, 12, 16)
 DEFAULT_SCHEDULES_IDS = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
 
 def main_distribution():

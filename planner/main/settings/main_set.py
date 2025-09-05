@@ -6,19 +6,19 @@ class MainSettings:
             'fix_ready': 'Исходник исправлен',
             'ready': 'Отсмотрен',
             'otk': 'Прошёл ОТК',
-            'otk_fail': 'На доработке',
+            'otk_fail': 'Не прошёл ОТК',
             'final': 'Готов к эфиру',
-            'ready_fail': 'На пересмотр'
+            'final_fail': 'Не прошёл ЭК'
         }
 
     color_dict = {
-            'no_material': 'text-danger',
-            'not_ready': 'text-primary',
-            'fix': 'text-warning',
-            'fix_ready': 'text-warning',
-            'ready': 'text-success',
-            'otk': 'text-success',
-            'otk_fail': 'text-danger',
-            'final': 'text-success',
-            'ready_fail': 'text-danger'
+            'no_material': 'danger',
+            'not_ready': 'primary',
+            'fix': 'warning',
+            'fix_ready': 'warning',
+            'ready': 'success',
+            'otk': 'info',
+            'otk_fail': 'danger',
+            'final': 'success',
+            'final_fail': 'danger'
         }

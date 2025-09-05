@@ -238,7 +238,7 @@ function ShowOTKFail() {
                 file_name.name = 'file_name'
                 OTKFailList.appendChild(file_name);
 
-                sub_header = document.createElement("h6");
+                let sub_header = document.createElement("h6");
                 sub_header.textContent = 'Комментарий по необходимой доработке';
                 OTKFailList.appendChild(sub_header);
 

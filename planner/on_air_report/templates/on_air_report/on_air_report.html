@@ -4,7 +4,6 @@
 {% block body %}
 <link href="{% static '/css/dropdowns.css' %}"  rel="stylesheet">
 
-
 <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -13,40 +12,42 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <h5>Ни одна задача не выбрана!</h5>
+        <h6 id="error_message"></h6>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="ApproveFinal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="ApproveFinalModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
+      <input class="visually-hidden" data-approve-list="" id="approve_list">
       <div class="modal-header">
         <h3 class="modal-title">Утвердить выбранные задачи?</h3>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-footer">
-        <button name="approve_final" id="approve_final" value="True" type="submit" class="btn btn-success">Утвердить</button>
+        <button name="approve_final" id="approve_final" value="" onclick="approveFinal()" type="button" class="btn btn-success">Утвердить</button>
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="ReadyFail" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+<div class="modal fade" id="FinalFailModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable modal-xl">
     <div class="modal-content">
+      <input class="visually-hidden" data-final-fail-list="" id="final_fail_list">
       <div class="modal-header">
         <h3 class="modal-title">Отправить на доработку выбранные задачи?</h3>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div id="ready_fail_list">
+        <div id="fail_container">
         </div>
       </div>
       <div class="modal-footer">
-        <button name="otk_fail" id="otk_fail" value="True" type="submit" class="btn btn-warning">На доработку</button>
+        <button name="final_fail" id="final_fail" onclick="finalFail()" type="button" class="btn btn-warning">На доработку</button>
         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
       </div>
     </div>
@@ -56,6 +57,10 @@
 
 <div class="container-flex px-lg-5">
   <br>
+    <div id="message_container">
+      {% include  'main/messages.html' %}
+    </div>
+
   <div class="row align-items-center mb-3">
     <div class="col d-flex align-items-center justify-content-end">
       <a href="{% url 'home' %}on-air-report/{{ service_dict.prev_date|date:'Y' }}/{{ service_dict.prev_date|date:'m' }}/{{ service_dict.prev_date|date:'d' }}" class="btn cal-btn" type="button">
@@ -105,9 +110,9 @@
 <div class="fixed-bottom bg-body" id="controller">
   <div class="container-flex px-lg-5">
     <div class="d-flex border-top py-2">
-      <div class="me-auto">
+      <div class="ms-auto">
         <button type="button" onclick="ShowApproveFinal()" class="btn register-button btn-outline-success mx-2">Утвердить на эфир</button>
-        <button type="button" onclick="ShowReadyFail()" class="btn register-button btn-outline-danger mx-2">На доработку</button>
+        <button type="button" onclick="ShowFinalFail()" class="btn register-button btn-outline-danger ms-2 me-0">На доработку</button>
       </div>
     </div>
   </div>

@@ -33,7 +33,7 @@ def update_info(current_date):
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'otk' THEN Task.[program_id] END) AS otk,
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'otk_fail' THEN Task.[program_id] END) AS otk_fail,
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'final' THEN Task.[program_id] END) AS final,
-            COUNT(DISTINCT CASE WHEN Task.[task_status] = 'ready_fail' THEN Task.[program_id] END) AS ready_fail,
+            COUNT(DISTINCT CASE WHEN Task.[task_status] = 'final_fail' THEN Task.[program_id] END) AS final_fail,
             COUNT(DISTINCT CASE WHEN CustField.[ProgramCustomFieldId] = 15 THEN Progs.[program_id] END) AS ready_oplan3
         FROM [{OPLAN_DB}].[dbo].[program] AS Progs
         JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
@@ -56,9 +56,9 @@ def update_info(current_date):
         # not_ready = result[0] if result and result[0] is not None else 0
         # ready = result[1] if result and result[1] is not None else 0
         if result:
-            no_material, not_ready, fix, fix_ready, ready, otk, otk_fail, final, ready_fail, ready_oplan3 = result
+            no_material, not_ready, fix, fix_ready, ready, otk, otk_fail, final, final_fail, ready_oplan3 = result
             try:
-                unfinished = no_material + not_ready + fix + fix_ready + ready + otk + otk_fail + ready_fail
+                unfinished = no_material + not_ready + fix + fix_ready + ready + otk + otk_fail + final_fail
                 ready_index = (final * 100) / unfinished
             except Exception as e:
                 print(e)
@@ -73,7 +73,7 @@ def update_info(current_date):
                 color = 'btn-outline-danger'
             return {
                 'no_material': no_material, 'not_ready': not_ready, 'fix': fix, 'fix_ready': fix_ready, 'ready': ready,
-                'otk': otk, 'otk_fail': otk_fail, 'final': final, 'ready_fail': ready_fail, 'ready_oplan3': ready_oplan3,
+                'otk': otk, 'otk_fail': otk_fail, 'final': final, 'final_fail': final_fail, 'ready_oplan3': ready_oplan3,
                 'color': color
             }
         return {'status': 'error', 'message': 'empty list'}

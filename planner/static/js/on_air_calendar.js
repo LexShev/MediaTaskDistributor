@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 otk: dayInfo.otk,
                 otkFail: dayInfo.otk_fail,
                 final: dayInfo.final,
-                readyFail: dayInfo.ready_fail,
+                readyFail: dayInfo.final_fail,
                 readyOplan3: dayInfo.ready_oplan3
             });
             const badgeInfo = button.querySelector('span.total-otk');
@@ -83,7 +83,7 @@ function selectDay(selectedDay) {
         otk: document.getElementById('otk'),
         otkFail: document.getElementById('otk_fail'),
         final: document.getElementById('final'),
-        readyFail: document.getElementById('ready_fail'),
+        readyFail: document.getElementById('final_fail'),
         readyOplan3: document.getElementById('ready_oplan3'),
     };
 
