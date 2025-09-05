@@ -262,6 +262,11 @@ def status_name(status):
     return status_dict.get(status, '')
 
 @register.filter
+def status_color(status):
+    color_dict = MainSettings.color_dict
+    return color_dict.get(status, '')
+
+@register.filter
 def thousands(num):
     return f'{num:,}'.replace(',', ' ')
 

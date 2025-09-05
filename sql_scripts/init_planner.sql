@@ -99,6 +99,17 @@ CREATE TABLE history_list
 	new_value NVARCHAR(MAX)
 );
 
+CREATE TABLE history_status_list
+(
+    action_id INT PRIMARY KEY IDENTITY NOT NULL,
+	program_id INT NOT NULL,
+	action_description NVARCHAR(MAX),
+    worker_id INT NOT NULL,
+	time_of_change DATETIME NOT NULL,
+	old_status NVARCHAR(MAX),
+	new_status NVARCHAR(MAX)
+);
+
 CREATE TABLE [days_off]
 (
 	[day_off] DATE,

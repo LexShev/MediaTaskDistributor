@@ -37,7 +37,7 @@
               <h5>{{ task.comments.0.Progs_name }}</h5>
               <div class="dropdown-divider"></div>
               {% for comment in task.comments %}
-                  <h6>Исправить до: {{ comment.deadline }}</h6>
+                  <h6>Исправить до: {{ comment.deadline|date:'d.m.Y' }}</h6>
                   <textarea class="form-control" style="min-height: 60px;" disabled>{{ comment.comment }}</textarea>
                   <div class="dropdown-divider"></div>
               {% endfor %}

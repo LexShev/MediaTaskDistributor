@@ -113,8 +113,8 @@ def kpi_personal_calc(field_dict):
     total_count = len(task_list)
     ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
     not_ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'not_ready', task_list)))
-    ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'ready')
-    not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'not_ready')
+    ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') in ('ready', 'otk', 'final'))
+    not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') not in ('ready', 'otk', 'final'))
 
     material_type = field_dict.get('material_type')
     task_status = field_dict.get('task_status')

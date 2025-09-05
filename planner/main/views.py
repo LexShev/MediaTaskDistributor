@@ -333,8 +333,8 @@ def submit_cenz_data(request):
             task_ready_list = cenz_info_change.split(',')
         cenz_comment = request.POST.get('cenz_comment')
         for program_id in task_ready_list:
-            check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id, worker_id)
-            if check_lock and check_lock.get('message') == 'locked':
+            check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
+            if check_lock and check_lock.get('message') == 'locked' and str(worker_id) != str(check_lock.get('worker_id')):
                 app = check_lock.get('app')
                 worker_name = check_lock.get('worker_name')
                 lock_time = check_lock.get('lock_time')
@@ -396,7 +396,7 @@ def cenz_batch(request):
     cenz_comment = new_values.get('cenz_comment')
 
     for program_id in task_ready_list:
-        check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id, worker_id)
+        check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
         if check_lock and check_lock.get('message') == 'locked':
             app = check_lock.get('app')
             worker_name = check_lock.get('worker_name')
@@ -562,7 +562,15 @@ def cenz_info_change(request):
     return JsonResponse({'status': 'success', 'message': message})
 
 def check_lock_card(request, program_id):
-    return JsonResponse(check_planner_lock(program_id) or check_oplan3_lock(program_id))
+    try:
+        planner_lock = check_planner_lock(program_id)
+        oplan3_lock = check_oplan3_lock(program_id)
+        return JsonResponse(planner_lock or oplan3_lock)
+    except Exception as error:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Internal server error: {str(error)}'
+        }, status=500)
 
 def block_card(request, program_id, worker_id):
     try:

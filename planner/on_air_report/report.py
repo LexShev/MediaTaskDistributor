@@ -165,7 +165,7 @@ def collect_channels_list(cal_day):
         channels_list.append(channel)
     return channels_list
 
-def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 10, 11, 12)):
+def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 7, 8, 10, 11, 12, 16, 19, 20)):
     columns = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
         ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
@@ -173,6 +173,7 @@ def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 10, 11
         ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
         ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
     ]
+
     with connections[OPLAN_DB].cursor() as cursor:
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]

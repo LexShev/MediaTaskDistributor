@@ -76,11 +76,12 @@
             </div>
             <div class="modal-body">
               <h6>Комментарий по исправлению</h6>
-                <textarea class="form-control" style="min-height: 130px" name="fix_comment" id="fix_comment"
-                          placeholder="1. Таймкод - суть проблемы&#10;2. Таймкод - суть проблемы&#10;3. ..."></textarea><br>
+              <textarea class="form-control" style="min-height: 130px" name="fix_comment" id="fix_comment"
+                        placeholder="1. Таймкод - суть проблемы&#10;2. Таймкод - суть проблемы&#10;3. ..."></textarea>
+                <br>
               <h6>Установить крайний срок</h6>
-                <input class="form-control" type="date" id="deadline" name="deadline" value="{{ deadline|date:'Y-m-d' }}">
-                <div class="invalid-feedback">Необходимо заполнить</div>
+            <input class="form-control" type="date" id="deadline" name="deadline" value="{{ deadline|date:'Y-m-d' }}">
+            <div class="invalid-feedback">Необходимо заполнить</div>
             </div>
             <div class="modal-footer">
               <button type="button" onclick="ValidateAskFix(this)" name="ask_fix" id="ask_fix" class="btn btn-outline-warning">Запросить</button>

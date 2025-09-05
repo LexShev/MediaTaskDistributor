@@ -3,14 +3,11 @@ const userId = document.body.dataset.userId || null;
 
 window.addEventListener('load', CheckLockCard);
 window.addEventListener('beforeunload', function(e) {
-    fetch(`/unblock_card/${programId}/${userId}/`)
-        .then(response => response.json())
-        .then(data => {
-            console.log(data.response);
-        })
-        .catch(error => {
-            console.log('Unblock error:', error);
-        });
+    fetch(`/unblock_card/${programId}/${userId}/`, {
+        method: 'GET',
+        keepalive: true, // Важная опция!
+        cache: 'no-store'
+    }).catch(() => {}); // Игнорируем ошибки
 });
 
 async function CheckLockCard() {
@@ -21,6 +18,7 @@ async function CheckLockCard() {
         if (!data) {
             return
         };
+//        console.log(String(data.worker_id) !== String(userId));
 
         if (data.message === 'not_locked') {
             console.log('Was not blocked. LockCard');
@@ -37,7 +35,7 @@ async function CheckLockCard() {
         if (data.status === 'error') {
             console.error(data.message);
         };
-        if (data.message === 'locked' && data.worker_id !== userId) {
+        if (data.message === 'locked' && String(data.worker_id) !== String(userId)) {
             let messageContainer = document.getElementById('message_container');
             messageContainer.innerHTML = `
                 <div class="alert alert-warning alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">

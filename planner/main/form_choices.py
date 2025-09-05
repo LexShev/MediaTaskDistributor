@@ -101,9 +101,9 @@ class Choices:
             ('fix_ready', 'Исходник исправлен'),
             ('ready', 'Отсмотрен'),
             ('otk', 'Прошёл ОТК'),
-            ('otk_fail', 'На доработке'),
+            ('otk_fail', 'Не прошёл ОТК'),
             ('final', 'Готов к эфиру'),
-            ('ready_fail', 'На пересмотр')
+            ('final_fail', 'Не прошёл ЭК')
         ]
 
     def material_type(self, label='-'):

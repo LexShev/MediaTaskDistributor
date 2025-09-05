@@ -10,11 +10,11 @@ def check_param(param):
 
 def check_mat_type(param):
     if param == ['film']:
-        return 5, 6, 10, 11
+        return 5, 6, 7, 10, 11, 19
     elif param == ['season']:
-        return 4, 12
+        return 4, 8, 12, 16, 20
     else:
-        return 4, 5, 6, 10, 11, 12
+        return 4, 5, 6, 7, 8, 10, 11, 12, 16, 19, 20
 
 def oplan_task_list(dates, program_type=(4, 5, 6, 10, 11, 12)):
     with connections[OPLAN_DB].cursor() as cursor:

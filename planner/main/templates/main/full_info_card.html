@@ -30,7 +30,7 @@
             <div class="col px-1" style="flex: 0 0 85%; max-width: 85%;">
               <div class="row mb-2 mx-0 align-items-center">
                 <div class="col">
-                  <h6 class="{{ full_info.color }} text-end p-1 m-0">
+                  <h6 class="text-{{ full_info.Task_task_status|status_color }} text-end p-1 m-0">
                     {{ full_info.material_status }}
                     {% if full_info.Task_ready_date %}
                       {{ full_info.Task_ready_date|date:'d.m.Y' }}
