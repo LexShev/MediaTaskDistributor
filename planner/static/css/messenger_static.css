@@ -8,11 +8,11 @@
 }
 [data-bs-theme="light"] .message-form textarea {
     background-color: var(--bs-light-bg-subtle);
-    }
+}
 
 [data-bs-theme="dark"] .message-form textarea {
     background-color: var(--bs-dark-bg-subtle);
-    }
+}
 [data-bs-theme="light"] .empty-chat {
     background-color: var(--bs-light-bg-subtle);
 }

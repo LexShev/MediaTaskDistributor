@@ -20,7 +20,7 @@ def select_pool(sql_set):
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
             AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
-            AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12)
+            AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12, 16)
             AND Progs.[program_kind] IN (0, 3)
             AND Progs.[program_id] NOT IN
                 (SELECT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)
@@ -39,7 +39,7 @@ def get_total_count():
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
             AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
-            AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12)
+            AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12, 16)
             AND Progs.[program_kind] IN (0, 3)
             AND Progs.[program_id] NOT IN
                 (SELECT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)
@@ -77,7 +77,7 @@ def get_season_stats():
             WHERE Progs.[deleted] = 0
             AND Progs.[DeletedIncludeParent] = 0
             AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
-            AND Progs.[program_type_id] IN (4, 12)
+            AND Progs.[program_type_id] IN (4, 12, 16)
             AND Progs.[program_kind] IN (0, 3)
             AND Progs.[program_id] NOT IN
                 (SELECT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)

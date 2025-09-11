@@ -43,6 +43,7 @@ def work_list(request):
         approve = request.POST.get('approve_otk')
         otk_fail = request.POST.get('otk_fail')
         approve_fix = request.POST.get('approve_fix')
+        approve_final_fail = request.POST.get('approve_final_fail')
 
         if approve:
             program_id_list = request.POST.getlist('program_id_check')
@@ -80,6 +81,16 @@ def work_list(request):
 
             change_task_status_batch(otk_fix_list, 'fix_ready')
             update_comment_batch(otk_fix_list, 'fix_ready', worker_id)
+
+        # if approve_final_fail:
+        #     final_fail_list = []
+        #     for program_id, comment, file_path, worker_id in zip(fix_id, fix_comment, fix_file_path, engineer_id_list):
+        #         final_fail_list.append({'program_id': program_id, 'comment': comment, 'file_path': file_path})
+        #         create_notification(
+        #             {'sender': worker_id, 'recipient': worker_id, 'program_id': program_id,
+        #              'message': comment, 'comment': 'Материал к эфиру исправлен'}
+        #         )
+
         filter_form = OtkForm(request.POST, instance=init_dict)
         if filter_form.is_valid():
             # field_vals = [form.cleaned_data.get(field_key) for field_key in form.fields.keys()]

@@ -23,39 +23,48 @@
             {{ program_info.name }}
         </a>{% if program_info.production_year %} ({{ program_info.production_year }}){% endif %}
     </h6>
-    <div class="messages flex-grow-1 overflow-auto" id="messages" style="height: 47rem">
-      {% for message in messages %}
-        <div class="d-flex">
-            <div class="message-item {% if not message.is_read %}new-message{% endif %}
-            {% if message.owner == request.user.id %}my-message{% else %}other-message{% endif %}"
-                 data-message-id="{{ message.message_id }}">
-                <h6>{{ message.owner|planner_worker_name }}</h6>
-                {% if message.is_file %}
-                    {% if message.file_type == 'image' %}
-                        <img src="{{ message.file_path.url }}" class="chat-image" data-bs-toggle="modal"
-                             data-bs-target="#imageModal" onclick="enlargeImage(this)" alt="{{ message.file_path.name|file_name}}">
-                    {% elif message.file_type == 'video' %}
-                        <video controls class="chat-video">
-                            <source src="{{ message.file_path.url }}" type="video/mp4">
-                        </video>
-                    {% elif message.file_type == 'audio' %}
-                        <audio controls class="chat-audio">
-                            <source src="{{ message.file_path.url }}" type="audio/mpeg">
-                        </audio>
-                    {% else %}
-                        <a href="{{ message.file_path.url }}" download class="document-link">
-                            <i class="fas fa-file-download"></i> {{ message.file_path.name|slice:"20:" }}
-                        </a>
-                    {% endif %}
-                {% else %}
-                    <div class="message-text">{{ message.message|linebreaks }}</div>
-
-                {% endif %}
-                <small class="text-muted d-block text-end">{{ message.timestamp|date:"d.m.Y H:i:s" }}</small>
+    <div class="messages flex-grow-1 overflow-auto" style="height: 47rem">
+        {% if has_next %}
+            <div id="load-earlier-messages-container" class="text-center p-2 border-bottom">
+                <button class="btn btn-sm load-earlier-messages-btn"
+                        onclick="loadEarlierMessages({{ program_info.program_id }}, {{ next_page_number }})">
+                    Показать более старые сообщения
+                </button>
             </div>
+        {% endif %}
 
+        <div id="messages-content">  <!-- ← Изменили ID -->
+            {% for message in messages %}
+            <div class="d-flex">
+                <div class="message-item {% if not message.is_read %}new-message{% endif %}
+                {% if message.owner == request.user.id %}my-message{% else %}other-message{% endif %}"
+                     data-message-id="{{ message.message_id }}">
+                    <h6>{{ message.owner|planner_worker_name }}</h6>
+                    {% if message.is_file %}
+                        {% if message.file_type == 'image' %}
+                            <img src="{{ message.file_path.url }}" class="chat-image" data-bs-toggle="modal"
+                                 data-bs-target="#imageModal" onclick="enlargeImage(this)" alt="{{ message.file_path.name|file_name}}">
+                        {% elif message.file_type == 'video' %}
+                            <video controls class="chat-video">
+                                <source src="{{ message.file_path.url }}" type="video/mp4">
+                            </video>
+                        {% elif message.file_type == 'audio' %}
+                            <audio controls class="chat-audio">
+                                <source src="{{ message.file_path.url }}" type="audio/mpeg">
+                            </audio>
+                        {% else %}
+                            <a href="{{ message.file_path.url }}" download class="document-link">
+                                <i class="fas fa-file-download"></i> {{ message.file_path.name|slice:"20:" }}
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <div class="message-text">{{ message.message|linebreaks }}</div>
+                    {% endif %}
+                    <small class="text-muted d-block text-end">{{ message.timestamp|date:"d.m.Y H:i:s" }}</small>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-      {% endfor %}
     </div>
 </div>
 <form method="post" enctype="multipart/form-data" class="message-form my-2" id="message_form">

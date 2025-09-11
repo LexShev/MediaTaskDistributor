@@ -67,6 +67,7 @@ def all_messages(worker_id):
                 if not message['read']:
                     message_sorted[program_id]['cur_unread'] += 1
             return message_sorted
+        return []
 
 
 def show_messages(program_id):

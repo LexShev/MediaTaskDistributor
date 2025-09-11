@@ -106,6 +106,45 @@ function ShowFinalFail() {
             file_name.name = 'file_name'
             material.appendChild(file_name);
 
+            let sub_header = document.createElement("h6");
+            sub_header.textContent = 'Комментарий по необходимой доработке';
+            material.appendChild(sub_header);
+
+            let final_fail_comment = document.createElement("textarea");
+            final_fail_comment.classList.add('form-control');
+            final_fail_comment.classList.add('my-2');
+            final_fail_comment.name = 'final_fail_comment';
+            final_fail_comment.style = 'min-height: 130px';
+            final_fail_comment.placeholder = '1. Таймкод - суть проблемы\n2. Таймкод - суть проблемы\n3. ...';
+            material.appendChild(final_fail_comment);
+
+            let final_fail_engineer_id = document.createElement("input");
+            final_fail_engineer_id.type = 'hidden';
+            final_fail_engineer_id.name = 'final_fail_engineer_id';
+            final_fail_engineer_id.value = engineer_id;
+            material.appendChild(final_fail_engineer_id);
+
+            let deadline_name = document.createElement("h6");
+            deadline_name.textContent = 'Установить крайний срок'
+            deadline_name.classList.add('my-2');
+            material.appendChild(deadline_name);
+
+            let deadline = document.createElement("input");
+            deadline.type = 'date';
+            deadline.classList.add('form-control');
+            deadline.name = 'deadline'
+            material.appendChild(deadline);
+
+            let validator = document.createElement("div");
+            validator.classList.add('invalid-feedback')
+            validator.textContent = 'Необходимо заполнить'
+            material.appendChild(validator);
+
+            let btnGroupName = document.createElement("h6");
+            btnGroupName.textContent = 'Кто должен исправить?'
+            btnGroupName.classList.add('my-2');
+            material.appendChild(btnGroupName);
+
             let btnGroup = document.createElement('div');
             btnGroup.className = 'btn-group btn-group-sm';
             btnGroup.role = 'group';
@@ -140,46 +179,13 @@ function ShowFinalFail() {
             labelOTK.className = 'btn btn-outline-secondary';
             labelOTK.htmlFor = radioOTKId;
             labelOTK.textContent = 'ОТК';
-            
+
             // Добавляем в группу
             btnGroup.appendChild(radioEngineer);
             btnGroup.appendChild(labelEngineer);
             btnGroup.appendChild(radioOTK);
             btnGroup.appendChild(labelOTK);
             material.appendChild(btnGroup);
-
-            let sub_header = document.createElement("h6");
-            sub_header.textContent = 'Комментарий по необходимой доработке';
-            material.appendChild(sub_header);
-
-            let final_fail_comment = document.createElement("textarea");
-            final_fail_comment.classList.add('form-control');
-            final_fail_comment.classList.add('my-2');
-            final_fail_comment.name = 'final_fail_comment';
-            final_fail_comment.style = 'min-height: 130px';
-            final_fail_comment.placeholder = '1. Таймкод - суть проблемы\n2. Таймкод - суть проблемы\n3. ...';
-            material.appendChild(final_fail_comment);
-
-            let final_fail_engineer_id = document.createElement("input");
-            final_fail_engineer_id.type = 'hidden';
-            final_fail_engineer_id.name = 'final_fail_engineer_id';
-            final_fail_engineer_id.value = engineer_id;
-            material.appendChild(final_fail_engineer_id);
-
-            let deadline_name = document.createElement("h6");
-            deadline_name.textContent = 'Установить крайний срок'
-            material.appendChild(deadline_name);
-
-            let deadline = document.createElement("input");
-            deadline.type = 'date';
-            deadline.classList.add('form-control');
-            deadline.name = 'deadline'
-            material.appendChild(deadline);
-
-            let validator = document.createElement("div");
-            validator.classList.add('invalid-feedback')
-            validator.textContent = 'Необходимо заполнить'
-            material.appendChild(validator);
 
             let divider = document.createElement("hr");
             divider.style = 'width: 40%; size: 2;';
@@ -205,6 +211,7 @@ function finalFail() {
     materialList.forEach(container => {
         const programId = container.querySelector('[name="final_fail_prog_id"]')?.value;
         const comment = container.querySelector('[name="final_fail_comment"]')?.value || '';
+        const deadline = container.querySelector('[name="deadline"]')?.value;
         
         // Ищем выбранную радиокнопку в этом контейнере
         const selectedRecipient = container.querySelector('input[type="radio"]:checked');
@@ -213,6 +220,7 @@ function finalFail() {
         if (programId) {
             failData.push({
                 program_id: programId,
+                deadline: deadline,
                 recipient: recipient,
                 comment: comment
             });

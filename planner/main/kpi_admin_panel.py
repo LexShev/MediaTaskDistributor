@@ -13,9 +13,9 @@ def check_mat_type(param):
     if param == 'film':
         return 5, 6, 10, 11
     elif param == 'season':
-        return 4, 12
+        return 4, 12, 16
     else:
-        return 4, 5, 6, 10, 11, 12
+        return 4, 5, 6, 10, 11, 12, 16
 
 def check_value(key, value):
     if value or value == 0:
@@ -29,8 +29,7 @@ def summary_task_list(field_dict):
             ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
             ('Task', 'work_date'), ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
-            ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Files', 'Name'), ('Files', 'Size'),
-            ('Files', 'CreationTime'), ('Files', 'ModificationTime')
+            ('Progs', 'production_year'), ('Progs', 'episode_num')
         ]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -39,15 +38,8 @@ def summary_task_list(field_dict):
         FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
         JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
-        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
-            ON Progs.[SuitableMaterialForScheduleID] = Clips.[MaterialID]
-        JOIN [{OPLAN_DB}].[dbo].[File] AS Files
-            ON Clips.[ClipID] = Files.[ClipID]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
-        AND Files.[Deleted] = 0
-        AND Files.[PhysicallyDeleted] = 0
-        AND Clips.[Deleted] = 0
         {check_value('work_date', field_dict.get('work_date'))}
         ORDER BY Progs.[name];
         '''
@@ -72,9 +64,7 @@ def kpi_summary_calc(field_dict):
         total_kpi = 0
         ready_kpi = 0
         print(e)
-    summary_dict = {'total_count': total_count, 'total_dur': total_dur, 'ready_tasks': ready_tasks,
-                    'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur, 'not_ready_dur': not_ready_dur,
-                    'total_kpi': total_kpi, 'ready_kpi': ready_kpi}
+
     engineer_id = field_dict.get('engineers')
     if engineer_id:
         engineer_id = int(engineer_id)
@@ -82,8 +72,13 @@ def kpi_summary_calc(field_dict):
     task_status = field_dict.get('task_status')
     filtered_task_list = filter(lambda task: task.get('Task_engineer_id') == engineer_id or not engineer_id and engineer_id != 0, task_list)
     filtered_task_list = filter(lambda task: task.get('Progs_program_type_id') in check_mat_type(material_type) or not material_type, filtered_task_list)
-    filtered_task_list = filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list)
-
+    filtered_task_list = list(filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list))
+    filtered_dur = sum(task.get('Task_duration') for task in filtered_task_list)
+    summary_dict = {
+        'total_count': total_count, 'total_dur': total_dur, 'filtered_dur': filtered_dur,
+        'ready_tasks': ready_tasks, 'not_ready_tasks': not_ready_tasks, 'ready_dur': ready_dur,
+        'not_ready_dur': not_ready_dur, 'total_kpi': total_kpi, 'ready_kpi': ready_kpi
+    }
     return filtered_task_list, summary_dict
 
 
