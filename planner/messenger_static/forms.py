@@ -37,7 +37,6 @@ class DropdownMenuWidget(forms.Widget):
             )
 
         html.append('</ul>')
-        print('\n'.join(html))
         return mark_safe('\n'.join(html))
 
 class MessageForm(forms.ModelForm):

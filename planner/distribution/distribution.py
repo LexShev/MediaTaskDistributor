@@ -11,7 +11,7 @@ def main_distribution():
     # work_date = datetime.today().date()
     work_date = date(day=1, month=10, year=2025)
 
-    material_list_sql, django_columns = oplan_material_list(start_date=work_date, schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12), work_duration=31)
+    material_list_sql, django_columns = oplan_material_list(start_date=work_date, work_duration=31)
     # , schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12)
     program_id_list = []
     for i, program_info in enumerate(material_list_sql, 1):
@@ -29,7 +29,7 @@ def main_distribution():
         duration = temp_dict.get('Progs_duration')
         suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
 
-        engineer_id, kpi, work_date = date_seek(date(day=1, month=9, year=2025), duration)
+        engineer_id, kpi, work_date = date_seek(date(day=15, month=9, year=2025), duration)
 
         if suitable_material:
             file_path = find_file_path(program_id)

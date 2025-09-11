@@ -50,7 +50,7 @@
                     </a>
                   {% endif %}
                   <h5 class="p-1 m-0" title="{{ full_info.Progs_orig_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
-                    {{ full_info.Progs_name }}{% if full_info.Adult_Name %}. {{ full_info.Adult_Name }}{% endif %}
+                    {{ full_info.Progs_name }}
                   </h5>
                 </div>
                 <div class="col p-0">
@@ -130,7 +130,7 @@
       <div class="accordion-item">
       <h6 class="accordion-header">
         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCenz" aria-expanded="false" aria-controls="collapseCenz">
-          Цензура
+          Цензура {% if full_info.Adult_Name %}({{ full_info.Adult_Name }}){% endif %}
         </button></h6>
       <div id="collapseCenz" class="accordion-collapse collapse" data-bs-parent="#accordion_sum_info">
         <div class="accordion-body">

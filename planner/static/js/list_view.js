@@ -1,16 +1,24 @@
 function ValidateForm() {
-    const form = document.querySelector('.needs-validation')
+    let workDate = document.getElementById('work_date_form')
+    let cenzRate = document.getElementById('cenz_rate_form')
+    let engineers = document.getElementById('engineers_form')
+
+    if (!workDate.value || !cenzRate.value || !engineers.value) {
+        workDate.classList.add('is-invalid');
+        cenzRate.classList.add('is-invalid');
+        engineers.classList.add('is-invalid');
+        return;
+        }
+    workDate.classList.remove('is-invalid');
+    cenzRate.classList.remove('is-invalid');
+    engineers.classList.remove('is-invalid');
+
     const TaskReadyModal = bootstrap.Modal.getInstance(document.getElementById('TaskReady')) ||
                         new bootstrap.Modal(document.getElementById('TaskReady'));
     const CenzCommentModal = bootstrap.Modal.getInstance(document.getElementById('CenzComment')) ||
                         new bootstrap.Modal(document.getElementById('CenzComment'));
-    if (form.checkValidity()) {
-        TaskReadyModal.hide();
-        CenzCommentModal.toggle();
-    }
-    else {
-        form.classList.add('was-validated');
-    }
+    TaskReadyModal.hide();
+    CenzCommentModal.toggle();
 };
 
 window.addEventListener('load', function() {

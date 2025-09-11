@@ -3,16 +3,16 @@ from datetime import datetime, date
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 def check_value(key, value):
-    if value:
+    if value is not None:
         return f"AND Task.[{key}] = '{value}'"
     else:
         return ''
 
 def check_material_type(material_type):
     if material_type == 'season':
-        return 'AND Progs.[program_type_id] IN (4, 8, 12)'
+        return 'AND Progs.[program_type_id] IN (4, 8, 12, 16)'
     elif material_type == 'film':
-        return 'AND Progs.[program_type_id] NOT IN (4, 8, 12)'
+        return 'AND Progs.[program_type_id] NOT IN (4, 8, 12, 16)'
     else:
         return ''
 
@@ -49,8 +49,6 @@ def task_info(field_dict, search_init_dict):
         FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
         JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
-        JOIN [planner].[dbo].[engineers_list] AS Eng
-            ON Task.[engineer_id] = Eng.[engineer_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         {check_value('ready_date', field_dict.get('ready_date'))}

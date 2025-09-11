@@ -91,3 +91,54 @@ function getCookie(name) {
     }
     return cookieValue;
 };
+
+
+function loadEarlierNotifications(page) {
+    const button = document.querySelector('.load-earlier-btn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Загрузка...';
+    button.disabled = true;
+
+    fetch(`?page=${page}`)
+        .then(response => response.text())
+        .then(html => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // Получаем новые сообщения и новую кнопку
+            const newMessages = tempDiv.querySelector('#notification-messages').innerHTML;
+            const newButtonContainer = tempDiv.querySelector('#load-earlier-container');
+
+            // Добавляем новые сообщения в начало
+            const messagesContainer = document.querySelector('#notification-messages');
+            messagesContainer.innerHTML = newMessages + messagesContainer.innerHTML;
+
+            // Обновляем кнопку из нового HTML
+            if (newButtonContainer) {
+                const buttonContainer = document.querySelector('#load-earlier-container');
+                buttonContainer.innerHTML = newButtonContainer.innerHTML;
+
+                // Обновляем обработчик события для новой кнопки
+                const newButton = buttonContainer.querySelector('.load-earlier-btn');
+                if (newButton) {
+                    const newPage = newButton.getAttribute('onclick').match(/\d+/)[0];
+                    newButton.setAttribute('onclick', `loadEarlierNotifications(${newPage})`);
+                }
+            } else {
+                // Если больше нет страниц - удаляем кнопку
+                const buttonContainer = document.querySelector('#load-earlier-container');
+                if (buttonContainer) {
+                    buttonContainer.remove();
+                }
+            }
+
+            // Прокручиваем к началу
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки:', error);
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+}
+

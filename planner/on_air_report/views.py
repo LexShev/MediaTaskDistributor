@@ -145,7 +145,9 @@ def final_fail_batch(request):
             program_id= material.get('program_id')
             recipient = material.get('recipient')
             comment = material.get('comment')
-            print(material, recipient, type(recipient))
+            deadline = material.get('deadline')
+            print('deadline', deadline, type(deadline))
+            print('material', material)
 
             if recipient == 'otk':
                 recipient = 6
@@ -159,7 +161,7 @@ def final_fail_batch(request):
             if answer.get('status') == 'success':
                 insert_history_status(program_id, worker_id, db_task_status, 'final_fail')
                 if comment:
-                    update_comment(program_id, worker_id, task_status='final_fail', comment=comment, deadline=None)
+                    update_comment(program_id, worker_id, task_status='final_fail', comment=comment, deadline=deadline)
                 notification_data = {
                     'sender': worker_id, 'recipient': recipient, 'program_id': program_id,
                     'message': comment, 'comment': 'Материал не прошёл эфирный контроль'

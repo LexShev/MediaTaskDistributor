@@ -69,7 +69,7 @@ def full_info(program_id):
         if full_info_dict.get('Progs_program_kind') in (1, 4):
             full_info_dict['episodes'] = find_episodes(program_id)
 
-        if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
+        if full_info_dict['Progs_program_type_id'] in (4, 8, 12, 16): # сериалы
             full_info_dict['material_type'] = 'season'
         else:
             full_info_dict['material_type'] = 'film'

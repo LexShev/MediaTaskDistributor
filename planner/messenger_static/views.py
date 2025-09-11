@@ -2,7 +2,8 @@ import json
 import re
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Case, When, BooleanField
+from django.core.paginator import Paginator
+from django.db.models import Count, Case, When, BooleanField, Subquery
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
@@ -55,10 +56,25 @@ def messenger(request, program_id):
 
             return redirect('messenger', program_id=program_id)
     form = MessageForm()
+    # read_message_ids = MessageViews.objects.filter(worker_id=worker_id).values_list('message_id', flat=True)
+    # messages = Message.objects.filter(program_id=program_id).annotate(
+    #     is_read=Case(When(message_id__in=read_message_ids, then=True), default=False, output_field=BooleanField())
+    # ).order_by('timestamp')[:50] or []
+
+    # Пагинация для сообщений чата
     read_message_ids = MessageViews.objects.filter(worker_id=worker_id).values_list('message_id', flat=True)
-    messages = Message.objects.filter(program_id=program_id).annotate(
+    all_messages_query = Message.objects.filter(program_id=program_id).annotate(
         is_read=Case(When(message_id__in=read_message_ids, then=True), default=False, output_field=BooleanField())
-    ).order_by('timestamp')[:50] or []
+    ).order_by('-timestamp')
+
+    paginator = Paginator(all_messages_query, 50)
+
+    # Начинаем с последней страницы (самые новые сообщения)
+    page_number = request.GET.get('page', 1)
+
+    page_obj = paginator.get_page(page_number)
+    messages = list(reversed(page_obj.object_list))
+
     program_info = Program.objects.using(OPLAN_DB).get(program_id=program_id)
 
     viewed_messages = show_viewed_messages(program_id, worker_id) or []
@@ -73,14 +89,28 @@ def messenger(request, program_id):
         'program_info': program_info,
         'form': form,
         'permissions': ask_db_permissions(worker_id),
+        'page_obj': page_obj,
+        'has_next': page_obj.has_next(),
+        'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
+        'current_page': page_obj.number,
+        'total_pages': paginator.num_pages,
+        'program_id': program_id,  # добавляем program_id для AJAX-запросов
     }
 
     return render(request, 'messenger_static/messenger.html', data)
 
 def notificator(request):
     worker_id = request.user.id
-    last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
-    all_notifications = Notification.objects.filter(recipient=worker_id).order_by('timestamp')[:50] or []
+    notifications = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')
+    paginator = Paginator(notifications, 50)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    all_notifications = list(reversed(page_obj.object_list))
+    last_notice = notifications.order_by('-timestamp')[:1] or []
+    # last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
+    # latest_ids = Notification.objects.filter(recipient=worker_id).order_by('-timestamp').values('notice_id')[:60]
+    # all_notifications = Notification.objects.filter(notice_id__in=Subquery(latest_ids)).order_by('timestamp') or []
     unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
     data = {
         'all_messages': all_messages(worker_id),
@@ -88,6 +118,11 @@ def notificator(request):
         'all_notifications': all_notifications,
         'unread_notifications': unread_notifications,
         'permissions': ask_db_permissions(worker_id),
+        'page_obj': page_obj,
+        'has_next': page_obj.has_next(),
+        'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
+        'current_page': page_obj.number,
+        'total_pages': paginator.num_pages,
     }
     return render(request, 'messenger_static/notificator.html', data)
 

@@ -66,7 +66,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
         if not temp_dict.get('Adult_Name'):
             temp_dict['Adult_Name'] = parent_adult_name(temp_dict.get('Progs_parent_id'))
         day_num = temp_dict['Task_work_date'].weekday()
-        if temp_dict['Progs_program_type_id'] in (4, 8, 12):
+        if temp_dict['Progs_program_type_id'] in (4, 8, 12, 16):
             repeat_index = repeat_index_search(material_list[day_num], temp_dict.get('Progs_parent_id'))
             if not repeat_index and repeat_index != 0:
                 program_info_dict = {
@@ -105,7 +105,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                     'Task_engineer_id': temp_dict.get('Task_engineer_id')
                      })
                 program_id_list.append(program_id)
-        if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
+        if not temp_dict['Progs_program_type_id'] in (4, 8, 12, 16):
             program_info_dict = {
                 'Progs_program_id': temp_dict.get('Progs_program_id'),
                 'Progs_parent_id': temp_dict.get('Progs_parent_id'),
