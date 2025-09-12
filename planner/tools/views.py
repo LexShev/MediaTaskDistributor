@@ -1,10 +1,9 @@
-from time import sleep
-
 from django.http import JsonResponse
-from django.shortcuts import render
 
 from tools.update_no_material import get_no_material_list
 
+
+# FfprobeScanner(program_id=program_id).ffprobe_scan()
 
 def update_no_material(request):
     try:
