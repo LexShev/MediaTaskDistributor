@@ -1,2 +1,14 @@
 .dropdown-menu {
     --bs-dropdown-zindex: 1050;
+}
+
+.full-height-buttons {
+  height: 100%;
+}
+
+.full-height-buttons .btn {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

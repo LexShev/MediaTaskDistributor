@@ -330,6 +330,15 @@ function fastSearch() {
             }
         }
     }
+    if (searchSettings == 2) {
+        for (let i = 0; i < rows.length; i++) {
+            let nameCell = rows[i].getElementsByTagName('td')[3];
+            if (nameCell) {
+                let textValue = (nameCell.textContent || nameCell.innerText).toLowerCase();
+                rows[i].style.display = textValue.indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+    }
 };
 
 document.getElementById('search_input').addEventListener('keyup', totalCalc);
@@ -355,10 +364,10 @@ function totalCalc() {
 
 function ResetFilter() {
     const [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus] =
-    ['ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status']
+    ['ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status', 'search_input']
     .map(id => document.getElementById(id));
 
-    [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus].forEach(el => {el.value = '';});
+    [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus, search_input].forEach(el => {el.value = '';});
 
     document.getElementById('otk_form').submit();
 

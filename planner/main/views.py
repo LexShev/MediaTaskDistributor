@@ -1,10 +1,10 @@
 import json
-from datetime import datetime, date
+from datetime import datetime
 import ast
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.template.loader import render_to_string
@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from messenger_static.messenger_utils import create_notification
 
 from .ffmpeg_info import ffmpeg_dict
+from tools.ffprobe_scan import FfprobeScanner
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm, \
     SortingForm
 
@@ -25,14 +26,12 @@ from .list_view import list_material_list
 from .object_block import unblock_object_planner, block_object_planner, check_planner_lock, \
     check_oplan3_lock
 from .permission_pannel import ask_db_permissions
-from .templatetags.custom_filters import worker_name, planner_worker_name
+from .templatetags.custom_filters import planner_worker_name
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
-from .detail_view import full_info, cenz_info, schedule_info, change_db_cenz_info, calc_otk_deadline, \
+from .detail_view import full_info, cenz_info, schedule_info, calc_otk_deadline, \
     comments_history, select_filepath_history, change_oplan_cenz_info
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
-
-from django.shortcuts import render
 
 
 def handle_error(request, status_code, exception=None):
@@ -427,7 +426,6 @@ def cenz_batch(request):
 
 @login_required()
 def material_card(request, program_id):
-
     worker_id = request.user.id
     custom_fields = cenz_info(program_id)
 

@@ -24,10 +24,13 @@ def select_channel_color(schedule_id):
         20: '#6610f2'} # Кино +
     return color_dict.get(schedule_id)
 
-def repeat_index_search(material_list, temp_dict):
+def repeat_index_search(material_list, parent_id):
+    if not parent_id or not material_list:
+        return None
     for num, program in enumerate(material_list):
-        if temp_dict['Progs_parent_id'] == program['Progs_parent_id']:
+        if parent_id == program.get('Progs_parent_id'):
             return num
+    return None
 
 def calc_deadline(task_date):
     return task_date - datetime.timedelta(days=14)
@@ -45,9 +48,9 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
         temp_dict = dict(zip(django_columns, program_info))
         if not temp_dict.get('Adult_Name'):
             temp_dict['Adult_Name'] = parent_adult_name(temp_dict.get('Progs_parent_id'))
-        if temp_dict['Progs_program_type_id'] in (4, 8, 12, 16):
-            repeat_index = repeat_index_search(material_list, temp_dict)
-            if not repeat_index and repeat_index != 0:
+        if temp_dict['Progs_program_type_id'] in (4, 8, 12):
+            repeat_index = repeat_index_search(material_list, temp_dict.get('Progs_parent_id'))
+            if repeat_index is None:
                 program_info_dict = {
                     'Progs_parent_id': temp_dict.get('Progs_parent_id'),
                     'Progs_AnonsCaption': parent_name(temp_dict.get('Progs_parent_id')),
@@ -73,20 +76,42 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                 material_list.append(program_info_dict)
                 program_id_list.append(program_id)
             else:
-                material_list[repeat_index]['episode'].append(
-                    {'Progs_program_id': temp_dict.get('Progs_program_id'),
-                    'Progs_name': temp_dict.get('Progs_name'),
-                    'Progs_episode_num': temp_dict.get('Progs_episode_num'),
-                    'Progs_duration': temp_dict.get('Progs_duration'),
-                    'Adult_Name': temp_dict.get('Adult_Name'),
-                    'Task_work_date': temp_dict.get('Task_work_date'),
-                     'Task_sched_date': temp_dict.get('Task_sched_date'),
-                    'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
-                    'Task_task_status': temp_dict.get('Task_task_status'),
-                    'Task_engineer_id': temp_dict.get('Task_engineer_id')
-                    })
-                program_id_list.append(program_id)
-        if not temp_dict.get('Progs_program_type_id') in (4, 8, 12, 16):
+                try:
+                    material_list[repeat_index]['episode'].append(
+                        {'Progs_program_id': temp_dict.get('Progs_program_id'),
+                        'Progs_name': temp_dict.get('Progs_name'),
+                        'Progs_episode_num': temp_dict.get('Progs_episode_num'),
+                        'Progs_duration': temp_dict.get('Progs_duration'),
+                        'Adult_Name': temp_dict.get('Adult_Name'),
+                        'Task_work_date': temp_dict.get('Task_work_date'),
+                         'Task_sched_date': temp_dict.get('Task_sched_date'),
+                        'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
+                        'Task_task_status': temp_dict.get('Task_task_status'),
+                        'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                        })
+                    program_id_list.append(program_id)
+                except Exception as e:
+                    print(e)
+                    program_info_dict = {
+                        'Progs_program_id': temp_dict.get('Progs_program_id'),
+                        'Progs_parent_id': temp_dict.get('Progs_parent_id'),
+                        'Progs_name': temp_dict.get('Progs_name'),
+                        'Progs_production_year': temp_dict.get('Progs_production_year'),
+                        'Progs_duration': temp_dict.get('Progs_duration'),
+                        'Adult_Name': temp_dict.get('Adult_Name'),
+                        'Task_work_date': temp_dict.get('Task_work_date'),
+                        'Task_sched_date': temp_dict.get('Task_sched_date'),
+                        'color': select_channel_color(temp_dict.get('Task_sched_id')),
+                        'Task_sched_id': temp_dict.get('Task_sched_id'),
+                        'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
+                        'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
+                        'type': 'film',
+                        'Task_task_status': temp_dict.get('Task_task_status'),
+                        'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                    }
+                    material_list.append(program_info_dict)
+                    program_id_list.append(program_id)
+        if not temp_dict.get('Progs_program_type_id') in (4, 8, 12):
             program_info_dict = {
                 'Progs_program_id': temp_dict.get('Progs_program_id'),
                 'Progs_parent_id': temp_dict.get('Progs_parent_id'),

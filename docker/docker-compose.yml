@@ -5,7 +5,7 @@ services:
     container_name: media_task_dev
     build:
       context: ..  # Собираем из корня проекта
-      dockerfile: docker/Dockerfile  # Путь к Dockerfile относительно контекста
+      dockerfile: docker/Dockerfile.web  # Путь к Dockerfile относительно контекста
     command: python planner/manage.py runserver 0.0.0.0:8000
     volumes:
       - ..:/app
@@ -22,7 +22,7 @@ services:
     container_name: media_task_prod
     build:
       context: ..  # Собираем из корня проекта
-      dockerfile: docker/Dockerfile  # Путь к Dockerfile относительно контекста
+      dockerfile: docker/Dockerfile.web  # Путь к Dockerfile относительно контекста
     command: >
       sh -c "
       cd /app/planner &&

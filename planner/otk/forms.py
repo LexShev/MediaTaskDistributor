@@ -43,8 +43,8 @@ class TaskSearchForm(forms.ModelForm):
 
         widgets = {
             'search_type': forms.Select(
-                attrs={'class': 'form-select', 'id': 'search_type', 'style': 'max-width: 8rem;'},
-                choices=((0, 'id'), (1, 'названию'))),
+                attrs={'class': 'form-select', 'id': 'search_type', 'style': 'max-width: 10rem;'},
+                choices=((0, 'id'), (1, 'названию'), (2, 'имени файла'))),
             'search_input': forms.TextInput(
                 attrs={'class': 'form-control', 'id': 'search_input', 'placeholder': 'введите название передачи ...'},
             ),

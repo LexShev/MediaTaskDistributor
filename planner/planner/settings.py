@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+# from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -40,7 +41,7 @@ MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
 MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
 
@@ -51,8 +52,25 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-# Application definition
 
+# Celery Configuration
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Moscow'
+CELERY_ENABLE_UTC = True
+
+# Опционально: настройки расписания для периодических задач
+CELERY_BEAT_SCHEDULE = {
+    # 'cleanup-old-tasks': {
+    #     'task': 'tools.tasks.cleanup_old_tasks',
+    #     'schedule': crontab(hour=3, minute=0),  # Каждый день в 3:00
+    # },
+}
+
+# Application definition
 INSTALLED_APPS = [
     "home",
     "main",
@@ -204,7 +222,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-
+DEFAULT_LOG_DIR = '/logs/'
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
