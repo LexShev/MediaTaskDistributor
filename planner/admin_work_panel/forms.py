@@ -8,11 +8,11 @@ choice = Choices()
 class AdminForm(forms.ModelForm):
     class Meta:
         model = AdminModel
-        fields = ('ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status')
+        fields = ('ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status')
         labels = {'ready_date': 'Дата отсмотра',
                   'sched_date': 'Дата эфира',
                   'deadline': 'Крайний срок',
-                  'engineer_id': 'Выполняет',
+                  'worker_id': 'Выполняет',
                   'material_type': 'Тип материала',
                   'sched_id': 'Канал',
                   'task_status': 'Статус задачи'}
@@ -24,8 +24,8 @@ class AdminForm(forms.ModelForm):
                 attrs={'class': 'form-control', 'type': 'date', 'id': "sched_date"}, format='%Y-%m-%d'),
             'deadline': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date', 'id': "deadline"}, format='%Y-%m-%d'),
-            'engineer_id': forms.Select(
-                attrs={'class': "form-select", 'id': "engineer_id"}, choices=choice.engineers),
+            'worker_id': forms.Select(
+                attrs={'class': "form-select", 'id': "worker_id"}, choices=choice.workers),
             'material_type': forms.Select(
                 attrs={'class': "form-select", 'id': "material_type"}, choices=choice.material_type),
             'sched_id': forms.Select(
@@ -63,11 +63,11 @@ class DynamicSelector(forms.Form):
         super().__init__(*args, **kwargs)
         self.program_id = program_id
 
-        self.fields['engineers_selector'] = forms.ChoiceField(
+        self.fields['workers_selector'] = forms.ChoiceField(
             widget=forms.Select(
-            attrs={'class': 'form-select form-select-sm', 'id': f"engineers_selector_{self.program_id}"}),
+            attrs={'class': 'form-select form-select-sm', 'id': f"workers_selector_{self.program_id}"}),
             label='Исполнитель',
-            choices=choice.engineers,
+            choices=choice.workers,
             required=False)
         self.fields['work_date_selector'] = forms.DateField(
             widget=forms.DateInput(

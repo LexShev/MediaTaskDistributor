@@ -1,4 +1,6 @@
 from django.db import connections
+
+from main.templatetags.custom_filters import engineer_id_to_worker_id
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 def query_selector(search_id, sql_set, search_query):
@@ -7,40 +9,40 @@ def query_selector(search_id, sql_set, search_query):
     columns_0 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('Progs', 'duration'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
         ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_1 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('Progs', 'duration'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
         ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_2 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('Progs', 'duration'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
         ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name'), ('Files', 'Name'),
         ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
     ]
     columns_3 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-        ('Progs', 'duration'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('Progs', 'duration'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
         ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_4 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'ModificationTime'),
-        ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('SchedDay', 'day_date'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
         ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_5 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'ModificationTime'),
-        ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
+        ('SchedDay', 'day_date'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
         ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
 
@@ -113,9 +115,9 @@ def query_selector(search_id, sql_set, search_query):
         AND Progs.[DeletedIncludeParent] = 0
         AND Fields.[ProgramCustomFieldId] = 15
         AND Fields.[IntValue] = {search_query}
-        OR Task.[engineer_id] = {search_query}
+        OR Task.[worker_id] = {engineer_id_to_worker_id(search_query)}
         AND Progs.[program_id] NOT IN
-            (SELECT program_id FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [engineer_id] = {search_query})
+            (SELECT program_id FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [worker_id] = {search_query})
         ORDER BY Progs.[program_id];
         '''
     # sched_date
@@ -186,7 +188,6 @@ def query_selector(search_id, sql_set, search_query):
     query = query_list[search_id]
 
     with connections[OPLAN_DB].cursor() as cursor:
-        print(query)
         cursor.execute(query)
         result = cursor.fetchall()
     # search_list = [dict(zip(django_columns, task)) for task in result]
@@ -197,10 +198,10 @@ def query_selector(search_id, sql_set, search_query):
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
-        if not temp_dict.get('Task_work_date'):
+        if not temp_dict.get('Task_work_date') and not temp_dict.get('Task_worker_id'):
             cenz_info_dict = cenz_info(temp_dict.get('Progs_program_id'))
             temp_dict['work_date'] = cenz_info_dict.get(7)
-            temp_dict['engineer_id'] = cenz_info_dict.get(15)
+            temp_dict['worker_id'] = engineer_id_to_worker_id(cenz_info_dict.get(15))
         else:
             print('pass')
         if not temp_dict.get('Adult_Name'):

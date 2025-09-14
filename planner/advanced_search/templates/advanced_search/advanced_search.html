@@ -80,10 +80,10 @@ input[class*="engineer"] {
               <div class="col">
                 <p class="card-text m-0"><small class="text-body-secondary">Исполнитель:</small>
                 <small class="text-body-primary">
-                  {% if material.Task_engineer_id %}
-                    {{ material.Task_engineer_id|engineer_name }}
+                  {% if material.Task_worker_id %}
+                    {{ material.Task_worker_id|planner_worker_name }}
                   {% else %}
-                    {{ material.engineer_id|engineer_name }}
+                    {{ material.worker_id|planner_worker_name }}
                   {% endif %}
                 </small>
                 </p>

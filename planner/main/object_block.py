@@ -18,7 +18,7 @@ def check_oplan3_lock(program_id):
             if lock and len(lock) == 2:
                 worker_name, lock_time = lock
                 return {'status': 'success', 'message': 'locked', 'app': 'Oplan3',
-                        'worker_name': worker_name, 'lock_time': lock_time}
+                        'worker_name': worker_name, 'lock_time': lock_time.strftime('%H:%M:%S %d-%m-%Y')}
             else:
                 return {'status': 'success', 'message': 'not_locked'}
     except Exception as error:
@@ -39,13 +39,13 @@ def check_planner_lock(program_id):
             if lock and len(lock) == 4:
                 worker_id, first_name, last_name, lock_time = lock
                 return {'status': 'success', 'message': 'locked', 'app': 'Planner',
-                 'worker_id': worker_id, 'worker_name': f'{first_name} {last_name}', 'lock_time': lock_time}
+                 'worker_id': worker_id, 'worker_name': f'{first_name} {last_name}', 'lock_time': lock_time.strftime('%H:%M:%S %d-%m-%Y')}
             else:
                 return {'status': 'success', 'message': 'not_locked'}
     except Exception as error:
         return {'status': 'error', 'message': str(error)}
 
-def block_object_planner(program_id, worker_id):
+def block_object_planner(program_id, user_id):
     try:
         with connections[PLANNER_DB].cursor() as cursor:
             query = f'''
@@ -54,7 +54,7 @@ def block_object_planner(program_id, worker_id):
             VALUES
             (%s, %s, %s);
             '''
-            cursor.execute(query, (program_id, worker_id, datetime.now()))
+            cursor.execute(query, (program_id, user_id, datetime.now()))
             if cursor.rowcount > 0:
                 return  {'status': 'success', 'message': f'{program_id} was blocked'}
             else:

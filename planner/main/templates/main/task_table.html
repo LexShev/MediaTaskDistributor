@@ -21,9 +21,9 @@
         {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
-        <td><a href="{% url 'home' %}worker/{{ task.Task_engineer_id|engineer_id_to_worker_id }}"
+        <td><a href="{% url 'home' %}worker/{{ task.Task_worker_id }}"
                class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-          {{ task.Task_engineer_id|engineer_name }}</a></td>
+          {{ task.Task_worker_id|planner_worker_name }}</a></td>
         <td>{{ task.Task_duration|convert_frames_to_time }}</td>
         <td>{{ task.Task_task_status|status_name }}</td>
       </tr>

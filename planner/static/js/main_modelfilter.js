@@ -1,7 +1,7 @@
 $('#schedules')
   .dropdown()
 ;
-$('#engineers')
+$('#workers')
   .dropdown()
 ;
 

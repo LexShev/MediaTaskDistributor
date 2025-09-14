@@ -17,6 +17,11 @@ def program_custom_fields():
                 fields_dict[field_id] = items_string
         return fields_dict
 
+def db_workers_list():
+    with connections[PLANNER_DB].cursor() as cursor:
+        query = 'SELECT [worker_id], [full_name] FROM [planner].[dbo].[engineers_list]'
+        cursor.execute(query)
+        return cursor.fetchall() or ()
 
 class Choices:
     def __init__(self):
@@ -50,6 +55,13 @@ class Choices:
                 if engineer[1]:
                     engineers_list.append(engineer)
         return engineers_list
+
+    def workers(self, label='-', exclude_init=False):
+        workers_list = [('', label)]
+        if exclude_init:
+            workers_list = []
+        workers_list.extend(db_workers_list())
+        return workers_list or []
 
     def sorting(self):
         return (

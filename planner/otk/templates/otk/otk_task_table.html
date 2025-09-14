@@ -23,7 +23,7 @@
           <input class="form-check-input me-1" type="checkbox"
                  data-program-id="{{ task.Task_program_id }}" data-file-name="{{ task.Progs_name }}"
                  data-file-path="{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
-                 data-engineer-id="{{ task.Task_engineer_id }}"
+                 data-worker-id="{{ task.Task_worker_id }}"
                  value="{{ task.Task_program_id }}"
                  name="program_id_check">
         </td>
@@ -48,8 +48,8 @@
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
         <td>
-          <a href="{% url 'home' %}worker/{{ task.Task_engineer_id|engineer_id_to_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-            {{ task.Task_engineer_id|engineer_name }}</a></td>
+          <a href="{% url 'home' %}worker/{{ task.Task_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+            {{ task.Task_worker_id|planner_worker_name }}</a></td>
         <td>{{ task.Task_sched_date|date:'d.m.Y' }}</td>
         <td>{{ task.Task_duration|convert_frames_to_time }}
           <input value="{{ task.Task_duration }}" id="dur_{{ task.Task_program_id }}" class="visually-hidden">

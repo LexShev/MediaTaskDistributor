@@ -142,7 +142,7 @@ function ProgramIdList() {
                 let prog_id = checked_list[i].dataset.programId
                 let f_name = checked_list[i].dataset.fileName
                 let f_path = checked_list[i].dataset.filePath
-                let engineer_id = checked_list[i].dataset.engineerId
+                let worker_id = checked_list[i].dataset.workerId
 //                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
 
                 let fix_prog_id = document.createElement("input");
@@ -182,11 +182,11 @@ function ProgramIdList() {
                 fix_file_path.placeholder = `Старый: ${f_path}`;
                 FixList.appendChild(fix_file_path);
 
-                let fix_engineer_id = document.createElement("input");
-                fix_engineer_id.type = 'hidden';
-                fix_engineer_id.name = 'fix_engineer_id';
-                fix_engineer_id.value = engineer_id;
-                FixList.appendChild(fix_engineer_id);
+                let fix_worker_id = document.createElement("input");
+                fix_worker_id.type = 'hidden';
+                fix_worker_id.name = 'fix_worker_id';
+                fix_worker_id.value = worker_id;
+                FixList.appendChild(fix_worker_id);
 
                 let divider = document.createElement("hr");
                 divider.style = 'width: 40%; size: 2;';
@@ -223,7 +223,7 @@ function ShowOTKFail() {
                 let prog_id = checked_list[i].dataset.programId
                 let f_name = checked_list[i].dataset.fileName
                 let f_path = checked_list[i].dataset.filePath
-                let engineer_id = checked_list[i].dataset.engineerId
+                let worker_id = checked_list[i].dataset.workerId
 //                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
 
                 let otk_fail_prog_id = document.createElement("input");
@@ -250,11 +250,11 @@ function ShowOTKFail() {
                 otk_fail_comment.placeholder = '1. Таймкод - суть проблемы\n2. Таймкод - суть проблемы\n3. ...';
                 OTKFailList.appendChild(otk_fail_comment);
 
-                let otk_fail_engineer_id = document.createElement("input");
-                otk_fail_engineer_id.type = 'hidden';
-                otk_fail_engineer_id.name = 'otk_fail_engineer_id';
-                otk_fail_engineer_id.value = engineer_id;
-                OTKFailList.appendChild(otk_fail_engineer_id);
+                let otk_fail_worker_id = document.createElement("input");
+                otk_fail_worker_id.type = 'hidden';
+                otk_fail_worker_id.name = 'otk_fail_worker_id';
+                otk_fail_worker_id.value = worker_id;
+                OTKFailList.appendChild(otk_fail_worker_id);
 
                 let divider = document.createElement("hr");
                 divider.style = 'width: 40%; size: 2;';
@@ -363,11 +363,11 @@ function totalCalc() {
 };
 
 function ResetFilter() {
-    const [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus] =
-    ['ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status', 'search_input']
+    const [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus] =
+    ['ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status', 'search_input']
     .map(id => document.getElementById(id));
 
-    [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus, search_input].forEach(el => {el.value = '';});
+    [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus, search_input].forEach(el => {el.value = '';});
 
     document.getElementById('otk_form').submit();
 

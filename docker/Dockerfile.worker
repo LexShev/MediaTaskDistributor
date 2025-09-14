@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bookworm
 
 # Устанавливаем системные зависимости для ODBC + FFmpeg
 RUN apt-get update && \
@@ -8,7 +8,7 @@ RUN apt-get update && \
     gcc \
     unixodbc-dev \
     libgssapi-krb5-2 \
-    ffmpeg \  # ← Добавляем FFmpeg
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Установка Microsoft ODBC драйвера 18
@@ -35,9 +35,8 @@ RUN set -ex \
 
 WORKDIR /app
 COPY ../requirements.txt .
-RUN python -m pip install pip==23.0.1 && \
-    python -m pip install --no-cache-dir -r requirements.txt && \
-    pip install flower  # ← Добавляем Flower для мониторинга
+RUN python -m pip install pip==25.2 && \
+    python -m pip install --no-cache-dir -r requirements.txt
 
 COPY .. .
 

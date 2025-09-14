@@ -30,8 +30,8 @@
             <div class="col px-1" style="flex: 0 0 85%; max-width: 85%;">
               <div class="row mb-2 mx-0 align-items-center">
                 <div class="col text-end">
-                  {% if full_info.Task_engineer_id %}
-                    <small class="text-secondary text-start">Закреплён за: {{ full_info.Task_engineer_id|engineer_name }}</small>
+                  {% if full_info.Task_worker_id %}
+                    <small class="text-secondary text-start">Закреплён за: {{ full_info.Task_worker_id|planner_worker_name }}</small>
                   {% endif %}
                   <h6 class="text-{{ full_info.Task_task_status|status_color }} text-end p-1 m-0">
 

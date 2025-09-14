@@ -26,7 +26,7 @@ def check_deadline(value):
 def task_info(field_dict, sql_set):
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
-            ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
+            ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
             ('Task', 'work_date'), ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
             ('Progs', 'production_year'), ('Progs', 'episode_num')
@@ -43,7 +43,7 @@ def task_info(field_dict, sql_set):
         {check_value('ready_date', field_dict.get('ready_date'))}
         {check_value('sched_date', field_dict.get('sched_date'))}
         {check_deadline(field_dict.get('deadline'))}
-        {check_value('engineer_id', field_dict.get('engineer_id'))}
+        {check_value('worker_id', field_dict.get('worker_id'))}
         {check_value('sched_id', field_dict.get('sched_id'))}
         {check_value('task_status', field_dict.get('task_status'))}
         {check_material_type(field_dict.get('material_type'))}

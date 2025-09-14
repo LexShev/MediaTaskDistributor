@@ -21,7 +21,7 @@
           <input class="form-check-input me-1" type="checkbox"
                  data-program-id="{{ task.Progs_program_id }}" data-file-name="{{ task.Progs_name }}"
                  data-file-path="{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
-                 data-engineer-id="{{ task.Task_engineer_id }}" data-prod-year="{{ task.Progs_production_year }}"
+                 data-worker-id="{{ task.Task_worker_id }}" data-prod-year="{{ task.Progs_production_year }}"
                  value="{{ task.Progs_program_id }}"
                  name="program_id_check">
         </td>
@@ -31,8 +31,8 @@
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
         <td>
-          <a href="{% url 'home' %}worker/{{ task.Task_engineer_id|engineer_id_to_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-            {{ task.Task_engineer_id|engineer_name }}</a></td>
+          <a href="{% url 'home' %}worker/{{ task.Task_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+            {{ task.Task_worker_id|planner_worker_name }}</a></td>
         <td>{{ task.Progs_duration|convert_frames_to_time }}</td>
         {% if not task.Task_task_status and task.Files_Name %}
           <td class="table-success">Oplan</td>

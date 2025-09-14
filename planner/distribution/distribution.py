@@ -29,7 +29,7 @@ def main_distribution():
         duration = temp_dict.get('Progs_duration')
         suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
 
-        engineer_id, kpi, work_date = date_seek(date(day=15, month=9, year=2025), duration)
+        worker_id, kpi, work_date = date_seek(date(day=15, month=9, year=2025), duration)
 
         if suitable_material:
             file_path = find_file_path(program_id)
@@ -37,7 +37,7 @@ def main_distribution():
         else:
             file_path = ''
             status = 'no_material'
-        insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, status, file_path)
+        insert_film(program_id, worker_id, duration, sched_id, sched_date, work_date, status, file_path)
     return 'success'
 
 
@@ -74,7 +74,7 @@ def oplan_material_list(start_date, work_duration, program_type=DEFAULT_PROGRAM_
                 OR [ProgramCustomFieldId] = 7)
             AND Progs.[program_id] NOT IN
                 (SELECT [program_id] FROM [{PLANNER_DB}].[dbo].[task_list])
-            AND Task.[engineer_id] IS NULL
+            AND Task.[worker_id] IS NULL
             ORDER BY SchedProg.[DateTime] ASC
             '''
         cursor.execute(query)
@@ -101,14 +101,16 @@ def find_file_path(program_id):
         file_path = cursor.fetchone()
     if file_path:
         return file_path[0]
+    return None
+
 
 def date_seek(work_date, duration):
     kpi_info = kpi_min(work_date)
     if kpi_info:
-        for engineer_id, kpi in kpi_info:
+        for worker_id, kpi in kpi_info:
             new_kpi = kpi + (duration / 720000.0)
             if new_kpi <= 1:
-                return engineer_id, kpi, work_date
+                return worker_id, kpi, work_date
     print('work_date', work_date)
     work_date += timedelta(days=1)
     return date_seek(work_date, duration)
@@ -119,7 +121,7 @@ def kpi_min(work_date):
         DECLARE @target_date DATE
         SET @target_date = %s
         SELECT
-            Eng.[engineer_id] AS engineer_id,
+            Eng.[worker_id] AS worker_id,
             CASE
                 WHEN Days.[day_off] IS NOT NULL THEN NULL
                 WHEN Vac.[vacation_id] IS NOT NULL THEN NULL
@@ -128,15 +130,15 @@ def kpi_min(work_date):
         FROM
             [{PLANNER_DB}].[dbo].[engineers_list] AS Eng
         LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
-            ON Eng.[engineer_id] = Task.[engineer_id]
+            ON Eng.[worker_id] = Task.[worker_id]
             AND Task.[work_date] = CONVERT(DATE, @target_date)
         LEFT JOIN [{PLANNER_DB}].[dbo].[days_off] AS Days
             ON Days.[day_off] = CONVERT(DATE, @target_date)
         LEFT JOIN [{PLANNER_DB}].[dbo].[vacation_schedule] AS Vac
-            ON Eng.[engineer_id] = Vac.[engineer_id]
+            ON Eng.[worker_id] = Vac.[worker_id]
             AND CONVERT(DATE, @target_date) BETWEEN Vac.[start_date] AND Vac.[end_date]
         GROUP BY
-            Eng.[engineer_id],
+            Eng.[worker_id],
             Days.[day_off],
             Vac.[vacation_id]
         ORDER BY
@@ -146,41 +148,41 @@ def kpi_min(work_date):
         res = cursor.fetchall()
         return sorted([item for item in res if item[1] is not None], key=lambda x: x[1])
 
-def insert_film(program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path=''):
+def insert_film(program_id, worker_id, duration, sched_id, sched_date, work_date, task_status, file_path=''):
     with connections[PLANNER_DB].cursor() as cursor:
-        columns = '[program_id], [engineer_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path]'
-        values = (program_id, engineer_id, duration, sched_id, sched_date, work_date, task_status, file_path)
+        columns = '[program_id], [worker_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path]'
+        values = (program_id, worker_id, duration, sched_id, sched_date, work_date, task_status, file_path)
         query = f'''
         INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ({columns})
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
         cursor.execute(query, values)
         print(cursor.rowcount)
-        # print(f'{program_id}, {engineer_id} successfully added')
+        # print(f'{program_id}, {worker_id} successfully added')
 
-def planner_engineer(program_id):
-    with connections[PLANNER_DB].cursor() as cursor:
-        query_planner = f'''
-        SELECT engineer_id
-        FROM [{PLANNER_DB}].[dbo].[task_list]
-        WHERE [program_id] = {program_id}'''
-        cursor.execute(query_planner)
-        planner_engineer_id = cursor.fetchone()
-        if planner_engineer_id:
-            return planner_engineer_id[0]
-        else:
-            return None
-
-def oplan3_engineer(program_id):
-    with connections[OPLAN_DB].cursor() as cursor:
-        query_oplan3 = f'''
-        SELECT [IntValue]
-        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] 
-        WHERE [ObjectId] = {program_id}
-        AND [ProgramCustomFieldId] = 15
-        '''
-        cursor.execute(query_oplan3)
-        oplan3_engineer_id = cursor.fetchone()
-        if oplan3_engineer_id:
-            return oplan3_engineer_id[0]
+# def planner_engineer(program_id):
+#     with connections[PLANNER_DB].cursor() as cursor:
+#         query_planner = f'''
+#         SELECT worker_id
+#         FROM [{PLANNER_DB}].[dbo].[task_list]
+#         WHERE [program_id] = {program_id}'''
+#         cursor.execute(query_planner)
+#         planner_worker_id = cursor.fetchone()
+#         if planner_worker_id:
+#             return planner_worker_id[0]
+#         else:
+#             return None
+#
+# def oplan3_engineer(program_id):
+#     with connections[OPLAN_DB].cursor() as cursor:
+#         query_oplan3 = f'''
+#         SELECT [IntValue]
+#         FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
+#         WHERE [ObjectId] = {program_id}
+#         AND [ProgramCustomFieldId] = 15
+#         '''
+#         cursor.execute(query_oplan3)
+#         oplan3_engineer_id = cursor.fetchone()
+#         if oplan3_engineer_id:
+#             return oplan3_engineer_id[0]
 

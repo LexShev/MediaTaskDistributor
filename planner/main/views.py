@@ -19,7 +19,7 @@ from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiFo
 from main.helpers import get_engineer_id
 from .js_requests import program_name
 from .kinoroom_parser import download_poster, search, check_db
-from .logs_and_history import insert_history, select_actions, change_task_status, update_comment, insert_history_new, \
+from .logs_and_history import insert_history, select_actions, update_comment, insert_history_new, \
     change_task_status_new, get_task_status
 from .models import ModelFilter, AttachedFiles, ModelSorting
 from .list_view import list_material_list
@@ -75,9 +75,9 @@ def week(request):
 
 @login_required()
 def week_date(request, work_year, work_week):
-    worker_id = request.user.id
+    user_id = request.user.id
     try:
-        inst_dict = ModelFilter.objects.get(owner=worker_id)
+        inst_dict = ModelFilter.objects.get(owner=user_id)
     except ObjectDoesNotExist:
         schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         start_date = datetime.today()
@@ -86,21 +86,21 @@ def week_date(request, work_year, work_week):
         material_type = ('film', 'season')
 
         default_filter = ModelFilter(
-            owner=worker_id, schedules=schedules,
-            engineers=[worker_id], material_type=material_type,
+            owner=user_id, schedules=schedules,
+            workers=[user_id], material_type=material_type,
             work_dates=' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
             task_status=task_status
         )
         default_filter.save()
-        inst_dict = ModelFilter.objects.get(owner=worker_id)
+        inst_dict = ModelFilter.objects.get(owner=user_id)
         print("Новый фильтр создан")
 
     try:
-        sorting_inst_dict = ModelSorting.objects.get(owner=worker_id)
+        sorting_inst_dict = ModelSorting.objects.get(owner=user_id)
     except ObjectDoesNotExist:
-        default_sorting = ModelSorting(owner=worker_id, user_order='sched_date', order_type='ASC')
+        default_sorting = ModelSorting(owner=user_id, user_order='sched_date', order_type='ASC')
         default_sorting.save()
-        sorting_inst_dict = ModelSorting.objects.get(owner=worker_id)
+        sorting_inst_dict = ModelSorting.objects.get(owner=user_id)
         print("Новая сортировка создана")
 
     if request.method == 'POST':
@@ -111,7 +111,7 @@ def week_date(request, work_year, work_week):
             sorting_form.save()
 
             schedules = ast.literal_eval(filter_form.cleaned_data.get('schedules'))
-            engineers = ast.literal_eval(filter_form.cleaned_data.get('engineers'))
+            workers = ast.literal_eval(filter_form.cleaned_data.get('workers'))
             material_type = ast.literal_eval(filter_form.cleaned_data.get('material_type'))
             task_status = ast.literal_eval(filter_form.cleaned_data.get('task_status'))
 
@@ -120,7 +120,7 @@ def week_date(request, work_year, work_week):
 
         else:
             schedules = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
-            engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+            workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
 
@@ -128,7 +128,7 @@ def week_date(request, work_year, work_week):
             order_type = 'ASC'
     else:
         schedules = ast.literal_eval(inst_dict.schedules)
-        engineers = ast.literal_eval(inst_dict.engineers)
+        workers = ast.literal_eval(inst_dict.workers)
         material_type = ast.literal_eval(inst_dict.material_type)
         task_status = ast.literal_eval(inst_dict.task_status)
 
@@ -136,16 +136,16 @@ def week_date(request, work_year, work_week):
         order_type = sorting_inst_dict.order_type
 
         initial_dict = {'schedules': schedules,
-                        'engineers': engineers,
+                        'workers': workers,
                         'material_type': material_type,
                         'task_status': task_status}
         filter_form = WeekFilter(initial=initial_dict)
         sorting_form = SortingForm(initial={'user_order': user_order, 'order_type': order_type})
-    material_list, service_dict = week_material_list(schedules, engineers, material_type, task_status, work_year, work_week, user_order, order_type)
+    material_list, service_dict = week_material_list(schedules, workers, material_type, task_status, work_year, work_week, user_order, order_type)
     data = {
         'week_material_list': material_list,
         'service_dict': service_dict,
-        'permissions': ask_db_permissions(worker_id),
+        'permissions': ask_db_permissions(user_id),
         'form': filter_form,
         'sorting_form': sorting_form
     }
@@ -154,9 +154,9 @@ def week_date(request, work_year, work_week):
 
 @login_required()
 def full_list(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     try:
-        inst_dict = ModelFilter.objects.get(owner=worker_id)
+        inst_dict = ModelFilter.objects.get(owner=user_id)
     except ObjectDoesNotExist:
         schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
         start_date = datetime.today()
@@ -165,20 +165,20 @@ def full_list(request):
         material_type = ('film', 'season')
 
         default_filter = ModelFilter(
-            owner=worker_id, schedules=schedules,
-            engineers=[worker_id], material_type=material_type,
+            owner=user_id, schedules=schedules,
+            workers=[user_id], material_type=material_type,
             work_dates=' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
             task_status=task_status
         )
         default_filter.save()
-        inst_dict = ModelFilter.objects.get(owner=worker_id)
+        inst_dict = ModelFilter.objects.get(owner=user_id)
         print("Новый фильтр создан")
     try:
-        sorting_inst_dict = ModelSorting.objects.get(owner=worker_id)
+        sorting_inst_dict = ModelSorting.objects.get(owner=user_id)
     except ObjectDoesNotExist:
-        default_sorting = ModelSorting(owner=worker_id, user_order='sched_date', order_type='ASC')
+        default_sorting = ModelSorting(owner=user_id, user_order='sched_date', order_type='ASC')
         default_sorting.save()
-        sorting_inst_dict = ModelSorting.objects.get(owner=worker_id)
+        sorting_inst_dict = ModelSorting.objects.get(owner=user_id)
         print("Новая сортировка создана")
     if request.method == 'POST':
         filter_form = ListFilter(request.POST, instance=inst_dict)
@@ -188,7 +188,7 @@ def full_list(request):
             sorting_form.save()
 
             schedules = ast.literal_eval(filter_form.cleaned_data.get('schedules'))
-            engineers = ast.literal_eval(filter_form.cleaned_data.get('engineers'))
+            workers = ast.literal_eval(filter_form.cleaned_data.get('workers'))
             material_type = ast.literal_eval(filter_form.cleaned_data.get('material_type'))
             work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), filter_form.cleaned_data.get('work_dates').split(' - ')))
             task_status = ast.literal_eval(filter_form.cleaned_data.get('task_status'))
@@ -200,7 +200,7 @@ def full_list(request):
             schedules = (1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
             start_date = datetime.today()
             work_dates = (start_date, start_date)
-            engineers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+            workers = (3, 5, 4, 7, 8, 9, 10, 11, 12, 13)
             task_status = ('not_ready', 'ready', 'fix')
             material_type = ('film', 'season')
 
@@ -208,7 +208,7 @@ def full_list(request):
             order_type = 'ASC'
     else:
         schedules = ast.literal_eval(inst_dict.schedules)
-        engineers = ast.literal_eval(inst_dict.engineers)
+        workers = ast.literal_eval(inst_dict.workers)
         material_type = ast.literal_eval(inst_dict.material_type)
         work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), inst_dict.work_dates.split(' - ')))
         task_status = ast.literal_eval(inst_dict.task_status)
@@ -217,14 +217,14 @@ def full_list(request):
         order_type = sorting_inst_dict.order_type
 
         initial_dict = {'schedules': schedules,
-                        'engineers': engineers,
+                        'workers': workers,
                         'material_type': material_type,
                         'work_dates': ' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
                         'task_status': task_status}
         filter_form = ListFilter(initial=initial_dict)
         sorting_form = SortingForm(initial={'user_order': user_order, 'order_type': order_type})
-    data = {'material_list': list_material_list(schedules, engineers, material_type, work_dates, task_status, user_order, order_type),
-            'form': filter_form, 'sorting_form': sorting_form, 'permissions': ask_db_permissions(worker_id)}
+    data = {'material_list': list_material_list(schedules, workers, material_type, work_dates, task_status, user_order, order_type),
+            'form': filter_form, 'sorting_form': sorting_form, 'permissions': ask_db_permissions(user_id)}
     return render(request, 'main/list.html', data)
 
 def get_field_comparison(program_id_list, fields_to_compare):
@@ -291,102 +291,102 @@ def load_cenz_data(request):
         print(e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-def submit_cenz_data(request):
-    success_messages = []
-    error_messages = []
-    worker_id = request.user.id
-    if request.method == 'POST':
-
-        form_drop = CenzFormDropDown(request.POST)
-        form_text = CenzFormText(request.POST)
-
-        if form_text.is_valid() and form_drop.is_valid():
-            new_values_dict = {
-                17: form_drop.cleaned_data.get('meta_form'),
-                7: form_drop.cleaned_data.get('work_date_form'),
-                14: form_drop.cleaned_data.get('cenz_rate_form'),
-                15: form_drop.cleaned_data.get('engineers_form'),
-                18: form_drop.cleaned_data.get('tags_form'),
-                19: form_drop.cleaned_data.get('inoagent_form'),
-                22: form_drop.cleaned_data.get('narc_select_form'),
-                8: form_text.cleaned_data.get('lgbt_form'),
-                9: form_text.cleaned_data.get('sig_form'),
-                10: form_text.cleaned_data.get('obnazh_form'),
-                11: form_text.cleaned_data.get('narc_form'),
-                12: form_text.cleaned_data.get('mat_form'),
-                13: form_text.cleaned_data.get('other_form'),
-                16: form_text.cleaned_data.get('editor_form')
-            }
-        else:
-            new_values_dict = {}
-
-        task_ready_list = []
-        task_status = ''
-        task_ready = request.POST.get('task_ready')
-        cenz_info_change = request.POST.get('cenz_info_change')
-        if task_ready:
-            task_status = 'ready'
-            task_ready_list = task_ready.split(',')
-        if cenz_info_change:
-            task_status = ''
-            task_ready_list = cenz_info_change.split(',')
-        cenz_comment = request.POST.get('cenz_comment')
-        for program_id in task_ready_list:
-            check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
-            if check_lock and check_lock.get('message') == 'locked' and str(worker_id) != str(check_lock.get('worker_id')):
-                app = check_lock.get('app')
-                worker_name = check_lock.get('worker_name')
-                lock_time = check_lock.get('lock_time')
-                text = f'{program_name(program_id)} заблокирован в {app} пользователем: {worker_name} в {lock_time}.'
-                error_messages.append(text)
-                continue
-            custom_fields = cenz_info(program_id)
-            old_values_dict = {
-                17: custom_fields.get(17),
-                7: custom_fields.get(7),
-                14: custom_fields.get(14),
-                15: custom_fields.get(15),
-                18: custom_fields.get(18),
-                19: custom_fields.get(19),
-                22: custom_fields.get(22),
-                8: custom_fields.get(8),
-                9: custom_fields.get(9),
-                10: custom_fields.get(10),
-                11: custom_fields.get(11),
-                12: custom_fields.get(12),
-                13: custom_fields.get(13),
-                16: custom_fields.get(16)
-            }
-            work_date = new_values_dict.get(7, old_values_dict.get(7))
-            service_info_dict = {'program_id': program_id, 'worker_id': worker_id, 'work_date': work_date}
-            # change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
-            change_oplan_cenz_info(program_id, old_values_dict, new_values_dict)
-            insert_history(service_info_dict, old_values_dict, new_values_dict)
-            update_comment(program_id, worker_id, comment=cenz_comment)
-
-            if task_status:
-                text = change_task_status(service_info_dict, task_status)
-                if text.startswith('Ошибка!'):
-                    error_messages.append(text)
-                else:
-                    success_messages.append(text)
-            else:
-                text = f'{program_name(program_id)} изменено.'
-                success_messages.append(text)
-
-        if success_messages:
-            messages.success(request, '\n'.join(success_messages))
-        if error_messages:
-            messages.error(request, '\n'.join(error_messages))
-        if not success_messages and not error_messages:
-            messages.error(request, 'Ошибка!')
-    return redirect(full_list)
+# def submit_cenz_data(request):
+#     success_messages = []
+#     error_messages = []
+#     user_id = request.user.id
+#     if request.method == 'POST':
+#
+#         form_drop = CenzFormDropDown(request.POST)
+#         form_text = CenzFormText(request.POST)
+#
+#         if form_text.is_valid() and form_drop.is_valid():
+#             new_values_dict = {
+#                 17: form_drop.cleaned_data.get('meta_form'),
+#                 7: form_drop.cleaned_data.get('work_date_form'),
+#                 14: form_drop.cleaned_data.get('cenz_rate_form'),
+#                 15: form_drop.cleaned_data.get('engineers_form'),
+#                 18: form_drop.cleaned_data.get('tags_form'),
+#                 19: form_drop.cleaned_data.get('inoagent_form'),
+#                 22: form_drop.cleaned_data.get('narc_select_form'),
+#                 8: form_text.cleaned_data.get('lgbt_form'),
+#                 9: form_text.cleaned_data.get('sig_form'),
+#                 10: form_text.cleaned_data.get('obnazh_form'),
+#                 11: form_text.cleaned_data.get('narc_form'),
+#                 12: form_text.cleaned_data.get('mat_form'),
+#                 13: form_text.cleaned_data.get('other_form'),
+#                 16: form_text.cleaned_data.get('editor_form')
+#             }
+#         else:
+#             new_values_dict = {}
+#
+#         task_ready_list = []
+#         task_status = ''
+#         task_ready = request.POST.get('task_ready')
+#         cenz_info_change = request.POST.get('cenz_info_change')
+#         if task_ready:
+#             task_status = 'ready'
+#             task_ready_list = task_ready.split(',')
+#         if cenz_info_change:
+#             task_status = ''
+#             task_ready_list = cenz_info_change.split(',')
+#         cenz_comment = request.POST.get('cenz_comment')
+#         for program_id in task_ready_list:
+#             check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
+#             if check_lock and check_lock.get('message') == 'locked' and str(user_id) != str(check_lock.get('worker_id')):
+#                 app = check_lock.get('app')
+#                 worker_name = check_lock.get('worker_name')
+#                 lock_time = check_lock.get('lock_time')
+#                 text = f'{program_name(program_id)} заблокирован в {app} пользователем: {worker_name} в {lock_time}.'
+#                 error_messages.append(text)
+#                 continue
+#             custom_fields = cenz_info(program_id)
+#             old_values_dict = {
+#                 17: custom_fields.get(17),
+#                 7: custom_fields.get(7),
+#                 14: custom_fields.get(14),
+#                 15: custom_fields.get(15),
+#                 18: custom_fields.get(18),
+#                 19: custom_fields.get(19),
+#                 22: custom_fields.get(22),
+#                 8: custom_fields.get(8),
+#                 9: custom_fields.get(9),
+#                 10: custom_fields.get(10),
+#                 11: custom_fields.get(11),
+#                 12: custom_fields.get(12),
+#                 13: custom_fields.get(13),
+#                 16: custom_fields.get(16)
+#             }
+#             work_date = new_values_dict.get(7, old_values_dict.get(7))
+#             service_info_dict = {'program_id': program_id, 'user_id': user_id, 'work_date': work_date}
+#             # change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
+#             change_oplan_cenz_info(program_id, old_values_dict, new_values_dict)
+#             insert_history(service_info_dict, old_values_dict, new_values_dict)
+#             update_comment(program_id, user_id, comment=cenz_comment)
+#
+#             if task_status:
+#                 text = change_task_status(service_info_dict, task_status)
+#                 if text.startswith('Ошибка!'):
+#                     error_messages.append(text)
+#                 else:
+#                     success_messages.append(text)
+#             else:
+#                 text = f'{program_name(program_id)} изменено.'
+#                 success_messages.append(text)
+#
+#         if success_messages:
+#             messages.success(request, '\n'.join(success_messages))
+#         if error_messages:
+#             messages.error(request, '\n'.join(error_messages))
+#         if not success_messages and not error_messages:
+#             messages.error(request, 'Ошибка!')
+#     return redirect(full_list)
 
 def cenz_batch(request):
     success_messages = []
     error_messages = []
 
-    worker_id = request.user.id
+    user_id = request.user.id
     data = json.loads(request.body)
 
     if not data:
@@ -395,12 +395,15 @@ def cenz_batch(request):
     cenz_comment = new_values.get('cenz_comment')
 
     for program_id in task_ready_list:
-        check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
-        if check_lock and check_lock.get('message') == 'locked':
-            app = check_lock.get('app')
-            worker_name = check_lock.get('worker_name')
-            lock_time = check_lock.get('lock_time')
-            text = f'{program_name(program_id)} заблокирован в {app} пользователем: {worker_name} в {lock_time}.'
+        oplan3_lock = check_oplan3_lock(program_id)
+        planner_lock = check_planner_lock(program_id)
+        print('check_lock', oplan3_lock)
+        if oplan3_lock.get('message') == 'locked':
+            text = f'заблокирован в Oplan3 пользователем: {oplan3_lock.get("worker_name")} в {oplan3_lock.get("lock_time")}'
+            error_messages.append(text)
+            continue
+        if planner_lock.get('message') == 'locked':
+            text = f'заблокирован в Planner пользователем: {planner_lock.get("worker_name")} в {planner_lock.get("lock_time")}'
             error_messages.append(text)
             continue
         old_values = cenz_info(program_id)
@@ -412,8 +415,8 @@ def cenz_batch(request):
         answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
         if answer.get('status') == 'success':
             change_oplan_cenz_info(program_id, old_values, new_values)
-            insert_history_new(program_id, worker_id, old_values, new_values)
-            update_comment(program_id, worker_id, task_status, cenz_comment)
+            insert_history_new(program_id, user_id, old_values, new_values)
+            update_comment(program_id, user_id, task_status, cenz_comment)
             success_messages.append(answer.get('message'))
         else:
             error_messages.append(answer.get('message'))
@@ -426,7 +429,7 @@ def cenz_batch(request):
 
 @login_required()
 def material_card(request, program_id):
-    worker_id = request.user.id
+    user_id = request.user.id
     custom_fields = cenz_info(program_id)
 
     # work_date
@@ -443,7 +446,7 @@ def material_card(request, program_id):
             # return HttpResponse("Файл слишком большой!", status=400)
         if form_attached_files.is_valid():
             attached_file = form_attached_files.save(commit=False)
-            attached_file.owner = worker_id
+            attached_file.owner = user_id
             attached_file.program_id = program_id
             attached_file.save()
 
@@ -486,12 +489,12 @@ def material_card(request, program_id):
             'form_drop': form_drop,
             'form_attached_files': form_attached_files,
             # 'lock_material': lock_material,
-            'permissions': ask_db_permissions(worker_id)
+            'permissions': ask_db_permissions(user_id)
             }
     return render(request, 'main/full_info_card.html', data)
 
 def status_ready(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     new_values = json.loads(request.body)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
@@ -506,8 +509,8 @@ def status_ready(request):
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     if answer.get('status') == 'success':
         change_oplan_cenz_info(program_id, old_values, new_values)
-        insert_history_new(program_id, worker_id, old_values, new_values)
-        update_comment(program_id, worker_id, task_status, cenz_comment)
+        insert_history_new(program_id, user_id, old_values, new_values)
+        update_comment(program_id, user_id, task_status, cenz_comment)
     else:
         return JsonResponse(answer)
     message = 'Задача успешно завершена'
@@ -515,7 +518,7 @@ def status_ready(request):
     return JsonResponse({'status': 'success', 'message': message})
 
 def ask_fix(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     new_values = json.loads(request.body)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
@@ -528,10 +531,10 @@ def ask_fix(request):
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     if answer.get('status') == 'success':
         create_notification(
-            {'sender': worker_id, 'recipient': 6, 'program_id': program_id,
+            {'sender': user_id, 'recipient': 6, 'program_id': program_id,
              'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
         )
-        update_comment(program_id, worker_id, task_status, fix_comment, deadline)
+        update_comment(program_id, user_id, task_status, fix_comment, deadline)
     else:
         return JsonResponse(answer)
     message = 'Заявка на FIX успешно отправлена'
@@ -539,7 +542,7 @@ def ask_fix(request):
     return JsonResponse({'status': 'success', 'message': message})
 
 def cenz_info_change(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     new_values = json.loads(request.body)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'message'})
@@ -553,8 +556,8 @@ def cenz_info_change(request):
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     if answer.get('status') == 'success':
         change_oplan_cenz_info(program_id, old_values, new_values)
-        insert_history_new(program_id, worker_id, old_values, new_values)
-        update_comment(program_id, worker_id, comment=cenz_comment)
+        insert_history_new(program_id, user_id, old_values, new_values)
+        update_comment(program_id, user_id, comment=cenz_comment)
     message = 'Успешно обновлено'
     messages.success(request, message)
     return JsonResponse({'status': 'success', 'message': message})
@@ -570,9 +573,9 @@ def check_lock_card(request, program_id):
             'message': f'Internal server error: {str(error)}'
         }, status=500)
 
-def block_card(request, program_id, worker_id):
+def block_card(request, program_id, user_id):
     try:
-        result = block_object_planner(program_id, worker_id)
+        result = block_object_planner(program_id, user_id)
         return JsonResponse(result)
     except Exception as error:
         return JsonResponse({
@@ -580,11 +583,11 @@ def block_card(request, program_id, worker_id):
             'message': f'Internal server error: {str(error)}'
         }, status=500)
 
-def unblock_card(request, program_id, worker_id):
-    return JsonResponse({'response': unblock_object_planner(program_id, worker_id)})
+def unblock_card(request, program_id, user_id):
+    return JsonResponse({'response': unblock_object_planner(program_id, user_id)})
 
-def get_worker_name(request, worker_id):
-    return JsonResponse({'worker_name': planner_worker_name(worker_id)})
+def get_worker_name(request, user_id):
+    return JsonResponse({'worker_name': planner_worker_name(user_id)})
 
 def get_movie_poster(request):
     program_id, program_name, year, country = json.loads(request.body)
@@ -597,39 +600,40 @@ def get_movie_poster(request):
 
 @login_required()
 def kpi_info(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     work_date = datetime.today().date()
-    engineers = ''
+    workers = ''
     task_status = ''
     material_type = ''
     if request.method == 'POST':
         form = KpiForm(request.POST)
         if form.is_valid():
             work_date = form.cleaned_data.get('work_date_form')
-            engineers = form.cleaned_data.get('engineers_form')
+            workers = form.cleaned_data.get('workers_form')
             material_type = form.cleaned_data.get('material_type_form')
             task_status = form.cleaned_data.get('task_status_form')
     else:
         form = KpiForm(initial={
             'work_date_form': str(work_date),
-            'engineers_form': engineers,
+            'workers_form': workers,
             'material_type_form': material_type,
             'task_status': task_status})
 
     task_list, summary_dict = kpi_summary_calc(
-        {'work_date': work_date, 'engineers': engineers,
+        {'work_date': work_date, 'workers': workers,
          'material_type': material_type, 'task_status': task_status})
 
     data = {'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.today().date(),
             'form': form,
-            'permissions': ask_db_permissions(worker_id)}
+            'permissions': ask_db_permissions(user_id)}
     return render(request, 'main/kpi_admin_panel.html', data)
 
 @login_required()
 def engineer_profile(request, worker_id):
-    engineer_id = get_engineer_id(worker_id)
+    user_id = request.user.id
+    # engineer_id = get_engineer_id(worker_id)
     work_date = datetime.today().date()
     task_status = ''
     material_type = ''
@@ -646,20 +650,20 @@ def engineer_profile(request, worker_id):
             'task_status': task_status})
 
     task_list, summary_dict = kpi_personal_calc(
-        {'work_date': work_date, 'engineer_id': engineer_id,
+        {'work_date': work_date, 'worker_id': worker_id,
          'material_type': material_type, 'task_status': task_status})
 # worker_id need to fix
-    data = {'worker_id': engineer_id,
+    data = {'worker_id': worker_id,
             'task_list': task_list,
             'summary_dict': summary_dict,
             'today': datetime.today().date(),
-            'permissions': ask_db_permissions(worker_id),
+            'permissions': ask_db_permissions(user_id),
             'form': form}
     return render(request, 'main/kpi_engineer.html', data)
 
 @login_required()
 def work_year_calendar(request, cal_year):
-    worker_id = request.user.id
+    user_id = request.user.id
 
     approve_day_off = request.POST.get('approve_day_off', None)
     if approve_day_off:
@@ -671,11 +675,11 @@ def work_year_calendar(request, cal_year):
     if request.method == 'POST':
         form = VacationForm(request.POST)
         if form.is_valid():
-            engineer_id = form.cleaned_data['engineers_form']
+            worker_id = form.cleaned_data['workers_form']
             start_date = form.cleaned_data['start_date_form']
             end_date = form.cleaned_data['end_date_form']
             description = form.cleaned_data['description_form']
-            insert_vacation(engineer_id, start_date, end_date, description)
+            insert_vacation(worker_id, start_date, end_date, description)
         form = VacationForm()
     else:
         form = VacationForm()
@@ -688,7 +692,7 @@ def work_year_calendar(request, cal_year):
             'year_num': cal_year,
             'next_year': cal_year+1,
             'vacation_list': vacation_info(cal_year),
-            'permissions': ask_db_permissions(worker_id),
+            'permissions': ask_db_permissions(user_id),
             'form': form}
     return render(request, 'main/work_calendar.html', data)
 

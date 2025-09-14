@@ -16,14 +16,14 @@ from .models import CommonPool
 
 @login_required()
 def common_pool(request):
-    worker_id = request.user.id
+    user_id = request.user.id
 
     try:
-        init_dict = CommonPool.objects.get(owner=worker_id)
+        init_dict = CommonPool.objects.get(owner=user_id)
     except ObjectDoesNotExist:
-        default_filter = CommonPool(owner=worker_id, search_type=1, sql_set=100)
+        default_filter = CommonPool(owner=user_id, search_type=1, sql_set=100)
         default_filter.save()
-        init_dict = CommonPool.objects.get(owner=worker_id)
+        init_dict = CommonPool.objects.get(owner=user_id)
 
     if request.method == 'POST':
         form = CommonPoolForm(request.POST, instance=init_dict)
@@ -35,7 +35,7 @@ def common_pool(request):
         )
 
     data = {'pool_list': [],
-            'permissions': ask_db_permissions(worker_id),
+            'permissions': ask_db_permissions(user_id),
             'form': form,
             }
     return render(request, 'common_pool/common_pool.html', data)
@@ -67,17 +67,17 @@ def add_in_common_task(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def load_pool_table(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     try:
-        init_dict = CommonPool.objects.get(owner=worker_id)
+        init_dict = CommonPool.objects.get(owner=user_id)
     except ObjectDoesNotExist:
-        init_dict = CommonPool.objects.get(owner=worker_id)
+        init_dict = CommonPool.objects.get(owner=user_id)
 
     sql_set = request.GET.get('sql_set', init_dict.sql_set)
     html = render_to_string(
         'common_pool/common_pool_table.html',
         {'pool_list': select_pool(sql_set),
-         'permissions': ask_db_permissions(worker_id),
+         'permissions': ask_db_permissions(user_id),
          },
         request=request
     )

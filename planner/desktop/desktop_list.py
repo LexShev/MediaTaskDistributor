@@ -22,7 +22,7 @@ def task_info(worker_id, schedules, material_type, task_status, work_dates, excl
 
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
-            ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'), ('Task', 'work_date'),
+            ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'), ('Task', 'work_date'),
             ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'parent_id'),
             ('Progs', 'keywords'), ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Adult', 'Name')
@@ -37,7 +37,7 @@ def task_info(worker_id, schedules, material_type, task_status, work_dates, excl
         LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         JOIN [{PLANNER_DB}].[dbo].[engineers_list] AS Eng
-            ON Task.[engineer_id] = Eng.[engineer_id]
+            ON Task.[worker_id] = Eng.[worker_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         AND Eng.[worker_id] = {worker_id}
@@ -60,7 +60,7 @@ def cards_container(worker_id, program_list):
     if not program_list:
         return []
     columns = [
-        ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'), ('Task', 'work_date'),
+        ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'), ('Task', 'work_date'),
         ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
         ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'parent_id'),
         ('Progs', 'keywords'), ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Adult', 'Name')
