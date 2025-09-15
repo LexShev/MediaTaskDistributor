@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.template.loader import render_to_string
 
 from messenger_static.messenger_utils import create_notification
+from tools.tasks import process_video_task
 
 from .ffmpeg_info import ffmpeg_dict
 from tools.ffprobe_scan import FfprobeScanner
@@ -431,6 +432,7 @@ def cenz_batch(request):
 def material_card(request, program_id):
     user_id = request.user.id
     custom_fields = cenz_info(program_id)
+    # process_video_task.delay(program_id)
 
     # work_date
     if custom_fields.get(7) and not isinstance(custom_fields.get(7), str):

@@ -9,7 +9,7 @@ class AdminForm(forms.ModelForm):
     class Meta:
         model = AdminModel
         fields = ('ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status')
-        labels = {'ready_date': 'Дата отсмотра',
+        labels = {'ready_date': 'Дата завершения',
                   'sched_date': 'Дата эфира',
                   'deadline': 'Крайний срок',
                   'worker_id': 'Выполняет',

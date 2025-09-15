@@ -36,7 +36,8 @@ RUN set -ex \
 WORKDIR /app
 COPY ../requirements.txt .
 RUN python -m pip install pip==25.2 && \
-    python -m pip install --no-cache-dir -r requirements.txt
+    python -m pip install --no-cache-dir -r requirements.txt && \
+    pip install redis==4.6.0
 
 COPY .. .
 
