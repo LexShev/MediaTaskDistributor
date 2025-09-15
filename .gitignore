@@ -7,6 +7,8 @@
 /planner/static/SortableJS
 /planner/static/ChartJS
 /planner/static/jquery
+/planner/static/banners
+/planner/workers/.users.json
 /ssl
 .idea
 .env
@@ -16,3 +18,8 @@ export_structure.py
 project_structure.txt
 install_media_task_distributor.sh
 notes
+docker/docker-compose_backup.yml
+
+# Backup files
+*.bundle
+backup-*
