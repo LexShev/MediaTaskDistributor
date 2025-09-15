@@ -26,7 +26,7 @@ def fast_search(program_name):
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Progs', 'duration'), ('Adult', 'Name'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
+                   ('Progs', 'duration'), ('Adult', 'Name'), ('Task', 'worker_id'), ('Task', 'sched_id'),
                    ('Sched', 'schedule_name'), ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -43,7 +43,6 @@ def fast_search(program_name):
         AND Progs.[name] LIKE '%{program_name}%'
         ORDER BY Progs.[name];
         '''
-        print(query)
         cursor.execute(query)
         result = cursor.fetchall()
     search_list = [dict(zip(django_columns, task)) for task in result]

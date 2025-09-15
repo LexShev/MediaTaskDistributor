@@ -92,7 +92,7 @@ function ShowFinalFail() {
             let f_name = checked_list[i].dataset.fileName
             let prodYear = checked_list[i].dataset.prodYear
             let f_path = checked_list[i].dataset.filePath
-            let engineer_id = checked_list[i].dataset.engineerId
+            let worker_id = checked_list[i].dataset.workerId
 
             let final_fail_prog_id = document.createElement("input");
             final_fail_prog_id.type = 'hidden';
@@ -118,11 +118,11 @@ function ShowFinalFail() {
             final_fail_comment.placeholder = '1. Таймкод - суть проблемы\n2. Таймкод - суть проблемы\n3. ...';
             material.appendChild(final_fail_comment);
 
-            let final_fail_engineer_id = document.createElement("input");
-            final_fail_engineer_id.type = 'hidden';
-            final_fail_engineer_id.name = 'final_fail_engineer_id';
-            final_fail_engineer_id.value = engineer_id;
-            material.appendChild(final_fail_engineer_id);
+            let final_fail_worker_id = document.createElement("input");
+            final_fail_worker_id.type = 'hidden';
+            final_fail_worker_id.name = 'final_fail_worker_id';
+            final_fail_worker_id.value = worker_id;
+            material.appendChild(final_fail_worker_id);
 
             let deadline_name = document.createElement("h6");
             deadline_name.textContent = 'Установить крайний срок'
@@ -151,20 +151,20 @@ function ShowFinalFail() {
             btnGroup.id = `final_fail_recipient_${prog_id}`;
             const groupName = `final_fail_recipient_${prog_id}`;
 
-            const radioEngineer = document.createElement('input');
-            const radioEngineerId = `radioEngineer_${prog_id}`;
-            radioEngineer.type = 'radio';
-            radioEngineer.className = 'btn-check';
-            radioEngineer.id = radioEngineerId;
-            radioEngineer.name = groupName;
-            radioEngineer.autocomplete = 'off';
-            radioEngineer.value = engineer_id;
-            radioEngineer.checked = true;
+            const radioWorker = document.createElement('input');
+            const radioWorkerId = `radioWorker_${prog_id}`;
+            radioWorker.type = 'radio';
+            radioWorker.className = 'btn-check';
+            radioWorker.id = radioWorkerId;
+            radioWorker.name = groupName;
+            radioWorker.autocomplete = 'off';
+            radioWorker.value = worker_id;
+            radioWorker.checked = true;
 
-            const labelEngineer = document.createElement('label');
-            labelEngineer.className = 'btn btn-outline-secondary';
-            labelEngineer.htmlFor = radioEngineerId;
-            labelEngineer.textContent = 'Инженер подготовки';
+            const labelWorker = document.createElement('label');
+            labelWorker.className = 'btn btn-outline-secondary';
+            labelWorker.htmlFor = radioWorkerId;
+            labelWorker.textContent = 'Инженер подготовки';
 
             const radioOTK = document.createElement('input');
             const radioOTKId = `radioOTK_${prog_id}`;
@@ -181,8 +181,8 @@ function ShowFinalFail() {
             labelOTK.textContent = 'ОТК';
 
             // Добавляем в группу
-            btnGroup.appendChild(radioEngineer);
-            btnGroup.appendChild(labelEngineer);
+            btnGroup.appendChild(radioWorker);
+            btnGroup.appendChild(labelWorker);
             btnGroup.appendChild(radioOTK);
             btnGroup.appendChild(labelOTK);
             material.appendChild(btnGroup);

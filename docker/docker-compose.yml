@@ -10,8 +10,6 @@ services:
     volumes:
       - ..:/app
     working_dir: /app
-    ports:
-      - "8000:8000"
     env_file:
       - ../.env
     restart: unless-stopped
@@ -60,6 +58,72 @@ services:
       - "8000:8000"
     depends_on:
       - prod
+    networks:
+      - planner-network
+
+  celery_worker:
+    container_name: media_task_celery_worker
+    build:
+      context: ..  # Собираем из корня проекта
+      dockerfile: docker/Dockerfile.worker
+    command: >
+      sh -c "
+      cd /app/planner &&
+      celery -A planner worker --loglevel=info --concurrency=4
+      "
+    volumes:
+      - ..:/app
+      - /mnt:/mnt
+    working_dir: /app
+    environment:
+      - DJANGO_SETTINGS_MODULE=planner.settings
+      - PYTHONPATH=/app
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    env_file:
+      - ../.env
+    restart: unless-stopped
+    depends_on:
+      - redis
+    networks:
+      - planner-network
+
+  # Flower для мониторинга Celery с Basic Auth
+  flower:
+    container_name: media_task_flower
+    build:
+      context: ..  # Собираем из корня проекта
+      dockerfile: docker/Dockerfile.worker
+    command: >
+      sh -c "
+      cd /app/planner &&
+      celery -A planner flower 
+      --port=5555 
+      --broker=redis://redis:6379/0 
+      --basic_auth=$${FLOWER_USER}:$${FLOWER_PASSWORD}
+      "
+    ports:
+      - "5555:5555"  # ← Порт для Flower
+    environment:
+      - DJANGO_SETTINGS_MODULE=planner.settings
+      - PYTHONPATH=/app
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - FLOWER_USER=admin  # ← Логин для Flower
+      - FLOWER_PASSWORD=media123  # ← Пароль для Flower
+    env_file:
+      - ../.env
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - celery_worker
+    networks:
+      - planner-network
+
+  redis:
+    container_name: media_task_redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
     networks:
       - planner-network
 

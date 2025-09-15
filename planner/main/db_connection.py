@@ -126,9 +126,9 @@ def get_order(user_order='sched_date', order_type='ASC'):
     return f'{order_dict.get(user_order)} {order_type}'
 
 
-def planner_material_list(schedules_id, engineer_id, material_type, work_dates, task_status, user_order, order_type):
+def planner_material_list(schedules_id, worker_id, material_type, work_dates, task_status, user_order, order_type):
     schedules_id = check_param(schedules_id)
-    engineer_id = check_param(engineer_id)
+    worker_id = check_param(worker_id)
     material_type = check_mat_type(material_type)
     task_status = check_param(task_status)
     start_date, end_date = work_dates
@@ -136,7 +136,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Adult', 'Name'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
+                   ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Adult', 'Name'), ('Task', 'worker_id'), ('Task', 'sched_id'),
                    ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -153,7 +153,7 @@ def planner_material_list(schedules_id, engineer_id, material_type, work_dates, 
             ON Task.[sched_id] = Sched.[schedule_id]
         WHERE Progs.[deleted] = 0
         AND Task.[sched_id] IN {schedules_id}
-        AND Task.[engineer_id] IN {engineer_id}
+        AND Task.[worker_id] IN {worker_id}
         AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'
         AND Task.[task_status] IN {task_status}
@@ -169,32 +169,32 @@ def parent_name(program_id):
         cursor.execute(query)
         for name in cursor.fetchone():
             return name
+#
+# def planner_task_list(program_id):
+#     with connections[PLANNER_DB].cursor() as cursor:
+#         query_planner = f'''
+#         SELECT worker_id, engineer, work_date, task_status
+#         FROM [{PLANNER_DB}].[dbo].[task_list]
+#         WHERE [program_id] = {program_id}'''
+#         cursor.execute(query_planner)
+#         task_list = cursor.fetchone()
+#         if task_list:
+#             return task_list
+#         else:
+#             return None, None, None, None
 
-def planner_task_list(program_id):
-    with connections[PLANNER_DB].cursor() as cursor:
-        query_planner = f'''
-        SELECT engineer_id, engineer, work_date, task_status
-        FROM [{PLANNER_DB}].[dbo].[task_list]
-        WHERE [program_id] = {program_id}'''
-        cursor.execute(query_planner)
-        task_list = cursor.fetchone()
-        if task_list:
-            return task_list
-        else:
-            return None, None, None, None
-
-def oplan3_engineer(program_id):
-    with connections[OPLAN_DB].cursor() as cursor:
-        query_oplan3 = f'''
-        SELECT [IntValue]
-        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
-        WHERE [ObjectId] = {program_id}
-        AND [ProgramCustomFieldId] = 15
-        '''
-        cursor.execute(query_oplan3)
-        int_value = cursor.fetchone()
-        if int_value:
-            return int_value[0]
+# def oplan3_engineer(program_id):
+#     with connections[OPLAN_DB].cursor() as cursor:
+#         query_oplan3 = f'''
+#         SELECT [IntValue]
+#         FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
+#         WHERE [ObjectId] = {program_id}
+#         AND [ProgramCustomFieldId] = 15
+#         '''
+#         cursor.execute(query_oplan3)
+#         int_value = cursor.fetchone()
+#         if int_value:
+#             return int_value[0]
 
 
 def program_custom_fields():

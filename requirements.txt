@@ -20,4 +20,7 @@ sqlparse==0.5.3
 typing_extensions==4.13.0
 tzdata==2025.2
 urllib3==2.5.0
-celery~=5.5.3
+celery==5.3.6
+redis==4.6.0
+flower==2.0.1
+kombu==5.3.6

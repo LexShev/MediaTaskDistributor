@@ -1,6 +1,5 @@
 from django.db import connections
 
-from main.templatetags.custom_filters import engineer_id_to_worker_id
 from messenger_static.messenger_utils import create_notification
 from planner.settings import PLANNER_DB, OPLAN_DB
 
@@ -11,7 +10,7 @@ def get_no_material_list():
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(
             f'''
-            SELECT Task.[program_id], Task.[engineer_id]
+            SELECT Task.[program_id], Task.[worker_id]
             FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
             JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
                 ON Task.[program_id] = Progs.[program_id]
@@ -21,7 +20,7 @@ def get_no_material_list():
         )
         no_material_list = cursor.fetchall()
         if no_material_list:
-            for program_id, engineer_id in no_material_list:
+            for program_id, worker_id in no_material_list:
                 try:
                     cursor.execute(
                         f'''
@@ -45,9 +44,8 @@ def get_no_material_list():
                             AND Progs.[DeletedIncludeParent] = 0
                         ''', (program_id,)
                     )
-                    recipient_id = engineer_id_to_worker_id(engineer_id)
                     create_notification(
-                        {'sender': 0, 'recipient': recipient_id, 'program_id': program_id,
+                        {'sender': 0, 'recipient': worker_id, 'program_id': program_id,
                          'message': 'Появился недостающий медиафайл',
                          'comment': 'Статус материала изменился\nМатериал отсутствует -> Не готов'}
                     )

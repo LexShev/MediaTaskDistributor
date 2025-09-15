@@ -18,8 +18,12 @@ export_structure.py
 project_structure.txt
 install_media_task_distributor.sh
 notes
+<<<<<<< HEAD
 docker/docker-compose_backup.yml
 
 # Backup files
 *.bundle
 backup-*
+=======
+docker/docker-compose_backup.yml
+>>>>>>> 54ab774 (BREAKING CHANGE: replace material's primary key from engineer_id to worker_id)

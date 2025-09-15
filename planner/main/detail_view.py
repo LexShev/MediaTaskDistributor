@@ -37,7 +37,7 @@ def full_info(program_id):
             ('Progs', 'AnonsCaptionInherit'), ('Progs', 'CreationDate'), ('Progs', 'Subtitled'), ('Progs', 'Season'),
             ('Progs', 'Director'), ('Progs', 'Cast'), ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'),
             ('Adult', 'Name'), ('Task', 'work_date'), ('Task', 'ready_date'),
-            ('Task', 'engineer_id'), ('Task', 'task_status')
+            ('Task', 'worker_id'), ('Task', 'task_status')
         ]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -127,7 +127,7 @@ def find_out_status(program_id, full_info_dict):
     oplan3_cenz_info = cenz_info(program_id)
     oplan3_work_date = oplan3_cenz_info.get(7)
     oplan3_cenz_rate = oplan3_cenz_info.get(14)
-    oplan3_engineer = oplan3_cenz_info.get(15)
+    oplan3_engineer_id = oplan3_cenz_info.get(15)
 
     # planner_ready_date = full_info_dict.get('Task_ready_date')
     planner_status = full_info_dict.get('Task_task_status')
@@ -135,10 +135,10 @@ def find_out_status(program_id, full_info_dict):
         material_status = check_planner_status(planner_status)
         color = check_color_status(planner_status)
     else:
-        if oplan3_engineer is not None or oplan3_work_date:
+        if oplan3_engineer_id is not None or oplan3_work_date:
             material_status = 'Отсмотрен через Oplan'
             color = 'text-success'
-        elif oplan3_engineer is None and oplan3_cenz_rate is None and oplan3_work_date is None:
+        elif oplan3_engineer_id is None and oplan3_cenz_rate is None and oplan3_work_date is None:
             material_status = 'Материал из общего пула'
             color = 'text-info'
         else:

@@ -28,7 +28,7 @@ def repeat_index_search(material_list, parent_id):
             return num
     return None
 
-def week_material_list(schedules_id, engineer_id, material_type, task_status, work_year, work_week, user_order, order_type):
+def week_material_list(schedules_id, worker_id, material_type, task_status, work_year, work_week, user_order, order_type):
     start_day = date.fromisocalendar(work_year, work_week, 1)
     print('start_day', start_day)
     end_day = start_day + timedelta(6)
@@ -43,7 +43,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
 
     # dates = tuple((start_day + timedelta(day_num)).strftime('%Y-%m-%d') for day_num in range(7))
     material_list_sql, django_columns = planner_material_list(
-        schedules_id, engineer_id, material_type, (start_day, end_day), task_status, user_order, order_type
+        schedules_id, worker_id, material_type, (start_day, end_day), task_status, user_order, order_type
     )
 
     service_dict = {'start_day': start_day, 'prev_year': prev_year, 'prev_week': prev_week,
@@ -89,7 +89,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                          'Task_work_date': temp_dict.get('Task_work_date'),
                          'Task_sched_date': temp_dict.get('Task_sched_date'),
                          'Task_task_status': temp_dict.get('Task_task_status'),
-                         'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                         'Task_worker_id': temp_dict.get('Task_worker_id')
                          }
                     ]
                 }
@@ -106,7 +106,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                         'Task_work_date': temp_dict.get('Task_work_date'),
                         'Task_sched_date': temp_dict.get('Task_sched_date'),
                         'Task_task_status': temp_dict.get('Task_task_status'),
-                        'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                        'Task_worker_id': temp_dict.get('Task_worker_id')
                          })
                     program_id_list.append(program_id)
                 except Exception as e:
@@ -125,7 +125,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                         'Task_sched_date': temp_dict.get('Task_sched_date'),
                         'type': 'film',
                         'Task_task_status': temp_dict.get('Task_task_status'),
-                        'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                        'Task_worker_id': temp_dict.get('Task_worker_id')
                     }
                     material_list[day_num].append(program_info_dict)
                     program_id_list.append(program_id)
@@ -144,7 +144,7 @@ def week_material_list(schedules_id, engineer_id, material_type, task_status, wo
                 'Task_sched_date': temp_dict.get('Task_sched_date'),
                 'type': 'film',
                 'Task_task_status': temp_dict.get('Task_task_status'),
-                'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                'Task_worker_id': temp_dict.get('Task_worker_id')
             }
             material_list[day_num].append(program_info_dict)
             program_id_list.append(program_id)

@@ -35,8 +35,8 @@ def repeat_index_search(material_list, parent_id):
 def calc_deadline(task_date):
     return task_date - datetime.timedelta(days=14)
 
-def list_material_list(schedules_id, engineer_id, material_type, dates, task_status, user_order, order_type):
-    material_list_sql, django_columns = planner_material_list(schedules_id, engineer_id, material_type, dates, task_status, user_order, order_type)
+def list_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type):
+    material_list_sql, django_columns = planner_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type)
     material_list = []
     program_id_list = []
     for program_info in material_list_sql:
@@ -69,7 +69,7 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                          'Task_sched_date': temp_dict.get('Task_sched_date'),
                          'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
                          'Task_task_status': temp_dict.get('Task_task_status'),
-                         'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                         'Task_worker_id': temp_dict.get('Task_worker_id')
                          }
                     ]
                 }
@@ -87,7 +87,7 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                          'Task_sched_date': temp_dict.get('Task_sched_date'),
                         'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
                         'Task_task_status': temp_dict.get('Task_task_status'),
-                        'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                        'Task_worker_id': temp_dict.get('Task_worker_id')
                         })
                     program_id_list.append(program_id)
                 except Exception as e:
@@ -107,7 +107,7 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                         'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
                         'type': 'film',
                         'Task_task_status': temp_dict.get('Task_task_status'),
-                        'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                        'Task_worker_id': temp_dict.get('Task_worker_id')
                     }
                     material_list.append(program_info_dict)
                     program_id_list.append(program_id)
@@ -127,7 +127,7 @@ def list_material_list(schedules_id, engineer_id, material_type, dates, task_sta
                 'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
                 'type': 'film',
                 'Task_task_status': temp_dict.get('Task_task_status'),
-                'Task_engineer_id': temp_dict.get('Task_engineer_id')
+                'Task_worker_id': temp_dict.get('Task_worker_id')
                 }
             material_list.append(program_info_dict)
             program_id_list.append(program_id)

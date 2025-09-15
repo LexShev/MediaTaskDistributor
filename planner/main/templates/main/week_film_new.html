@@ -10,7 +10,7 @@
           {% elif not material.Task_sched_id %}{{ material.Sched_schedule_id|schedule_name }}
           {% endif %}</span>
       <span class="badge text-bg-danger">{% if material.Adult_Name %} {{ material.Adult_Name }}{% endif %}</span>
-      <span class="badge text-bg-secondary">{{ material.Task_engineer_id|engineer_name }}</span>
+      <span class="badge text-bg-secondary">{{ material.Task_worker_id|planner_worker_name }}</span>
       <span class="badge text-bg-secondary ms-auto">{{ material.Progs_duration|convert_frames_to_time }}</span>
     </div>
   </div>

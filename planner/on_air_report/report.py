@@ -3,6 +3,8 @@ import datetime
 
 from django.core.cache import cache
 from django.db import connections
+
+from main.templatetags.custom_filters import engineer_id_to_worker_id
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 
@@ -142,7 +144,7 @@ def collect_channels_list(cal_day):
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
         ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
         ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'), ('Progs', 'duration'),
-        ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
+        ('SchedDay', 'day_date'), ('Task', 'worker_id'), ('Task', 'sched_id'),
         ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
     ]
     material_list, django_columns = oplan_material_list(columns=columns, dates=(cal_day, cal_day))
@@ -158,8 +160,8 @@ def collect_channels_list(cal_day):
                 temp_dict = dict(zip(django_columns, material))
                 if not temp_dict.get('Task_file_path'):
                     temp_dict['Files_Name'] = find_file_path(temp_dict.get('Progs_program_id'))
-                if not temp_dict.get('Task_engineer_id') and temp_dict.get('Task_engineer_id') != 0:
-                    temp_dict['Task_engineer_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
+                if not temp_dict.get('Task_worker_id') and temp_dict.get('Task_worker_id') != 0:
+                    temp_dict['Task_worker_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
                 channel[schedule_id].append(temp_dict)
                 program_id_list.append(material[0])
         channels_list.append(channel)
@@ -170,7 +172,7 @@ def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 7, 8, 
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
         ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
         ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'), ('Progs', 'duration'),
-        ('SchedDay', 'day_date'), ('Task', 'engineer_id'), ('Task', 'sched_id'),
+        ('SchedDay', 'day_date'), ('Task', 'worker_id'), ('Task', 'sched_id'),
         ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
     ]
 
@@ -208,8 +210,8 @@ def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 7, 8, 
                 temp_dict = dict(zip(django_columns, material))
                 if not temp_dict.get('Task_file_path'):
                     temp_dict['Files_Name'] = find_file_path(temp_dict.get('Progs_program_id'))
-                if not temp_dict.get('Task_engineer_id') and temp_dict.get('Task_engineer_id') != 0:
-                    temp_dict['Task_engineer_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
+                if not temp_dict.get('Task_worker_id') and temp_dict.get('Task_worker_id') != 0:
+                    temp_dict['Task_worker_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
                 task_list.append(temp_dict)
         # print(task_list)
         return task_list
@@ -225,7 +227,8 @@ def oplan3_engineer(program_id):
         cursor.execute(query_oplan3)
         oplan3_engineer_id = cursor.fetchone()
         if oplan3_engineer_id:
-            return oplan3_engineer_id[0]
+            return engineer_id_to_worker_id(oplan3_engineer_id[0])
+        return None
 
 def find_file_path(program_id):
     with connections[OPLAN_DB].cursor() as cursor:

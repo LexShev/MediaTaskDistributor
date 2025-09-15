@@ -26,9 +26,9 @@ def validate_file_type(value):
 class ListFilter(forms.ModelForm):
     class Meta:
         model = ModelFilter
-        fields = ('schedules', 'engineers', 'material_type', 'work_dates', 'task_status')
+        fields = ('schedules', 'workers', 'material_type', 'work_dates', 'task_status')
         labels = {
-            'schedules': 'Каналы', 'engineers': 'Исполнители',
+            'schedules': 'Каналы', 'workers': 'Исполнители',
             'material_type': 'Тип материала', 'work_dates': 'Назначенная дата исполнения',
             'task_status': 'Статус материала',
         }
@@ -36,9 +36,9 @@ class ListFilter(forms.ModelForm):
             'schedules': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'schedules'},
                 choices=choice.schedules('Канал')),
-            'engineers': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'id': 'engineers'},
-                choices=choice.engineers('Выполняет')),
+            'workers': forms.SelectMultiple(
+                attrs={'class': 'ui selection dropdown', 'id': 'workers'},
+                choices=choice.workers('Выполняет')),
             'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'},
                 choices=choice.material_type('Тип материала')),
@@ -52,18 +52,18 @@ class ListFilter(forms.ModelForm):
 class WeekFilter(forms.ModelForm):
     class Meta:
         model = ModelFilter
-        fields = ('schedules', 'engineers', 'material_type', 'task_status')
+        fields = ('schedules', 'workers', 'material_type', 'task_status')
         labels = {
-            'schedules': 'Каналы', 'engineers': 'Исполнители',
+            'schedules': 'Каналы', 'workers': 'Исполнители',
             'material_type': 'Тип материала', 'task_status': 'Статус материала',
         }
         widgets = {
             'schedules': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'schedules'},
                 choices=choice.schedules('Канал')),
-            'engineers': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'id': 'engineers'},
-                choices=choice.engineers('Выполняет')),
+            'workers': forms.SelectMultiple(
+                attrs={'class': 'ui selection dropdown', 'id': 'workers'},
+                choices=choice.workers('Выполняет')),
             'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'},
                 choices=choice.material_type('Тип материала')),
@@ -154,9 +154,9 @@ class KpiForm(forms.Form):
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
         label='Дата отсмотра', required=False)
-    engineers_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': "form-select", 'id': "engineers_form"}),
-        label='Выполняет', choices=choice.engineers(), required=False)
+    workers_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "workers_form"}),
+        label='Выполняет', choices=choice.workers(), required=False)
     material_type_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "material_type_form"}),
         label='Тип материала', choices=choice.material_type(), required=False)
@@ -166,9 +166,9 @@ class KpiForm(forms.Form):
 
 
 class VacationForm(forms.Form):
-    engineers_form = forms.ChoiceField(widget=forms.Select(
-        attrs={'class': "form-select", 'id': "engineers_form"}),
-        label='Сотрудник', choices=choice.engineers(), required=True)
+    workers_form = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "workers_form"}),
+        label='Сотрудник', choices=choice.workers(), required=True)
     start_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "start_date_form"}),
         label='Начало отпуска', required=True)

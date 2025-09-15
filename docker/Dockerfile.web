@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bookworm
 
 # Устанавливаем системные зависимости для ODBC
 RUN apt-get update && \
@@ -34,7 +34,7 @@ RUN set -ex \
 
 WORKDIR /app
 COPY ../requirements.txt .
-RUN python -m pip install pip==23.0.1 && \
+RUN python -m pip install pip==25.2 && \
     python -m pip install --no-cache-dir -r requirements.txt
 COPY .. .
 CMD ["python", "planner/manage.py", "runserver", "0.0.0.0:8000"]

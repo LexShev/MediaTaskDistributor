@@ -9,7 +9,6 @@ from django.contrib import messages
 
 from main.logs_and_history import get_task_status, change_task_status_final, insert_history_status, update_comment
 from main.permission_pannel import ask_db_permissions
-from main.templatetags.custom_filters import engineer_id_to_worker_id
 from messenger_static.messenger_utils import create_notification
 from .on_air_calendar import calendar_skeleton, calc_next_month, calc_prev_month, update_info
 from .report import collect_channels_list, prepare_service_dict, task_list_for_channel
@@ -133,8 +132,7 @@ def final_fail_batch(request):
     success_messages = []
     error_messages = []
 
-    worker_id = request.user.id
-    print(json.loads(request.body))
+    user_id = request.user.id
     try:
         program_list = json.loads(request.body)
 
@@ -146,24 +144,21 @@ def final_fail_batch(request):
             recipient = material.get('recipient')
             comment = material.get('comment')
             deadline = material.get('deadline')
-            print('deadline', deadline, type(deadline))
-            print('material', material)
 
             if recipient == 'otk':
                 recipient = 6
-            else:
-                recipient = engineer_id_to_worker_id(recipient)
+
             db_task_status = get_task_status(program_id)
             if db_task_status in ('no_material', 'not_ready', 'fix', 'otk_fail', 'final_fail'):
                 return JsonResponse(
                     {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
             answer = change_task_status_final(program_id, 'final_fail', db_task_status)
             if answer.get('status') == 'success':
-                insert_history_status(program_id, worker_id, db_task_status, 'final_fail')
+                insert_history_status(program_id, user_id, db_task_status, 'final_fail')
                 if comment:
-                    update_comment(program_id, worker_id, task_status='final_fail', comment=comment, deadline=deadline)
+                    update_comment(program_id, user_id, task_status='final_fail', comment=comment, deadline=deadline)
                 notification_data = {
-                    'sender': worker_id, 'recipient': recipient, 'program_id': program_id,
+                    'sender': user_id, 'recipient': recipient, 'program_id': program_id,
                     'message': comment, 'comment': 'Материал не прошёл эфирный контроль'
                 }
                 create_notification(notification_data)

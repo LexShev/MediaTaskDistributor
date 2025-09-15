@@ -37,7 +37,7 @@ def choose_order(name):
 def task_info(field_dict, search_init_dict):
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
-            ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
+            ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
             ('Task', 'work_date'), ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
             ('Progs', 'production_year'), ('Progs', 'episode_num')
@@ -54,7 +54,7 @@ def task_info(field_dict, search_init_dict):
         {check_value('ready_date', field_dict.get('ready_date'))}
         {check_value('sched_date', field_dict.get('sched_date'))}
         {check_deadline(field_dict.get('deadline'))}
-        {check_value('engineer_id', field_dict.get('engineer_id'))}
+        {check_value('worker_id', field_dict.get('worker_id'))}
         {check_value('sched_id', field_dict.get('sched_id'))}
         {check_value('task_status', field_dict.get('task_status'))}
         {check_material_type(field_dict.get('material_type'))}
@@ -80,7 +80,7 @@ def task_info(field_dict, search_init_dict):
 def update_task_list(request):
     program_id_check = request.POST.getlist('program_id_check')
     program_id = request.POST.getlist('program_id')
-    engineers = request.POST.getlist('engineers_selector')
+    engineers = request.POST.getlist('workers_selector')
     work_date = request.POST.getlist('work_date_selector')
     status = request.POST.getlist('status_selector')
     file_path = request.POST.getlist('file_path')
@@ -92,7 +92,7 @@ def update_task_list(request):
         with connections[PLANNER_DB].cursor() as cursor:
             query = f'''
             UPDATE [{PLANNER_DB}].[dbo].[task_list]
-            SET [engineer_id] = %s, [work_date] = %s, [task_status] = %s, [file_path] = %s
+            SET [worker_id] = %s, [work_date] = %s, [task_status] = %s, [file_path] = %s
             WHERE [program_id] = %s
             '''
             values = [
@@ -115,7 +115,7 @@ def add_in_common_task(request):
         with connections[PLANNER_DB].cursor() as cursor:
             query = f'''
             UPDATE [{PLANNER_DB}].[dbo].[task_list]
-            SET [engineer_id] = %s, [sched_id] = %s, [sched_date] = %s, [ready_date] = %s
+            SET [worker_id] = %s, [sched_id] = %s, [sched_date] = %s, [ready_date] = %s
             WHERE [program_id] = %s
             '''
             values = [(None, 1, work_date, None, program_id) for program_id, work_date in selector_data]

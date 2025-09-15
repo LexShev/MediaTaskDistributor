@@ -8,11 +8,11 @@ choice = Choices()
 class OtkForm(forms.ModelForm):
     class Meta:
         model = OtkModel
-        fields = ('ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status')
+        fields = ('ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status')
         labels = {'ready_date': 'Дата отсмотра',
                   'sched_date': 'Дата эфира',
                   'deadline': 'Крайний срок',
-                  'engineer_id': 'Выполняет',
+                  'worker_id': 'Выполняет',
                   'material_type': 'Тип материала',
                   'sched_id': 'Канал',
                   'task_status': 'Статус задачи'}
@@ -24,8 +24,8 @@ class OtkForm(forms.ModelForm):
                 attrs={'class': 'form-control', 'type': 'date', 'id': "sched_date"}, format='%Y-%m-%d'),
             'deadline': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date', 'id': "deadline"}, format='%Y-%m-%d'),
-            'engineer_id': forms.Select(
-                attrs={'class': "form-select", 'id': "engineer_id"}, choices=choice.engineers),
+            'worker_id': forms.Select(
+                attrs={'class': "form-select", 'id': "worker_id"}, choices=choice.workers),
             'material_type': forms.Select(
                 attrs={'class': "form-select", 'id': "material_type"}, choices=choice.material_type),
             'sched_id': forms.Select(

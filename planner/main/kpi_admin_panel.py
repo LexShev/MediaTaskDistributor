@@ -26,7 +26,7 @@ def check_value(key, value):
 def summary_task_list(field_dict):
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
-            ('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'),
+            ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
             ('Task', 'work_date'), ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
             ('Progs', 'production_year'), ('Progs', 'episode_num')
@@ -50,7 +50,7 @@ def summary_task_list(field_dict):
 def kpi_summary_calc(field_dict):
     task_list = summary_task_list(field_dict)
     count_dates = len(set(task.get('Task_work_date') for task in task_list))
-    count_engineers = len(set(task.get('Task_engineer_id') for task in task_list))
+    count_worker_ids = len(set(task.get('Task_worker_id') for task in task_list))
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
     ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
@@ -58,19 +58,19 @@ def kpi_summary_calc(field_dict):
     ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'ready')
     not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'not_ready')
     try:
-        total_kpi = total_dur / (720000.0 * count_dates * count_engineers)
-        ready_kpi = ready_dur / (720000.0 * count_dates * count_engineers)
+        total_kpi = total_dur / (720000.0 * count_dates * count_worker_ids)
+        ready_kpi = ready_dur / (720000.0 * count_dates * count_worker_ids)
     except Exception as e:
         total_kpi = 0
         ready_kpi = 0
         print(e)
 
-    engineer_id = field_dict.get('engineers')
-    if engineer_id:
-        engineer_id = int(engineer_id)
+    worker_id = field_dict.get('workers')
+    if worker_id:
+        worker_id = int(worker_id)
     material_type = field_dict.get('material_type')
     task_status = field_dict.get('task_status')
-    filtered_task_list = filter(lambda task: task.get('Task_engineer_id') == engineer_id or not engineer_id and engineer_id != 0, task_list)
+    filtered_task_list = filter(lambda task: task.get('Task_worker_id') == worker_id or not worker_id, task_list)
     filtered_task_list = filter(lambda task: task.get('Progs_program_type_id') in check_mat_type(material_type) or not material_type, filtered_task_list)
     filtered_task_list = list(filter(lambda task: task.get('Task_task_status') == task_status or not task_status, filtered_task_list))
     filtered_dur = sum(task.get('Task_duration') for task in filtered_task_list)
@@ -84,7 +84,7 @@ def kpi_summary_calc(field_dict):
 
 def personal_task_list(field_dict):
     with connections[PLANNER_DB].cursor() as cursor:
-        columns = [('Task', 'program_id'), ('Task', 'engineer_id'), ('Task', 'duration'), ('Task', 'work_date'),
+        columns = [('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'), ('Task', 'work_date'),
                    ('Task', 'sched_date'), ('Task', 'task_status'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'orig_name'), ('Progs', 'keywords'), ('Progs', 'production_year')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -97,7 +97,7 @@ def personal_task_list(field_dict):
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         {check_value('work_date', field_dict.get('work_date'))}
-        {check_value('engineer_id', field_dict.get('engineer_id'))}
+        {check_value('worker_id', field_dict.get('worker_id'))}
         '''
         cursor.execute(query)
         result = cursor.fetchall()

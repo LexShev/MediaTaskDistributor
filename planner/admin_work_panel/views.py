@@ -15,21 +15,21 @@ from .forms import AdminForm, DynamicSelector, TaskSearchForm
 
 @login_required()
 def task_manager(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     try:
-        filter_init_dict = AdminModel.objects.get(owner=worker_id)
+        filter_init_dict = AdminModel.objects.get(owner=user_id)
     except ObjectDoesNotExist:
-        default_filter = AdminModel(owner=worker_id)
+        default_filter = AdminModel(owner=user_id)
         default_filter.save()
-        filter_init_dict = AdminModel.objects.get(owner=worker_id)
+        filter_init_dict = AdminModel.objects.get(owner=user_id)
         print("Новый фильтр создан")
 
     try:
-        search_init_dict = TaskSearch.objects.get(owner=worker_id)
+        search_init_dict = TaskSearch.objects.get(owner=user_id)
     except ObjectDoesNotExist:
-        default_search = TaskSearch(owner=worker_id, search_type=1, sql_set=100)
+        default_search = TaskSearch(owner=user_id, search_type=1, sql_set=100)
         default_search.save()
-        search_init_dict = TaskSearch.objects.get(owner=worker_id)
+        search_init_dict = TaskSearch.objects.get(owner=user_id)
         print("Новый фильтр создан")
 
 
@@ -66,22 +66,22 @@ def task_manager(request):
     data = {
         'filter_form': filter_form,
         'search_form': search_form,
-        'permissions': ask_db_permissions(worker_id)
+        'permissions': ask_db_permissions(user_id)
     }
     return render(request, 'admin_work_panel/task_manager.html', data)
 
 def load_admin_task_table(request):
-    worker_id = request.user.id
-    field_dict = AdminModel.objects.filter(owner=worker_id).values()
+    user_id = request.user.id
+    field_dict = AdminModel.objects.filter(owner=user_id).values()
     if field_dict: field_dict = field_dict[0]
-    search_init_dict = TaskSearch.objects.get(owner=worker_id)
+    search_init_dict = TaskSearch.objects.get(owner=user_id)
     task_list, service_dict = task_info(field_dict, search_init_dict)
     dynamic_selector_list = []
     for task in task_list:
         file_path = task.get('Task_file_path', '')
         dynamic_selector_list.append(DynamicSelector(
             program_id=task.get('Task_program_id'),
-            initial={'engineers_selector': task.get('Task_engineer_id'),
+            initial={'workers_selector': task.get('Task_worker_id'),
                      'work_date_selector': task.get('Task_work_date'),
                      'status_selector': task.get('Task_task_status'),
                      'file_path': file_path or '',
@@ -92,14 +92,14 @@ def load_admin_task_table(request):
         {
             'task_list_zip': zip(task_list, dynamic_selector_list),
             'service_dict': service_dict,
-            'permissions': ask_db_permissions(worker_id),
+            'permissions': ask_db_permissions(user_id),
         },
         request=request
     )
     return JsonResponse({'html': html})
 
 def sort_table(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     try:
         if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
@@ -107,7 +107,7 @@ def sort_table(request):
         print(data)
         if data:
             order, order_type = data
-            sort_model = TaskSearch.objects.filter(owner=worker_id).update(
+            sort_model = TaskSearch.objects.filter(owner=user_id).update(
                 order=order,
                 order_type=order_type
             )
