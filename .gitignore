@@ -17,3 +17,4 @@ project_structure.txt
 install_media_task_distributor.sh
 notes
 docker/docker-compose_backup.yml
+workers/.users.json

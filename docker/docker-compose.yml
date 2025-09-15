@@ -91,24 +91,24 @@ services:
   flower:
     container_name: media_task_flower
     build:
-      context: ..  # Собираем из корня проекта
+      context: ..
       dockerfile: docker/Dockerfile.worker
     command: >
       sh -c "
       cd /app/planner &&
-      celery -A planner flower 
+      celery -A planner --broker=redis://redis:6379/0 flower 
+      --basic_auth=$${FLOWER_USER}:$${FLOWER_PASSWORD} 
+      --address=0.0.0.0
       --port=5555 
-      --broker=redis://redis:6379/0 
-      --basic_auth=$${FLOWER_USER}:$${FLOWER_PASSWORD}
       "
     ports:
-      - "5555:5555"  # ← Порт для Flower
+      - "5555:5555"
     environment:
       - DJANGO_SETTINGS_MODULE=planner.settings
       - PYTHONPATH=/app
       - CELERY_BROKER_URL=redis://redis:6379/0
-      - FLOWER_USER=admin  # ← Логин для Flower
-      - FLOWER_PASSWORD=media123  # ← Пароль для Flower
+      - FLOWER_USER=admin
+      - FLOWER_PASSWORD=media123
     env_file:
       - ../.env
     restart: unless-stopped
