@@ -58,6 +58,8 @@ def task_info(field_dict, sql_set):
         duration.append(material.get('Task_duration'))
         if not material.get('Task_file_path'):
             material['Files_Name'] = find_file_path(material.get('Task_program_id'))
+        if not material.get('Task_worker_id'):
+            material['sender'] = ''
     total_duration = sum(duration)
     total_count = len(material_list)
     service_dict = {'total_duration': total_duration, 'total_count': total_count}
@@ -83,6 +85,7 @@ def find_file_path(program_id):
         file_path = cursor.fetchone()
     if file_path:
         return file_path[0]
+    return None
 
 
 def update_comment(program_id, task_status, worker_id, comment, deadline):
@@ -158,7 +161,7 @@ def change_task_status_batch(program_list, task_status):
 
 def comments_history(program_id, progs_name):
     with connections[PLANNER_DB].cursor() as cursor:
-        columns = 'worker_id', 'comment', 'deadline', 'time_of_change'
+        columns = 'comment_id', 'worker_id', 'comment', 'deadline', 'time_of_change'
         sql_columns = ', '.join(columns)
         query = f'''
         SELECT {sql_columns}

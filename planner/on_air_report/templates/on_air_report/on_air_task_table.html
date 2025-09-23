@@ -24,30 +24,12 @@
                  data-program-id="{{ task.Task_program_id }}" data-file-name="{{ task.Progs_name }}"
                  data-file-path="{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
                  data-worker-id="{{ task.Task_worker_id }}"
-                 data-sender="{% for comment in task.comments %}{% if forloop.last %}{{ comment.worker_id }}{% endif %}{% endfor %}"
                  value="{{ task.Task_program_id }}"
                  name="program_id_check">
         </td>
         <td>
         <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
         {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a>
-          {% if task.comments %}
-          <div class="btn-group dropend">
-            <button type="button" onclick="adjustTextarea(this)" class="btn btn-sm dropdown-toggle align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill ms-4" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }} </button>
-            <div class="dropdown-menu p-3" style="min-width: 560px;">
-              <h5>{{ task.comments.0.Progs_name }}</h5>
-              <div class="dropdown-divider"></div>
-              {% for comment in task.comments %}
-                  <h6>Исправить до: {{ comment.deadline|date:'d.m.Y' }}</h6>
-                  <div class="form-floating">
-                    <textarea class="form-control" style="min-height: 60px;" id="commentId_{{ comment.comment_id }}" disabled>{{ comment.comment }}</textarea>
-                    <label for="commentId_{{ comment.comment_id }}">{{ comment.worker_id|planner_worker_name }}</label>
-                  </div>
-                  <div class="dropdown-divider"></div>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
         </td>
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
         <td>{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>

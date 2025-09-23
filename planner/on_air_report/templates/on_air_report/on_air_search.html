@@ -4,15 +4,30 @@
 
 <main role="main">
 {% block body %}
-<link rel="stylesheet" href="{% static 'css/otk.css' %}">
+<!--<link rel="stylesheet" href="{% static 'css/otk.css' %}">-->
+
+<link rel="stylesheet" type="text/css" href="{% static 'Semantic-UI-master/dist/semantic.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/ui_dropdown.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static '/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/daterangepicker.css' %}"/>
+
+<script type="text/javascript" src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/moment-2.30.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/daterangepicker-3.1.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'Semantic-UI-master/dist/semantic.min.js' %}"></script>
+
+<style>
+.ui.dropdown {
+  text-align: left;
+  font-size: 0.9em;
+  }
+</style>
 
 
 <div class="container-flex px-lg-5">
 <br>
-
-  <form method="post" id="otk_form">
+  <form method="post" id="otk_task_form">
     {% csrf_token %}
-
     <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -21,78 +36,43 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <h5>Ни одна задача не выбрана!</h5>
+            <h6 id="error_message"></h6>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="modal fade" id="ApproveOTK" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="ApproveFinalModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
+          <input class="visually-hidden" data-approve-list="" id="approve_list">
           <div class="modal-header">
             <h3 class="modal-title">Утвердить выбранные задачи?</h3>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-footer">
-            <button name="approve_otk" id="approve_otk" value="True" type="submit" class="btn btn-success">Утвердить</button>
+            <button name="approve_final" id="approve_final" value="" onclick="approveFinal()" type="button" class="btn btn-success">Утвердить</button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="modal fade" id="ApproveFIX" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="ApproveFIXLabel" aria-hidden="true">
+    <div class="modal fade" id="FinalFailModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
       <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <div class="modal-content">
-          <div class="modal-header">
-              <h3 class="modal-title" id="ApproveFIXLabel">
-                Отправить перезалитый FIX в работу?
-              </h3>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div id="fix_list">
-
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="submit" name="approve_fix" id="approve_fix" value="True" class="btn btn-outline-warning">Отправить</button>
-            <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="OTKFail" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-scrollable modal-xl">
-        <div class="modal-content">
+          <input class="visually-hidden" data-final-fail-list="" id="final_fail_list">
           <div class="modal-header">
             <h3 class="modal-title">Отправить на доработку выбранные задачи?</h3>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <div id="otk_fail_list">
+            <div id="fail_container">
             </div>
           </div>
           <div class="modal-footer">
-            <button name="otk_fail" id="otk_fail" value="True" type="submit" class="btn btn-warning">На доработку</button>
+            <button name="final_fail" id="final_fail" onclick="finalFail()" type="button" class="btn btn-warning">На доработку</button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="OTKComment" tabindex="-1" aria-hidden="true" style="z-index: 1050;">
-      <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="otk_comment_title">Комментарии по исправлению</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div id="otk_comment_body">
-            </div>
           </div>
         </div>
       </div>
@@ -101,21 +81,18 @@
 
     <div class="d-flex p-0 m-0 mb-3 align-items-center justify-content-start">
       <div class="row ms-0 m-2 align-items-center">
-        {% for field in filter_form %}
+        {% for field in on_air_filter %}
           <div class="col ps-0">
-            <div class="form-floating" style="width:210px;">
               {{ field }}
-              {{ field.label_tag }}
-            </div>
           </div>
         {% endfor %}
       </div>
     </div>
     <div class="input-group mb-3" style="width: 84%;">
         <label class="input-group-text" for="search_type">Поиск по</label>
-        {{ search_form.search_type }}
-        {{ search_form.search_input }}
-        {{ search_form.sql_set }}
+        {{ search_filter.search_type }}
+        {{ search_filter.search_input }}
+        {{ search_filter.sql_set }}
         <button type="submit" class="btn btn-outline-secondary" style="width: 7rem;">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
@@ -128,7 +105,7 @@
         </button>
     </div>
 
-    <div id="otk_task_table">
+    <div id="on_air_task_table">
         <div class="text-center py-5">
             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                 <span class="visually-hidden">Загрузка данных...</span>
@@ -137,22 +114,20 @@
         </div>
     </div>
     <div style="height: 70px;" id="spacer"></div>
-    <div class="fixed-bottom bg-body">
+    <div class="fixed-bottom bg-body" id="controller">
       <div class="container-flex px-lg-5">
         <div class="d-flex border-top py-2">
-          <div class="me-auto">
-            <button type="button" onclick="ShowApproveOTK()" class="btn register-button btn-outline-success mx-2">Утвердить</button>
-          </div>
           <div class="ms-auto">
-            <button type="button" onclick="ProgramIdList()" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>
-            <button type="button" onclick="ShowOTKFail()" class="btn register-button btn-outline-danger mx-2">На доработку</button>
+            <button type="button" onclick="ShowApproveFinal()" class="btn register-button btn-outline-success mx-2">Утвердить на эфир</button>
+            <button type="button" onclick="ShowFinalFail()" class="btn register-button btn-outline-danger ms-2 me-0">На доработку</button>
           </div>
         </div>
       </div>
     </div>
   </form>
 </div>
-<script type="text/javascript" src="{% static 'js/otk.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/on_air_search.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/on_air_filter.js' %}"></script>
 
 {% endblock %}
 </main>

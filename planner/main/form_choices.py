@@ -40,9 +40,10 @@ class Choices:
         inoagents = self.custom_fields.get(19)
         inoagents_list = [('', label)]
         if inoagents:
-            for inoagent in enumerate(inoagents.split('\r\n')):
-                if inoagent[1]:
-                    inoagents_list.append(inoagent)
+            for inoagent in inoagents.split('\r\n'):
+                if inoagent:
+                    point = (inoagent, inoagent)
+                    inoagents_list.append(point)
         return inoagents_list
 
     def engineers(self, label='-', exclude_init=False):
@@ -101,7 +102,8 @@ class Choices:
             (10, 'Наше родное кино'),
             (11, 'Семейное кино'),
             (12, 'Советское родное кино'),
-            (20, 'Кино +')
+            (20, 'Кино +'),
+            (99, 'Мои задачи')
         ]
 
     def task_status(self, label='-'):
@@ -133,3 +135,4 @@ class Choices:
             (10000, 'Первые 10 000'),
             (100000, 'Первые 100 000'),
         ]
+

@@ -103,7 +103,7 @@ def update_task_list(request):
             cursor.executemany(query, values)
             return cursor.rowcount
 
-def add_in_common_task(request):
+def add_in_task_list(request):
     program_id_check = request.POST.getlist('program_id_check')
     program_id = request.POST.getlist('program_id')
     work_date = request.POST.getlist('work_date_selector')
@@ -158,7 +158,7 @@ def find_file_path(program_id):
 
 def comments_history(program_id, progs_name):
     with connections[PLANNER_DB].cursor() as cursor:
-        columns = 'worker_id', 'comment', 'deadline', 'time_of_change'
+        columns = 'comment_id', 'worker_id', 'comment', 'deadline', 'time_of_change'
         sql_columns = ', '.join(columns)
         query = f'''
         SELECT {sql_columns}

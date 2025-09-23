@@ -88,14 +88,18 @@ def planner_worker_name(worker_id):
 
 @register.filter
 def engineer_id_to_worker_id(engineer_id) -> int:
-    with connections[PLANNER_DB].cursor() as cursor:
-        query = f'SELECT [worker_id] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
-        cursor.execute(query, (engineer_id,))
-        worker = cursor.fetchone()
-        if worker and worker[0]:
-            return worker[0]
-        else:
-            return 0
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            query = f'SELECT [worker_id] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
+            cursor.execute(query, (engineer_id,))
+            worker = cursor.fetchone()
+            if worker and worker[0]:
+                return worker[0]
+            else:
+                return 0
+    except Exception as error:
+        print(error)
+        return 0
 
 @register.filter
 def fields_name(field_id):
@@ -234,7 +238,8 @@ def schedule_name(schedule_id):
         10: 'Наше родное кино',
         11: 'Семейное кино',
         12: 'Советское родное кино',
-        20: 'Кино +'
+        20: 'Кино +',
+        99: 'Мои задачи'
     }
     return schedules.get(schedule_id)
 

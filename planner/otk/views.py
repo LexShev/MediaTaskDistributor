@@ -14,9 +14,9 @@ from .forms import OtkForm, TaskSearchForm
 @login_required()
 def otk(request):
     user_id = request.user.id
-    field_dict = OtkModel.objects.filter(owner=user_id).values()
-    if field_dict:
-        field_dict = field_dict[0]
+    # field_dict = OtkModel.objects.filter(owner=user_id).values()
+    # if field_dict:
+    #     field_dict = field_dict[0]
     try:
         init_dict = OtkModel.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -88,7 +88,7 @@ def otk(request):
         search_form = TaskSearchForm(initial={'sql_set': search_init_dict.sql_set, 'search_type': search_init_dict.search_type})
         filter_form = OtkForm(instance=init_dict)
     data = {
-        'form': filter_form,
+        'filter_form': filter_form,
         'search_form': search_form,
         'permissions': ask_db_permissions(user_id)
             }

@@ -41,7 +41,7 @@ MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
 MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
 
@@ -64,7 +64,7 @@ CELERY_ENABLE_UTC = True
 
 # Опционально: настройки расписания для периодических задач
 CELERY_BEAT_SCHEDULE = {
-    # 'cleanup-old-tasks': {
+    # 'update-no-material': {
     #     'task': 'tools.tasks.cleanup_old_tasks',
     #     'schedule': crontab(hour=3, minute=0),  # Каждый день в 3:00
     # },

@@ -250,3 +250,4 @@ def find_file_path(program_id):
         file_path = cursor.fetchone()
     if file_path:
         return file_path[0]
+    return None

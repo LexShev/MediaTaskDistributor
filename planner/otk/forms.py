@@ -2,14 +2,14 @@ from django import forms
 from .models import OtkModel, TaskSearch
 from main.form_choices import Choices
 
-
 choice = Choices()
+
 
 class OtkForm(forms.ModelForm):
     class Meta:
         model = OtkModel
         fields = ('ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status')
-        labels = {'ready_date': 'Дата отсмотра',
+        labels = {'ready_date': 'Дата завершения',
                   'sched_date': 'Дата эфира',
                   'deadline': 'Крайний срок',
                   'worker_id': 'Выполняет',

@@ -110,39 +110,59 @@ function changeProgramIdCheckbox() {
             checkbox.checked = true;
         });
     }
+    updateSelectionCount();
 };
 
+function updateSelectionCount() {
+    let program_id_check_list = document.getElementsByName('program_id_check');
+    let checked_list = [];
+    let duration = 0;
+
+    for (let i = 0; i < program_id_check_list.length; i++) {
+        if (program_id_check_list[i].checked) {
+            checked_list.push(program_id_check_list[i].value);
+            duration += parseFloat(program_id_check_list[i].dataset.duration);
+        }
+    }
+
+    countMaterials(checked_list.length, duration);
+    updateFullSelectCheckboxState(checked_list.length, program_id_check_list.length);
+}
+
+// Функция для обновления состояния главного чекбокса
+function updateFullSelectCheckboxState(checkedCount, totalCount) {
+    let fullSelectCheckbox = document.getElementById('full_select');
+
+    if (0 < checkedCount && checkedCount < totalCount) {
+        fullSelectCheckbox.indeterminate = true;
+        fullSelectCheckbox.checked = false;
+    }
+    else if (checkedCount == totalCount) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = true;
+    }
+    else if (checkedCount == 0) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = false;
+    }
+};
 
 function updateMainProgramId() {
-    let fullSelectCheckbox = document.getElementById('full_select');
     let program_id_check_list = document.getElementsByName('program_id_check');
     program_id_check_list.forEach(function(program_id_check) {
-        program_id_check.addEventListener('change', changeFullSelect);
+        program_id_check.addEventListener('change', updateSelectionCount);
     });
-
-    function changeFullSelect() {
-        let checked_list = [];
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            if (program_id_check_list[i].checked) {
-                checked_list.push(program_id_check_list[i]);
-            }
-        };
-        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
-            fullSelectCheckbox.indeterminate = true;
-            fullSelectCheckbox.checked = false;
-        }
-        else if (checked_list.length == program_id_check_list.length) {
-            fullSelectCheckbox.indeterminate = false;
-            fullSelectCheckbox.checked = true;
-        }
-        else if (checked_list.length == 0) {
-            fullSelectCheckbox.indeterminate = false;
-            fullSelectCheckbox.checked = false;
-        }
-    };
 };
 
-function showApproveCommonTask() {
+function countMaterials(count, duration) {
+    let totalCount = document.getElementById('total_count');
+    totalCount.textContent = `Выбрано: ${count}`;
+    let totalDur = document.getElementById('total_dur');
+    totalDur.textContent = `Общий хронометраж: ${convertFramesToTime(duration)}`;
+};
+
+function showApproveCommonTask(sched_id) {
+
     let program_id_check_list = document.getElementsByName('program_id_check');
     let checked_list = [];
     let program_name_check_list = [];
@@ -157,7 +177,20 @@ function showApproveCommonTask() {
         }
     }
     if (checked_list.length > 0) {
+        let approveTitle = document.getElementById('approve_title');
+        let approveDateTitle = document.getElementById('approve_date_title');
+        let approveCommonTask = document.getElementById('approve_common_task');
+        approveCommonTask.dataset.sched_id = sched_id;
+
         const ApproveCommonTask = new bootstrap.Modal(document.getElementById('ApproveCommonTask'));
+        if (sched_id === 1) {
+            approveTitle.textContent = 'Отправить выбранное в Общую задачу?';
+            approveDateTitle.textContent = 'Укажите дату выполнения';
+        }
+        else if (sched_id === 99) {
+            approveTitle.textContent = 'Взять выбранное в работу?';
+            approveDateTitle.textContent = 'Укажите планируемую дату выполнения';
+        };
         let program_name_list = document.getElementById('program_name_list');
         let dateInput = document.getElementById('work_date');
         program_name_list.innerHTML = ''
@@ -180,7 +213,11 @@ function showApproveCommonTask() {
     }
 };
 
-function addInCommonTask() {
+function addInTaskList() {
+    if (!ValidateForm()) {
+    return
+    };
+    let schedId = Number(document.getElementById('approve_common_task').dataset.sched_id);
     let program_id_check_list = document.getElementsByName('program_id_check');
     let checked_list = [];
     for (let i = 0; i < program_id_check_list.length; i++) {
@@ -189,14 +226,14 @@ function addInCommonTask() {
         }
     };
     let work_date = document.getElementById('work_date').value;
-    fetch('add_in_common_task/', {
+    fetch('add_in_task_list/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken'),
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify([checked_list, work_date]),
+        body: JSON.stringify([schedId, checked_list, work_date]),
         credentials: 'same-origin'
     })
     .then(response => {
@@ -211,6 +248,30 @@ function addInCommonTask() {
             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
             error_message = document.getElementById('error_message');
             error_message.textContent = data.message
+            if (schedId === 99 && data.busy_list) {
+                errorsContainer = document.getElementById('errors_container')
+                errorsList = document.getElementById('errors_list')
+                errorsContainer.style.display = '';
+                for (let i = 0; i < data.busy_list.length; i++) {
+                    let [busyId, name, ProductionYear, first_name, last_name] = data.busy_list[i]
+                    ProductionYear = `(${ProductionYear})` || ''
+                    let busy_item = document.createElement("li");
+                    busy_item.dataset.programId = busyId;
+                    busy_item.classList.add('list-group-item');
+                    busy_item.classList.add('list-group-item-action');
+                    busy_item.textContent = `${name} ${ProductionYear} уже зарезервирован ${first_name} ${last_name}`;
+                    errorsList.appendChild(busy_item);
+                };
+                let advice = document.createElement('a');
+                advice.classList.add('link-body-emphasis');
+                advice.classList.add('link-offset-3-hover');
+                advice.classList.add('link-underline');
+                advice.classList.add('link-underline-opacity-0');
+                advice.classList.add('link-underline-opacity-75-hover');
+                advice.href = '/common_pool/';
+                advice.textContent = 'Перезагрузите страницу';
+                errorsContainer.insertAdjacentElement('afterend', advice);
+            };
             const ApproveCommonTask = bootstrap.Modal.getInstance(document.getElementById('ApproveCommonTask')) ||
              new bootstrap.Modal(document.getElementById('ApproveCommonTask'));
             ApproveCommonTask.hide();
@@ -245,9 +306,9 @@ function ValidateForm() {
     let dateInput = document.getElementById('work_date');
     if (!dateInput.value) {
           dateInput.classList.add('is-invalid');
-          return;
+          return false;
     }
     dateInput.classList.remove('is-invalid');
-    addInCommonTask();
+    return true
 
 }

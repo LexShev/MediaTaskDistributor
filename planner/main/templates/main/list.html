@@ -164,8 +164,12 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <h6>Комментарий к материалу</h6>
-            <textarea class="form-control" id="cenz_comment" name="cenz_comment" style="min-height: 130px">CENZ не требуется</textarea><br>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="no_cenz" onclick="checkNoCenz()">
+            <label class="form-check-label" for="no_cenz" id="no_cenz_label">CENZ не требуется</label>
+          </div><br>
+          <h6 id="cenz_comment_title">Комментарий к материалу</h6>
+          <textarea class="form-control" id="cenz_comment" name="cenz_comment" placeholder="Добавьте комментарий..." style="min-height: 130px"></textarea><br>
         </div>
         <div class="modal-footer">
           <input id="program_id_list" data-program-id="[]" class="visually-hidden">

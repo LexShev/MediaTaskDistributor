@@ -392,19 +392,19 @@ def cenz_batch(request):
 
     if not data:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
-    task_status, task_ready_list, new_values = data
+    no_cenz, task_status, task_ready_list, new_values = data
     cenz_comment = new_values.get('cenz_comment')
 
     for program_id in task_ready_list:
         oplan3_lock = check_oplan3_lock(program_id)
         planner_lock = check_planner_lock(program_id)
-        print('check_lock', oplan3_lock)
+        print('planner_lock', planner_lock)
         if oplan3_lock.get('message') == 'locked':
-            text = f'заблокирован в Oplan3 пользователем: {oplan3_lock.get("worker_name")} в {oplan3_lock.get("lock_time")}'
+            text = f'Карточка материала заблокирована в Oplan3 пользователем: {oplan3_lock.get("worker_name")} в {oplan3_lock.get("lock_time")}'
             error_messages.append(text)
             continue
-        if planner_lock.get('message') == 'locked':
-            text = f'заблокирован в Planner пользователем: {planner_lock.get("worker_name")} в {planner_lock.get("lock_time")}'
+        if planner_lock.get('message') == 'locked' and planner_lock.get('worker_id') != user_id:
+            text = f'Карточка материала заблокирована в Planner пользователем: {planner_lock.get("worker_name")} в {planner_lock.get("lock_time")}'
             error_messages.append(text)
             continue
         old_values = cenz_info(program_id)
@@ -413,6 +413,9 @@ def cenz_batch(request):
         if db_task_status in ('fix', 'otk_fail', 'final'):
             return JsonResponse(
                 {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
+        if no_cenz:
+            task_status = 'otk'
+            cenz_comment = 'CENZ не требуется'
         answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
         if answer.get('status') == 'success':
             change_oplan_cenz_info(program_id, old_values, new_values)
@@ -478,36 +481,40 @@ def material_card(request, program_id):
     attached_files = AttachedFiles.objects.filter(program_id=program_id).order_by('timestamp')
     full_info_dict = full_info(program_id)
     file_id = full_info_dict.get('Files_FileID', '')
-    data = {'full_info': full_info_dict,
-            'custom_fields': custom_fields,
-            'comments_history': comments_history(program_id),
-            'deadline': calc_otk_deadline(),
-            'schedule_info': schedule_info(program_id),
-            'actions_list': select_actions(program_id),
-            'filepath_history': select_filepath_history(program_id),
-            'attached_files': attached_files,
-            'ffmpeg': ffmpeg_dict(file_id),
-            'form_text': form_text,
-            'form_drop': form_drop,
-            'form_attached_files': form_attached_files,
-            # 'lock_material': lock_material,
-            'permissions': ask_db_permissions(user_id)
-            }
+    data = {
+        'full_info': full_info_dict,
+        'custom_fields': custom_fields,
+        'comments_history': comments_history(program_id),
+        'deadline': calc_otk_deadline(),
+        'schedule_info': schedule_info(program_id),
+        'actions_list': select_actions(program_id),
+        'filepath_history': select_filepath_history(program_id),
+        'attached_files': attached_files,
+        'ffmpeg': ffmpeg_dict(file_id),
+        'form_text': form_text,
+        'form_drop': form_drop,
+        'form_attached_files': form_attached_files,
+        # 'lock_material': lock_material,
+        'permissions': ask_db_permissions(user_id)
+    }
     return render(request, 'main/full_info_card.html', data)
 
 def status_ready(request):
     user_id = request.user.id
-    new_values = json.loads(request.body)
+    no_cenz, new_values = json.loads(request.body)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
     program_id = new_values.get('program_id')
     cenz_comment = new_values.get('cenz_comment')
-    old_values = cenz_info(program_id)
     task_status = 'ready'
+    old_values = cenz_info(program_id)
 
     db_task_status = get_task_status(program_id)
     if db_task_status in ('fix', 'otk_fail', 'final'):
         return JsonResponse({'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
+    if no_cenz:
+        task_status = 'otk'
+        cenz_comment = 'CENZ не требуется'
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     if answer.get('status') == 'success':
         change_oplan_cenz_info(program_id, old_values, new_values)
@@ -545,7 +552,7 @@ def ask_fix(request):
 
 def cenz_info_change(request):
     user_id = request.user.id
-    new_values = json.loads(request.body)
+    no_cenz, new_values = json.loads(request.body)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'message'})
 

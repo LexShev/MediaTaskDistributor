@@ -39,7 +39,7 @@ async function CheckLockCard() {
             let messageContainer = document.getElementById('message_container');
             messageContainer.innerHTML = `
                 <div class="alert alert-warning alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">
-                    Карточка материала заблокирована в ${data.app} пользователем: ${data.worker_name} в ${FormatDate(data.lock_time)}
+                    Карточка материала заблокирована в ${data.app} пользователем: ${data.worker_name} в ${data.lock_time}
                 </div>`;
             let cenzApproveBtn = document.getElementById('cenz_approve_btn');
             let askFixBtn = document.getElementById('ask_fix_btn');
@@ -110,7 +110,25 @@ function ValidateAskFix(task) {
 
 }
 
+function checkNoCenz() {
+    let noCenz = document.getElementById('no_cenz').checked
+    let cenzCommentTitle = document.getElementById('cenz_comment_title')
+    let cenzComment = document.getElementById('cenz_comment')
+    let noCenzLabel = document.getElementById('no_cenz_label')
+    if (noCenz) {
+        noCenzLabel.classList.remove('text-secondary');
+        cenzCommentTitle.classList.add('text-secondary');
+        cenzComment.disabled = true;
+    }
+    else {
+        noCenzLabel.classList.add('text-secondary');
+        cenzCommentTitle.classList.remove('text-secondary');
+        cenzComment.disabled = false;
+    };
+};
+
 function CenzApprove(task) {
+    let noCenz = document.getElementById('no_cenz').checked
     const cenzFormElements = document.getElementById('cenz_form').elements;
     let forms = {'program_id': programId}
     Array.from(cenzFormElements).forEach(element => {
@@ -125,7 +143,7 @@ function CenzApprove(task) {
         'X-CSRFToken': forms['csrfmiddlewaretoken'],
         'X-Requested-With': 'XMLHttpRequest'
     },
-    body: JSON.stringify(forms),
+    body: JSON.stringify([noCenz, forms]),
     credentials: 'same-origin'
     })
     .then(response => response.json())
@@ -205,7 +223,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     checkPoster();
-})
+});
+
+function enlargeImage(img) {
+    const modalImage = document.getElementById('modalImage');
+    const modalLabel = document.getElementById('imageModalLabel');
+
+    if (modalImage && img) {
+        modalImage.src = img.dataset.filePath;
+    }
+    if (modalLabel && img) {
+        modalLabel.textContent = img.dataset.fileName || "Изображение";
+    }
+};
 
 function getCookie(name) {
     let cookieValue = null;

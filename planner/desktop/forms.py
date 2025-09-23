@@ -3,8 +3,8 @@ from django import forms
 from desktop.models import ModelDeskTopFilter
 from main.form_choices import Choices
 
-
 choice = Choices()
+
 
 class DeskTopFilter(forms.ModelForm):
     class Meta:
@@ -21,6 +21,6 @@ class DeskTopFilter(forms.ModelForm):
             'work_dates': forms.DateInput(
                 attrs={'class': 'form-control', 'data-bs-theme': 'light', 'type': 'text'}),
             'task_status': forms.SelectMultiple(
-                attrs={'class': 'ui selection dropdown', 'id': 'task_status', 'placeholder': 'test'},
+                attrs={'class': 'ui selection dropdown', 'id': 'task_status'},
                 choices=choice.task_status('Статус')),
         }

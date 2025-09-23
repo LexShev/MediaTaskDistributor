@@ -15,8 +15,13 @@ def home_common_table():
     AND Task.[task_status] = 'not_ready'
     ORDER BY Task.[sched_date], Progs.[name];
     '''
-    with connections[OPLAN_DB].cursor() as cursor:
-        cursor.execute(query)
-        material_task_list = cursor.fetchall()
-        if material_task_list:
-            return [dict(zip(django_columns, material)) for material in material_task_list]
+    try:
+        with connections[OPLAN_DB].cursor() as cursor:
+            cursor.execute(query)
+            material_task_list = cursor.fetchall()
+            if material_task_list:
+                return [dict(zip(django_columns, material)) for material in material_task_list]
+            return []
+    except Exception as error:
+        print(error)
+        return []

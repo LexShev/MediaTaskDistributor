@@ -1,7 +1,9 @@
+import ast
 import json
 from datetime import datetime, date
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
@@ -10,7 +12,10 @@ from django.contrib import messages
 from main.logs_and_history import get_task_status, change_task_status_final, insert_history_status, update_comment
 from main.permission_pannel import ask_db_permissions
 from messenger_static.messenger_utils import create_notification
+from .forms import TaskSearchForm, OnAirReportFilter
+from .models import OnAirModel, TaskSearch
 from .on_air_calendar import calendar_skeleton, calc_next_month, calc_prev_month, update_info
+from .on_air_task_list import task_info
 from .report import collect_channels_list, prepare_service_dict, task_list_for_channel
 
 
@@ -64,7 +69,7 @@ def load_on_air_calendar_info(request):
 
 @login_required()
 def report_date(request, cal_year, cal_month, cal_day):
-    worker_id = request.user.id
+    user_id = request.user.id
     cal_date = date(cal_year, cal_month, cal_day)
     # if isinstance(cal_day, str):
     #     cal_day = datetime.strptime(cal_day, '%Y-%m-%d')
@@ -73,7 +78,7 @@ def report_date(request, cal_year, cal_month, cal_day):
     data = {
         'schedule_id_list': schedule_id_list,
         'service_dict': prepare_service_dict(cal_year, cal_month, cal_day, cal_date),
-        'permissions': ask_db_permissions(worker_id)
+        'permissions': ask_db_permissions(user_id)
     }
     return render(request, 'on_air_report/on_air_report.html', data)
 
@@ -94,12 +99,89 @@ def get_schedule_table(request, sched_date, schedule_id):
         print(e)
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required()
+def on_air_search(request):
+    user_id = request.user.id
+
+    try:
+        on_air_init_dict = OnAirModel.objects.get(owner=user_id)
+    except ObjectDoesNotExist:
+        default_filter = OnAirModel(owner=user_id)
+        default_filter.save()
+        on_air_init_dict = OnAirModel.objects.get(owner=user_id)
+        print("Новый OnAirModel фильтр создан")
+
+    try:
+        search_init_dict = TaskSearch.objects.get(owner=user_id)
+    except ObjectDoesNotExist:
+        default_search = TaskSearch(owner=user_id, search_type=1, sql_set=100)
+        default_search.save()
+        search_init_dict = TaskSearch.objects.get(owner=user_id)
+
+    if request.method == 'POST':
+        search_filter = TaskSearchForm(request.POST, instance=search_init_dict)
+        if search_filter.is_valid():
+            search_filter.save()
+        on_air_filter = OnAirReportFilter(request.POST, instance=on_air_init_dict)
+        if on_air_filter.is_valid():
+            on_air_filter.save()
+    else:
+        on_air_filter = OnAirReportFilter(instance=on_air_init_dict)
+        search_filter = TaskSearchForm(initial={'sql_set': search_init_dict.sql_set, 'search_type': search_init_dict.search_type})
+    print(on_air_init_dict)
+    print(search_init_dict)
+    data = {
+        'on_air_filter': on_air_filter,
+        'search_filter': search_filter,
+        'permissions': ask_db_permissions(user_id),
+    }
+    return render(request, 'on_air_report/on_air_search.html', data)
+
+def load_on_air_task_table(request):
+    user_id = request.user.id
+
+    queryset = OnAirModel.objects.filter(owner=user_id).values()
+    field_dict = {}
+    if queryset and queryset[0]:
+        field_dict = serialize(queryset)
+
+
+    print(field_dict)
+    search_init_dict = TaskSearch.objects.get(owner=user_id)
+
+    task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
+
+    html = render_to_string(
+        'otk/otk_task_table.html',
+        {
+            'task_list': task_list,
+            'service_dict': service_dict,
+            'permissions': ask_db_permissions(user_id),
+        },
+        request=request
+    )
+    return JsonResponse({'html': html})
+
+def serialize(queryset):
+    field_dict = {}
+    for key, value in queryset[0].items():
+        try:
+            if key == 'owner':
+                field_dict[key] = value
+            elif key in ('ready_dates', 'sched_dates'):
+                field_dict[key] = tuple(datetime.strptime(str_date, '%d.%m.%Y') for str_date in value.split(' - '))
+            else:
+                field_dict[key] = tuple(ast.literal_eval(value))
+        except Exception as error:
+            print(error)
+            field_dict[key] = []
+    return field_dict
+
 def apply_final_batch(request):
     success_messages = []
     error_messages = []
 
     worker_id = request.user.id
-    print(json.loads(request.body))
     try:
         approve_list_list = json.loads(request.body)
 

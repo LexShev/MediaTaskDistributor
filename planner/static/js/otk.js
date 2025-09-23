@@ -1,13 +1,24 @@
-window.addEventListener('load', function() {
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/otk/load_otk_task_table/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('otk_task_table').innerHTML = data.html;
+            updateMainProgramId();
+            fastSearch();
+            totalCalc();
+        })
+        .catch(error => {
+            document.getElementById('otk_task_table').innerHTML = `
+                <div class="alert alert-danger">Ошибка загрузки данных</div>
+            `;
+    });
+});
+
+window.addEventListener('DOMContentLoaded', function() {
     let fullSelectCheckbox = document.getElementById('full_select');
     let program_id_list = document.getElementsByName('program_id_check');
     program_id_list.forEach(function(program_id) {
         program_id.addEventListener('change', changeFullSelect);
-    });
-
-    let textarea_list = document.getElementsByTagName('textarea');
-    Array.from(textarea_list).forEach(function(textarea) {
-        textarea.rows = textarea.value.split(/\r|\r\n|\n/).length;
     });
 
     function changeFullSelect() {
@@ -32,21 +43,13 @@ window.addEventListener('load', function() {
     };
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('/otk/load_otk_task_table/')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('otk_task_table').innerHTML = data.html;
-            updateMainProgramId();
-            fastSearch();
-            totalCalc();
-        })
-        .catch(error => {
-            document.getElementById('otk_task_table').innerHTML = `
-                <div class="alert alert-danger">Ошибка загрузки данных</div>
-            `;
+function adjustTextarea(dropdown) {
+    let textarea_list = dropdown.parentElement.getElementsByTagName('textarea');
+    Array.from(textarea_list).forEach(function(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight+10) + 'px';
     });
-});
+};
 
 function changeProgramIdCheckbox() {
     let fullSelectCheckbox = document.getElementById('full_select');
@@ -139,11 +142,11 @@ function ProgramIdList() {
         ApproveFIX.toggle();
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
-                let prog_id = checked_list[i].dataset.programId
-                let f_name = checked_list[i].dataset.fileName
-                let f_path = checked_list[i].dataset.filePath
-                let worker_id = checked_list[i].dataset.workerId
-//                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
+                let prog_id = checked_list[i].dataset.programId;
+                let f_name = checked_list[i].dataset.fileName;
+                let f_path = checked_list[i].dataset.filePath;
+                let worker_id = checked_list[i].dataset.workerId;
+                let sender = checked_list[i].dataset.sender;
 
                 let fix_prog_id = document.createElement("input");
                 fix_prog_id.type = 'hidden';
@@ -185,7 +188,7 @@ function ProgramIdList() {
                 let fix_worker_id = document.createElement("input");
                 fix_worker_id.type = 'hidden';
                 fix_worker_id.name = 'fix_worker_id';
-                fix_worker_id.value = worker_id;
+                fix_worker_id.value = (worker_id && worker_id !== "None") ? worker_id : sender;
                 FixList.appendChild(fix_worker_id);
 
                 let divider = document.createElement("hr");

@@ -43,12 +43,15 @@ def query_selector(search_id, sql_set, search_query):
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'ModificationTime'),
         ('SchedDay', 'day_date'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
+        ('Task', 'work_date'), ('Task', 'ready_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
 
     columns_list = [columns_0, columns_1, columns_2, columns_3, columns_4, columns_5]
     sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns_list[search_id]])
     django_columns = [f'{col}_{val}' for col, val in columns_list[search_id]]
+    worker_id = 0
+    if search_id == 3:
+        worker_id = engineer_id_to_worker_id(search_query)
     # id
     query_0 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
@@ -101,7 +104,7 @@ def query_selector(search_id, sql_set, search_query):
         AND Files.[Name] LIKE '%{search_query}%'
         ORDER BY Files.[Name];
         '''
-    # !!!engineer
+    # worker
     query_3 = f'''
         SELECT TOP ({sql_set}) {sql_columns}
         FROM [{OPLAN_DB}].[dbo].[program] AS Progs
@@ -115,9 +118,9 @@ def query_selector(search_id, sql_set, search_query):
         AND Progs.[DeletedIncludeParent] = 0
         AND Fields.[ProgramCustomFieldId] = 15
         AND Fields.[IntValue] = {search_query}
-        OR Task.[worker_id] = {engineer_id_to_worker_id(search_query)}
+        OR Task.[worker_id] = {worker_id}
         AND Progs.[program_id] NOT IN
-            (SELECT program_id FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [worker_id] = {search_query})
+            (SELECT program_id FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [worker_id] = {worker_id})
         ORDER BY Progs.[program_id];
         '''
     # sched_date
@@ -179,7 +182,7 @@ def query_selector(search_id, sql_set, search_query):
         AND Progs.[DeletedIncludeParent] = 0
         AND SchedProg.[Deleted] = 0
         AND SchedDay.[schedule_id] IN (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
-        AND SchedDay.[day_date] = DATEADD(DAY, -14, '{search_query}')
+        AND SchedDay.[day_date] = DATEADD(DAY, 14, '{search_query}')
         AND Progs.[program_type_id] IN (4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20)
         AND Progs.[program_id] > 0
         ORDER BY SchedProg.[DateTime];
@@ -198,9 +201,9 @@ def query_selector(search_id, sql_set, search_query):
         if program_id in program_id_list:
             continue
         temp_dict = dict(zip(django_columns, program_info))
-        if not temp_dict.get('Task_work_date') and not temp_dict.get('Task_worker_id'):
+        if not temp_dict.get('Task_ready_date') and not temp_dict.get('Task_worker_id'):
             cenz_info_dict = cenz_info(temp_dict.get('Progs_program_id'))
-            temp_dict['work_date'] = cenz_info_dict.get(7)
+            temp_dict['ready_date'] = cenz_info_dict.get(7)
             temp_dict['worker_id'] = engineer_id_to_worker_id(cenz_info_dict.get(15))
         else:
             print('pass')
@@ -212,7 +215,7 @@ def query_selector(search_id, sql_set, search_query):
                 temp_dict.update(file_path_info)
         program_id_list.append(program_id)
         search_list.append(temp_dict)
-    print(search_list)
+    # print(search_list)
     return search_list
 
 def cenz_info(program_id):

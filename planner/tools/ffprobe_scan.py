@@ -14,9 +14,13 @@ def setup_logging():
     log_file = os.path.join(DEFAULT_LOG_DIR, f"processing_log_{datetime.now().strftime('%Y-%m-%d')}.log")
 
     # Удаляем все старые обработчики
-    logger = logging.getLogger()
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
+    logger = logging.getLogger('ffprobe_scanner')
+    # Удаляем только наши обработчики, если они уже есть
+    if logger.handlers:
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
+    else:
+        logger.setLevel(logging.INFO)
 
     # Настраиваем форматтер
     formatter = logging.Formatter(
@@ -35,7 +39,6 @@ def setup_logging():
     # Добавляем обработчики
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
-    logger.setLevel(logging.INFO)
 
     return logger
 
@@ -47,7 +50,7 @@ class FfprobeScanner:
         self.file_id = None
         self.file_path = None
         self.ffprobe_file_path = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = setup_logging()
 
     def get_file_id(self):
         try:
@@ -108,10 +111,12 @@ class FfprobeScanner:
                 shell=False
             )
             ffprobe_info = json.loads(output)
-            print('ffprobe_info', ffprobe_info)
+            self.logger.info("FFprobe result: %s", json.dumps(ffprobe_info, indent=2))
             # self._insert_to_db(ffprobe_info)
+            return ffprobe_info
         except Exception as error:
             self.logger.error(f"ERROR processing for {self.file_path}: {error}")
+            raise
             # self.retry(exc=e, countdown=60)
 
 

@@ -14,22 +14,24 @@
         </div>
       </div>
     </div>
-    <div class="d-flex">
-        <a type="button" class="btn btn-outline-secondary text-start me-auto mx-1 my-2 {% if lock_material %}disabled{% endif %}"
+    <div class="d-flex mx-1 my-2">
+        <a type="button" class="btn btn-outline-secondary text-start me-auto {% if lock_material %}disabled{% endif %}"
                 href="{% if full_info.Progs_program_id %}{% url 'messenger' program_id=full_info.Progs_program_id %}{% endif %}">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
             <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
           </svg>
         </a>
-        <button type="button" class="btn btn-outline-success mx-1 my-2 {% if lock_material %}disabled{% endif %}"
-                id="cenz_approve_btn" onclick="ValidateCenzApprove()">Сохранить
-        </button>
-        <button type="button" class="btn btn-outline-warning mx-1 my-2 {% if lock_material %}disabled{% endif %}"
-                id="ask_fix_btn" data-bs-toggle="modal" data-bs-target="#AskFixModal">Запросить FIX
-        </button>
-        <button type="reset" class="btn btn-sm btn-outline-danger align-bottom mx-1 my-2 mt-auto {% if lock_material %}disabled{% endif %}">
-          Сбросить
-        </button>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-success {% if lock_material %}disabled{% endif %}"
+                    id="cenz_approve_btn" onclick="ValidateCenzApprove()">Сохранить
+            </button>
+            <button type="button" class="btn btn-outline-warning {% if lock_material %}disabled{% endif %}"
+                    id="ask_fix_btn" data-bs-toggle="modal" data-bs-target="#AskFixModal">Запросить FIX
+            </button>
+            <button type="reset" class="btn btn-outline-danger {% if lock_material %}disabled{% endif %}">
+              Сбросить
+            </button>
+        </div>
     </div>
     <div class="modal fade" id="CenzApproveModal" tabindex="-1" aria-labelledby="CenzApproveLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
@@ -53,8 +55,12 @@
                        style="font-style: italic"
                        name="upload_ready_file" accept="">
               </div><br>
-              <h6>Комментарий к материалу</h6>
-                <textarea class="form-control" id="cenz_comment" name="cenz_comment" style="min-height: 130px">CENZ не требуется</textarea><br>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="no_cenz" onclick="checkNoCenz()">
+                <label class="form-check-label" for="no_cenz" id="no_cenz_label">CENZ не требуется</label>
+              </div><br>
+              <h6 id="cenz_comment_title">Комментарий к материалу</h6>
+              <textarea class="form-control" id="cenz_comment" name="cenz_comment" placeholder="Добавьте комментарий..." style="min-height: 130px"></textarea><br>
             </div>
             <div class="modal-footer">
               <button type="button" onclick="CenzApprove(this)" name="status_ready" id="status_ready" class="btn btn-outline-warning ms-2 me-auto">Завершить задачу</button>

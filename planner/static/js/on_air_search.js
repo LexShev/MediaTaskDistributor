@@ -1,22 +1,38 @@
-window.addEventListener('load', function() {
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/on-air-report/load_on_air_task_table/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('on_air_task_table').innerHTML = data.html;
+            updateMainProgramId();
+            fastSearch();
+            totalCalc();
+        })
+        .catch(error => {
+            document.getElementById('on_air_task_table').innerHTML = `
+                <div class="alert alert-danger">Ошибка загрузки данных</div>
+            `;
+    });
+});
+
+window.addEventListener('DOMContentLoaded', function() {
     let fullSelectCheckbox = document.getElementById('full_select');
-    let program_id_check_list = document.getElementsByName('program_id_check');
-    program_id_check_list.forEach(function(program_id_check) {
-        program_id_check.addEventListener('change', changeFullSelect);
+    let program_id_list = document.getElementsByName('program_id_check');
+    program_id_list.forEach(function(program_id) {
+        program_id.addEventListener('change', changeFullSelect);
     });
 
     function changeFullSelect() {
         let checked_list = [];
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            if (program_id_check_list[i].checked) {
-                checked_list.push(program_id_check_list[i]);
+        for (let i = 0; i < program_id_list.length; i++) {
+            if (program_id_list[i].checked) {
+                checked_list.push(program_id_list[i]);
             }
         };
-        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
+        if (0 < checked_list.length && checked_list.length < program_id_list.length) {
             fullSelectCheckbox.indeterminate = true;
             fullSelectCheckbox.checked = false;
         }
-        else if (checked_list.length == program_id_check_list.length) {
+        else if (checked_list.length == program_id_list.length) {
             fullSelectCheckbox.indeterminate = false;
             fullSelectCheckbox.checked = true;
         }
@@ -25,30 +41,6 @@ window.addEventListener('load', function() {
             fullSelectCheckbox.checked = false;
         }
     };
-});
-
-function adjustTextarea(dropdown) {
-    let textarea_list = dropdown.parentElement.getElementsByTagName('textarea');
-    Array.from(textarea_list).forEach(function(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = (textarea.scrollHeight+10) + 'px';
-    });
-};
-
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('/task_manager/load_admin_task_table/')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('admin_task_table').innerHTML = data.html;
-            updateMainProgramId();
-            fastSearch();
-            totalCalc();
-        })
-        .catch(error => {
-            document.getElementById('admin_task_table').innerHTML = `
-                <div class="alert alert-danger">Ошибка загрузки данных</div>
-            `;
-    });
 });
 
 function changeProgramIdCheckbox() {
@@ -108,24 +100,6 @@ function updateMainProgramId() {
     };
 };
 
-function showApproveTaskChange() {
-    let checked_list = document.getElementsByName('program_id_check');
-    let program_id_check_list = [];
-    for (let i = 0; i < checked_list.length; i++) {
-        if (checked_list[i].checked) {
-            program_id_check_list.push(checked_list[i].value);}
-        }
-    if (program_id_check_list.length > 0) {
-        ApproveTaskChange = new bootstrap.Modal(document.getElementById('ApproveTaskChange'));
-        ApproveTaskChange.toggle();
-    }
-    else {
-        console.log('error');
-        errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-        errorModal.toggle();
-    }
-};
-
 document.getElementById('search_input').addEventListener('keyup', fastSearch);
 document.getElementById('search_type').addEventListener('change', fastSearch);
 
@@ -146,6 +120,15 @@ function fastSearch() {
     if (searchSettings == 1) {
         for (let i = 0; i < rows.length; i++) {
             let nameCell = rows[i].getElementsByTagName('td')[1];
+            if (nameCell) {
+                let textValue = (nameCell.textContent || nameCell.innerText).toLowerCase();
+                rows[i].style.display = textValue.indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+    }
+    if (searchSettings == 2) {
+        for (let i = 0; i < rows.length; i++) {
+            let nameCell = rows[i].getElementsByTagName('td')[3];
             if (nameCell) {
                 let textValue = (nameCell.textContent || nameCell.innerText).toLowerCase();
                 rows[i].style.display = textValue.indexOf(filter) > -1 ? '' : 'none';
@@ -175,15 +158,14 @@ function totalCalc() {
     return visibleCount;
 };
 
-
 function ResetFilter() {
-    const [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus] =
-    ['ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status']
+    const [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus] =
+    ['ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status', 'search_input']
     .map(id => document.getElementById(id));
 
-    [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus].forEach(el => {el.value = '';});
+    [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus, search_input].forEach(el => {el.value = '';});
 
-    document.getElementById('admin_form').submit();
+    document.getElementById('otk_form').submit();
 
 };
 
@@ -215,61 +197,4 @@ function convertFramesToTime(frames, fps = 25) {
 
 function thousands(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-};
-
-function sortTable(element) {
-    let order = element.dataset.order;
-
-    let curOrder = document.getElementById('order').value
-    let curOrderType = document.getElementById('order_type').value
-    console.log(curOrder, curOrderType)
-
-    if (order === curOrder) {
-        if (curOrderType === 'DESC') {
-            curOrderType = 'ASC';
-        }
-        else {
-            curOrderType = 'DESC'
-        }
-    }
-    else {
-        curOrderType = 'ASC'
-    }
-
-    fetch('/task_manager/sort_table/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify([order, curOrderType]),
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (!response.ok) {
-            console.error('HTTP error! status:', response.status);
-        }
-        console.log('Success: Table sorted successfully');
-
-        window.location.href = '/task_manager/'
-    })
-    .catch(error => {
-        console.error('Error:', error.message);
-    });
-};
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
 };

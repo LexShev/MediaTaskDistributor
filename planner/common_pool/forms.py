@@ -4,6 +4,7 @@ from main.form_choices import Choices
 from .models import CommonPool
 
 choice = Choices()
+
 class CommonPoolForm(forms.ModelForm):
     class Meta:
         model = CommonPool

@@ -116,7 +116,25 @@ function ShowTaskReady(program_id) {
 
 };
 
+function checkNoCenz() {
+    let noCenz = document.getElementById('no_cenz').checked
+    let cenzCommentTitle = document.getElementById('cenz_comment_title')
+    let cenzComment = document.getElementById('cenz_comment')
+    let noCenzLabel = document.getElementById('no_cenz_label')
+    if (noCenz) {
+        noCenzLabel.classList.remove('text-secondary');
+        cenzCommentTitle.classList.add('text-secondary');
+        cenzComment.disabled = true;
+    }
+    else {
+        noCenzLabel.classList.add('text-secondary');
+        cenzCommentTitle.classList.remove('text-secondary');
+        cenzComment.disabled = false;
+    };
+};
+
 function CenzApproveBatch(task_status) {
+    let noCenz = document.getElementById('no_cenz').checked
     let programIdList = JSON.parse(document.getElementById('program_id_list').dataset.programId);
     const cenzFormElements = document.getElementById('cenz_form').elements;
     let forms = {}
@@ -133,7 +151,7 @@ function CenzApproveBatch(task_status) {
         'X-CSRFToken': forms['csrfmiddlewaretoken'],
         'X-Requested-With': 'XMLHttpRequest'
     },
-    body: JSON.stringify([task_status, programIdList, forms]),
+    body: JSON.stringify([noCenz, task_status, programIdList, forms]),
     credentials: 'same-origin'
     })
     .then(response => response.json())

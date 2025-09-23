@@ -53,10 +53,10 @@ def kpi_summary_calc(field_dict):
     count_worker_ids = len(set(task.get('Task_worker_id') for task in task_list))
     total_count = len(task_list)
     total_dur = sum(task.get('Task_duration') for task in task_list)
-    ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
-    not_ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'not_ready', task_list)))
-    ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'ready')
-    not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') == 'not_ready')
+    ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') in ('ready', 'otk', 'final'), task_list)))
+    not_ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') not in ('ready', 'otk', 'final'), task_list)))
+    ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') in ('ready', 'otk', 'final'))
+    not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') not in ('ready', 'otk', 'final'))
     try:
         total_kpi = total_dur / (720000.0 * count_dates * count_worker_ids)
         ready_kpi = ready_dur / (720000.0 * count_dates * count_worker_ids)
@@ -106,8 +106,8 @@ def personal_task_list(field_dict):
 def kpi_personal_calc(field_dict):
     task_list = personal_task_list(field_dict)
     total_count = len(task_list)
-    ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'ready', task_list)))
-    not_ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') == 'not_ready', task_list)))
+    ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') in ('ready', 'otk', 'final'), task_list)))
+    not_ready_tasks = len(list(filter(lambda task: task.get('Task_task_status') not in ('ready', 'otk', 'final'), task_list)))
     ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') in ('ready', 'otk', 'final'))
     not_ready_dur = sum(task.get('Task_duration') for task in task_list if task.get('Task_task_status') not in ('ready', 'otk', 'final'))
 

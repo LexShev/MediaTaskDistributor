@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
 from .models import AdminModel, TaskSearch
-from .admin_materials_list import task_info, update_task_list, add_in_common_task, del_task
+from .admin_materials_list import task_info, update_task_list, add_in_task_list, del_task
 from .forms import AdminForm, DynamicSelector, TaskSearchForm
 
 
@@ -51,7 +51,7 @@ def task_manager(request):
             if change_type == '1':
                 update_task_list(request)
             elif change_type == '2':
-                add_in_common_task(request)
+                add_in_task_list(request)
             elif change_type == '3':
                 del_task(request)
     else:

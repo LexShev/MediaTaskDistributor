@@ -1,60 +1,16 @@
-<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Ошибка!</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <h6 id="error_message"></h6>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="ApproveCommonTask" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Отправить выбранное в Общую задачу?</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-          <div class="border rounded mb-4" style="overflow-y: auto; max-height: 40rem;">
-            <ol class="list-group list-group-flush list-group-numbered list-group-item-action" id="program_name_list">
-            </ol>
-          </div>
-        <h5>Укажите крайний срок выполнения</h5>
-        <input type="date" name="work_date" value="" class="form-control form-control-md" id="work_date" required>
-        <div class="invalid-feedback">Пожалуйста, выберите дату</div>
-      </div>
-      <div class="modal-footer">
-        <button name="approve_common_task" id="approve_common_task" value="True" type="button"
-                class="btn btn-success" onclick="ValidateForm()">Отправить</button>
-        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-{% if messages %}
-  {% for message in messages %}
-    <div class="alert alert-success alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">
-        {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  {% endfor %}
-{% endif %}
-
 <h6>Всего на странице: {{ pool_list|length|thousands }}</h6>
+<div class="d-flex">
+    <h6 class="me-4" id="total_count">Выбрано: 0</h6>
+    <h6 id="total_dur">Общий хронометраж: 00:00:00</h6>
+</div>
 <hr width="100%" size="2"><br>
 <table class="table table-hover">
     <thead>
         <tr>
-            <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
-            <th scope="col" class="col-1">Program_id</th>
-            <th scope="col" class="col-6">Название</th>
-            <th scope="col" class="col-1">Длительность</th>
+            <th style="width: 3%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
+            <th style="width: 7%;">Program_id</th>
+            <th style="width: 80%;">Название</th>
+            <th style="width: 10%;">Длительность</th>
         </tr>
     </thead>
     <tbody class="table-group-divider" id="tableBody">
@@ -64,22 +20,28 @@
                     <input class="form-check-input me-1" type="checkbox"
                            data-program-id="{{ material.Progs_program_id }}" data-program-name="{{ material.Progs_name }}"
                            data-production-year="{{ material.Progs_production_year }}" value="{{ material.Progs_program_id }}"
-                           name="program_id_check">
+                           data-duration="{{ material.Progs_duration }}" name="program_id_check">
                 <td><a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                     {{ material.Progs_program_id }}
                 </a></td>
                 <td><a href="{% url 'home' %}{{ material.Progs_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                 {{ material.Progs_name }}
-                    {% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}</a></td>
+                {% if material.Progs_production_year %} ({{ material.Progs_production_year }}){% endif %}
+                {% if material.Adult_Name %} {{ material.Adult_Name }}{% endif %}</a></td>
                 <td>{{ material.Progs_duration|convert_frames_to_time }}</td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
-{% if permissions.task_manager %}
-    <div class="d-flex bg-body py-2 sticky-bottom">
-      <div class="me-auto">
-        <button type="button" onclick="showApproveCommonTask()" class="btn register-button btn-outline-secondary mx-0">В Общую задачу</button>
-      </div>
-    </div>
+<div class="d-flex bg-body py-2 sticky-bottom">
+{% if permissions.auth_group == 'admin' %}
+  <div class="me-auto">
+    <button type="button" onclick="showApproveCommonTask(1)" class="btn btn-outline-secondary mx-0">В Общую задачу</button>
+  </div>
 {% endif %}
+{% if permissions.auth_group == 'preparation_engineers' %}
+  <div class="me-auto">
+    <button type="button" onclick="showApproveCommonTask(99)" class="btn btn-outline-secondary mx-0">Взять в работу</button>
+  </div>
+{% endif %}
+</div>

@@ -33,7 +33,11 @@ def repeat_index_search(material_list, parent_id):
     return None
 
 def calc_deadline(task_date):
-    return task_date - datetime.timedelta(days=14)
+    try:
+        return task_date - datetime.timedelta(days=14)
+    except Exception as error:
+        print(error)
+        return ''
 
 def list_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type):
     material_list_sql, django_columns = planner_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type)

@@ -52,7 +52,7 @@
           </span>
         </div>
       </th>
-      <th style="width: 7%;">
+      <th style="width: 8%;">
         <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
           data-order="work_date" style="cursor: pointer;">
           <span>Назначенная дата</span>
@@ -139,13 +139,16 @@
         {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a>
           {% if task.comments %}
           <div class="btn-group dropend">
-            <button type="button" class="btn btn-sm dropdown-toggle align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill ms-4" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }} </button>
+            <button type="button" onclick="adjustTextarea(this)" class="btn btn-sm dropdown-toggle align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill ms-4" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }} </button>
             <div class="dropdown-menu p-3" style="min-width: 560px;">
               <h5>{{ task.comments.0.Progs_name }}</h5>
               <div class="dropdown-divider"></div>
               {% for comment in task.comments %}
                   <h6>Исправить до: {{ comment.deadline }}</h6>
-                  <textarea class="form-control" style="min-height: 60px;" disabled>{{ comment.comment }}</textarea>
+                  <div class="form-floating">
+                    <textarea class="form-control" style="min-height: 60px;" id="commentId_{{ comment.comment_id }}" disabled>{{ comment.comment }}</textarea>
+                    <label for="commentId_{{ comment.comment_id }}">{{ comment.worker_id|planner_worker_name }}</label>
+                  </div>
                   <div class="dropdown-divider"></div>
               {% endfor %}
             </div>

@@ -9,7 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
-from .common_pool import select_pool, get_total_count, get_film_stats, get_season_stats, insert_in_common_task
+from .common_pool import select_pool, get_total_count, get_film_stats, get_season_stats, insert_in_common_task, \
+    insert_in_task_list
 from .forms import CommonPoolForm
 from .models import CommonPool
 
@@ -49,19 +50,28 @@ def film_stats(request):
 def season_stats(request):
     return JsonResponse(get_season_stats())
 
-def add_in_common_task(request):
+def add_in_task_list(request):
+    user_id = request.user.id
     try:
         if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
         data = json.loads(request.body)
         if not data:
             return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
-        rowcount = insert_in_common_task(data)
-        if rowcount > 0:
-            messages.success(request, 'Успешно добавлено')
-            return JsonResponse({'status': 'success', 'message': 'Added in common task successfully'})
+        sched_id, program_id_list, work_date = data
+        result = {}
+        if sched_id == 1:
+            result = insert_in_common_task(data)
+        elif sched_id == 99:
+            result = insert_in_task_list(user_id, data)
+        if result.get('status') == 'success':
+            message = result.get('message')
+            messages.success(request, message)
+            return JsonResponse({'status': 'success', 'message': message})
         else:
-            return JsonResponse({'status': 'error', 'message': 'Data was not added'}, status=400)
+            return JsonResponse({
+                'status': 'error', 'message': result.get('message'), 'busy_list': result.get('busy_list')
+            }, status=400)
     except Exception as e:
         print(e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

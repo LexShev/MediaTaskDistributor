@@ -65,12 +65,10 @@ input[class*="engineer"] {
               <div class="col">
                 <p class="card-text m-0"><small class="text-body-secondary">Дата отсмотра: </small>
                   <small class="text-body-primary">
-                    {% if material.Task_work_date %}
-                      {{ material.Task_work_date|date:"d E Y" }}
-                    {% elif material.SchedDay_day_date %}
-                      {{ material.SchedDay_day_date|date:"d E Y" }}
-                    {% elif material.work_date %}
-                      {{ material.work_date|date:"d E Y" }}
+                    {% if material.ready_date %}
+                      {{ material.ready_date|date:"d E Y" }}
+                    {% elif material.Task_ready_date %}
+                      {{ material.Task_ready_date|date:"d E Y" }}
                     {% else %}
                       Не отсмотрен
                     {% endif %}

@@ -14,7 +14,7 @@ def common_kpi():
         query = f'''
         DECLARE @start_date DATE
         SET @start_date = %s
-        SELECT [work_date], CAST(COALESCE(SUM([duration]), 0) AS FLOAT) / (720000.0 * COUNT(DISTINCT [engineer_id])) AS KPI
+        SELECT [work_date], CAST(COALESCE(SUM([duration]), 0) AS FLOAT) / (720000.0 * COUNT(DISTINCT [worker_id])) AS KPI
         FROM [{PLANNER_DB}].[dbo].[task_list]
         WHERE task_status NOT IN ('not_ready', 'no_material')
         AND CONVERT(DATE, [work_date]) BETWEEN CONVERT(DATE, @start_date) AND DATEADD(DAY, 6, CONVERT(DATE, @start_date))

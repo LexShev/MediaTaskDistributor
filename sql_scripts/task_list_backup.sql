@@ -17,3 +17,7 @@ CREATE TABLE task_list_backup
 INSERT INTO [planner].[dbo].[task_list_backup]
 SELECT * 
 FROM [planner].[dbo].[task_list];
+
+
+DROP TABLE IF EXISTS [planner].[dbo].[task_list_backup]
+SELECT * INTO [planner].[dbo].[task_list_backup] FROM [planner].[dbo].[task_list]
