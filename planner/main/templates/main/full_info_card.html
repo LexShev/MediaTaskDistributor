@@ -31,14 +31,14 @@
               <div class="row mb-2 mx-0 align-items-center">
                 <div class="col text-end">
                   {% if full_info.Task_worker_id %}
-                    <small class="text-secondary text-start">Закреплён за: {{ full_info.Task_worker_id|planner_worker_name }}</small>
+                    <small class="text-secondary text-start">Закреплён за: {{ full_info.Task_worker_id|planner_worker_name }}
+                    {% if full_info.Task_work_date %} на: {{ full_info.Task_work_date|date:'d.m.Y' }}{% endif %}</small>
                   {% endif %}
                   <h6 class="text-{{ full_info.Task_task_status|status_color }} text-end p-1 m-0">
-
                     {{ full_info.material_status }}
-                    {% if full_info.Task_ready_date %}
+                    {% if full_info.Task_ready_date and full_info.material_status != 'Не готов' %}
                       {{ full_info.Task_ready_date|date:'d.m.Y' }}
-                    {% else %}
+                    {% elif not full_info.Task_ready_date and full_info.material_status != 'Не готов' and full_info.oplan3_work_date %}
                       {{ full_info.oplan3_work_date|date:'d.m.Y' }}
                     {% endif %}
                   </h6>
@@ -76,37 +76,37 @@
               <div class="row g-2 ms-2 mx-0">
                 <div class="col-md-6">
                   <div class="form-floating">
-                    <textarea class="form-control" id="year_form" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
+                    <textarea class="form-control" id="year_form" style="height: 50px" disabled>{% if full_info.Progs_production_year %}{{ full_info.Progs_production_year }}{% endif %}</textarea>
                     <label for="year_form">Год</label>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-floating">
-                    <textarea class="form-control" id="country_form" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
+                    <textarea class="form-control" id="country_form" style="height: 50px" disabled>{% if full_info.Progs_production_country %}{{ full_info.Progs_production_country }}{% endif %}</textarea>
                     <label for="country_form">Страна</label>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-floating">
-                    <textarea class="form-control" id="director_form" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
+                    <textarea class="form-control" id="director_form" style="height: 50px" disabled>{% if full_info.Progs_Director %}{{ full_info.Progs_Director }}{% endif %}</textarea>
                     <label for="director_form">Режиссёр</label>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-floating">
-                    <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
+                    <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{% if full_info.Progs_Cast %}{{ full_info.Progs_Cast }}{% endif %}</textarea>
                     <label for="roles_form">В ролях</label>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-floating">
-                    <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
+                    <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{% if full_info.Progs_comment %}{{ full_info.Progs_comment }}{% endif %}</textarea>
                     <label for="theme_form">Тематика</label>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-floating">
-                    <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
+                    <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{% if full_info.Progs_keywords %}{{ full_info.Progs_keywords }}{% endif %}</textarea>
                     <label for="keywords_form">Ключевые слова</label>
                   </div>
                 </div>

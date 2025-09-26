@@ -50,9 +50,9 @@
                 </svg>
               </a>
               <h6 class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover ms-2"
-                     data-bs-toggle="modal" data-bs-target="#imageModal" onclick="enlargeImage(this)"
+                     onclick="enlargeImage(this)" style="cursor: pointer;"
                      data-file-name="{{ file.file_path.name|file_name}}" data-file-path="{{ file.file_path.url }}"
-                     style="cursor: pointer;">
+                     data-file-type="{{ file.file_type }}">
                 {{ file.file_path.name|file_name }}
               </h6>
             </div>

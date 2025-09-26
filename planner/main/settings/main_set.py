@@ -8,7 +8,8 @@ class MainSettings:
             'otk': 'Прошёл ОТК',
             'otk_fail': 'Не прошёл ОТК',
             'final': 'Готов к эфиру',
-            'final_fail': 'Не прошёл ЭК'
+            'final_fail': 'Не прошёл ЭК',
+            'oplan_ready': 'Отсмотрен в Oplan3'
         }
 
     color_dict = {
@@ -20,5 +21,6 @@ class MainSettings:
             'otk': 'info',
             'otk_fail': 'danger',
             'final': 'success',
-            'final_fail': 'danger'
+            'final_fail': 'danger',
+            'oplan_ready': 'info'
         }

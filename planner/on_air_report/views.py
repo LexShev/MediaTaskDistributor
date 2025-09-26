@@ -4,6 +4,7 @@ from datetime import datetime, date
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
@@ -104,32 +105,40 @@ def on_air_search(request):
     user_id = request.user.id
 
     try:
-        on_air_init_dict = OnAirModel.objects.get(owner=user_id)
+        on_air_inst_dict = OnAirModel.objects.get(owner=user_id)
     except ObjectDoesNotExist:
         default_filter = OnAirModel(owner=user_id)
         default_filter.save()
-        on_air_init_dict = OnAirModel.objects.get(owner=user_id)
+        on_air_inst_dict = OnAirModel.objects.get(owner=user_id)
         print("Новый OnAirModel фильтр создан")
 
     try:
-        search_init_dict = TaskSearch.objects.get(owner=user_id)
+        search_inst_dict = TaskSearch.objects.get(owner=user_id)
     except ObjectDoesNotExist:
         default_search = TaskSearch(owner=user_id, search_type=1, sql_set=100)
         default_search.save()
-        search_init_dict = TaskSearch.objects.get(owner=user_id)
+        search_inst_dict = TaskSearch.objects.get(owner=user_id)
 
     if request.method == 'POST':
-        search_filter = TaskSearchForm(request.POST, instance=search_init_dict)
+        print('POST')
+        search_filter = TaskSearchForm(request.POST, instance=search_inst_dict)
         if search_filter.is_valid():
             search_filter.save()
-        on_air_filter = OnAirReportFilter(request.POST, instance=on_air_init_dict)
+        on_air_filter = OnAirReportFilter(request.POST, instance=on_air_inst_dict)
         if on_air_filter.is_valid():
             on_air_filter.save()
     else:
-        on_air_filter = OnAirReportFilter(instance=on_air_init_dict)
-        search_filter = TaskSearchForm(initial={'sql_set': search_init_dict.sql_set, 'search_type': search_init_dict.search_type})
-    print(on_air_init_dict)
-    print(search_init_dict)
+        # on_air_init_dict = {
+        #     'schedules': evaluate(on_air_inst_dict.schedules),
+        #     'workers': evaluate(on_air_inst_dict.workers),
+        #     'material_type': evaluate(on_air_inst_dict.material_type),
+        #     'work_dates': on_air_inst_dict.ready_dates,
+        #     'sched_dates': on_air_inst_dict.sched_dates,
+        #     'task_status': evaluate(on_air_inst_dict.task_status)
+        # }
+        on_air_init_dict = serialize(model_to_dict(on_air_inst_dict))
+        on_air_filter = OnAirReportFilter(initial=on_air_init_dict)
+        search_filter = TaskSearchForm(initial={'sql_set': search_inst_dict.sql_set, 'search_type': search_inst_dict.search_type})
     data = {
         'on_air_filter': on_air_filter,
         'search_filter': search_filter,
@@ -140,38 +149,41 @@ def on_air_search(request):
 def load_on_air_task_table(request):
     user_id = request.user.id
 
-    queryset = OnAirModel.objects.filter(owner=user_id).values()
+    queryset = OnAirModel.objects.get(owner=user_id)
     field_dict = {}
-    if queryset and queryset[0]:
-        field_dict = serialize(queryset)
-
+    if queryset:
+        field_dict = serialize(model_to_dict(queryset))
 
     print(field_dict)
     search_init_dict = TaskSearch.objects.get(owner=user_id)
 
-    task_list, service_dict = task_info(field_dict, search_init_dict.sql_set)
+    task_list = task_info(field_dict, search_init_dict.sql_set)
 
     html = render_to_string(
-        'otk/otk_task_table.html',
+        'on_air_report/on_air_task_table.html',
         {
             'task_list': task_list,
-            'service_dict': service_dict,
             'permissions': ask_db_permissions(user_id),
         },
         request=request
     )
     return JsonResponse({'html': html})
 
-def serialize(queryset):
+def evaluate(value):
+    try:
+        return ast.literal_eval(value)
+    except Exception as error:
+        print(error)
+        return value
+
+def serialize(on_air_instance):
     field_dict = {}
-    for key, value in queryset[0].items():
+    for key, value in on_air_instance.items():
         try:
-            if key == 'owner':
+            if key in ('owner', 'ready_dates', 'sched_dates'):
                 field_dict[key] = value
-            elif key in ('ready_dates', 'sched_dates'):
-                field_dict[key] = tuple(datetime.strptime(str_date, '%d.%m.%Y') for str_date in value.split(' - '))
             else:
-                field_dict[key] = tuple(ast.literal_eval(value))
+                field_dict[key] = ast.literal_eval(value)
         except Exception as error:
             print(error)
             field_dict[key] = []

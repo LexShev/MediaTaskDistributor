@@ -106,8 +106,8 @@ class Choices:
             (99, 'Мои задачи')
         ]
 
-    def task_status(self, label='-'):
-        return [
+    def task_status(self, label='-', extra=None):
+        status_list = [
             ('', label),
             ('no_material', 'Материал отсутствует'),
             ('not_ready', 'Не готов'),
@@ -119,6 +119,9 @@ class Choices:
             ('final', 'Готов к эфиру'),
             ('final_fail', 'Не прошёл ЭК')
         ]
+        if extra:
+            status_list.append(extra)
+        return status_list
 
     def material_type(self, label='-'):
         return [

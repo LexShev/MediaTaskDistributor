@@ -5,12 +5,45 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('on_air_task_table').innerHTML = data.html;
             updateMainProgramId();
             fastSearch();
-            totalCalc();
         })
         .catch(error => {
             document.getElementById('on_air_task_table').innerHTML = `
                 <div class="alert alert-danger">Ошибка загрузки данных</div>
             `;
+            console.error(error);
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('input[name="search_input"]');
+    const dropdownMenu = document.getElementById('on_air_search_filter');
+
+    // Показываем меню при фокусе
+    searchInput.addEventListener('focus', function() {
+        dropdownMenu.style.display = 'block';
+    });
+
+    // Скрываем меню при клике вне области
+    document.addEventListener('click', function(event) {
+        const isClickInsideInput = searchInput.contains(event.target);
+        const isClickInsideMenu = dropdownMenu.contains(event.target);
+
+        if (!isClickInsideInput && !isClickInsideMenu) {
+            dropdownMenu.style.display = 'none';
+        }
+    });
+
+    // Скрываем при Escape
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            dropdownMenu.style.display = 'none';
+            searchInput.blur();
+        }
+    });
+
+    // Предотвращаем закрытие при клике внутри меню
+    dropdownMenu.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
     });
 });
 
@@ -46,7 +79,7 @@ window.addEventListener('DOMContentLoaded', function() {
 function changeProgramIdCheckbox() {
     let fullSelectCheckbox = document.getElementById('full_select');
     let tableBody = document.getElementById('tableBody');
-    let visibleCheckboxes = tableBody.querySelectorAll('tr:not([style*="display: none"]) input[name="program_id_check"]');
+    let visibleCheckboxes = tableBody.querySelectorAll('tr:not([style*="display: none"]) input[name="program_id_check"]:not(:disabled)');
     let checkedVisibleList = [];
         visibleCheckboxes.forEach(checkbox => {
         if (checkbox.checked) {
@@ -69,35 +102,55 @@ function changeProgramIdCheckbox() {
             checkbox.checked = true;
         });
     }
+    updateSelectionCount();
+};
+
+function updateSelectionCount() {
+    let program_id_check_list = document.getElementsByName('program_id_check');
+    let checked_list = [];
+    let duration = 0;
+
+    for (let i = 0; i < program_id_check_list.length; i++) {
+        if (program_id_check_list[i].checked) {
+            checked_list.push(program_id_check_list[i].value);
+            duration += parseFloat(program_id_check_list[i].dataset.duration);
+        }
+    }
+
+    countMaterials(checked_list.length, duration);
+    updateFullSelectCheckboxState(checked_list.length, program_id_check_list.length);
+}
+
+// Функция для обновления состояния главного чекбокса
+function updateFullSelectCheckboxState(checkedCount, totalCount) {
+    let fullSelectCheckbox = document.getElementById('full_select');
+
+    if (0 < checkedCount && checkedCount < totalCount) {
+        fullSelectCheckbox.indeterminate = true;
+        fullSelectCheckbox.checked = false;
+    }
+    else if (checkedCount == totalCount) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = true;
+    }
+    else if (checkedCount == 0) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = false;
+    }
 };
 
 function updateMainProgramId() {
-    let fullSelectCheckbox = document.getElementById('full_select');
     let program_id_check_list = document.getElementsByName('program_id_check');
     program_id_check_list.forEach(function(program_id_check) {
-        program_id_check.addEventListener('change', changeFullSelect);
+        program_id_check.addEventListener('change', updateSelectionCount);
     });
+};
 
-    function changeFullSelect() {
-        let checked_list = [];
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            if (program_id_check_list[i].checked) {
-                checked_list.push(program_id_check_list[i]);
-            }
-        };
-        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
-            fullSelectCheckbox.indeterminate = true;
-            fullSelectCheckbox.checked = false;
-        }
-        else if (checked_list.length == program_id_check_list.length) {
-            fullSelectCheckbox.indeterminate = false;
-            fullSelectCheckbox.checked = true;
-        }
-        else if (checked_list.length == 0) {
-            fullSelectCheckbox.indeterminate = false;
-            fullSelectCheckbox.checked = false;
-        }
-    };
+function countMaterials(count, duration) {
+    let totalCount = document.getElementById('total_count');
+    totalCount.textContent = `Выбрано: ${count}`;
+    let totalDur = document.getElementById('total_dur');
+    totalDur.textContent = `Общий хронометраж: ${convertFramesToTime(duration)}`;
 };
 
 document.getElementById('search_input').addEventListener('keyup', fastSearch);
@@ -137,27 +190,6 @@ function fastSearch() {
     }
 };
 
-document.getElementById('search_input').addEventListener('keyup', totalCalc);
-function totalCalc() {
-    let tableBody = document.getElementById('tableBody');
-    let rows = tableBody.getElementsByTagName('tr');
-    let totalNum = document.getElementById('total_num');
-    let totalDuration = document.getElementById('total_dur');
-    let visibleCount = 0;
-    let countDuration = 0;
-    for (let i = 0; i < rows.length; i++) {
-        if (rows[i].style.display !== 'none') {
-            let duration = parseFloat(rows[i].getElementsByTagName('td')[6].querySelector('input')?.value);
-            countDuration+=duration;
-            visibleCount++;
-        }
-    };
-
-    totalNum.textContent = `Всего: ${thousands(visibleCount)}`;
-    totalDuration.textContent = `Продолжительность: ${convertFramesToTime(countDuration)}`;
-    return visibleCount;
-};
-
 function ResetFilter() {
     const [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus] =
     ['ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status', 'search_input']
@@ -170,6 +202,9 @@ function ResetFilter() {
 };
 
 function convertFramesToTime(frames, fps = 25) {
+    if (isNaN(frames) || frames === null || frames === undefined) {
+            frames = 0;
+    };
     const sec = parseInt(frames) / fps;
     const yy = Math.floor(Math.floor(sec / 3600 / 24) / 365);
     const dd = Math.floor(Math.floor(sec / 3600 / 24) % 365);

@@ -133,6 +133,7 @@ def del_task(request):
             '''
             cursor.executemany(query, program_id_list)
             return cursor.rowcount
+    return 0
 
 
 def find_file_path(program_id):

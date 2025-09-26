@@ -528,7 +528,7 @@ def status_ready(request):
 
 def ask_fix(request):
     user_id = request.user.id
-    new_values = json.loads(request.body)
+    no_cenz, new_values = json.loads(request.body)
     if not new_values:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
     program_id = new_values.get('program_id')

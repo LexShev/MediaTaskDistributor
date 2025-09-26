@@ -225,16 +225,29 @@ document.addEventListener('DOMContentLoaded', function() {
     checkPoster();
 });
 
-function enlargeImage(img) {
+function enlargeImage(file) {
     const modalImage = document.getElementById('modalImage');
     const modalLabel = document.getElementById('imageModalLabel');
+    fileName = file.dataset.fileName
+    filePath = file.dataset.filePath;
+    const fileType = file.dataset.fileType;
+    if (fileType === 'image') {
+            const imageModal = bootstrap.Modal.getInstance(document.getElementById('imageModal')) ||
+            new bootstrap.Modal(document.getElementById('imageModal'));
+        if (modalImage && modalLabel && file) {
+            modalImage.src = filePath;
+            modalLabel.textContent = fileName || "Изображение";
+            imageModal.toggle();
+        }
+    }
+    else {
+        const link = document.createElement('a');
+        link.href = filePath;
+        link.download = fileName;
+        link.click();
+    }
 
-    if (modalImage && img) {
-        modalImage.src = img.dataset.filePath;
-    }
-    if (modalLabel && img) {
-        modalLabel.textContent = img.dataset.fileName || "Изображение";
-    }
+
 };
 
 function getCookie(name) {

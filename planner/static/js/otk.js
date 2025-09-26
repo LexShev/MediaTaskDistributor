@@ -354,12 +354,12 @@ function totalCalc() {
     let countDuration = 0;
     for (let i = 0; i < rows.length; i++) {
         if (rows[i].style.display !== 'none') {
-            let duration = parseFloat(rows[i].getElementsByTagName('td')[6].querySelector('input')?.value);
+            let input = rows[i].getElementsByTagName('td')[6].querySelector('input');
+            let duration = parseFloat(input?.value || 0);
             countDuration+=duration;
             visibleCount++;
         }
     };
-
     totalNum.textContent = `Всего: ${thousands(visibleCount)}`;
     totalDuration.textContent = `Продолжительность: ${convertFramesToTime(countDuration)}`;
     return visibleCount;
@@ -377,6 +377,9 @@ function ResetFilter() {
 };
 
 function convertFramesToTime(frames, fps = 25) {
+    if (isNaN(frames) || frames === null || frames === undefined) {
+        frames = 0;
+    };
     const sec = parseInt(frames) / fps;
     const yy = Math.floor(Math.floor(sec / 3600 / 24) / 365);
     const dd = Math.floor(Math.floor(sec / 3600 / 24) % 365);

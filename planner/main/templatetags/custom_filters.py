@@ -273,39 +273,63 @@ def status_color(status):
 
 @register.filter
 def thousands(num):
-    return f'{num:,}'.replace(',', ' ')
+    try:
+        return f'{num:,}'.replace(',', ' ')
+    except Exception as error:
+        print(error)
+        return num
 
 @register.filter
 def stringint(string):
-    return int(string)
+    try:
+        return int(string)
+    except Exception as error:
+        print(error)
+        return string
 
 @register.filter
 def basename(file_path):
-    return os.path.basename(file_path)
+    try:
+        return os.path.basename(file_path)
+    except Exception as error:
+        print(error)
+        return file_path
 
 @register.filter
 def filename(file_path):
-    return os.path.splitext(os.path.basename(file_path))[0]
+    try:
+        return os.path.splitext(os.path.basename(file_path))[0]
+    except Exception as error:
+        print(error)
+        return file_path
 
 @register.filter
 def file_ext(file_path):
-    return os.path.splitext(file_path)[-1].lower()
+    try:
+        return os.path.splitext(file_path)[-1].lower()
+    except Exception as error:
+        print(error)
+        return file_path
 
 @register.filter
 def program_name(program_id):
-    with connections[OPLAN_DB].cursor() as cursor:
-        query = f'SELECT [name], [production_year] FROM [{OPLAN_DB}].[dbo].[program] WHERE [program_id] = %s'
-        cursor.execute(query, (program_id,))
-        res = cursor.fetchone()
-        if res:
-            name, production_year = res
-            if name and production_year:
-                return f'{name} ({production_year})'
-            elif name:
-                return name
-            return ''
-        else:
-            return program_id
+    try:
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f'SELECT [name], [production_year] FROM [{OPLAN_DB}].[dbo].[program] WHERE [program_id] = %s'
+            cursor.execute(query, (program_id,))
+            res = cursor.fetchone()
+            if res:
+                name, production_year = res
+                if name and production_year:
+                    return f'{name} ({production_year})'
+                elif name:
+                    return name
+                return ''
+            else:
+                return program_id
+    except Exception as error:
+        print(error)
+        return program_id
 
 @register.filter
 def desktop_visibility(task_status):
