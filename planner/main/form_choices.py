@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import connections
 from planner.settings import OPLAN_DB, PLANNER_DB
 
@@ -106,6 +108,22 @@ class Choices:
             (99, 'Мои задачи')
         ]
 
+    def channels(self):
+        return [
+            ('', 'Все'),
+            (3, 'Крепкое'),
+            (5, 'Планета дети'),
+            (6, 'Мировой сериал'),
+            (7, 'Мужской сериал'),
+            (8, 'Наше детство'),
+            (9, 'Романтичный сериал'),
+            (10, 'Наше родное кино'),
+            (11, 'Семейное кино'),
+            (12, 'Советское родное кино'),
+            (20, 'Кино +'),
+        ]
+
+
     def task_status(self, label='-', extra=None):
         status_list = [
             ('', label),
@@ -139,3 +157,25 @@ class Choices:
             (100000, 'Первые 100 000'),
         ]
 
+    def months(self):
+        return [
+            (1, "Январь"),
+            (2, "Февраль"),
+            (3, "Март"),
+            (4, "Апрель"),
+            (5, "Май"),
+            (6, "Июнь"),
+            (7, "Июль"),
+            (8, "Август"),
+            (9, "Сентябрь"),
+            (10, "Октябрь"),
+            (11, "Ноябрь"),
+            (12, "Декабрь")
+        ]
+
+    def years(self):
+        current_year = datetime.now().year
+        return [(year, str(year)) for year in range(current_year-3, current_year+4)]
+
+
+choice = Choices()

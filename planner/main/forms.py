@@ -2,9 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from .models import ModelFilter, AttachedFiles, ModelSorting
-from .form_choices import Choices
-
-choice = Choices()
+from .form_choices import choice
 
 
 def validate_file_type(value):

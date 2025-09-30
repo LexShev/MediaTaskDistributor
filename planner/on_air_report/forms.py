@@ -1,15 +1,15 @@
 from django import forms
 
-from main.form_choices import Choices
+from main.form_choices import choice
 from on_air_report.models import OnAirModel, TaskSearch
-
-choice = Choices()
 
 
 class OnAirReportFilter(forms.ModelForm):
     class Meta:
         model = OnAirModel
         fields = ('sched_dates', 'workers', 'material_type', 'schedules', 'task_status')
+        labels = {'sched_dates': 'Дата эфира', 'workers': 'Выполняет', 'material_type': 'Тип материала',
+                  'schedules': 'Канал', 'task_status': 'Статус задачи'}
 
         widgets = {
             'ready_dates': forms.DateInput(
@@ -39,17 +39,27 @@ class TaskSearchForm(forms.ModelForm):
 
         widgets = {
             'search_type': forms.Select(
-                attrs={'class': 'form-select', 'id': 'search_type', 'style': 'max-width: 10rem;'},
-                choices=((0, 'id'), (1, 'названию'), (2, 'имени файла'))),
+                attrs={'class': 'form-select', 'id': 'search_type', 'style': 'min-width: 10rem; max-width: 10rem;'},
+                choices=((0, 'program id'), (1, 'clip id'), (2, 'названию'), (3, 'имени файла'))),
             'search_input': forms.TextInput(
                 attrs={
                     'class': 'form-control', 'id': 'search_input', 'placeholder': 'введите название передачи ...',
-                    'autocomplete': "off", 'data-bs-toggle': "dropdown", 'data-bs-auto-close': "false",
-                    'data-bs-offset': "0,12", 'aria-expanded': "false", 'aria-haspopup': "true",
-                    'aria-controls': "on_air_search_filter"
-                },
+                    'autocomplete': "off", 'autocorrect': "off", 'spellcheck': "false"},
             ),
             'sql_set': forms.Select(
                 attrs={'class': 'form-select', 'id': 'sql_set', 'style': 'max-width: 11rem;'},
                 choices=choice.sql_set()),
         }
+
+class OnAirCalendar(forms.Form):
+    month_dropdown = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "month_dropdown", 'onchange': "this.form.submit()"}),
+        label='месяц', choices=choice.months, required=True)
+
+    year_dropdown = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "year_dropdown", 'onchange': "this.form.submit()"}),
+        label='год', choices=choice.years, required=True)
+
+    channel_dropdown = forms.ChoiceField(widget=forms.Select(
+        attrs={'class': "form-select", 'id': "channel_dropdown", 'onchange': "this.form.submit()"}),
+        label='каналы', choices=choice.channels, required=False)

@@ -13,7 +13,7 @@ from django.contrib import messages
 from main.logs_and_history import get_task_status, change_task_status_final, insert_history_status, update_comment
 from main.permission_pannel import ask_db_permissions
 from messenger_static.messenger_utils import create_notification
-from .forms import TaskSearchForm, OnAirReportFilter
+from .forms import TaskSearchForm, OnAirReportFilter, OnAirCalendar
 from .models import OnAirModel, TaskSearch
 from .on_air_calendar import calendar_skeleton, calc_next_month, calc_prev_month, update_info
 from .on_air_task_list import task_info
@@ -27,19 +27,16 @@ def report(request):
     return redirect(month_report, cal_year=cal_year, cal_month=cal_month)
 
 @login_required()
-def month_report(request, cal_year, cal_month):
+def month_report(request):
     worker_id = request.user.id
 
-    prev_year, prev_month = calc_prev_month(cal_year, cal_month)
-    next_year, next_month = calc_next_month(cal_year, cal_month)
-    service_dict = {
-        'cal_year': cal_year,
-        'cal_month': cal_month,
-        'prev_year': prev_year,
-        'prev_month': prev_month,
-        'next_year': next_year,
-        'next_month': next_month,
-    }
+    current_date = datetime.now()
+
+    # Получаем параметры из GET-запроса или используем значения по умолчанию
+    cal_year = request.GET.get('year', current_date.year)
+    cal_month = request.GET.get('month', current_date.month)
+    channel = request.GET.get('channel', '')
+
     summary_table = [
         ('no_material', 'Материал отсутствует'),
         ('not_ready', 'Не готов'),
@@ -50,11 +47,23 @@ def month_report(request, cal_year, cal_month):
         ('otk_fail', 'Не прошёл ОТК'),
         ('final', 'Готов к эфиру'),
         ('final_fail', 'Не прошёл ЭК'),
-        ('ready_oplan3', 'Завершено в Oplan3')
+        ('ready_oplan3', 'Завершено в Oplan3'),
     ]
+
+    if request.method == 'POST':
+        calendar_form = OnAirCalendar(request.POST)
+        if calendar_form.is_valid():
+            cal_year = int(calendar_form.cleaned_data['year_dropdown'])
+            cal_month = int(calendar_form.cleaned_data['month_dropdown'])
+            channel = calendar_form.cleaned_data.get('channel_dropdown')
+        else:
+            print('form is not valid', calendar_form.errors)
+    else:
+        calendar_form = OnAirCalendar(initial={'year_dropdown': cal_year, 'month_dropdown': cal_month})
+
     data = {
         'on_air_calendar': calendar_skeleton(cal_year, cal_month),
-        'service_dict': service_dict,
+        'calendar_form': calendar_form,
         'summary_table': summary_table,
         'permissions': ask_db_permissions(worker_id),
     }
@@ -62,20 +71,29 @@ def month_report(request, cal_year, cal_month):
 
 def load_on_air_calendar_info(request):
     date_str = request.GET.get('date')
+    schedule_id = request.GET.get('schedule_id', '')
     try:
         current_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     except (ValueError, TypeError):
         return JsonResponse({'error': 'Invalid date'}, status=400)
-    return JsonResponse(update_info(current_date))
+    try:
+        return JsonResponse(update_info(current_date, schedule_id))
+    except Exception as error:
+        return JsonResponse({'error': str(error)}, status=500)
 
 @login_required()
-def report_date(request, cal_year, cal_month, cal_day):
+def today_report(request):
+    today = datetime.today()
+    return redirect(date_report, cal_year=today.year, cal_month=today.month, cal_day=today.day)
+
+@login_required()
+def date_report(request, cal_year, cal_month, cal_day, schedule_id=None):
     user_id = request.user.id
     cal_date = date(cal_year, cal_month, cal_day)
-    # if isinstance(cal_day, str):
-    #     cal_day = datetime.strptime(cal_day, '%Y-%m-%d')
-    # month_calendar = report_calendar(cal_year, cal_month)
-    schedule_id_list = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+    if schedule_id:
+        schedule_id_list = (schedule_id,)
+    else:
+        schedule_id_list = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
     data = {
         'schedule_id_list': schedule_id_list,
         'service_dict': prepare_service_dict(cal_year, cal_month, cal_day, cal_date),
@@ -120,7 +138,6 @@ def on_air_search(request):
         search_inst_dict = TaskSearch.objects.get(owner=user_id)
 
     if request.method == 'POST':
-        print('POST')
         search_filter = TaskSearchForm(request.POST, instance=search_inst_dict)
         if search_filter.is_valid():
             search_filter.save()
@@ -147,17 +164,17 @@ def on_air_search(request):
     return render(request, 'on_air_report/on_air_search.html', data)
 
 def load_on_air_task_table(request):
+    search_input = request.GET.get('search_input', '')
     user_id = request.user.id
-
     queryset = OnAirModel.objects.get(owner=user_id)
     field_dict = {}
     if queryset:
         field_dict = serialize(model_to_dict(queryset))
 
     print(field_dict)
-    search_init_dict = TaskSearch.objects.get(owner=user_id)
+    search_inst_dict = TaskSearch.objects.get(owner=user_id)
 
-    task_list = task_info(field_dict, search_init_dict.sql_set)
+    task_list = task_info(field_dict, search_inst_dict.search_type, search_input, search_inst_dict.sql_set)
 
     html = render_to_string(
         'on_air_report/on_air_task_table.html',

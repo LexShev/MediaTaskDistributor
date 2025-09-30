@@ -72,32 +72,30 @@
       </div>
     </div>
 
-    <div class="dropdown-menu dropdown-menu-end shadow p-2" id="on_air_search_filter"
-         style="z-index: 1030; min-height: 30rem; width: 50rem; display: none;">
-      <div class="row ms-0 m-2 align-items-center">
-        {% for field in on_air_filter %}
-          <div class="col ps-0" style="min-width: 15rem;">
-              {{ field }}
-          </div>
-        {% endfor %}
-      </div>
-    </div>
 
-    <div class="input-group mb-3" style="width: 84%;">
-        <label class="input-group-text" for="search_type">Поиск по</label>
-        {{ search_filter.search_type }}
-        {{ search_filter.search_input }}
-        {{ search_filter.sql_set }}
-        <button type="submit" class="btn btn-outline-secondary" style="width: 7rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-          </svg>
-        </button>
-        <button type="button" onclick="ResetFilter()" class="btn register-button btn-outline-secondary" style="width: 3rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eraser" viewBox="0 0 16 16">
-            <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828l6.879-6.879zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293 4.633-4.633a1 1 0 0 0 0-1.414l-3.879-3.879zM8.746 13.547 3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293l.16-.16z"/>
-          </svg>
-        </button>
+
+    <div class="dropdown">
+      <div class="input-group mb-3">
+          <label class="input-group-text" for="search_type" style="min-width: 7rem; max-width: 7rem">Поиск по</label>
+          {{ search_filter.search_type }}
+          {{ search_filter.search_input }}
+          {{ search_filter.sql_set }}
+
+          <button type="submit" class="btn btn-outline-secondary" style="width: 7rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            </svg>
+          </button>
+      </div>
+      <div class="dropdown-menu shadow p-2" id="on_air_search_filter"
+         style="z-index: 1030; min-height: 30rem; width: 50rem; left: 17rem;">
+          {% for field in on_air_filter %}
+            <div class="row mx-2 my-1 align-items-center">
+                <h6 class="text-secondary p-1">{{ field.label }}</h6>
+                {{ field }}
+            </div>
+          {% endfor %}
+      </div>
     </div>
 
     <div id="on_air_task_table">
@@ -111,11 +109,9 @@
     <div style="height: 70px;" id="spacer"></div>
     <div class="fixed-bottom bg-body" id="controller">
       <div class="container-flex px-lg-5">
-        <div class="d-flex border-top py-2">
-          <div class="ms-auto">
-            <button type="button" onclick="ShowApproveFinal()" class="btn register-button btn-outline-success mx-2">Утвердить на эфир</button>
-            <button type="button" onclick="ShowFinalFail()" class="btn register-button btn-outline-danger ms-2 me-0">На доработку</button>
-          </div>
+        <div class="input-group border-top py-2">
+          <button type="button" onclick="ShowApproveFinal()" class="btn register-button btn-outline-success">Утвердить на эфир</button>
+          <button type="button" onclick="ShowFinalFail()" class="btn register-button btn-outline-danger">На доработку</button>
         </div>
       </div>
     </div>

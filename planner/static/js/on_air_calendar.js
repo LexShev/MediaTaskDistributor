@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const scheduleId = document.getElementById('channel_dropdown').value || '';
     const dayButtons = document.querySelectorAll('.loading-day');
     const controllers = new Map();
 
@@ -7,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
         controllers.set(button, controller);
 
         const date = button.value;
-        fetch(`/on-air-report/load_on_air_calendar_info/?date=${date}`, {
+        fetch(`/on-air-report/load_on_air_calendar_info/?date=${date}&schedule_id=${scheduleId}`, {
             signal: controller.signal // передаем сигнал отмены
         })
         .then(response => response.json())
@@ -35,7 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 otkFail: dayInfo.otk_fail,
                 final: dayInfo.final,
                 readyFail: dayInfo.final_fail,
-                readyOplan3: dayInfo.ready_oplan3
+                readyOplan3: dayInfo.ready_oplan3,
+                totalPrograms: dayInfo.total_programs,
             });
             const badgeInfo = button.querySelector('span.total-otk');
             otkInfo = button.dataset.otk;
@@ -61,6 +63,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function selectDay(selectedDay) {
+    const date = new Date(selectedDay.value);
+    const calYear = date.getFullYear();
+    const calMonth = date.getMonth() + 1;
+    const calDay = date.getDate();
+
+    const scheduleSelector = document.getElementById('channel_dropdown');
+    const scheduleId = scheduleSelector.value
+    const scheduleName = scheduleSelector.options[scheduleSelector.selectedIndex].text || '';
     const activeButtons = document.querySelectorAll('button[name="cal_day"].active');
     activeButtons.forEach(button => {
         button.classList.remove('active');
@@ -68,11 +78,16 @@ function selectDay(selectedDay) {
     selectedDay.classList.add('active');
     const dayLink = document.getElementById('day_link');
     const reportDate = document.getElementById('report_date');
-    reportDate.innerText = `Статистика по: ${selectedDay.value}`
-    const date = new Date(selectedDay.value);
-    const calYear = date.getFullYear();
-    const calMonth = date.getMonth() + 1;
-    const calDay = date.getDate();
+    reportDate.innerText = `Статистика за: ${selectedDay.value}`
+    if (scheduleId) {
+        const channelName = document.getElementById('channel_name');
+        channelName.innerText = `По каналу: ${scheduleName}`
+        dayLink.href = `/on-air-report/${calYear}/${calMonth}/${calDay}/${scheduleId}`;
+    }
+    else {
+    dayLink.href = `/on-air-report/${calYear}/${calMonth}/${calDay}`;
+    };
+    dayLink.style.display = ''
 
     const elementsMap = {
         noMaterial: document.getElementById('no_material'),
@@ -85,6 +100,7 @@ function selectDay(selectedDay) {
         final: document.getElementById('final'),
         readyFail: document.getElementById('final_fail'),
         readyOplan3: document.getElementById('ready_oplan3'),
+        totalPrograms: document.getElementById('total_programs'),
     };
 
     Object.entries(elementsMap).forEach(([key, element]) => {
@@ -92,6 +108,4 @@ function selectDay(selectedDay) {
             element.innerHTML = selectedDay.dataset[key];
         }
     });
-    dayLink.style.display = ''
-    dayLink.href = `/on-air-report/${calYear}/${calMonth}/${calDay}`;
 };

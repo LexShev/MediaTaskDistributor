@@ -3,9 +3,8 @@ from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 
 from .models import Message
-from main.form_choices import Choices
+from main.form_choices import choice
 
-choices = Choices()
 
 def validate_file_type(value):
     valid_types = [
@@ -51,7 +50,7 @@ class MessageForm(forms.ModelForm):
     engineers_mention = forms.ChoiceField(
         required=False,
         widget=DropdownMenuWidget(attrs={}),
-        choices=choices.planner_workers(exclude_init=True)
+        choices=choice.planner_workers(exclude_init=True)
     )
 
     class Meta:

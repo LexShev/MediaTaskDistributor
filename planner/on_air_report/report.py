@@ -172,7 +172,7 @@ def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 7, 8, 
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'),
         ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'production_year'),
         ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'), ('Progs', 'duration'),
-        ('SchedDay', 'day_date'), ('Task', 'worker_id'), ('Task', 'sched_id'),
+        ('SchedDay', 'day_date'), ('SchedProg', 'DateTime'), ('Task', 'worker_id'), ('Task', 'sched_id'),
         ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path')
     ]
 
@@ -180,7 +180,7 @@ def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 7, 8, 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f"""
-            SELECT {sql_columns}
+            SELECT DISTINCT {sql_columns}
             FROM [{OPLAN_DB}].[dbo].[program] AS Progs
             JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
                 ON Progs.[program_id] = SchedProg.[program_id]

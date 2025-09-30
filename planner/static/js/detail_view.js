@@ -266,7 +266,7 @@ function getCookie(name) {
 };
 
 function CopyText() {
-    var text = document.getElementById('file_path')
+    let text = document.getElementById('file_path')
     text.focus()
     text.select()
     document.execCommand('copy');

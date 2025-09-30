@@ -1,8 +1,6 @@
 from django import forms
 from .models import OtkModel, TaskSearch
-from main.form_choices import Choices
-
-choice = Choices()
+from main.form_choices import choice
 
 
 class OtkForm(forms.ModelForm):

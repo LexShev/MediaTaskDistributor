@@ -49,6 +49,15 @@ def otk(request):
             approve_list = [{'program_id': program_id} for program_id in program_id_list]
             change_task_status_batch(approve_list, 'otk')
             update_comment_batch(approve_list, 'otk', user_id)
+            for program_id in program_id_list:
+                create_notification(
+                    {'sender': user_id, 'recipient': 14, 'program_id': program_id,
+                     'message': '', 'comment': 'Материал прошёл ОТК'}
+                )
+                create_notification(
+                    {'sender': user_id, 'recipient': 15, 'program_id': program_id,
+                     'message': '', 'comment': 'Материал прошёл ОТК'}
+                )
         if otk_fail:
             otk_fail_prog_id = request.POST.getlist('otk_fail_prog_id')
             otk_fail_comment = request.POST.getlist('otk_fail_comment')

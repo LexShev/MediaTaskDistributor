@@ -4,18 +4,21 @@
     <h6 id="total_dur">Общий хронометраж: 00:00:00</h6>
 </div>
 <hr width="100%" size="2"><br>
-
+<div id="message_container">
+  {% include  'main/messages.html' %}
+</div>
 <table class="table table-hover">
   <thead>
     <tr>
       <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
-      <th style="width: 25%;">Название</th>
+      <th style="width: 24%;">Название</th>
+      <th style="width: 4%;">Clip ID</th>
       <th style="width: 5%;">Директория</th>
       <th style="width: 32%;">Имя файла</th>
-      <th style="width: 10%;">Исполнитель</th>
+      <th style="width: 8%;">Исполнитель</th>
       <th style="width: 5%;">Дата эфира</th>
       <th style="width: 5%;">Время эфира</th>
-      <th style="width: 7%;">Длительность</th>
+      <th style="width: 5%;">Длительность</th>
       <th style="width: 10%;">Статус</th>
     </tr>
   </thead>
@@ -27,7 +30,8 @@
                  data-program-id="{{ task.Progs_program_id }}" data-file-name="{{ task.Progs_name }}"
                  data-file-path="{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
                  data-worker-id="{{ task.Task_worker_id }}" data-oplan-worker-id="{{ task.Oplan_worker_id }}"
-                 data-duration="{{ task.Progs_duration }}" value="{{ task.Progs_program_id }}"
+                 data-prod-year="{{ task.Progs_production_year }}" data-duration="{{ task.Progs_duration }}"
+                 value="{{ task.Progs_program_id }}"
                  name="program_id_check"{% if task.is_duplicate %}disabled{% endif %}>
         </td>
         <td class="{% if task.is_duplicate %}bg-body-tertiary{% endif %}">
@@ -35,14 +39,16 @@
         {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}
           {% if task.is_duplicate %}<span class="badge bg-secondary text-bg-emphasis ms-2">Повтор</span>{% endif %}</a>
         </td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">
+          <input class="form-control form-control-sm" name="ClipID" type="text" value="{% if task.Files_ClipID %}{{ task.Files_ClipID }}{% endif %}" onclick="CopyText(this)"></td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
         <td class="{% if task.is_duplicate %}bg-body-tertiary{% endif %}">
           <a href="{% url 'home' %}worker/{% if task.Task_worker_id %}{{ task.Task_worker_id }}{% else %}{{ task.Oplan_worker_id }}{% endif %}"
              class="{% if task.is_duplicate %}text-body-tertiary{% else %}link-body-emphasis{% endif %} link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
             {% if task.Task_worker_id %}{{ task.Task_worker_id|planner_worker_name }}{% else %}{{ task.Oplan_worker_id|planner_worker_name }}{% endif %}</a></td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.SchedDay_day_date|date:'d.m.Y' }}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.SchedProg_DateTime|date:'d.m.Y H:i:s' }}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.SchedProg_DateTime|date:'d.m.Y' }}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.SchedProg_DateTime|date:'H:i:s' }}</td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.Progs_duration|convert_frames_to_time }}
           <input value="{{ task.Task_duration }}" id="dur_{{ task.Task_program_id }}" class="visually-hidden">
         </td>

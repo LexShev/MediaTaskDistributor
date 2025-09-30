@@ -19,7 +19,12 @@ def calendar_skeleton(cal_year, cal_month):
         weeks.append(week_data)
     return weeks
 
-def update_info(current_date):
+def sched_sort(schedule_id):
+    if not schedule_id:
+        return ''
+    return f'AND SchedDay.[schedule_id] = {schedule_id}'
+
+def update_info(current_date, schedule_id):
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(f'''
         DECLARE @current_date DATE
@@ -34,7 +39,8 @@ def update_info(current_date):
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'otk_fail' THEN Task.[program_id] END) AS otk_fail,
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'final' THEN Task.[program_id] END) AS final,
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'final_fail' THEN Task.[program_id] END) AS final_fail,
-            COUNT(DISTINCT CASE WHEN CustField.[ProgramCustomFieldId] = 15 THEN Progs.[program_id] END) AS ready_oplan3
+            COUNT(DISTINCT CASE WHEN CustField.[ProgramCustomFieldId] = 15 AND Task.[program_id] IS NULL THEN Progs.[program_id] END) AS ready_oplan3,
+            COUNT(DISTINCT Progs.[program_id]) AS total_programs
         FROM [{OPLAN_DB}].[dbo].[program] AS Progs
         JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
             ON Progs.[program_id] = SchedProg.[program_id]
@@ -47,34 +53,36 @@ def update_info(current_date):
         LEFT JOIN [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] AS CustField
             ON Progs.[program_id] = CustField.[ObjectId]
         WHERE SchedDay.[day_date] = @current_date
+        {sched_sort(schedule_id)}
+        AND Progs.[program_id] > 0
         AND Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
+        AND Progs.[program_type_id] IN (4, 5, 6, 7, 8, 10, 11, 12, 16, 19, 20)
         AND SchedProg.[Deleted] = 0
         '''
         , (current_date,))
         result = cursor.fetchone()
-        # not_ready = result[0] if result and result[0] is not None else 0
-        # ready = result[1] if result and result[1] is not None else 0
         if result:
-            no_material, not_ready, fix, fix_ready, ready, otk, otk_fail, final, final_fail, ready_oplan3 = result
-            try:
-                unfinished = no_material + not_ready + fix + fix_ready + ready + otk + otk_fail + final_fail
-                ready_index = (final * 100) / unfinished
-            except Exception as e:
-                print(e)
-                ready_index = 'fail'
-            if ready_index == 'fail':
-                color = ''
-            elif ready_index == 100:
-                color = 'btn-outline-success'
-            elif 70 < ready_index <= 99:
-                color = 'btn-outline-warning'
-            else:
+            no_material, not_ready, fix, fix_ready, ready, otk, otk_fail, final, final_fail, ready_oplan3, total_programs = result
+            finished = ready_oplan3 + final
+            # try:
+            #     ready_index = (finished * 100) / total_programs
+            # except Exception as e:
+            #     print(e)
+            #     ready_index = 'fail'
+            # if ready_index == 'fail':
+            #     color = ''
+            if no_material:
                 color = 'btn-outline-danger'
+            elif total_programs-finished == 0:
+                color = 'btn-outline-success'
+            else:
+                color = 'btn-outline-warning'
+
             return {
                 'no_material': no_material, 'not_ready': not_ready, 'fix': fix, 'fix_ready': fix_ready, 'ready': ready,
                 'otk': otk, 'otk_fail': otk_fail, 'final': final, 'final_fail': final_fail, 'ready_oplan3': ready_oplan3,
-                'color': color
+                'total_programs': total_programs, 'color': color
             }
         return {'status': 'error', 'message': 'empty list'}
 

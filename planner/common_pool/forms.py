@@ -1,9 +1,8 @@
 from django import forms
 
-from main.form_choices import Choices
+from main.form_choices import choice
 from .models import CommonPool
 
-choice = Choices()
 
 class CommonPoolForm(forms.ModelForm):
     class Meta:

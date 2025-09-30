@@ -59,12 +59,22 @@
               <li class="nav-item"><a href="{% url 'home' %}week/" class="nav-link px-2 {% is_active request '/week/' %}">Неделя</a></li>
             {% endif %}
             {% if permissions.on_air_report %}
-              <li class="nav-item"><a href="{% url 'home' %}on-air-report/" class="nav-link px-2 {% is_active request '/on-air-report/' %}">Эфирный отчёт</a></li>
+              <li class="nav-item dropdown" style="z-index: 1050;">
+                  <a class="nav-link dropdown-toggle px-2 {% is_active request '/on-air-report/' %}"
+                     role="button" data-bs-toggle="dropdown" aria-expanded="false">Эфирный отчёт</a>
+                  <ul class="dropdown-menu">
+                      <li><a href="{% url 'home' %}on-air-report/today/"
+                             class="dropdown-item">День</a></li>
+                      <li><a href="{% url 'home' %}on-air-report/month"
+                             class="dropdown-item {% is_active request '/on-air-report/month/' %}">Месяц</a></li>
+                      <li><a href="{% url 'home' %}on-air-report/on_air_search/"
+                             class="dropdown-item {% is_active request '/on-air-report/on_air_search/' %}">Поиск</a></li>
+                  </ul>
+              </li>
             {% endif %}
             {% if permissions.list %}
               <li class="nav-item"><a href="{% url 'home' %}list/" class="nav-link px-2 {% is_active request '/list/' %}">Список</a></li>
             {% endif %}
-
 
             {% if permissions.common_pool %}
               <li class="nav-item"><a href="{% url 'home' %}common_pool/" class="nav-link px-2 {% is_active request '/common_pool/' %}">Общий пул</a></li>
@@ -95,8 +105,8 @@
                     <li><a href="{% url 'home' %}work_calendar/" class="dropdown-item {% is_active request '/work_calendar/' %}">Календарь</a></li>
                   {% endif %}
                 </ul>
+              </li>
             {% endif %}
-
           </ul>
         </div>
       </nav>
@@ -117,7 +127,6 @@
         </svg>
       </button>
     {% endif %}
-
 
     <a href="{% url 'home' %}messenger"
        class="btn btn-outline-secondary mb-0 me-lg-4 position-relative"

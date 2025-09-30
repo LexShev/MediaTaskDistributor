@@ -20,7 +20,7 @@ $('#workers')
 $('#material_type')
   .dropdown(
   {
-    useLabels: false
+    useLabels: true
   }
   )
 ;

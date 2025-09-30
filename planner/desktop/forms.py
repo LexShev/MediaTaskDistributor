@@ -1,9 +1,7 @@
 from django import forms
 
 from desktop.models import ModelDeskTopFilter
-from main.form_choices import Choices
-
-choice = Choices()
+from main.form_choices import choice
 
 
 class DeskTopFilter(forms.ModelForm):

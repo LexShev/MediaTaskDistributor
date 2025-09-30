@@ -1,9 +1,7 @@
 from django import forms
 from .models import AdminModel, TaskSearch
-from main.form_choices import Choices
+from main.form_choices import choice
 
-
-choice = Choices()
 
 class AdminForm(forms.ModelForm):
     class Meta:
