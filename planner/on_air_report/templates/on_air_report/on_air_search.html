@@ -4,7 +4,6 @@
 
 <main role="main">
 {% block body %}
-<!--<link rel="stylesheet" href="{% static 'css/otk.css' %}">-->
 
 <link rel="stylesheet" type="text/css" href="{% static 'Semantic-UI-master/dist/semantic.min.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'css/ui_dropdown.css' %}">
@@ -20,7 +19,7 @@
 
 <div class="container-flex px-lg-5">
 <br>
-  <form method="post" id="otk_task_form">
+  <form method="post" id="on_air_search_form">
     {% csrf_token %}
     <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
@@ -72,20 +71,12 @@
       </div>
     </div>
 
-
-
     <div class="dropdown">
       <div class="input-group mb-3">
           <label class="input-group-text" for="search_type" style="min-width: 7rem; max-width: 7rem">Поиск по</label>
           {{ search_filter.search_type }}
           {{ search_filter.search_input }}
           {{ search_filter.sql_set }}
-
-          <button type="submit" class="btn btn-outline-secondary" style="width: 7rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-            </svg>
-          </button>
       </div>
       <div class="dropdown-menu shadow p-2" id="on_air_search_filter"
          style="z-index: 1030; min-height: 30rem; width: 50rem; left: 17rem;">
@@ -95,6 +86,18 @@
                 {{ field }}
             </div>
           {% endfor %}
+        <br>
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-outline-secondary mx-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            </svg>
+            Найти
+          </button>
+          <button type="button" onclick="ResetFilter()" class="btn register-button btn-outline-secondary mx-2">
+            Сбросить
+          </button>
+        </div>
       </div>
     </div>
 

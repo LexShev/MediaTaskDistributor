@@ -17,7 +17,7 @@ from .forms import TaskSearchForm, OnAirReportFilter, OnAirCalendar
 from .models import OnAirModel, TaskSearch
 from .on_air_calendar import calendar_skeleton, calc_next_month, calc_prev_month, update_info
 from .on_air_task_list import task_info
-from .report import collect_channels_list, prepare_service_dict, task_list_for_channel
+from .report import prepare_service_dict, task_list_for_channel
 
 
 def report(request):

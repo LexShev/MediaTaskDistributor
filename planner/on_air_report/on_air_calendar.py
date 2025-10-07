@@ -39,7 +39,8 @@ def update_info(current_date, schedule_id):
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'otk_fail' THEN Task.[program_id] END) AS otk_fail,
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'final' THEN Task.[program_id] END) AS final,
             COUNT(DISTINCT CASE WHEN Task.[task_status] = 'final_fail' THEN Task.[program_id] END) AS final_fail,
-            COUNT(DISTINCT CASE WHEN CustField.[ProgramCustomFieldId] = 15 AND Task.[program_id] IS NULL THEN Progs.[program_id] END) AS ready_oplan3,
+            COUNT(DISTINCT CASE WHEN (CustField.[ProgramCustomFieldId] = 15 OR CustField.[ProgramCustomFieldId] = 7)
+                AND Task.[program_id] IS NULL THEN Progs.[program_id] END) AS ready_oplan3,
             COUNT(DISTINCT Progs.[program_id]) AS total_programs
         FROM [{OPLAN_DB}].[dbo].[program] AS Progs
         JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg

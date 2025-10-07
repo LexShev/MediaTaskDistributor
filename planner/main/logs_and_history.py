@@ -118,6 +118,8 @@ def find_file_path(program_id):
         file_path_info = cursor.fetchone()
     if file_path_info:
         return dict(zip(django_columns, file_path_info))
+    return {}
+
 
 # def change_task_status(service_info_dict, task_status):
 #     program_id = service_info_dict.get('program_id')
@@ -204,6 +206,22 @@ def change_task_status_new(program_id, new_values, task_status, db_task_status) 
             cursor.execute(query, values)
             return {'status': 'success', 'message': f'{program} был добавлен в базу.'}
 
+def add_mark_no_cenz(program_id):
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            query = f'''
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                SET [noCENZ] = 1
+                WHERE [program_id] = %s
+                '''
+            cursor.execute(query, (program_id,))
+            if cursor.rowcount:
+                return {'status': 'success', 'message': 'mark noCENZ was added successfully'}
+            else:
+                return {'status': 'error', 'message': 'mark noCENZ was not added'}
+    except Exception as error:
+        print(error)
+        return {'status': 'error', 'message': error}
 
 def update_comment(program_id, user_id, task_status=None, comment=None, deadline=None):
     with connections[PLANNER_DB].cursor() as cursor:

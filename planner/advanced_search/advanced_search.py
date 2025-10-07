@@ -10,33 +10,33 @@ def query_selector(search_id, sql_set, search_query):
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
+        ('Task', 'work_date'), ('Task', 'ready_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_1 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
+        ('Task', 'work_date'), ('Task', 'ready_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_2 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
         ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name'), ('Files', 'Name'),
-        ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
+        ('Task', 'work_date'), ('Task', 'ready_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name'),
+        ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
     ]
     columns_3 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
+        ('Task', 'work_date'), ('Task', 'ready_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_4 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
         ('Progs', 'name'), ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
         ('Progs', 'duration'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'ModificationTime'),
         ('SchedDay', 'day_date'), ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'sched_date'),
-        ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
+        ('Task', 'work_date'), ('Task', 'ready_date'), ('Task', 'task_status'), ('Task', 'file_path'), ('Adult', 'Name')
     ]
     columns_5 = [
         ('Progs', 'program_id'), ('Progs', 'parent_id'), ('SchedDay', 'schedule_id'), ('Progs', 'program_type_id'),
@@ -202,7 +202,7 @@ def query_selector(search_id, sql_set, search_query):
             continue
         temp_dict = dict(zip(django_columns, program_info))
         if not temp_dict.get('Task_ready_date') and not temp_dict.get('Task_worker_id'):
-            cenz_info_dict = cenz_info(temp_dict.get('Progs_program_id'))
+            cenz_info_dict = cenz_info(program_id)
             temp_dict['ready_date'] = cenz_info_dict.get(7)
             temp_dict['worker_id'] = engineer_id_to_worker_id(cenz_info_dict.get(15))
         else:

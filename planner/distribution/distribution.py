@@ -2,14 +2,17 @@ from datetime import datetime, timedelta, date
 
 from django.db import connections
 from planner.settings import OPLAN_DB, PLANNER_DB
-
+from tools.ffmpeg_processing import start_ffmpeg_scanners
 
 DEFAULT_PROGRAM_TYPES = (4, 5, 6, 10, 11, 12, 16)
 DEFAULT_SCHEDULES_IDS = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
 
 def main_distribution():
     # work_date = datetime.today().date()
-    work_date = date(day=1, month=11, year=2025)
+    # work_date = date(day=1, month=11, year=2025)
+    start_work_date = date.today() + timedelta(days=1)
+    end_work_date = date(day=30, month=11, year=2025)
+    work_duration = (end_work_date - start_work_date).days
     # 3	Крепкое
     # 5	Планета дети
     # 6	Мировой сериал
@@ -20,7 +23,11 @@ def main_distribution():
     # 11	Семейное кино
     # 12	Советское родное кино
     # 20	Кино +
-    material_list_sql, django_columns = oplan_material_list(start_date=work_date, schedules_id=(3, 6, 7, 8, 9, 10, 11, 12), work_duration=30)
+    material_list_sql, django_columns = oplan_material_list(
+        start_date=start_work_date,
+        schedules_id=(3, 5, 6, 7, 8, 9, 10, 11, 12, 20),
+        work_duration=work_duration
+    )
     # , schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12)
     program_id_list = []
     for i, program_info in enumerate(material_list_sql, 1):
@@ -37,12 +44,13 @@ def main_distribution():
         sched_date = temp_dict.get('SchedDay_day_date')
         duration = temp_dict.get('Progs_duration')
         suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
-
-        worker_id, kpi, work_date = date_seek(date(day=1, month=10, year=2025), duration)
+        start_distribution_date = date.today() + timedelta(days=1)
+        worker_id, kpi, work_date = date_seek(start_distribution_date, duration)
 
         if suitable_material:
-            file_path = find_file_path(program_id)
+            file_id, file_path = find_file_path(program_id)
             status = 'not_ready'
+            start_ffmpeg_scanners(file_id=file_id, file_path=file_path)
         else:
             file_path = ''
             status = 'no_material'
@@ -91,26 +99,29 @@ def oplan_material_list(start_date, work_duration, program_type=DEFAULT_PROGRAM_
     return material_list_sql, django_columns
 
 def find_file_path(program_id):
-    with connections[OPLAN_DB].cursor() as cursor:
-        query = f'''
-        SELECT Files.[Name]
-        FROM [{OPLAN_DB}].[dbo].[File] AS Files
-        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
-            ON Files.[ClipID] = Clips.[ClipID]
-        JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
-            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-        WHERE Files.[Deleted] = 0
-        AND Files.[PhysicallyDeleted] = 0
-        AND Clips.[Deleted] = 0
-        AND Progs.[deleted] = 0
-        AND Progs.[DeletedIncludeParent] = 0
-        AND Progs.[program_id] = {program_id}
-        '''
-        cursor.execute(query)
-        file_path = cursor.fetchone()
-    if file_path:
-        return file_path[0]
-    return None
+    try:
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f'''
+            SELECT Files.[FileID], Files.[Name]
+            FROM [{OPLAN_DB}].[dbo].[File] AS Files
+            JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
+                ON Files.[ClipID] = Clips.[ClipID]
+            JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
+                ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+            WHERE Files.[Deleted] = 0
+            AND Files.[PhysicallyDeleted] = 0
+            AND Clips.[Deleted] = 0
+            AND Progs.[deleted] = 0
+            AND Progs.[DeletedIncludeParent] = 0
+            AND Progs.[program_id] = {program_id}
+            '''
+            cursor.execute(query)
+            file_info = cursor.fetchone()
+        if file_info and file_info[0]:
+            return file_info
+    except Exception as error:
+        print(error)
+    return None, None
 
 
 def date_seek(work_date, duration):

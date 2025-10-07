@@ -11,15 +11,16 @@
   <thead>
     <tr>
       <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
-      <th style="width: 24%;">Название</th>
-      <th style="width: 4%;">Clip ID</th>
+      <th style="width: 22%;">Название</th>
+      <th style="width: 5%;">Clip ID</th>
       <th style="width: 5%;">Директория</th>
-      <th style="width: 32%;">Имя файла</th>
+      <th style="width: 30%;">Имя файла</th>
       <th style="width: 8%;">Исполнитель</th>
       <th style="width: 5%;">Дата эфира</th>
       <th style="width: 5%;">Время эфира</th>
       <th style="width: 5%;">Длительность</th>
       <th style="width: 10%;">Статус</th>
+      <th style="width: 3%;">CENZ</th>
     </tr>
   </thead>
   <tbody class="table-group-divider" id="tableBody">
@@ -41,8 +42,8 @@
         </td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">
           <input class="form-control form-control-sm" name="ClipID" type="text" value="{% if task.Files_ClipID %}{{ task.Files_ClipID }}{% endif %}" onclick="CopyText(this)"></td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{% if task.Task_file_path %}{{ task.Task_file_path|dir_name }}{% else %}{{ task.Files_Name|dir_name }}{% endif %}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{% if task.Task_file_path %}{{ task.Task_file_path|file_name }}{% else %}{{ task.Files_Name|file_name }}{% endif %}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.Files_Name|dir_name }}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.Files_Name|file_name }}</td>
         <td class="{% if task.is_duplicate %}bg-body-tertiary{% endif %}">
           <a href="{% url 'home' %}worker/{% if task.Task_worker_id %}{{ task.Task_worker_id }}{% else %}{{ task.Oplan_worker_id }}{% endif %}"
              class="{% if task.is_duplicate %}text-body-tertiary{% else %}link-body-emphasis{% endif %} link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
@@ -53,6 +54,16 @@
           <input value="{{ task.Task_duration }}" id="dur_{{ task.Task_program_id }}" class="visually-hidden">
         </td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{% if task.Task_task_status %}{{ task.Task_task_status|status_name }}{% else %}{{ task.Oplan_status|status_name }}{% endif %}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">
+          {% if not task.Task_noCENZ %}
+            <span title="Замена файла">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-check" viewBox="0 0 16 16">
+                <path d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 8.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                <path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+              </svg>
+            </span>
+          {% endif %}
+        </td>
       </tr>
     {% endfor %}
   </tbody>

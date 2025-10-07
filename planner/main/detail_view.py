@@ -69,12 +69,14 @@ def full_info(program_id):
         if full_info_dict.get('Progs_program_kind') in (1, 4):
             full_info_dict['episodes'] = find_episodes(program_id)
 
-        if full_info_dict['Progs_program_type_id'] in (4, 8, 12, 16): # сериалы
+        if full_info_dict['Progs_program_type_id'] in (4, 8, 12): # сериалы
             full_info_dict['material_type'] = 'season'
         else:
             full_info_dict['material_type'] = 'film'
         # print(full_info_dict)
         return full_info_dict
+    return {}
+
 
 def find_file_path(program_id):
     columns = (('Files', 'FileID'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
@@ -100,6 +102,8 @@ def find_file_path(program_id):
         file_path_info = cursor.fetchone()
     if file_path_info:
         return dict(zip(django_columns, file_path_info))
+    return {}
+
 
 def find_episodes(program_id):
     with connections[OPLAN_DB].cursor() as cursor:

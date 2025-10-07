@@ -2,7 +2,16 @@ from django.db import connections
 
 from messenger_static.messenger_utils import create_notification
 from planner.settings import PLANNER_DB, OPLAN_DB
+from tools.ffmpeg_processing import start_ffmpeg_scanners
 
+# '''
+# SELECT Task.[program_id], Task.[worker_id]
+#     FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
+#     JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
+#         ON Task.[program_id] = Progs.[program_id]
+#     WHERE Task.[task_status] = 'no_material'
+#     AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
+# '''
 
 def get_no_material_list():
     success_list = []
@@ -10,17 +19,29 @@ def get_no_material_list():
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(
             f'''
-            SELECT Task.[program_id], Task.[worker_id]
+            SELECT Task.[program_id], Task.[worker_id], Files.[FileID], Files.[Name]
             FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
             JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
                 ON Task.[program_id] = Progs.[program_id]
-            WHERE Task.[task_status] = 'no_material'
-            AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
+            JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
+                ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+            JOIN [{OPLAN_DB}].[dbo].[File] AS Files
+                ON Files.[ClipID] = Clips.[ClipID]
+            WHERE Files.[Deleted] = 0
+            AND Files.[PhysicallyDeleted] = 0
+            AND Clips.[Deleted] = 0
+            AND Progs.[deleted] = 0
+            AND Progs.[DeletedIncludeParent] = 0
+            AND Task.[task_status] = 'no_material'
             '''
         )
         no_material_list = cursor.fetchall()
         if no_material_list:
-            for program_id, worker_id in no_material_list:
+            for program_id, worker_id, file_id, file_path in no_material_list:
+                try:
+                    start_ffmpeg_scanners(file_id, file_path)
+                except Exception as error:
+                    print(error)
                 try:
                     cursor.execute(
                         f'''

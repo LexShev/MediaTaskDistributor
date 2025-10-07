@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.template.loader import render_to_string
 
 from messenger_static.messenger_utils import create_notification
-from tools.tasks import process_video_task
+from tools.ffmpeg_processing import start_ffmpeg_scanners
 
 from .ffmpeg_info import ffmpeg_dict
 from tools.ffprobe_scan import FfprobeScanner
@@ -21,7 +21,7 @@ from main.helpers import get_engineer_id
 from .js_requests import program_name
 from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, update_comment, insert_history_new, \
-    change_task_status_new, get_task_status
+    change_task_status_new, get_task_status, add_mark_no_cenz
 from .models import ModelFilter, AttachedFiles, ModelSorting
 from .list_view import list_material_list
 from .object_block import unblock_object_planner, block_object_planner, check_planner_lock, \
@@ -416,6 +416,7 @@ def cenz_batch(request):
         if no_cenz:
             task_status = 'otk'
             cenz_comment = 'CENZ не требуется'
+            add_mark_no_cenz(program_id)
         answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
         if answer.get('status') == 'success':
             change_oplan_cenz_info(program_id, old_values, new_values)
@@ -435,7 +436,6 @@ def cenz_batch(request):
 def material_card(request, program_id):
     user_id = request.user.id
     custom_fields = cenz_info(program_id)
-    # process_video_task.delay(program_id)
 
     # work_date
     if custom_fields.get(7) and not isinstance(custom_fields.get(7), str):
@@ -481,6 +481,8 @@ def material_card(request, program_id):
     attached_files = AttachedFiles.objects.filter(program_id=program_id).order_by('timestamp')
     full_info_dict = full_info(program_id)
     file_id = full_info_dict.get('Files_FileID', '')
+    file_path = full_info_dict.get('Files_Name', '')
+    start_ffmpeg_scanners(file_id, file_path)
     data = {
         'full_info': full_info_dict,
         'custom_fields': custom_fields,
@@ -515,6 +517,7 @@ def status_ready(request):
     if no_cenz:
         task_status = 'otk'
         cenz_comment = 'CENZ не требуется'
+        add_mark_no_cenz(program_id)
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     if answer.get('status') == 'success':
         change_oplan_cenz_info(program_id, old_values, new_values)

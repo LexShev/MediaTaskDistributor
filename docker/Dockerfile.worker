@@ -35,10 +35,14 @@ RUN set -ex \
 
 WORKDIR /app
 COPY ../requirements.txt .
+COPY ../.env .
 RUN python -m pip install pip==25.2 && \
-    python -m pip install --no-cache-dir -r requirements.txt && \
-    pip install redis==4.6.0
+    python -m pip install --no-cache-dir -r requirements.txt
 
-COPY .. .
+# Копируем ТОЛЬКО необходимые папки
+COPY ../planner/planner/ ./planner/
+COPY ../planner/distribution/ ./distribution/
+COPY ../planner/messenger_static/ ./messenger_static/
+COPY ../planner/tools/ ./tools/
 
 # CMD будет задан в docker-compose

@@ -6,7 +6,7 @@ from planner.settings import PLANNER_DB, OPLAN_DB
 
 
 def check_value(table, key, value):
-    if value and len(value) == 1:
+    if value and len(value) == 1 and value[0]:
         return f"AND {table}.[{key}] = '{value[0]}'"
     elif value and len(value) > 1:
         return f"AND {table}.[{key}] IN {tuple(value)}"
@@ -14,14 +14,15 @@ def check_value(table, key, value):
         return ''
 
 def check_sched(schedules):
-    if not schedules:
+    if not schedules or not any(schedules):
         return ''
-    if len(schedules) == 1:
+    if len(schedules) == 1 and schedules[0]:
+        print('schedules', schedules, type(schedules), len(schedules))
         return f'AND (Sched.[schedule_id] = {schedules[0]} OR Task.program_id IS NOT NULL)'
     return f'AND (Sched.[schedule_id] IN {tuple(schedules)} OR Task.program_id IS NOT NULL)'
 
 def check_material_type(material_type):
-    if len(material_type) == 1:
+    if len(material_type) == 1 and material_type[0]:
         if 'season' in material_type:
             return 'AND Progs.[program_type_id] IN (4, 8, 12)'
         elif 'film' in material_type:
@@ -30,10 +31,10 @@ def check_material_type(material_type):
 
 
 def check_task_status(task_status):
-    if not task_status:
+    if not task_status or not any(task_status):
         return ''
     if 'oplan_ready' not in task_status:
-        if len(task_status) == 1:
+        if len(task_status) == 1 and task_status[0]:
             return f"AND Task.[task_status] = '{task_status[0]}'"
         else:
             return f"AND Task.[task_status] IN {tuple(task_status)}"
@@ -92,7 +93,6 @@ def find_file_path(program_id):
         return None
 
 def task_info(field_dict, search_type, search_input, sql_set):
-
     # field_dict = check_dict(field_dict)
     sched_date_start, sched_date_end = [datetime.strptime(str_date, '%d.%m.%Y') for str_date in field_dict.get('sched_dates').split(' - ')]
     sched_prog_end_date = sched_date_end + timedelta(days=1)
@@ -104,7 +104,7 @@ def task_info(field_dict, search_type, search_input, sql_set):
             ('Task', 'program_id'), ('Task', 'worker_id'), ('Files', 'Name'), ('Files', 'ClipID'), ('Progs', 'duration'),
             ('Task', 'work_date'), ('SchedDay', 'day_date'), ('Sched', 'schedule_id'), ('SchedProg', 'DateTime'), ('Task', 'task_status'), ('Task', 'file_path'),
             ('Progs', 'program_id'), ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
-            ('Progs', 'production_year'), ('Progs', 'episode_num')
+            ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Task', 'noCENZ')
         ]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -121,13 +121,14 @@ def task_info(field_dict, search_type, search_input, sql_set):
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
         JOIN [{OPLAN_DB}].[dbo].[File] AS Files
             ON Files.[ClipID] = Clips.[ClipID]
-        LEFT JOIN [planner].[dbo].[task_list] AS Task
+        LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         AND SchedProg.[Deleted] = 0
         AND Files.[Deleted] = 0
         AND Files.[PhysicallyDeleted] = 0
+        AND Files.[FileContainerFormatID] != 14
         AND Clips.[Deleted] = 0
         AND Progs.[program_id] > 0
         {check_value('Task', 'worker_id', field_dict.get('workers'))}

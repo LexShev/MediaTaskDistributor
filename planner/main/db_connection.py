@@ -10,9 +10,9 @@ def check_param(param):
 
 def check_mat_type(param):
     if param == ['film']:
-        return 5, 6, 7, 10, 11, 19
+        return 5, 6, 7, 10, 11, 16, 19, 20
     elif param == ['season']:
-        return 4, 8, 12, 16, 20
+        return 4, 8, 12
     else:
         return 4, 5, 6, 7, 8, 10, 11, 12, 16, 19, 20
 

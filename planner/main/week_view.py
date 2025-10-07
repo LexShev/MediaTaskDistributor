@@ -129,7 +129,7 @@ def week_material_list(schedules_id, worker_id, material_type, task_status, work
                     }
                     material_list[day_num].append(program_info_dict)
                     program_id_list.append(program_id)
-        if not temp_dict['Progs_program_type_id'] in (4, 8, 12):
+        if temp_dict['Progs_program_type_id'] not in (4, 8, 12):
             program_info_dict = {
                 'Progs_program_id': temp_dict.get('Progs_program_id'),
                 'Progs_parent_id': temp_dict.get('Progs_parent_id'),

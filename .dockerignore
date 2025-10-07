@@ -1,0 +1,18 @@
+# Игнорируем ВСЕ по умолчанию
+*
+
+# Включаем только нужные для сборки папки/файлы
+!planner/planner/
+!planner/distribution/
+!planner/tools/
+!planner/messenger_static/
+!requirements.txt
+!docker/
+!.env
+
+# Игнорируем служебные файлы даже в разрешенных папках
+**/__pycache__
+**/*.pyc
+**/.DS_Store
+**/.git
+**/*.log

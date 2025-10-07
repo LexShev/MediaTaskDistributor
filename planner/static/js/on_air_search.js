@@ -494,6 +494,19 @@ function approveFinal() {
     });
 };
 
+function ResetFilter() {
+    const searchForm = document.getElementById('on_air_search_form')
+    const searchFilter = document.getElementById('on_air_search_filter')
+    const searchFilterElements = searchFilter.querySelectorAll('select');
+    Array.from(searchFilterElements).forEach(element => {
+        if (element.name) {
+        console.log(element.value);
+            element.value = '';
+        };
+    });
+    searchForm.submit();
+};
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

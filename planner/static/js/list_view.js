@@ -143,7 +143,6 @@ function CenzApproveBatch(task_status) {
             forms[element.name] = element.value;
         };
     });
-    console.log(forms);
     fetch('/cenz_batch/', {
     method: 'POST',
     headers: {

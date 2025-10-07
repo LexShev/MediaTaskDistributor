@@ -73,11 +73,15 @@ services:
       celery -A planner worker --loglevel=info --concurrency=4
       "
     volumes:
-      - ..:/app
+      # Монтируем ТОЛЬКО необходимые папки
+      - ../planner/planner:/app/planner:ro
+      - ../planner/tools:/app/tools:ro
+      - ../planner/messenger_static:/app/messenger_static:ro
+      - ../planner/media:/app/media
       - /mnt:/mnt
     working_dir: /app
     environment:
-      - DJANGO_SETTINGS_MODULE=planner.settings
+      - DJANGO_SETTINGS_MODULE=planner.celery_settings
       - PYTHONPATH=/app
       - CELERY_BROKER_URL=redis://redis:6379/0
     env_file:
@@ -105,7 +109,7 @@ services:
     ports:
       - "5555:5555"
     environment:
-      - DJANGO_SETTINGS_MODULE=planner.settings
+      - DJANGO_SETTINGS_MODULE=planner.celery_settings
       - PYTHONPATH=/app
       - CELERY_BROKER_URL=redis://redis:6379/0
       - FLOWER_USER=admin
