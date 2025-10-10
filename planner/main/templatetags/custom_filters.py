@@ -262,6 +262,24 @@ def month_name(cal_month):
     return month_dict.get(cal_month)
 
 @register.filter
+def day_name(cal_date):
+    try:
+        day_num = cal_date.weekday()
+        day_dict = {
+            0: "Понедельник ",
+            1: "Вторник ",
+            2: "Среда",
+            3: "Четверг",
+            4: "Пятница",
+            5: "Суббота",
+            6: "Воскресенье",
+        }
+        return day_dict.get(day_num)
+    except Exception as error:
+        print(error)
+        return ''
+
+@register.filter
 def status_name(status):
     status_dict = MainSettings.status_dict
     return status_dict.get(status, '')
@@ -269,6 +287,11 @@ def status_name(status):
 @register.filter
 def status_color(status):
     color_dict = MainSettings.color_dict
+    return color_dict.get(status, '')
+
+@register.filter
+def on_air_status_color(status):
+    color_dict = MainSettings.on_air_color_dict
     return color_dict.get(status, '')
 
 @register.filter

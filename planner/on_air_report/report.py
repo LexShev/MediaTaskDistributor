@@ -12,64 +12,64 @@ from planner.settings import OPLAN_DB, PLANNER_DB
 
 
 
-def calc_prev_month(cal_year, cal_month):
-    if cal_month > 1:
-        prev_month = cal_month - 1
-        prev_year = cal_year
-    else:
-        prev_month = 12
-        prev_year = cal_year - 1
-    return prev_year, prev_month
+# def calc_prev_month(cal_year, cal_month):
+#     if cal_month > 1:
+#         prev_month = cal_month - 1
+#         prev_year = cal_year
+#     else:
+#         prev_month = 12
+#         prev_year = cal_year - 1
+#     return prev_year, prev_month
+#
+# def calc_next_month(cal_year, cal_month):
+#     if cal_month < 12:
+#         next_month = cal_month + 1
+#         next_year = cal_year
+#     else:
+#         next_month = 1
+#         next_year = cal_year + 1
+#     return next_year, next_month
 
-def calc_next_month(cal_year, cal_month):
-    if cal_month < 12:
-        next_month = cal_month + 1
-        next_year = cal_year
-    else:
-        next_month = 1
-        next_year = cal_year + 1
-    return next_year, next_month
-
-def tasks_info(month_calendar, task_list):
-    colorized_calendar = []
-    for week in month_calendar:
-        colorized_weeks = []
-        for day in week:
-            program_id_list = []
-            total_task_list = []
-            for task in task_list:
-                if task.get('Progs_program_id') in program_id_list:
-                    continue
-                if task.get('SchedDay_day_date').date() == day:
-                    total_task_list.append(task)
-                    program_id_list.append(task.get('Progs_program_id'))
-            total_tasks = len(total_task_list)
-            ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status')
-                                   in ('ready', 'final', 'otk') and task.get('SchedDay_day_date').date() == day))
-            not_ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status')
-                                       not in ('ready', 'final', 'otk') and task.get('SchedDay_day_date').date() == day))
-            try:
-                ready_index = (ready_tasks * 100) / total_tasks
-            except Exception as e:
-                print(e)
-                ready_index = 'day_off'
-            #     проверка на отсутствие задач в текущий день
-            if ready_index == 'day_off':
-                color = ''
-            elif ready_index > 70:
-                color = 'btn-outline-success'
-            elif 30 < ready_index < 70:
-                color = 'btn-outline-warning'
-            else:
-                color = 'btn-outline-danger'
-            colorized_weeks.append(
-                {'day': day,
-                'ready_tasks': ready_tasks,
-                'not_ready_tasks': not_ready_tasks,
-                'ready_index': ready_index,
-                'color': color})
-        colorized_calendar.append(colorized_weeks)
-    return colorized_calendar
+# def tasks_info(month_calendar, task_list):
+#     colorized_calendar = []
+#     for week in month_calendar:
+#         colorized_weeks = []
+#         for day in week:
+#             program_id_list = []
+#             total_task_list = []
+#             for task in task_list:
+#                 if task.get('Progs_program_id') in program_id_list:
+#                     continue
+#                 if task.get('SchedDay_day_date').date() == day:
+#                     total_task_list.append(task)
+#                     program_id_list.append(task.get('Progs_program_id'))
+#             total_tasks = len(total_task_list)
+#             ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status')
+#                                    in ('ready', 'final', 'otk') and task.get('SchedDay_day_date').date() == day))
+#             not_ready_tasks = len(list(task for task in total_task_list if task.get('Task_task_status')
+#                                        not in ('ready', 'final', 'otk') and task.get('SchedDay_day_date').date() == day))
+#             try:
+#                 ready_index = (ready_tasks * 100) / total_tasks
+#             except Exception as e:
+#                 print(e)
+#                 ready_index = 'day_off'
+#             #     проверка на отсутствие задач в текущий день
+#             if ready_index == 'day_off':
+#                 color = ''
+#             elif ready_index > 70:
+#                 color = 'btn-outline-success'
+#             elif 30 < ready_index < 70:
+#                 color = 'btn-outline-warning'
+#             else:
+#                 color = 'btn-outline-danger'
+#             colorized_weeks.append(
+#                 {'day': day,
+#                 'ready_tasks': ready_tasks,
+#                 'not_ready_tasks': not_ready_tasks,
+#                 'ready_index': ready_index,
+#                 'color': color})
+#         colorized_calendar.append(colorized_weeks)
+#     return colorized_calendar
 
 def oplan_material_list(columns, dates, schedules_id=(3, 5, 6, 7, 8, 9, 10, 11, 12, 20), program_type=(4, 5, 6, 10, 11, 12)):
     start_date, end_date = dates
@@ -100,26 +100,26 @@ def oplan_material_list(columns, dates, schedules_id=(3, 5, 6, 7, 8, 9, 10, 11, 
         cursor.execute(query)
         material_list_sql = cursor.fetchall()
     return material_list_sql, django_columns
-
-def report_calendar(cal_year, cal_month):
-    cache_key = f'calendar_{cal_year}_{cal_month}'
-    result_cash = cache.get(cache_key)
-    # if result_cash:
-    #     return result_cash
-    month_calendar = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
-
-    # work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
-    num_days = calendar.monthrange(cal_year, cal_month)[1]
-    start_date = datetime.date(cal_year, cal_month, 1)
-    end_date = datetime.date(cal_year, cal_month, num_days)
-
-    columns = [('Progs', 'program_id'), ('SchedDay', 'day_date'), ('Task', 'task_status')]
-
-    material_task_list, django_task_columns = oplan_material_list(columns=columns, dates=(start_date, end_date))
-    task_list = [dict(zip(django_task_columns, material)) for material in material_task_list]
-    colorized_calendar = tasks_info(month_calendar, task_list)
-    cache.set(cache_key, colorized_calendar, timeout=60*60*24)  # Кеш на 24 часа
-    return colorized_calendar
+#
+# def report_calendar(cal_year, cal_month):
+#     cache_key = f'calendar_{cal_year}_{cal_month}'
+#     result_cash = cache.get(cache_key)
+#     # if result_cash:
+#     #     return result_cash
+#     month_calendar = calendar.Calendar().monthdatescalendar(cal_year, cal_month)
+#
+#     # work_dates = tuple(str(day) for day in calendar.Calendar().itermonthdates(cal_year, cal_month) if day.month == cal_month)
+#     num_days = calendar.monthrange(cal_year, cal_month)[1]
+#     start_date = datetime.date(cal_year, cal_month, 1)
+#     end_date = datetime.date(cal_year, cal_month, num_days)
+#
+#     columns = [('Progs', 'program_id'), ('SchedDay', 'day_date'), ('Task', 'task_status')]
+#
+#     material_task_list, django_task_columns = oplan_material_list(columns=columns, dates=(start_date, end_date))
+#     task_list = [dict(zip(django_task_columns, material)) for material in material_task_list]
+#     colorized_calendar = tasks_info(month_calendar, task_list)
+#     cache.set(cache_key, colorized_calendar, timeout=60*60*24)  # Кеш на 24 часа
+#     return colorized_calendar
 
 def prepare_service_dict(cal_year, cal_month, cal_day, cal_date):
     # prev_year, prev_month = calc_prev_month(cal_year, cal_month)

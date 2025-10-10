@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Обновляем title с информацией о задачах
-            button.title = `Выполнено: ${dayInfo.ready}\nОсталось: ${dayInfo.not_ready}`;
+//            button.title = `Выполнено: ${dayInfo.ready}\nОсталось: ${dayInfo.not_ready}`;
             Object.assign(button.dataset, {
                 noMaterial: dayInfo.no_material,
                 notReady: dayInfo.not_ready,
@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 final: dayInfo.final,
                 readyFail: dayInfo.final_fail,
                 readyOplan3: dayInfo.ready_oplan3,
+                notDistr: dayInfo.not_distr,
                 totalPrograms: dayInfo.total_programs,
             });
             const badgeInfo = button.querySelector('span.total-otk');
@@ -100,6 +101,7 @@ function selectDay(selectedDay) {
         final: document.getElementById('final'),
         readyFail: document.getElementById('final_fail'),
         readyOplan3: document.getElementById('ready_oplan3'),
+        notDistr: document.getElementById('not_distr'),
         totalPrograms: document.getElementById('total_programs'),
     };
 
@@ -108,4 +110,29 @@ function selectDay(selectedDay) {
             element.innerHTML = selectedDay.dataset[key];
         }
     });
+    const notDistrLine = document.getElementById('not_distr_line');
+    if (selectedDay.dataset.notDistr > 0) {
+        notDistrLine.style.display = '';
+    }
+    else {
+        notDistrLine.style.display = 'none';
+    };
+    const noMaterialLine = document.getElementById('no_material_line');
+    const noMaterialCells = noMaterialLine.querySelectorAll('td');
+    if (selectedDay.dataset.noMaterial > 0) {
+        noMaterialLine.classList.add('border-danger-subtle');
+        noMaterialLine.classList.add('border-2');
+        noMaterialCells.forEach((cell) => {
+            cell.classList.add('text-danger-emphasis');
+            cell.classList.add('bg-danger-subtle');
+        });
+    }
+    else {
+        noMaterialLine.classList.remove('border-danger-subtle');
+        noMaterialLine.classList.remove('border-2');
+        noMaterialCells.forEach((cell) => {
+            cell.classList.remove('text-danger-emphasis');
+            cell.classList.remove('bg-danger-subtle');
+        });
+    };
 };

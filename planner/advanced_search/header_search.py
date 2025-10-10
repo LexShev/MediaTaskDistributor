@@ -37,8 +37,6 @@ def fast_search(program_name):
             ON Task.[program_id] = Progs.[program_id]
         LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
-        JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
-            ON Task.[sched_id] = Sched.[schedule_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[name] LIKE '%{program_name}%'
         ORDER BY Progs.[name];

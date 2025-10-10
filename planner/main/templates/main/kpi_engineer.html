@@ -58,34 +58,35 @@
       </div>
     </div>
 
-    <div class="col-lg-10 col-md-9 col-12">
+    <div class="col-lg-10 col-md-9 col-12 px-2">
       <form method="post" id="kpi_engineer_form" class="container-fluid p-0 m-0">
         {% csrf_token %}
-        <div class="row g-2 m-0 align-items-center flex-nowrap">
+        <div class="row g-2 m-0 align-items-center">
           <!-- Поля формы -->
-          <div class="col-auto ps-0 flex-grow-1" style="min-width: 150px; max-width: 200px;">
+          <div class="col-sm-auto col-12 flex-grow-1 flex-shrink-1" style="min-width: 170x;">
             <div class="form-floating w-100">
               {{ form.work_date_form }}
               {{ form.work_date_form.label_tag }}
             </div>
           </div>
-          <div class="col-auto ps-0 flex-grow-1" style="min-width: 150px; max-width: 200px;">
+          <div class="col-sm-auto col-12 flex-grow-1 flex-shrink-1" style="min-width: 170x;">
             <div class="form-floating w-100">
               {{ form.material_type_form }}
               {{ form.material_type_form.label_tag }}
             </div>
           </div>
-          <div class="col-auto ps-0 flex-grow-1" style="min-width: 150px; max-width: 200px;">
+          <div class="col-sm-auto col-12 flex-grow-1 flex-shrink-1" style="min-width: 170x;">
             <div class="form-floating w-100">
               {{ form.task_status_form }}
               {{ form.task_status_form.label_tag }}
             </div>
           </div>
 
-          <!-- Кнопки - будут в одной строке на md и больше -->
-          <div class="col-auto input-group ms-0 p-0">
-            <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
-            <button type="button" onclick="ResetFilter()" class="btn register-button btn-outline-secondary">Сбросить</button>
+          <div class="col-sm-auto col-12 flex-grow-0 flex-shrink-0">
+            <div class="btn-group w-100" role="group">
+              <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
+              <button type="button" onclick="ResetFilter()" class="btn register-button btn-outline-secondary">Сбросить</button>
+            </div>
           </div>
         </div>
       </form>

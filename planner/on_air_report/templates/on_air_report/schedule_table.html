@@ -37,7 +37,7 @@
         {% if not task.Task_task_status and task.Files_Name %}
           <td class="table-success">Oplan</td>
         {% else %}
-          <td class="table-{{ task.Task_task_status|status_color }}">{{ task.Task_task_status|status_name }}</td>
+          <td class="table-{{ task.Task_task_status|on_air_status_color }}">{{ task.Task_task_status|status_name }}</td>
         {% endif %}
       </tr>
     {% endfor %}

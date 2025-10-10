@@ -71,6 +71,7 @@ CREATE TABLE permission_list
 INSERT INTO [planner].[dbo].[permission_list]
 ([permission_group], [home], [day], [on_air_report], [week], [list], [kpi_info], [work_calendar], [common_pool], [full_info_card], [otk], [advanced_search], [task_manager], [messenger], [desktop])
 VALUES
+('editors', 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0),
 ('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 ('preparation_engineers', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 ('broadcast_engineers', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1),
@@ -99,6 +100,7 @@ CREATE TABLE history_list
 	new_value NVARCHAR(MAX)
 );
 
+use planner;
 CREATE TABLE history_status_list
 (
     action_id INT PRIMARY KEY IDENTITY NOT NULL,

@@ -133,7 +133,7 @@ def on_air_search(request):
     try:
         search_inst_dict = TaskSearch.objects.get(owner=user_id)
     except ObjectDoesNotExist:
-        default_search = TaskSearch(owner=user_id, search_type=1, sql_set=100)
+        default_search = TaskSearch(owner=user_id, search_type=2, sql_set=100)
         default_search.save()
         search_inst_dict = TaskSearch.objects.get(owner=user_id)
 
@@ -145,14 +145,6 @@ def on_air_search(request):
         if on_air_filter.is_valid():
             on_air_filter.save()
     else:
-        # on_air_init_dict = {
-        #     'schedules': evaluate(on_air_inst_dict.schedules),
-        #     'workers': evaluate(on_air_inst_dict.workers),
-        #     'material_type': evaluate(on_air_inst_dict.material_type),
-        #     'work_dates': on_air_inst_dict.ready_dates,
-        #     'sched_dates': on_air_inst_dict.sched_dates,
-        #     'task_status': evaluate(on_air_inst_dict.task_status)
-        # }
         on_air_init_dict = serialize(model_to_dict(on_air_inst_dict))
         on_air_filter = OnAirReportFilter(initial=on_air_init_dict)
         search_filter = TaskSearchForm(initial={'sql_set': search_inst_dict.sql_set, 'search_type': search_inst_dict.search_type})

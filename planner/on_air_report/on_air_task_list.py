@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from django.db import connections
 
@@ -92,9 +92,16 @@ def find_file_path(program_id):
         print(error)
         return None
 
+def check_sched_date(sched_dates):
+    try:
+        return [datetime.strptime(str_date, '%d.%m.%Y') for str_date in sched_dates.split(' - ')]
+    except Exception as error:
+        print(error)
+        return [date.today(), date.today()]
+
 def task_info(field_dict, search_type, search_input, sql_set):
     # field_dict = check_dict(field_dict)
-    sched_date_start, sched_date_end = [datetime.strptime(str_date, '%d.%m.%Y') for str_date in field_dict.get('sched_dates').split(' - ')]
+    sched_date_start, sched_date_end = check_sched_date(field_dict.get('sched_dates'))
     sched_prog_end_date = sched_date_end + timedelta(days=1)
     # schedules = field_dict.get('schedules')
 
@@ -102,8 +109,9 @@ def task_info(field_dict, search_type, search_input, sql_set):
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'worker_id'), ('Files', 'Name'), ('Files', 'ClipID'), ('Progs', 'duration'),
-            ('Task', 'work_date'), ('SchedDay', 'day_date'), ('Sched', 'schedule_id'), ('SchedProg', 'DateTime'), ('Task', 'task_status'), ('Task', 'file_path'),
-            ('Progs', 'program_id'), ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
+            ('Task', 'work_date'), ('SchedDay', 'day_date'), ('SchedDay', 'schedule_id'), ('Task', 'sched_id'),
+            ('SchedProg', 'DateTime'), ('Task', 'task_status'), ('Task', 'file_path'), ('Progs', 'program_id'),
+            ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
             ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Task', 'noCENZ')
         ]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -111,12 +119,10 @@ def task_info(field_dict, search_type, search_input, sql_set):
         query = f'''
         SELECT DISTINCT TOP ({sql_set}) {sql_columns}
         FROM [{OPLAN_DB}].[dbo].[program] AS Progs
-        JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
+        LEFT JOIN [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
             ON Progs.[program_id] = SchedProg.[program_id]
-        JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
+        LEFT JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
             ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-        JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
-            ON SchedDay.[schedule_id] = Sched.[schedule_id]
         JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
         JOIN [{OPLAN_DB}].[dbo].[File] AS Files

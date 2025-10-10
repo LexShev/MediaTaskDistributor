@@ -65,7 +65,7 @@ def full_info(program_id):
             full_info_dict.update(file_path_info)
         if not full_info_dict.get('Adult_Name'):
             full_info_dict['Adult_Name'] = parent_adult_name(full_info_dict.get('Progs_parent_id'))
-        full_info_dict['material_status'], full_info_dict['color'], full_info_dict['oplan3_work_date'] = find_out_status(program_id, full_info_dict)
+        full_info_dict['material_status'], full_info_dict['oplan3_work_date'] = find_out_status(program_id, full_info_dict)
         if full_info_dict.get('Progs_program_kind') in (1, 4):
             full_info_dict['episodes'] = find_episodes(program_id)
 
@@ -136,19 +136,16 @@ def find_out_status(program_id, full_info_dict):
     # planner_ready_date = full_info_dict.get('Task_ready_date')
     planner_status = full_info_dict.get('Task_task_status')
     if planner_status:
-        material_status = check_planner_status(planner_status)
-        color = check_color_status(planner_status)
+        material_status = planner_status
+        # color = check_color_status(planner_status)
     else:
-        if oplan3_engineer_id is not None or oplan3_work_date:
-            material_status = 'Отсмотрен через Oplan'
-            color = 'text-success'
+        if oplan3_engineer_id is not None and oplan3_work_date and oplan3_cenz_rate:
+            material_status = 'oplan_ready'
         elif oplan3_engineer_id is None and oplan3_cenz_rate is None and oplan3_work_date is None:
-            material_status = 'Материал из общего пула'
-            color = 'text-info'
+            material_status = 'common_pool'
         else:
-            material_status = 'Карточка материала заполнена неверно'
-            color = 'text-danger'
-    return material_status, color, oplan3_work_date
+            material_status = 'card_error'
+    return material_status, oplan3_work_date
 
 
 def cenz_info(program_id):

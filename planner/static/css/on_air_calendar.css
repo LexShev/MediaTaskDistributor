@@ -20,3 +20,21 @@
         margin-bottom: 1rem;
     }
 }
+
+
+.btn-outline-orange {
+    --bs-btn-color: var(--bs-orange);
+    --bs-btn-border-color: var(--bs-orange);
+    --bs-btn-hover-color: #000;
+    --bs-btn-hover-bg: var(--bs-orange);
+    --bs-btn-hover-border-color: var(--bs-orange);
+    --bs-btn-focus-shadow-rgb: var(--bs-btn-focus-shadow-rgb-orange);
+    --bs-btn-active-color: var(--bs-btn-active-color-orange);
+    --bs-btn-active-bg: var(--bs-orange);
+    --bs-btn-active-border-color: var(--bs-orange);
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: var(--bs-orange);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--bs-orange);
+    --bs-gradient: none;
+}

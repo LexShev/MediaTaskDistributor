@@ -41,18 +41,10 @@ def wrong_oplan_completion():
 
 def undistributed_tasks():
     '''
-    DECLARE @current_date DATE = '2025-10-08'
+    DECLARE @current_date DATE = '2025-12-02'
 
-    SELECT
-        Progs.[program_id],
-        Task.[task_status],
-        CustField.[ProgramCustomFieldId],
-        CASE
-            WHEN Task.[task_status] IS NOT NULL THEN 'Есть в task_list'
-            WHEN CustField.[ProgramCustomFieldId] = 15 THEN 'Есть в CustomField'
-            ELSE 'Нет нигде'
-        END AS status_info
-    FROM [oplan3].[dbo].[program] AS Progs
+    SELECT DISTINCT Progs.[program_id]
+        FROM [oplan3].[dbo].[program] AS Progs
     JOIN [oplan3].[dbo].[scheduled_program] AS SchedProg
         ON Progs.[program_id] = SchedProg.[program_id]
     JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
@@ -65,11 +57,12 @@ def undistributed_tasks():
         ON Progs.[program_id] = CustField.[ObjectId]
         AND CustField.[ProgramCustomFieldId] = 15
     WHERE SchedDay.[day_date] = @current_date
+    AND Task.[program_id] IS NULL
+    AND (CustField.[ProgramCustomFieldId] IS NULL OR CustField.[ProgramCustomFieldId] NOT IN (7, 14, 15))
     AND Progs.[program_id] > 0
     AND Progs.[deleted] = 0
     AND Progs.[DeletedIncludeParent] = 0
     AND Progs.[program_type_id] IN (4, 5, 6, 7, 8, 10, 11, 12, 16, 19, 20)
     AND SchedProg.[Deleted] = 0
-    ORDER BY Task.[task_status], CustField.[ProgramCustomFieldId]
     '''
     pass

@@ -102,10 +102,11 @@
       </div>
     </div>
   {% endfor %}
-</div>
+  </div>
 
 
 </div>
+{% if permissions.auth_group == 'admin' or permissions.auth_group == 'broadcast_engineers' %}
 <div style="height: 70px;" id="spacer"></div>
 <div class="fixed-bottom bg-body" id="controller">
   <div class="container-flex px-lg-5">
@@ -115,5 +116,6 @@
     </div>
   </div>
 </div>
+{% endif %}
 <script type="text/javascript" src="{% static 'js/on_air_report.js' %}"></script>
 {% endblock %}

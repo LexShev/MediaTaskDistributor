@@ -410,7 +410,7 @@ def cenz_batch(request):
         old_values = cenz_info(program_id)
 
         db_task_status = get_task_status(program_id)
-        if db_task_status in ('fix', 'otk_fail', 'final'):
+        if db_task_status in ('fix', 'final'):
             return JsonResponse(
                 {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
         if no_cenz:
@@ -512,7 +512,7 @@ def status_ready(request):
     old_values = cenz_info(program_id)
 
     db_task_status = get_task_status(program_id)
-    if db_task_status in ('fix', 'otk_fail', 'final'):
+    if db_task_status in ('fix', 'final'):
         return JsonResponse({'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
     if no_cenz:
         task_status = 'otk'

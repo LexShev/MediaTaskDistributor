@@ -151,7 +151,7 @@ class CenzFormDropDown(forms.Form):
 class KpiForm(forms.Form):
     work_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "work_date_form"}),
-        label='Дата отсмотра', required=False)
+        label='Назначенная дата', required=False)
     workers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "workers_form"}),
         label='Выполняет', choices=choice.workers(), required=False)
