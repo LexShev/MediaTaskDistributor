@@ -222,7 +222,6 @@ function sortTable(element) {
 
     let curOrder = document.getElementById('order').value
     let curOrderType = document.getElementById('order_type').value
-    console.log(curOrder, curOrderType)
 
     if (order === curOrder) {
         if (curOrderType === 'DESC') {

@@ -82,7 +82,9 @@
          style="z-index: 1030; min-height: 30rem; width: 50rem; left: 17rem;">
           {% for field in on_air_filter %}
             <div class="row mx-2 my-1 align-items-center">
-                <h6 class="text-secondary p-1">{{ field.label }}</h6>
+                {% if field.label != 'Order type' and field.label != 'Order' %}
+                  <h6 class="text-secondary p-1">{{ field.label }}</h6>
+                {% endif %}
                 {{ field }}
             </div>
           {% endfor %}
@@ -100,7 +102,6 @@
         </div>
       </div>
     </div>
-
     <div id="on_air_task_table">
         <div class="text-center py-5">
             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
@@ -122,8 +123,9 @@
     {% endif %}
   </form>
 </div>
-<script type="text/javascript" src="{% static 'js/on_air_search.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/on_air_sort.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/on_air_filter.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/on_air_search.js' %}"></script>
 
 {% endblock %}
 </main>

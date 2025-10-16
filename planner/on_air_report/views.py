@@ -121,7 +121,8 @@ def get_schedule_table(request, sched_date, schedule_id):
 @login_required()
 def on_air_search(request):
     user_id = request.user.id
-
+    order = request.GET.get('order', 'progs_name')
+    order_type = request.GET.get('order_type', 'ASC')
     try:
         on_air_inst_dict = OnAirModel.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -151,6 +152,7 @@ def on_air_search(request):
     data = {
         'on_air_filter': on_air_filter,
         'search_filter': search_filter,
+        'service_dict': {'order': order, 'order_type': order_type},
         'permissions': ask_db_permissions(user_id),
     }
     return render(request, 'on_air_report/on_air_search.html', data)
@@ -189,7 +191,7 @@ def serialize(on_air_instance):
     field_dict = {}
     for key, value in on_air_instance.items():
         try:
-            if key in ('owner', 'ready_dates', 'sched_dates'):
+            if key in ('owner', 'ready_dates', 'sched_dates', 'order', 'order_type'):
                 field_dict[key] = value
             else:
                 field_dict[key] = ast.literal_eval(value)
@@ -211,7 +213,7 @@ def apply_final_batch(request):
 
         for program_id in approve_list_list:
             db_task_status = get_task_status(program_id)
-            if db_task_status in ('no_material', 'not_ready', 'fix', 'otk_fail', 'final_fail'):
+            if db_task_status not in ('otk', 'final_fail'):
                 return JsonResponse(
                     {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
             answer = change_task_status_final(program_id, 'final', db_task_status)

@@ -67,8 +67,10 @@
                              class="dropdown-item">День</a></li>
                       <li><a href="{% url 'home' %}on-air-report/month"
                              class="dropdown-item {% is_active request '/on-air-report/month/' %}">Месяц</a></li>
-                      <li><a href="{% url 'home' %}on-air-report/search/"
-                             class="dropdown-item {% is_active request '/on-air-report/search/' %}">Поиск</a></li>
+                      {% if permissions.auth_group == 'admin' or permissions.auth_group == 'broadcast_engineers' %}
+                          <li><a href="{% url 'home' %}on-air-report/search/"
+                                 class="dropdown-item {% is_active request '/on-air-report/search/' %}">Поиск</a></li>
+                      {% endif %}
                   </ul>
               </li>
             {% endif %}
@@ -146,8 +148,10 @@
         </svg>
       </a>
       <ul class="dropdown-menu text-small">
-        <li><a class="dropdown-item" href="#">Настройки</a></li>
-        <li><a class="dropdown-item" href="{% url 'home' %}worker/{{ user.id }}">Профиль</a></li>
+        <li><a class="dropdown-item" href="{% url 'home' %}user_settings">Настройки</a></li>
+        {% if permissions.auth_group != 'editors' %}
+          <li><a class="dropdown-item" href="{% url 'home' %}worker/{{ user.id }}">Профиль</a></li>
+        {% endif %}
         <li><hr class="dropdown-divider"></li>
         <li><a class="dropdown-item" href="{% url 'home' %}authorize/logout_worker/">Выйти</a></li>
       </ul>

@@ -7,8 +7,8 @@ from on_air_report.models import OnAirModel, TaskSearch
 class OnAirReportFilter(forms.ModelForm):
     class Meta:
         model = OnAirModel
-        fields = ('sched_dates', 'workers', 'material_type', 'schedules', 'task_status')
-        labels = {'sched_dates': 'Дата эфира', 'workers': 'Выполняет', 'material_type': 'Тип материала',
+        fields = ('sched_dates', 'workers', 'material_type', 'schedules', 'task_status', 'order_type', 'order')
+        labels = {'sched_dates': 'Дата эфирной сетки', 'workers': 'Выполняет', 'material_type': 'Тип материала',
                   'schedules': 'Канал', 'task_status': 'Статус задачи'}
 
         widgets = {
@@ -28,6 +28,16 @@ class OnAirReportFilter(forms.ModelForm):
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown w-100', 'id': 'task_status'},
                 choices=choice.task_status(label='Статус', extra=('oplan_ready', 'Отсмотрен в Oplan3'))),
+            'order_type': forms.TextInput(
+                attrs={
+                    'class': 'visually-hidden', 'id': 'order_type',
+                    },
+            ),
+            'order': forms.TextInput(
+                attrs={
+                    'class': 'visually-hidden', 'id': 'order',
+                    },
+            ),
         }
 
 class TaskSearchForm(forms.ModelForm):

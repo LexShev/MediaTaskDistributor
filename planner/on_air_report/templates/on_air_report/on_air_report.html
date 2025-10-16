@@ -70,7 +70,7 @@
       </a>
     </div>
     <div class="col d-flex align-items-center justify-content-center">
-      <h4 class="text-center">Отчёт о готовности материала на эфир: {{ service_dict.cal_date|date:'d-m-Y' }}</h4>
+      <h4 class="text-center">Отчёт о готовности материала на эфир: {{ service_dict.cal_date|date:'d.m.Y' }}</h4>
     </div>
     <div class="col d-flex align-items-center justify-content-start">
       <a href="{% url 'home' %}on-air-report/{{ service_dict.next_date|date:'Y' }}/{{ service_dict.next_date|date:'m' }}/{{ service_dict.next_date|date:'d' }}" class="btn cal-btn" type="button">

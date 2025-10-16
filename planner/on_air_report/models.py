@@ -9,6 +9,8 @@ class OnAirModel(Model):
     material_type = TextField(default='[]', null=True, blank=True)
     schedules = TextField(default='[]', null=True, blank=True)
     task_status = TextField(default='[]', null=True, blank=True)
+    order = TextField(default='progs_name', null=True, blank=True)
+    order_type = TextField(default='ASC', null=True, blank=True)
 
 class TaskSearch(Model):
     owner = IntegerField('owner', primary_key=True, default=1)

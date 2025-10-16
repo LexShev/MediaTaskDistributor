@@ -104,24 +104,30 @@ def engineer_id_to_worker_id(engineer_id) -> int:
 @register.filter
 def fields_name(field_id):
     if field_id:
-        field_id = int(field_id)
-    fields_dict = {
-        5: 'Краткое описание',
-        7: 'Дата отсмотра',
-        8: 'ЛГБТ',
-        9: 'Сигареты',
-        10: 'Обнаженка',
-        11: 'Наркотики',
-        12: 'Мат',
-        13: 'Другое',
-        14: 'Ценз отсмотра',
-        15: 'Тайтл проверил',
-        16: 'Редакторские замечания',
-        17: 'Meta',
-        18: 'Теги',
-        19: 'Иноагент'
-    }
-    return fields_dict.get(field_id)
+        try:
+            field_id = int(field_id)
+            fields_dict = {
+                5: 'Краткое описание',
+                7: 'Дата отсмотра',
+                8: 'ЛГБТ',
+                9: 'Сигареты',
+                10: 'Обнаженка',
+                11: 'Наркотики',
+                12: 'Мат',
+                13: 'Другое',
+                14: 'Ценз отсмотра',
+                15: 'Тайтл проверил',
+                16: 'Редакторские замечания',
+                17: 'Meta',
+                18: 'Теги',
+                19: 'Иноагент'
+            }
+            return fields_dict.get(field_id, '')
+        except Exception as error:
+            print(error)
+            return field_id
+    return ''
+
 
 @register.filter
 def convert_fps(data):
@@ -241,7 +247,7 @@ def schedule_name(schedule_id):
         20: 'Кино +',
         99: 'Мои задачи'
     }
-    return schedules.get(schedule_id)
+    return schedules.get(schedule_id, '')
 
 @register.filter
 def month_name(cal_month):

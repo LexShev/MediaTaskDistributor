@@ -611,6 +611,14 @@ def get_movie_poster(request):
     return JsonResponse({'status': download_poster(movie_dict['movie']['program_id'], movie_dict['movie']['data-id'])})
 
 @login_required()
+def user_settings(request):
+    user_id = request.user.id
+    data = {
+            'permissions': ask_db_permissions(user_id)
+    }
+    return render(request, 'main/user_settings.html', data)
+
+@login_required()
 def kpi_info(request):
     user_id = request.user.id
     work_date = datetime.today().date()

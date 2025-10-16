@@ -63,7 +63,7 @@
                     <td><a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                     {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a></td>
                     <td>{{ task.Task_duration|convert_frames_to_time }}</td>
-                    <td>{{ task.Task_sched_date|date:'d-m-Y' }}</td>
+                    <td>{{ task.Task_sched_date|date:'d.m.Y' }}</td>
                   </tr>
                 {% endfor %}
               </tbody>

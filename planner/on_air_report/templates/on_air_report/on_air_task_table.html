@@ -7,21 +7,134 @@
 <div id="message_container">
   {% include  'main/messages.html' %}
 </div>
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+    <symbol id="ASC_active" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+      <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+    </symbol>
+    <symbol id="DESC_active" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+      <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+    </symbol>
+    <symbol id="ASC" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+      <path d="M3.204 11h9.592L8 5.519 3.204 11zm-.753-.659 4.796-5.48a1 1 0 0 1 1.506 0l4.796 5.48c.566.647.106 1.659-.753 1.659H3.204a1 1 0 0 1-.753-1.659z"/>
+    </symbol>
+    <symbol id="DESC" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+      <path d="M3.204 5h9.592L8 10.481 3.204 5zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659z"/>
+    </symbol>
+</svg>
+
 <table class="table table-hover">
   <thead>
     <tr>
       <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
-      <th style="width: 20%;">Название</th>
-      <th style="width: 5%;">Clip ID</th>
-      <th style="width: 5%;">Директория</th>
-      <th style="width: 25%;">Имя файла</th>
-      <th style="width: 8%;">Канал</th>
-      <th style="width: 8%;">Исполнитель</th>
-      <th style="width: 5%;">Дата эфира</th>
-      <th style="width: 6%;">Время эфира</th>
-      <th style="width: 5%;">Длительность</th>
-      <th style="width: 10%;">Статус</th>
-      <th style="width: 2%;">CENZ</th>
+      <th style="width: 20%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('progs_name');"
+             data-order="progs_name" style="cursor: pointer;">
+          <span>Название</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 5%;"><div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('clip_id');"
+             data-order="clip_id" style="cursor: pointer;">
+          <span>Clip ID</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 5%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('directory');"
+             data-order="directory" style="cursor: pointer;">
+          <span>Директория</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 24%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('file_name');"
+             data-order="file_name" style="cursor: pointer;">
+          <span>Имя файла</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 8%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('channel');"
+             data-order="channel" style="cursor: pointer;">
+          <span>Канал</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 8%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('worker');"
+             data-order="worker" style="cursor: pointer;">
+          <span>Исполнитель</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 10%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('date_time');"
+             data-order="date_time" style="cursor: pointer;">
+          <span>Время эфира</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 4%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('duration');"
+             data-order="duration" style="cursor: pointer;">
+          <span>Длительность</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 10%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('status');"
+             data-order="status" style="cursor: pointer;">
+          <span>Статус</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
+      <th style="width: 2%;">
+        <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable('cenz');"
+             data-order="cenz" style="cursor: pointer;">
+          <span>CENZ</span>
+          <span class="p-0 ms-2">
+            <svg width="12" height="12" fill="currentColor" class="sort-icon">
+              <use xlink:href="#ASC"/>
+            </svg>
+          </span>
+        </div>
+      </th>
     </tr>
   </thead>
   <tbody class="table-group-divider" id="tableBody">
@@ -38,7 +151,7 @@
         </td>
         <td class="{% if task.is_duplicate %}bg-body-tertiary{% endif %}">
         <a href="{% url 'home' %}{{ task.Progs_program_id }}" class="{% if task.is_duplicate %}text-body-tertiary{% else %}link-body-emphasis{% endif %} link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-        {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}
+          <span class="counter me-1">{{ forloop.counter }}.</span><span class="orig_name">{{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</span>
           {% if task.is_duplicate %}<span class="badge bg-secondary text-bg-emphasis ms-2">Повтор</span>{% endif %}</a>
         </td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">
@@ -46,19 +159,22 @@
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.Files_Name|dir_name }}</td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.Files_Name|file_name }}</td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">
-          {% if task.SchedDay_schedule_id %}{{ task.SchedDay_schedule_id|schedule_name }}
-          {% elif task.Task_sched_id %}{{ task.Task_sched_id|schedule_name }}{% endif %}</td>
-        <td class="{% if task.is_duplicate %}bg-body-tertiary{% endif %}">
-          <a href="{% url 'home' %}worker/{% if task.Task_worker_id %}{{ task.Task_worker_id }}{% else %}{{ task.Oplan_worker_id }}{% endif %}"
-             class="{% if task.is_duplicate %}text-body-tertiary{% else %}link-body-emphasis{% endif %} link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-            {% if task.Task_worker_id %}{{ task.Task_worker_id|planner_worker_name }}{% else %}{{ task.Oplan_worker_id|planner_worker_name }}{% endif %}</a></td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.SchedProg_DateTime|date:'d.m.Y' }}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.SchedProg_DateTime|date:'H:i:s' }}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{{ task.Progs_duration|convert_frames_to_time }}
-          <input value="{{ task.Task_duration }}" id="dur_{{ task.Task_program_id }}" class="visually-hidden">
+          {% if task.Task_sched_id and task.SchedDay_schedule_id and task.Task_sched_id != task.SchedDay_schedule_id %}
+          <span class="task_sched">{{ task.Task_sched_id|schedule_name }}</span>/<span class="oplan_sched">{{ task.SchedDay_schedule_id|schedule_name }}</span>
+          {% else %}
+            {% if task.SchedDay_schedule_id %}
+              <span class="oplan_sched">{{ task.SchedDay_schedule_id|schedule_name }}</span>
+            {% elif task.Task_sched_id %}
+              <span class="task_sched">{{ task.Task_sched_id|schedule_name }}</span>
+            {% endif %}
+          {% endif %}
         </td>
+        <td class="{% if task.is_duplicate %}bg-body-tertiary{% endif %}">
+          {% if task.Task_worker_id %}{{ task.Task_worker_id|planner_worker_name }}{% else %}{{ task.Oplan_worker_id|planner_worker_name }}{% endif %}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-datetime="{{ task.SchedProg_DateTime|date:'c' }}">{{ task.SchedProg_DateTime|date:'d.m.Y H:i:s' }}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-duration="{{ task.Progs_duration }}">{{ task.Progs_duration|convert_frames_to_time }}</td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{% if task.Task_task_status %}{{ task.Task_task_status|status_name }}{% else %}{{ task.Oplan_status|status_name }}{% endif %}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-no-cenz="{{ task.Task_noCENZ }}">
           {% if not task.Task_noCENZ %}
             <span title="Замена файла">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-check" viewBox="0 0 16 16">

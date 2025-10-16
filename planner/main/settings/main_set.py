@@ -31,7 +31,7 @@ class MainSettings:
 
     on_air_color_dict = {
         'no_material': 'danger',
-        'not_ready': 'warning',
+        'not_ready': 'danger',
         'fix': 'warning',
         'fix_ready': 'warning',
         'ready': 'warning',

@@ -81,18 +81,43 @@ def insert_history_status(program_id, user_id, old_status, new_status):
         print(error)
 
 def select_actions(program_id):
-    columns = ('program_id', 'CustomFieldID', 'action_description', 'action_comment',
-               'worker_id', 'time_of_change', 'old_value', 'new_value')
-    sql_columns = ', '.join(columns)
-    with connections[PLANNER_DB].cursor() as cursor:
-        query = f'''
-        SELECT {sql_columns}
-        FROM [{PLANNER_DB}].[dbo].[history_list]
-        WHERE [program_id] = {program_id}
-        ORDER BY [time_of_change]
-        '''
-        cursor.execute(query)
-        return [dict(zip(columns, actions)) for actions in cursor.fetchall()]
+    try:
+        history_status = []
+        with connections[PLANNER_DB].cursor() as cursor:
+            history_list_columns = ('program_id', 'CustomFieldID', 'worker_id', 'time_of_change', 'old_value', 'new_value')
+            sql_history_list_columns = ', '.join(history_list_columns)
+            history_list_query = f'''
+            SELECT {sql_history_list_columns}
+            FROM [{PLANNER_DB}].[dbo].[history_list]
+            WHERE [program_id] = %s
+            ORDER BY [time_of_change]
+            '''
+            cursor.execute(history_list_query, (program_id,))
+            history_status_result = cursor.fetchall()
+            if history_status_result:
+                history_status = [dict(zip(history_list_columns, actions)) for actions in history_status_result]
+
+        history_status_list = []
+        with connections[PLANNER_DB].cursor() as cursor:
+            history_status_list_columns = ('program_id', 'worker_id', 'time_of_change', 'old_status', 'new_status')
+            sql_history_status_list_columns = ', '.join(history_status_list_columns)
+            history_status_list_query = f'''
+            SELECT {sql_history_status_list_columns}
+              FROM [{PLANNER_DB}].[dbo].[history_status_list]
+              WHERE [program_id] = %s
+            ORDER BY [time_of_change]
+            '''
+            cursor.execute(history_status_list_query, (program_id,))
+            history_status_list_result = cursor.fetchall()
+            if history_status_list_result:
+                for actions in history_status_list_result:
+                    temp_dict = dict(zip(history_status_list_columns, actions))
+                    temp_dict['field_name'] = 'status'
+                    history_status_list.append(temp_dict)
+        return history_status + history_status_list
+    except Exception as error:
+        print(error)
+        return []
 
 def find_file_path(program_id):
     columns = (('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),

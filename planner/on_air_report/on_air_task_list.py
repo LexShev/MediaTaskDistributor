@@ -16,10 +16,15 @@ def check_value(table, key, value):
 def check_sched(schedules):
     if not schedules or not any(schedules):
         return ''
-    if len(schedules) == 1 and schedules[0]:
-        print('schedules', schedules, type(schedules), len(schedules))
-        return f'AND (Sched.[schedule_id] = {schedules[0]} OR Task.program_id IS NOT NULL)'
-    return f'AND (Sched.[schedule_id] IN {tuple(schedules)} OR Task.program_id IS NOT NULL)'
+    query = []
+    for schedule in schedules:
+        if schedule in ('1', '99'):
+            query.append(f'Task.[sched_id] = {schedule}')
+        else:
+            query.append(f'SchedDay.[schedule_id] = {schedule}')
+    if query:
+        return f'AND ({" OR ".join(query)})'
+    return ''
 
 def check_material_type(material_type):
     if len(material_type) == 1 and material_type[0]:
@@ -29,17 +34,18 @@ def check_material_type(material_type):
             return 'AND Progs.[program_type_id] IN (5, 6, 7, 10, 11, 16, 19, 20)'
     return 'AND Progs.[program_type_id] IN (4, 5, 6, 7, 8, 10, 11, 12, 16, 19, 20)'
 
-
-def check_task_status(task_status):
-    if not task_status or not any(task_status):
+def check_task_status(task_status_list):
+    if not task_status_list or not any(task_status_list):
         return ''
-    if 'oplan_ready' not in task_status:
-        if len(task_status) == 1 and task_status[0]:
-            return f"AND Task.[task_status] = '{task_status[0]}'"
+    query = []
+    for task_status in task_status_list:
+        if task_status == 'oplan_ready':
+            query.append('Task.[task_status] IS NULL')
         else:
-            return f"AND Task.[task_status] IN {tuple(task_status)}"
-    else:
-        return "AND Task.[task_status] IS NULL"
+            query.append(f"Task.[task_status] = '{task_status}'")
+    if query:
+        return f'AND ({" OR ".join(query)})'
+    return ''
 
 def on_air_search(search_type, search_input):
     if not search_input:
@@ -123,26 +129,26 @@ def task_info(field_dict, search_type, search_input, sql_set):
             ON Progs.[program_id] = SchedProg.[program_id]
         LEFT JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
             ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
+        LEFT JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-        JOIN [{OPLAN_DB}].[dbo].[File] AS Files
+            AND Clips.[Deleted] = 0
+        LEFT JOIN [{OPLAN_DB}].[dbo].[File] AS Files
             ON Files.[ClipID] = Clips.[ClipID]
+            AND Files.[Deleted] = 0
+            AND Files.[PhysicallyDeleted] = 0
+            AND Files.[FileContainerFormatID] != 14
         LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         AND SchedProg.[Deleted] = 0
-        AND Files.[Deleted] = 0
-        AND Files.[PhysicallyDeleted] = 0
-        AND Files.[FileContainerFormatID] != 14
-        AND Clips.[Deleted] = 0
         AND Progs.[program_id] > 0
         {check_value('Task', 'worker_id', field_dict.get('workers'))}
         {check_sched(field_dict.get('schedules'))}
         {check_task_status(field_dict.get('task_status'))}
         {check_material_type(field_dict.get('material_type'))}
         {on_air_search(search_type, search_input)}
-        AND SchedProg.[DateTime] BETWEEN '{sched_date_start}' AND '{sched_prog_end_date}'
+        AND SchedDay.[day_date] BETWEEN '{sched_date_start}' AND '{sched_date_end}'
         ORDER BY SchedProg.[DateTime] ASC
         '''
 

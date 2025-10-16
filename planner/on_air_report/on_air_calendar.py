@@ -47,8 +47,6 @@ def update_info(current_date, schedule_id):
             ON Progs.[program_id] = SchedProg.[program_id]
         JOIN [oplan3].[dbo].[schedule_day] AS SchedDay
             ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-        JOIN [oplan3].[dbo].[schedule] AS Sched
-            ON SchedDay.[schedule_id] = Sched.[schedule_id]
         LEFT JOIN [planner].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
         OUTER APPLY (

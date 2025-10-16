@@ -35,19 +35,18 @@ def update_info(current_date):
         ready = result[1] if result and result[1] is not None else 0
         try:
             ready_index = (ready * 100) / (not_ready + ready)
-        except Exception as e:
-            print(e)
+        except Exception as error:
+            print('current_date', current_date, error)
             ready_index = 'day_off'
 
         if ready_index == 'day_off':
             color = ''
-        elif ready_index == 100:
+        elif 99 < ready_index <= 100:
             color = 'btn-outline-success'
-        elif 30 < ready_index <= 99:
+        elif 50 < ready_index <= 99:
             color = 'btn-outline-warning'
         else:
             color = 'btn-outline-danger'
-
         return {
             'not_ready': not_ready,
             'ready': ready,

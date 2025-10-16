@@ -53,4 +53,8 @@ def load_calendar_info(request):
         current_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     except (ValueError, TypeError):
         return JsonResponse({'error': 'Invalid date'}, status=400)
-    return JsonResponse(update_info(current_date))
+    try:
+        calendar_info = update_info(current_date)
+        return JsonResponse(calendar_info)
+    except Exception as error:
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=500)

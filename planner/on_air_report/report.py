@@ -208,12 +208,16 @@ def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 7, 8, 
                 if material[0] in program_id_list:
                     continue
                 temp_dict = dict(zip(django_columns, material))
+                program_id = temp_dict.get('Progs_program_id')
                 # if not temp_dict.get('Task_file_path'):
-                temp_dict['Files_Name'] = find_file_path(temp_dict.get('Progs_program_id'))
-                if not temp_dict.get('Task_worker_id') and temp_dict.get('Task_worker_id') != 0:
-                    temp_dict['Task_worker_id'] = oplan3_engineer(temp_dict['Progs_program_id'])
+                temp_dict['Files_Name'] = find_file_path(program_id)
+                if not temp_dict.get('Task_program_id') and not temp_dict.get('Task_worker_id'):
+                    temp_dict['Oplan_worker_id'] = oplan3_engineer(program_id)
+                    temp_dict['Oplan_status'] = 'oplan_ready'
+                if not temp_dict.get('Task_worker_id'):
+                    temp_dict['sender'] = ''
                 task_list.append(temp_dict)
-                program_id_list.append(material[0])
+                program_id_list.append(program_id)
         # print(task_list)
         return task_list
 

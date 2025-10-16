@@ -2,13 +2,12 @@
   <thead>
     <tr>
       <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" onclick="changeProgramIdCheckbox(this)"></th>
-      <th scope="col" class="col-3">Название</th>
-      <th scope="col" class="col-1">Директория</th>
-      <th scope="col" class="col-4">Имя файла</th>
-      <th scope="col" class="col-2">Исполнитель</th>
-      <th scope="col" class="col-1">Длительность</th>
-<!--            <th scope="col">Дата отсмотра</th>-->
-      <th scope="col" class="col-1">Статус</th>
+      <th style="width: 27%;">Название</th>
+      <th style="width: 9%;">Директория</th>
+      <th style="width: 38%;">Имя файла</th>
+      <th style="width: 10%;">Исполнитель</th>
+      <th style="width: 6%;">Длительность</th>
+      <th style="width: 9%;">Статус</th>
     </tr>
   </thead>
   <tbody class="table-group-divider">
@@ -21,7 +20,8 @@
           <input class="form-check-input me-1" type="checkbox"
                  data-program-id="{{ task.Progs_program_id }}" data-file-name="{{ task.Progs_name }}"
                  data-file-path="{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
-                 data-worker-id="{{ task.Task_worker_id }}" data-prod-year="{{ task.Progs_production_year }}"
+                 data-worker-id="{{ task.Task_worker_id }}" data-oplan-worker-id="{{ task.Oplan_worker_id }}"
+                 data-prod-year="{{ task.Progs_production_year }}" data-duration="{{ task.Progs_duration }}"
                  value="{{ task.Progs_program_id }}"
                  name="program_id_check">
         </td>
@@ -31,14 +31,11 @@
         <td>{{ task.Files_Name|dir_name }}</td>
         <td>{{ task.Files_Name|file_name }}</td>
         <td>
-          <a href="{% url 'home' %}worker/{{ task.Task_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-            {{ task.Task_worker_id|planner_worker_name }}</a></td>
+          {% if task.Task_worker_id %}{{ task.Task_worker_id|planner_worker_name }}{% else %}{{ task.Oplan_worker_id|planner_worker_name }}{% endif %}
+          </td>
         <td>{{ task.Progs_duration|convert_frames_to_time }}</td>
-        {% if not task.Task_task_status and task.Files_Name %}
-          <td class="table-success">Oplan</td>
-        {% else %}
-          <td class="table-{{ task.Task_task_status|on_air_status_color }}">{{ task.Task_task_status|status_name }}</td>
-        {% endif %}
+        <td class="table-{% if task.Task_task_status %}{{ task.Task_task_status|on_air_status_color }}{% else %}{{ task.Oplan_status|on_air_status_color }}{% endif %}">
+          {% if task.Task_task_status %}{{ task.Task_task_status|status_name }}{% else %}{{ task.Oplan_status|status_name }}{% endif %}</td>
       </tr>
     {% endfor %}
   </tbody>

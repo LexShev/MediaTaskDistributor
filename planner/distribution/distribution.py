@@ -169,40 +169,18 @@ def kpi_min(work_date):
         return sorted([item for item in res if item[1] is not None], key=lambda x: x[1])
 
 def insert_film(program_id, worker_id, duration, sched_id, sched_date, work_date, task_status, file_path=''):
-    with connections[PLANNER_DB].cursor() as cursor:
-        columns = '[program_id], [worker_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path]'
-        values = (program_id, worker_id, duration, sched_id, sched_date, work_date, task_status, file_path)
-        query = f'''
-        INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ({columns})
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        '''
-        cursor.execute(query, values)
-        print(cursor.rowcount)
-        # print(f'{program_id}, {worker_id} successfully added')
-
-# def planner_engineer(program_id):
-#     with connections[PLANNER_DB].cursor() as cursor:
-#         query_planner = f'''
-#         SELECT worker_id
-#         FROM [{PLANNER_DB}].[dbo].[task_list]
-#         WHERE [program_id] = {program_id}'''
-#         cursor.execute(query_planner)
-#         planner_worker_id = cursor.fetchone()
-#         if planner_worker_id:
-#             return planner_worker_id[0]
-#         else:
-#             return None
-#
-# def oplan3_engineer(program_id):
-#     with connections[OPLAN_DB].cursor() as cursor:
-#         query_oplan3 = f'''
-#         SELECT [IntValue]
-#         FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
-#         WHERE [ObjectId] = {program_id}
-#         AND [ProgramCustomFieldId] = 15
-#         '''
-#         cursor.execute(query_oplan3)
-#         oplan3_engineer_id = cursor.fetchone()
-#         if oplan3_engineer_id:
-#             return oplan3_engineer_id[0]
-
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            columns = '[program_id], [worker_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path]'
+            values = (program_id, worker_id, duration, sched_id, sched_date, work_date, task_status, file_path)
+            query = f'''
+            INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ({columns})
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            '''
+            cursor.execute(query, values)
+            rowcount = cursor.rowcount
+            print(rowcount)
+            return rowcount
+    except Exception as error:
+        print(error)
+        return 0
