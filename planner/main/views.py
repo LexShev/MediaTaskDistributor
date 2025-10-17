@@ -21,7 +21,7 @@ from main.helpers import get_engineer_id
 from .js_requests import program_name
 from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, update_comment, insert_history_new, \
-    change_task_status_new, get_task_status, add_mark_no_cenz
+    change_task_status_new, get_task_status, add_mark_no_cenz, insert_history_status
 from .models import ModelFilter, AttachedFiles, ModelSorting
 from .list_view import list_material_list
 from .object_block import unblock_object_planner, block_object_planner, check_planner_lock, \
@@ -292,97 +292,6 @@ def load_cenz_data(request):
         print(e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-# def submit_cenz_data(request):
-#     success_messages = []
-#     error_messages = []
-#     user_id = request.user.id
-#     if request.method == 'POST':
-#
-#         form_drop = CenzFormDropDown(request.POST)
-#         form_text = CenzFormText(request.POST)
-#
-#         if form_text.is_valid() and form_drop.is_valid():
-#             new_values_dict = {
-#                 17: form_drop.cleaned_data.get('meta_form'),
-#                 7: form_drop.cleaned_data.get('work_date_form'),
-#                 14: form_drop.cleaned_data.get('cenz_rate_form'),
-#                 15: form_drop.cleaned_data.get('engineers_form'),
-#                 18: form_drop.cleaned_data.get('tags_form'),
-#                 19: form_drop.cleaned_data.get('inoagent_form'),
-#                 22: form_drop.cleaned_data.get('narc_select_form'),
-#                 8: form_text.cleaned_data.get('lgbt_form'),
-#                 9: form_text.cleaned_data.get('sig_form'),
-#                 10: form_text.cleaned_data.get('obnazh_form'),
-#                 11: form_text.cleaned_data.get('narc_form'),
-#                 12: form_text.cleaned_data.get('mat_form'),
-#                 13: form_text.cleaned_data.get('other_form'),
-#                 16: form_text.cleaned_data.get('editor_form')
-#             }
-#         else:
-#             new_values_dict = {}
-#
-#         task_ready_list = []
-#         task_status = ''
-#         task_ready = request.POST.get('task_ready')
-#         cenz_info_change = request.POST.get('cenz_info_change')
-#         if task_ready:
-#             task_status = 'ready'
-#             task_ready_list = task_ready.split(',')
-#         if cenz_info_change:
-#             task_status = ''
-#             task_ready_list = cenz_info_change.split(',')
-#         cenz_comment = request.POST.get('cenz_comment')
-#         for program_id in task_ready_list:
-#             check_lock = check_oplan3_lock(program_id) or check_planner_lock(program_id)
-#             if check_lock and check_lock.get('message') == 'locked' and str(user_id) != str(check_lock.get('worker_id')):
-#                 app = check_lock.get('app')
-#                 worker_name = check_lock.get('worker_name')
-#                 lock_time = check_lock.get('lock_time')
-#                 text = f'{program_name(program_id)} заблокирован в {app} пользователем: {worker_name} в {lock_time}.'
-#                 error_messages.append(text)
-#                 continue
-#             custom_fields = cenz_info(program_id)
-#             old_values_dict = {
-#                 17: custom_fields.get(17),
-#                 7: custom_fields.get(7),
-#                 14: custom_fields.get(14),
-#                 15: custom_fields.get(15),
-#                 18: custom_fields.get(18),
-#                 19: custom_fields.get(19),
-#                 22: custom_fields.get(22),
-#                 8: custom_fields.get(8),
-#                 9: custom_fields.get(9),
-#                 10: custom_fields.get(10),
-#                 11: custom_fields.get(11),
-#                 12: custom_fields.get(12),
-#                 13: custom_fields.get(13),
-#                 16: custom_fields.get(16)
-#             }
-#             work_date = new_values_dict.get(7, old_values_dict.get(7))
-#             service_info_dict = {'program_id': program_id, 'user_id': user_id, 'work_date': work_date}
-#             # change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict)
-#             change_oplan_cenz_info(program_id, old_values_dict, new_values_dict)
-#             insert_history(service_info_dict, old_values_dict, new_values_dict)
-#             update_comment(program_id, user_id, comment=cenz_comment)
-#
-#             if task_status:
-#                 text = change_task_status(service_info_dict, task_status)
-#                 if text.startswith('Ошибка!'):
-#                     error_messages.append(text)
-#                 else:
-#                     success_messages.append(text)
-#             else:
-#                 text = f'{program_name(program_id)} изменено.'
-#                 success_messages.append(text)
-#
-#         if success_messages:
-#             messages.success(request, '\n'.join(success_messages))
-#         if error_messages:
-#             messages.error(request, '\n'.join(error_messages))
-#         if not success_messages and not error_messages:
-#             messages.error(request, 'Ошибка!')
-#     return redirect(full_list)
-
 def cenz_batch(request):
     success_messages = []
     error_messages = []
@@ -398,7 +307,6 @@ def cenz_batch(request):
     for program_id in task_ready_list:
         oplan3_lock = check_oplan3_lock(program_id)
         planner_lock = check_planner_lock(program_id)
-        print('planner_lock', planner_lock)
         if oplan3_lock.get('message') == 'locked':
             text = f'Карточка материала заблокирована в Oplan3 пользователем: {oplan3_lock.get("worker_name")} в {oplan3_lock.get("lock_time")}'
             error_messages.append(text)
@@ -421,6 +329,7 @@ def cenz_batch(request):
         if answer.get('status') == 'success':
             change_oplan_cenz_info(program_id, old_values, new_values)
             insert_history_new(program_id, user_id, old_values, new_values)
+            insert_history_status(program_id, user_id, db_task_status, task_status)
             update_comment(program_id, user_id, task_status, cenz_comment)
             success_messages.append(answer.get('message'))
         else:
@@ -522,6 +431,7 @@ def status_ready(request):
     if answer.get('status') == 'success':
         change_oplan_cenz_info(program_id, old_values, new_values)
         insert_history_new(program_id, user_id, old_values, new_values)
+        insert_history_status(program_id, user_id, db_task_status, task_status)
         update_comment(program_id, user_id, task_status, cenz_comment)
     else:
         return JsonResponse(answer)
@@ -546,6 +456,7 @@ def ask_fix(request):
             {'sender': user_id, 'recipient': 6, 'program_id': program_id,
              'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
         )
+        insert_history_status(program_id, user_id, db_task_status, task_status)
         update_comment(program_id, user_id, task_status, fix_comment, deadline)
     else:
         return JsonResponse(answer)

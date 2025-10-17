@@ -2,7 +2,9 @@
   <h6 class="pe-5" id="total_num">Всего: {{ service_dict.total_count|thousands }}</h6>
   <h6 id="total_dur">Продолжительность: {{ service_dict.total_duration|convert_frames_to_time }}</h6>
 </div><br>
-
+<div id="message_container">
+  {% include  'main/messages.html' %}
+</div>
 <table class="table table-hover">
   <thead>
     <tr>
@@ -54,7 +56,7 @@
         <td>
           <a href="{% url 'home' %}worker/{{ task.Task_worker_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
             {{ task.Task_worker_id|planner_worker_name }}</a></td>
-        <td>{{ task.Task_sched_date|date:'d.m.Y' }}</td>
+        <td>{% if task.Task_sched_date %}{{ task.Task_sched_date|date:'d.m.Y' }}{% else %}{{ task.DateTime|date:'d.m.Y' }}{% endif %}</td>
         <td>{{ task.Task_duration|convert_frames_to_time }}
           <input value="{{ task.Task_duration }}" id="dur_{{ task.Task_program_id }}" class="visually-hidden">
         </td>

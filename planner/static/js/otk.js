@@ -109,12 +109,70 @@ function updateMainProgramId() {
 };
 
 function ShowApproveOTK() {
+    let OTKList = document.getElementById('otk_list');
+    OTKList.innerHTML = '';
     let checked_list = document.getElementsByName('program_id_check');
     let program_id_list = [];
     for (let i = 0; i < checked_list.length; i++) {
         if (checked_list[i].checked) {
-            program_id_list.push(checked_list[i].value);}
+            let OTKContainer = document.createElement("div");
+            OTKContainer.classList.add('otk_container')
+            program_id_list.push(checked_list[i].value);
+
+            let program_id = checked_list[i].dataset.programId;
+            let old_file_name = checked_list[i].dataset.fileName;
+            let old_file_path = checked_list[i].dataset.filePath;
+            let worker_id = checked_list[i].dataset.workerId;
+            let sender = checked_list[i].dataset.sender;
+
+            let otk_program_id = document.createElement("input");
+            otk_program_id.type = 'hidden';
+            otk_program_id.name = 'otk_program_id';
+            otk_program_id.value = program_id;
+            OTKContainer.appendChild(otk_program_id);
+
+            let file_name = document.createElement("h5");
+            file_name.classList.add('my-2');
+            file_name.textContent = old_file_name;
+            file_name.name = 'file_name'
+            OTKContainer.appendChild(file_name);
+
+            let otk_header = document.createElement("h6");
+            otk_header.textContent = 'Комментарий';
+            OTKContainer.appendChild(otk_header);
+
+            let otk_comment = document.createElement("textarea");
+            otk_comment.classList.add('form-control');
+            otk_comment.classList.add('my-2');
+            otk_comment.name = 'otk_comment';
+            otk_comment.style = 'min-height: 50px';
+            otk_comment.disabled = true;
+            OTKContainer.appendChild(otk_comment);
+
+            let file_path_header = document.createElement("h6");
+            file_path_header.textContent = 'Новый путь к файлу';
+            OTKContainer.appendChild(file_path_header);
+
+            let otk_file_path_group = document.createElement("div");
+            otk_file_path_group.classList.add('input-group');
+            OTKContainer.appendChild(otk_file_path_group);
+
+            let otk_file_path = document.createElement("input");
+            otk_file_path.classList.add('form-control');
+            otk_file_path.setAttribute('accept', 'video/*');
+            otk_file_path.setAttribute('type', 'file');
+            otk_file_path.name = 'otk_file_path';
+            otk_file_path.id = `otk_file_path_${program_id}`;
+            otk_file_path.disabled = true;
+            otk_file_path_group.appendChild(otk_file_path);
+
+            let divider = document.createElement("hr");
+            divider.style = 'width: 40%; size: 2;';
+            OTKContainer.appendChild(divider);
+
+            OTKList.appendChild(OTKContainer);
         }
+    }
     if (program_id_list.length > 0) {
         ApproveOTK = new bootstrap.Modal(document.getElementById('ApproveOTK'));
         ApproveOTK.toggle();
@@ -126,9 +184,73 @@ function ShowApproveOTK() {
     }
 };
 
+function setStatusOTK() {
+    let OTKContainers = document.querySelectorAll('.otk_container');
+    let otkData = [];
+    OTKContainers.forEach(container => {
+        let program_id = container.querySelector("input[name='otk_program_id']");
+        let otk_comment = container.querySelector("textarea[name='otk_comment']");
+        let file_name = container.querySelector("h5[name='file_name']");
+        let otk_file_path = container.querySelector("input[name='otk_file_path']");
+        otkData.push([
+            program_id?.value || '',
+            otk_comment?.value || '',
+            file_name?.textContent || '',
+            otk_file_path?.value || ''
+        ])
+    });
+
+    fetch('/otk/set_status_otk/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(otkData),
+        credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = `/otk/`;
+            }
+            else {
+                console.log('error', data.message)
+
+                const ApproveOTK = bootstrap.Modal.getInstance(document.getElementById('ApproveOTK')) ||
+                            new bootstrap.Modal(document.getElementById('ApproveOTK'));
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                error_message = document.getElementById('error_message');
+                error_message.textContent = data.message;
+
+                ApproveOTK.hide();
+                errorModal.toggle();
+            }
+        })
+        .catch(error => {
+            console.error('Error sending info:', error);
+        });
+};
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};
+
 function ProgramIdList() {
     let FixList = document.getElementById('fix_list');
-    FixList.innerHTML = ''
+    FixList.innerHTML = '';
 
     let checked_list = document.getElementsByName('program_id_check');
     let program_id_list = []
@@ -160,7 +282,7 @@ function ProgramIdList() {
                 file_name.name = 'file_name'
                 FixList.appendChild(file_name);
 
-                sub_header = document.createElement("h6");
+                let sub_header = document.createElement("h6");
                 sub_header.textContent = 'Комментарий по исправлению';
                 FixList.appendChild(sub_header);
 
@@ -172,7 +294,7 @@ function ProgramIdList() {
                 fix_comment.placeholder = '1. Перекачан исходник\n2. Исправлен звук\n3. ...';
                 FixList.appendChild(fix_comment);
 
-                file_path_header = document.createElement("h6");
+                let file_path_header = document.createElement("h6");
                 file_path_header.textContent = 'Новый путь к файлу';
                 FixList.appendChild(file_path_header);
 

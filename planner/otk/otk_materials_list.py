@@ -34,7 +34,13 @@ def task_info(field_dict, sql_set):
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
-        SELECT TOP ({sql_set}) {sql_columns}
+        SELECT DISTINCT TOP ({sql_set}) {sql_columns},
+        (SELECT MIN([DateTime]) 
+             FROM [{OPLAN_DB}].[dbo].[scheduled_program] 
+             WHERE program_id = Progs.[program_id] 
+                AND [Deleted] = 0
+                AND [DateTime] >= CAST(GETDATE() AS DATE)
+            ) as [DateTime]
         FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
         JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
@@ -51,15 +57,22 @@ def task_info(field_dict, sql_set):
         '''
         cursor.execute(query)
         result = cursor.fetchall()
-    material_list = [dict(zip(django_columns, task)) for task in result]
+    material_list_sql = [dict(zip(django_columns, task)) for task in result]
     duration = []
-    for material in material_list:
-        material['comments'] = comments_history(material.get('Task_program_id'), material.get('Progs_name'))
+    material_list = []
+    program_id_list = []
+    for material in material_list_sql:
+        program_id = material.get('Task_program_id')
+        if program_id in program_id_list:
+            continue
+        material['comments'] = comments_history(program_id, material.get('Progs_name'))
         duration.append(material.get('Task_duration'))
         if not material.get('Task_file_path'):
-            material['Files_Name'] = find_file_path(material.get('Task_program_id'))
+            material['Files_Name'] = find_file_path(program_id)
         if not material.get('Task_worker_id'):
             material['sender'] = ''
+        program_id_list.append(program_id)
+        material_list.append(material)
     total_duration = sum(duration)
     total_count = len(material_list)
     service_dict = {'total_duration': total_duration, 'total_count': total_count}
@@ -88,37 +101,41 @@ def find_file_path(program_id):
     return None
 
 
-def update_comment(program_id, task_status, worker_id, comment, deadline):
-    with connections[PLANNER_DB].cursor() as cursor:
-        values = (program_id, task_status, worker_id, comment, deadline, datetime.today())
-        query = f'''
-            INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
-            ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
-            VALUES (%s, %s, %s, %s, %s, %s);
-            '''
-        cursor.execute(query, values)
-
-
-def change_task_status(program_id, task_status, file_path):
-    with connections[PLANNER_DB].cursor() as cursor:
-        if file_path:
-            if file_path.startswith('"') and file_path.endswith('"'):
-                file_path = file_path[1:-1]
+def update_comment(program_id, user_id, task_status=None, comment='Материал прошёл ОТК', deadline=None):
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            values = (program_id, task_status, user_id, comment, deadline, datetime.today())
             query = f'''
-            UPDATE [{PLANNER_DB}].[dbo].[task_list]
-            SET [task_status] = %s, [file_path] = %s
-            WHERE [program_id] = %s'''
-            update_data = (task_status, file_path, program_id)
-            cursor.execute(query, update_data)
-        else:
+                INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
+                ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
+                VALUES (%s, %s, %s, %s, %s, %s);
+                '''
+            cursor.execute(query, values)
+            if cursor.rowcount:
+                return {'status': 'success', 'message': 'Изменения успешно внесены!'}
+            else:
+                return {'status': 'error', 'message': 'Изменения не внесены!'}
+    except Exception as error:
+        print(error)
+        return {'status': 'error', 'message': str(error)}
+
+
+def change_task_status(program_id, task_status, file_name, file_path):
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
             query = f'''
             UPDATE [{PLANNER_DB}].[dbo].[task_list]
             SET [task_status] = %s
             WHERE [program_id] = %s
             '''
-            update_data = (task_status, program_id)
-            cursor.execute(query, update_data)
-    return 'Изменения успешно внесены'
+            cursor.execute(query, (task_status, program_id))
+            if cursor.rowcount:
+                return {'status': 'success', 'message': f'Изменения для {file_name} успешно внесены!'}
+            else:
+                return {'status': 'error', 'message': 'Изменения не внесены!'}
+    except Exception as error:
+        print(error)
+        return {'status': 'error', 'message': str(error)}
 
 
 def update_comment_batch(program_list, task_status, worker_id):

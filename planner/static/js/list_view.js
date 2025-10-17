@@ -168,7 +168,6 @@ function CenzApproveBatch(task_status) {
             error_message.textContent = data.message;
 
             CenzComment.hide();
-            AskFixModal.hide();
             errorModal.toggle();
         }
     })

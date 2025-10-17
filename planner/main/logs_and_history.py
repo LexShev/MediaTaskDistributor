@@ -145,45 +145,6 @@ def find_file_path(program_id):
         return dict(zip(django_columns, file_path_info))
     return {}
 
-
-# def change_task_status(service_info_dict, task_status):
-#     program_id = service_info_dict.get('program_id')
-#     user_id = service_info_dict.get('user_id')
-#     work_date = service_info_dict.get('work_date')
-#
-#     with connections[PLANNER_DB].cursor() as cursor:
-#         select = f'SELECT [task_status] FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [program_id] = {program_id}'
-#         cursor.execute(select)
-#         db_task_status = cursor.fetchone()
-#         if db_task_status and db_task_status[0]:
-#             if task_status == 'no_change':
-#                 task_status = db_task_status[0]
-#             update_status = f'''
-#             UPDATE [{PLANNER_DB}].[dbo].[task_list]
-#             SET [worker_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s
-#             WHERE [program_id] = %s
-#             AND [task_status] IN ('ready', 'not_ready', 'fix_ready', 'otk_fail', 'no_material')
-#             '''
-#             cursor.execute(update_status, (user_id, work_date, task_status, program_id))
-#             if cursor.rowcount:
-#                 return f'{program_name(program_id)} завершено.'
-#
-#         else:
-#             file_path_dict = find_file_path(service_info_dict.get('program_id'))
-#             file_path = file_path_dict.get('Files_Name')
-#             duration = file_path_dict.get('Progs_duration')
-#             if not file_path:
-#                 return f'Ошибка! Изменения не были внесены. Медиафайл для {program_name(program_id)} отсутствует.'
-#
-#             columns = '[program_id], [worker_id], [duration], [work_date], [ready_date], [task_status], [file_path]'
-#             values = (program_id, user_id, duration, work_date, datetime.today(), task_status, file_path)
-#             query = f'''
-#             INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ({columns})
-#             VALUES (%s, %s, %s, %s, %s, %s, %s)
-#             '''
-#             cursor.execute(query, values)
-#             return f'{program_name(program_id)} был добавлен в базу.'
-
 def change_task_status_new(program_id, new_values, task_status, db_task_status) -> Dict[str, str]:
     worker_id = engineer_id_to_worker_id(new_values.get('engineers_form'))
     work_date = new_values.get('work_date_form')
@@ -246,19 +207,23 @@ def add_mark_no_cenz(program_id):
                 return {'status': 'error', 'message': 'mark noCENZ was not added'}
     except Exception as error:
         print(error)
-        return {'status': 'error', 'message': error}
+        return {'status': 'error', 'message': str(error)}
 
 def update_comment(program_id, user_id, task_status=None, comment=None, deadline=None):
-    with connections[PLANNER_DB].cursor() as cursor:
-        values = (program_id, task_status, user_id, comment, deadline, datetime.today())
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            values = (program_id, task_status, user_id, comment, deadline, datetime.today())
 
-        query = f'''
-            INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
-            ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
-            VALUES (%s, %s, %s, %s, %s, %s);
-            '''
-        cursor.execute(query, values)
-    return 'Изменения успешно внесены!'
+            query = f'''
+                INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
+                ([program_id], [task_status], [worker_id], [comment], [deadline], [time_of_change])
+                VALUES (%s, %s, %s, %s, %s, %s);
+                '''
+            cursor.execute(query, values)
+        return 'Изменения успешно внесены!'
+    except Exception as error:
+        print(error)
+        return str(error)
 
 def get_task_status(program_id):
     with connections[PLANNER_DB].cursor() as cursor:

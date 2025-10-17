@@ -1,8 +1,8 @@
 from django.db.models import Model, IntegerField, CharField, FileField, DateTimeField, TextField
 
+
 def get_upload_path(instance, filename):
     return f'attached_files/{instance.program_id}/{filename}'
-
 
 class ModelFilter(Model):
     owner = IntegerField('owner', primary_key=True, default=1)
