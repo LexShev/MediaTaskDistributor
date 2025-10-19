@@ -47,7 +47,6 @@ def create_users_in_groups():
                 print(f"Ошибка при создании пользователя {user_data['username']}: {e}")
                 continue
 
-            print(f"Создано {created_count} новых пользователей")
+        print(f"Создано {created_count} новых пользователей")
 
-        print(f"Создано {len(users_data)} пользователей в разных группах")
 

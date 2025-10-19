@@ -1,3 +1,5 @@
+import os
+from pathlib import PureWindowsPath
 from typing import Dict
 
 from django.db import connections
@@ -5,8 +7,7 @@ from datetime import datetime, date
 
 from main.js_requests import program_name
 from main.templatetags.custom_filters import status_name, engineer_id_to_worker_id
-from planner.settings import OPLAN_DB, PLANNER_DB
-
+from planner.settings import OPLAN_DB, PLANNER_DB, CURRENT_CENZ_DIR
 
 
 def check_data_type(value):
@@ -148,6 +149,8 @@ def find_file_path(program_id):
 def change_task_status_new(program_id, new_values, task_status, db_task_status) -> Dict[str, str]:
     worker_id = engineer_id_to_worker_id(new_values.get('engineers_form'))
     work_date = new_values.get('work_date_form')
+    uploaded_ready_file = new_values.get('uploaded_ready_file', '')
+    new_file_path = str(PureWindowsPath(CURRENT_CENZ_DIR) / uploaded_ready_file)
     program = program_name(program_id)
     with connections[PLANNER_DB].cursor() as cursor:
         if db_task_status:
@@ -159,22 +162,37 @@ def change_task_status_new(program_id, new_values, task_status, db_task_status) 
                     '''
                 cursor.execute(update_status, (task_status, program_id))
                 if cursor.rowcount:
+                    return {'status': 'success', 'message': f'Заявка на FIX {program} успешно отправлена.'}
+                else:
+                    return {'status': 'error', 'message': f'Ошибка! Заявка на FIX не была отправлена. {program}'}
+
+
+            elif task_status == 'otk':
+                update_status = f'''
+                        UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                        SET [worker_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s
+                        WHERE [program_id] = %s
+                        '''
+                cursor.execute(update_status, (worker_id, work_date, task_status, program_id))
+                if cursor.rowcount:
                     return {'status': 'success', 'message': f'{program} завершено.'}
                 else:
                     return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {program}'}
 
-            elif task_status == 'no_change':
-                task_status = db_task_status
-            update_status = f'''
-                    UPDATE [{PLANNER_DB}].[dbo].[task_list]
-                    SET [worker_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s
-                    WHERE [program_id] = %s
-                    '''
-            cursor.execute(update_status, (worker_id, work_date, task_status, program_id))
-            if cursor.rowcount:
-                return {'status': 'success', 'message': f'{program} завершено.'}
-            else:
-                return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {program}'}
+            elif task_status == 'ready':
+                if not uploaded_ready_file:
+                    return {'status': 'error', 'message': f'Ошибка! Неверный путь файла. Изменения не были внесены. {program} {uploaded_ready_file}'}
+                update_status = f'''
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                SET [worker_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s, [file_path] = %s
+                WHERE [program_id] = %s
+                '''
+                cursor.execute(update_status, (worker_id, work_date, task_status, new_file_path, program_id))
+                if cursor.rowcount:
+                    return {'status': 'success', 'message': f'{program} завершено.'}
+                else:
+                    return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {program}'}
+            return {'status': 'error', 'message': f'Ошибка! Неизвестный статус. Изменения не были внесены. {program}'}
 
         else:
             file_path_dict = find_file_path(program_id)

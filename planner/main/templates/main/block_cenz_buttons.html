@@ -23,8 +23,14 @@
         </a>
         {% if permissions.auth_group == 'admin' or permissions.auth_group == 'preparation_engineers' or permissions.auth_group == 'moderators' %}
             <div class="btn-group" role="group">
+                <button type="button" onclick="ValidateCenzApprove('cenz_info_change')" name="cenz_info_change" id="cenz_info_change"
+                        class="btn btn-outline-secondary" title="Применить изменения">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+                      <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"></path>
+                    </svg>
+                </button>
                 <button type="button" class="btn btn-outline-success {% if lock_material %}disabled{% endif %}"
-                        id="cenz_approve_btn" onclick="ValidateCenzApprove()">Сохранить
+                        id="cenz_approve_btn" onclick="ValidateCenzApprove('status_ready')">Завершить задачу
                 </button>
                 <button type="button" class="btn btn-outline-warning {% if lock_material %}disabled{% endif %}"
                         id="ask_fix_btn" data-bs-toggle="modal" data-bs-target="#AskFixModal">Запросить FIX
@@ -50,24 +56,28 @@
             </div>
             <div class="modal-body">
               <h6>Укажите путь к готовому файлу</h6>
-              <div class="input-group">
-                <input class="form-control custom-file-input"
-                       type="text" id="upload_ready_file_form"
-                       placeholder="Ctrl+Shift+C -> Ctrl+V"
-                       style="font-style: italic"
-                       name="upload_ready_file" accept="">
-              </div><br>
-              <div class="form-check form-switch">
+              <div class="form-check form-switch my-2">
                 <input class="form-check-input" type="checkbox" role="switch" id="no_cenz" onclick="checkNoCenz()">
                 <label class="form-check-label" for="no_cenz" id="no_cenz_label">CENZ не требуется</label>
-              </div><br>
+              </div>
+              <div class="drop-zone border-secondary text-center text-secondary p-2 my-2" id="drop_zone">
+                <p class="my-0">Перетащите файл сюда...</p>
+                <p class="my-0">(или кликните для выбора)</p>
+              </div>
+              <div class="input-group my-2 mb-2">
+                <input class="form-control border-secondary rounded" type="file" id="uploaded_ready_file_input"
+                       name="uploaded_ready_file" accept="video/*">
+                <div class="invalid-feedback">Необходимо указать файл</div>
+              </div>
+
               <h6 id="cenz_comment_title">Комментарий к материалу</h6>
-              <textarea class="form-control" id="cenz_comment" name="cenz_comment" placeholder="Добавьте комментарий..." style="min-height: 130px"></textarea><br>
+              <textarea class="form-control" id="cenz_comment" name="cenz_comment" placeholder="Добавьте комментарий..." style="min-height: 60px"></textarea><br>
             </div>
             <div class="modal-footer">
-              <button type="button" onclick="CenzApprove(this)" name="status_ready" id="status_ready" class="btn btn-outline-warning ms-2 me-auto">Завершить задачу</button>
-              <button type="button" onclick="CenzApprove(this)" name="cenz_info_change" id="cenz_info_change" class="btn btn-outline-success">Применить изменения</button>
-              <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+              <div class="btn-group" role="group">
+                <button type="button" onclick="ValidateFileUpload(this)" name="status_ready" id="status_ready" class="btn btn-outline-success">Завершить задачу</button>
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+              </div>
             </div>
           </div>
         </div>
@@ -92,8 +102,10 @@
             <div class="invalid-feedback">Необходимо заполнить</div>
             </div>
             <div class="modal-footer">
-              <button type="button" onclick="ValidateAskFix(this)" name="ask_fix" id="ask_fix" class="btn btn-outline-warning">Запросить</button>
-              <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+              <div class="btn-group" role="group">
+                <button type="button" onclick="ValidateAskFix(this)" name="ask_fix" id="ask_fix" class="btn btn-outline-warning">Запросить</button>
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
+              </div>
             </div>
           </div>
         </div>

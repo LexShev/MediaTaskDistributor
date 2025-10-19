@@ -13,12 +13,21 @@ function ValidateForm() {
     cenzRate.classList.remove('is-invalid');
     engineers.classList.remove('is-invalid');
 
+    showReadyListModal();
+};
+
+function showReadyListModal() {
     const TaskReadyModal = bootstrap.Modal.getInstance(document.getElementById('TaskReady')) ||
                         new bootstrap.Modal(document.getElementById('TaskReady'));
-    const CenzCommentModal = bootstrap.Modal.getInstance(document.getElementById('CenzComment')) ||
-                        new bootstrap.Modal(document.getElementById('CenzComment'));
+    const readyListModal = bootstrap.Modal.getInstance(document.getElementById('readyListModal')) ||
+                        new bootstrap.Modal(document.getElementById('readyListModal'));
+
+
+
+
+
     TaskReadyModal.hide();
-    CenzCommentModal.toggle();
+    readyListModal.toggle();
 };
 
 window.addEventListener('load', function() {

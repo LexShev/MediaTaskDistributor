@@ -1,6 +1,8 @@
 import json
+import os.path
 from datetime import datetime
 import ast
+from pathlib import PureWindowsPath
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
@@ -10,6 +12,7 @@ from django.contrib import messages
 from django.template.loader import render_to_string
 
 from messenger_static.messenger_utils import create_notification
+from planner.settings import CURRENT_CENZ_DIR
 from tools.ffmpeg_processing import start_ffmpeg_scanners
 
 from .ffmpeg_info import ffmpeg_dict
@@ -31,7 +34,7 @@ from .templatetags.custom_filters import planner_worker_name
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .detail_view import full_info, cenz_info, schedule_info, calc_otk_deadline, \
-    comments_history, select_filepath_history, change_oplan_cenz_info
+    comments_history, select_filepath_history, change_oplan_cenz_info, insert_filepath_history
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
 
 
@@ -417,7 +420,8 @@ def status_ready(request):
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
     program_id = new_values.get('program_id')
     cenz_comment = new_values.get('cenz_comment')
-    task_status = 'ready'
+    uploaded_ready_file = new_values.get('uploaded_ready_file', '')
+    new_file_path = str(PureWindowsPath(CURRENT_CENZ_DIR) / uploaded_ready_file)
     old_values = cenz_info(program_id)
 
     db_task_status = get_task_status(program_id)
@@ -425,18 +429,33 @@ def status_ready(request):
         return JsonResponse({'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
     if no_cenz:
         task_status = 'otk'
-        cenz_comment = 'CENZ не требуется'
+        answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
+        message = answer.get('message')
+        if answer.get('status') == 'success':
+            change_oplan_cenz_info(program_id, old_values, new_values)
+            insert_history_new(program_id, user_id, old_values, new_values)
+            insert_history_status(program_id, user_id, db_task_status, task_status)
+            update_comment(program_id, user_id, task_status, cenz_comment)
+            messages.success(request, message)
+        else:
+            messages.error(request, message)
+            return JsonResponse({'status': 'error', 'message': message})
         add_mark_no_cenz(program_id)
-    answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
-    if answer.get('status') == 'success':
-        change_oplan_cenz_info(program_id, old_values, new_values)
-        insert_history_new(program_id, user_id, old_values, new_values)
-        insert_history_status(program_id, user_id, db_task_status, task_status)
-        update_comment(program_id, user_id, task_status, cenz_comment)
     else:
-        return JsonResponse(answer)
-    message = 'Задача успешно завершена'
-    messages.success(request, message)
+        task_status = 'ready'
+        answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
+        message = answer.get('message')
+        if answer.get('status') == 'success':
+            change_oplan_cenz_info(program_id, old_values, new_values)
+            insert_history_new(program_id, user_id, old_values, new_values)
+            insert_history_status(program_id, user_id, db_task_status, task_status)
+            update_comment(program_id, user_id, task_status, cenz_comment)
+            insert_filepath_history(program_id, new_file_path, task_status, user_id)
+            messages.success(request, message)
+        else:
+            messages.error(request, message)
+            return JsonResponse({'status': 'error', 'message': message})
+
     return JsonResponse({'status': 'success', 'message': message})
 
 def ask_fix(request):
@@ -451,6 +470,7 @@ def ask_fix(request):
     db_task_status = get_task_status(program_id)
 
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
+    message = answer.get('message')
     if answer.get('status') == 'success':
         create_notification(
             {'sender': user_id, 'recipient': 6, 'program_id': program_id,
@@ -458,10 +478,11 @@ def ask_fix(request):
         )
         insert_history_status(program_id, user_id, db_task_status, task_status)
         update_comment(program_id, user_id, task_status, fix_comment, deadline)
+        messages.warning(request, message)
     else:
-        return JsonResponse(answer)
-    message = 'Заявка на FIX успешно отправлена'
-    messages.success(request, message)
+        messages.error(request, message)
+        return JsonResponse({'status': 'error', 'message': message})
+
     return JsonResponse({'status': 'success', 'message': message})
 
 def cenz_info_change(request):
@@ -473,14 +494,10 @@ def cenz_info_change(request):
     program_id = new_values.get('program_id')
     cenz_comment = new_values.get('cenz_comment')
     old_values = cenz_info(program_id)
-    db_task_status = get_task_status(program_id)
 
-    task_status = 'no_change'
-    answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
-    if answer.get('status') == 'success':
-        change_oplan_cenz_info(program_id, old_values, new_values)
-        insert_history_new(program_id, user_id, old_values, new_values)
-        update_comment(program_id, user_id, comment=cenz_comment)
+    change_oplan_cenz_info(program_id, old_values, new_values)
+    insert_history_new(program_id, user_id, old_values, new_values)
+    update_comment(program_id, user_id, comment=cenz_comment)
     message = 'Успешно обновлено'
     messages.success(request, message)
     return JsonResponse({'status': 'success', 'message': message})

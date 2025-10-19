@@ -1,5 +1,6 @@
 from datetime import datetime, date, timedelta
 from types import NoneType
+from typing import Dict
 
 from django.db import connections
 
@@ -334,21 +335,33 @@ def unblock_object(program_id, worker_id):
         cursor.execute(query)
         return cursor.rowcount
 
-def insert_filepath_history(program_id, worker_id, task_status, comment, time_of_change):
-    with connections[PLANNER_DB].cursor() as cursor:
-        values = (program_id, worker_id, task_status, comment, time_of_change)
-        query = f'''
-        INSERT INTO [{PLANNER_DB}].[dbo].[filepath_history]
-        (program_id, worker_id, task_status, comment, time_of_change)
-        VALUES (%s, %s, %s, %s, %s)
-        '''
-        cursor.execute(query, values)
-        return cursor.rowcount
+def insert_filepath_history(program_id, file_path, task_status, worker_id) -> Dict[str, str]:
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            values = (program_id, file_path, task_status, datetime.now(), worker_id)
+            query = f'''
+            INSERT INTO [{PLANNER_DB}].[dbo].[filepath_history]
+            (program_id, file_path, task_status, time_of_change, worker_id)
+            VALUES (%s, %s, %s, %s, %s)
+            '''
+            cursor.execute(query, values)
+            if cursor.rowcount:
+                return {'status': 'success', 'message': f'{file_path} успешно добавлен.'}
+            else:
+                return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {file_path}'}
+
+    except Exception as error:
+        print(error)
+        return {'status': 'error', 'message': str(error)}
 
 def select_filepath_history(program_id):
-    with connections[PLANNER_DB].cursor() as cursor:
-        columns = 'program_id', 'file_path', 'task_status', 'time_of_change'
-        sql_columns = ', '.join(columns)
-        query = f'SELECT {sql_columns} FROM [{PLANNER_DB}].[dbo].[filepath_history] WHERE [program_id] = {program_id}'
-        cursor.execute(query)
-        return [dict(zip(columns, val)) for val in cursor.fetchall()]
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            columns = 'program_id', 'file_path', 'task_status', 'time_of_change'
+            sql_columns = ', '.join(columns)
+            query = f'SELECT {sql_columns} FROM [{PLANNER_DB}].[dbo].[filepath_history] WHERE [program_id] = {program_id}'
+            cursor.execute(query)
+            return [dict(zip(columns, val)) for val in cursor.fetchall()]
+    except Exception as error:
+        print(error)
+        return []

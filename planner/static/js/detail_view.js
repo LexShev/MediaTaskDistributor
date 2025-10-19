@@ -51,6 +51,92 @@ async function CheckLockCard() {
     }
 };
 
+document.addEventListener('DOMContentLoaded', function() {
+  const dropZone = document.getElementById('drop_zone');
+  const fileInput = document.getElementById('uploaded_ready_file_input');
+
+  // Функции для предотвращения стандартного поведения
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  function highlight() {
+    dropZone.classList.add('dragover');
+    fileInput.classList.add('dragover');
+  }
+
+  function unhighlight() {
+    dropZone.classList.remove('dragover');
+    fileInput.classList.remove('dragover');
+  }
+
+  // Обработчики событий перетаскивания
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+  });
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, highlight, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, unhighlight, false);
+  });
+
+// Обработка drop - файл перетащили в зону
+dropZone.addEventListener('drop', handleDrop, false);
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files.length > 0) {
+      //  Берем только ПЕРВЫЙ файл, даже если перетащили несколько
+      const firstFile = files[0];
+
+      // Создаем новый FileList с одним файлом
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(firstFile);
+
+      // Присваиваем только первый файл в input
+      fileInput.files = dataTransfer.files;
+
+      // Триггерим событие change, чтобы другие обработчики узнали о выборе файла
+      const event = new Event('change', { bubbles: true });
+      fileInput.dispatchEvent(event);
+
+      console.log('Информация о файле:');
+      console.log('Имя файла:', files[0].name);
+      console.log('Размер:', files[0].size, 'bytes');
+      console.log('Тип:', files[0].type);
+      console.log('Последнее изменение:', files[0].lastModified);
+    }
+  }
+
+  // Клик по зоне тоже открывает выбор файла
+  dropZone.addEventListener('click', function(e) {
+    // Кликаем только если кликнули не по самому input
+    if (e.target !== fileInput) {
+      fileInput.click();
+    }
+  });
+});
+
+function checkNoCenz() {
+    const noCenz = document.getElementById('no_cenz').checked
+    const dropZone = document.getElementById('drop_zone');
+    const fileInput = document.getElementById('uploaded_ready_file_input');
+    if (noCenz) {
+        dropZone.style.display = 'none';
+        fileInput.style.display = 'none';
+    }
+    else {
+        dropZone.style.display = '';
+        fileInput.style.display = '';
+    };
+};
+
 function FormatDate(timestamp) {
 const date = new Date(timestamp);
 
@@ -77,7 +163,7 @@ async function getWorkerName(workerId) {
     }
 }
 
-function ValidateCenzApprove() {
+function ValidateCenzApprove(task) {
     let workDate = document.getElementById('work_date_form')
     let cenzRate = document.getElementById('cenz_rate_form')
     let engineers = document.getElementById('engineers_form')
@@ -92,9 +178,14 @@ function ValidateCenzApprove() {
     cenzRate.classList.remove('is-invalid');
     engineers.classList.remove('is-invalid');
 
-    const CenzApproveModal = bootstrap.Modal.getInstance(document.getElementById('CenzApproveModal')) ||
-                        new bootstrap.Modal(document.getElementById('CenzApproveModal'));
-    CenzApproveModal.toggle()
+    if (task === 'status_ready') {
+        const CenzApproveModal = bootstrap.Modal.getInstance(document.getElementById('CenzApproveModal')) ||
+                            new bootstrap.Modal(document.getElementById('CenzApproveModal'));
+        CenzApproveModal.toggle()
+    }
+    else if (task === 'cenz_info_change') {
+        CenzApprove(task);
+    };
 };
 
 function ValidateAskFix(task) {
@@ -108,23 +199,18 @@ function ValidateAskFix(task) {
 
     CenzApprove(task);
 
-}
+};
 
-function checkNoCenz() {
-    let noCenz = document.getElementById('no_cenz').checked
-    let cenzCommentTitle = document.getElementById('cenz_comment_title')
-    let cenzComment = document.getElementById('cenz_comment')
-    let noCenzLabel = document.getElementById('no_cenz_label')
-    if (noCenz) {
-        noCenzLabel.classList.remove('text-secondary');
-        cenzCommentTitle.classList.add('text-secondary');
-        cenzComment.disabled = true;
-    }
-    else {
-        noCenzLabel.classList.add('text-secondary');
-        cenzCommentTitle.classList.remove('text-secondary');
-        cenzComment.disabled = false;
-    };
+function ValidateFileUpload(task) {
+    const noCenz = document.getElementById('no_cenz').checked
+    const fileInput = document.getElementById('uploaded_ready_file_input');
+    if (!noCenz && fileInput.files.length < 1 ){
+        fileInput.classList.add('is-invalid');
+        return;
+        }
+    fileInput.classList.remove('is-invalid');
+    CenzApprove(task);
+
 };
 
 function CenzApprove(task) {
@@ -133,10 +219,15 @@ function CenzApprove(task) {
     let forms = {'program_id': programId}
     Array.from(cenzFormElements).forEach(element => {
         if (element.name) {
-            forms[element.name] = element.value;
-        };
+            if (element.type === 'file' && element.files.length > 0) {
+                // Берем только имя файла из File object
+                forms[element.name] = element.files[0].name;
+            } else {
+                forms[element.name] = element.value;
+            };
+        }
     });
-    fetch(`/${task.name}/`, {
+    fetch(`/${task}/`, {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',

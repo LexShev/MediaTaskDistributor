@@ -11,7 +11,7 @@
       <tr>
         {% for file_path in filepath_history|dictsort:"time_of_change" %}
             <td>{{ file_path.file_path }}</td>
-            <td>{{ file_path.task_status }}</td>
+            <td>{{ file_path.task_status|status_name }}</td>
             <td>{{ file_path.time_of_change|date:"d.m.Y H:i:s" }}</td>
       </tr>
         {% endfor %}

@@ -146,7 +146,6 @@ function ShowApproveOTK() {
             otk_comment.classList.add('my-2');
             otk_comment.name = 'otk_comment';
             otk_comment.style = 'min-height: 50px';
-            otk_comment.disabled = true;
             OTKContainer.appendChild(otk_comment);
 
             let file_path_header = document.createElement("h6");
@@ -163,7 +162,6 @@ function ShowApproveOTK() {
             otk_file_path.setAttribute('type', 'file');
             otk_file_path.name = 'otk_file_path';
             otk_file_path.id = `otk_file_path_${program_id}`;
-            otk_file_path.disabled = true;
             otk_file_path_group.appendChild(otk_file_path);
 
             let divider = document.createElement("hr");

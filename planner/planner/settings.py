@@ -233,6 +233,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_POSTERS = os.path.join(BASE_DIR, 'media/posters')
 MEDIA_WAVEFORMS = os.path.join(BASE_DIR, 'media/waveforms')
 
+CURRENT_CENZ_DIR = r'\\192.168.80.5\ContentA\0_INTERNET_VIDEO\_CENZ'
+
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000000
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
