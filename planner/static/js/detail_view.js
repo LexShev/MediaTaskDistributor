@@ -106,11 +106,6 @@ dropZone.addEventListener('drop', handleDrop, false);
       const event = new Event('change', { bubbles: true });
       fileInput.dispatchEvent(event);
 
-      console.log('Информация о файле:');
-      console.log('Имя файла:', files[0].name);
-      console.log('Размер:', files[0].size, 'bytes');
-      console.log('Тип:', files[0].type);
-      console.log('Последнее изменение:', files[0].lastModified);
     }
   }
 
@@ -204,10 +199,10 @@ function ValidateAskFix(task) {
 function ValidateFileUpload(task) {
     const noCenz = document.getElementById('no_cenz').checked
     const fileInput = document.getElementById('uploaded_ready_file_input');
-    if (!noCenz && fileInput.files.length < 1 ){
+    if (!noCenz && fileInput.files.length < 1 ) {
         fileInput.classList.add('is-invalid');
         return;
-        }
+    }
     fileInput.classList.remove('is-invalid');
     CenzApprove(task);
 

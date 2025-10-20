@@ -63,6 +63,7 @@
               <div class="drop-zone border-secondary text-center text-secondary p-2 my-2" id="drop_zone">
                 <p class="my-0">Перетащите файл сюда...</p>
                 <p class="my-0">(или кликните для выбора)</p>
+                <p class="my-0">Убедитесь, что загружаете из папки "ContentA\0_INTERNET_VIDEO\_CENZ"</p>
               </div>
               <div class="input-group my-2 mb-2">
                 <input class="form-control border-secondary rounded" type="file" id="uploaded_ready_file_input"
@@ -75,7 +76,7 @@
             </div>
             <div class="modal-footer">
               <div class="btn-group" role="group">
-                <button type="button" onclick="ValidateFileUpload(this)" name="status_ready" id="status_ready" class="btn btn-outline-success">Завершить задачу</button>
+                <button type="button" onclick="ValidateFileUpload('status_ready')" name="status_ready" id="status_ready" class="btn btn-outline-success">Завершить задачу</button>
                 <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
               </div>
             </div>
@@ -103,7 +104,7 @@
             </div>
             <div class="modal-footer">
               <div class="btn-group" role="group">
-                <button type="button" onclick="ValidateAskFix(this)" name="ask_fix" id="ask_fix" class="btn btn-outline-warning">Запросить</button>
+                <button type="button" onclick="ValidateAskFix('ask_fix')" name="ask_fix" id="ask_fix" class="btn btn-outline-warning">Запросить</button>
                 <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
               </div>
             </div>

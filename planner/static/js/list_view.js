@@ -1,4 +1,4 @@
-function ValidateForm() {
+function ValidateForm(task) {
     let workDate = document.getElementById('work_date_form')
     let cenzRate = document.getElementById('cenz_rate_form')
     let engineers = document.getElementById('engineers_form')
@@ -13,21 +13,106 @@ function ValidateForm() {
     cenzRate.classList.remove('is-invalid');
     engineers.classList.remove('is-invalid');
 
-    showReadyListModal();
+    if (task === 'task_ready_batch') {
+        showReadyListModal();
+    }
+    else if (task === 'cenz_info_change_batch') {
+        CenzApproveBatch(task);
+    };
+
 };
 
 function showReadyListModal() {
+    let cenzList = document.getElementById('cenz_ready_list');
+    cenzList.innerHTML = '';
+    let programDataList = JSON.parse(document.getElementById('program_data_list').dataset.cenzMaterials) || [];
+    programDataList.forEach(programData => {
+        let cenzContainer = document.createElement("div");
+        cenzContainer.classList.add('cenz_container')
+
+        let [program_id, old_file_name, old_file_path] = programData;
+
+        let switchContainer = document.createElement('div');
+        switchContainer.classList.add('form-check');
+        switchContainer.classList.add('form-switch');
+        cenzContainer.appendChild(switchContainer);
+
+        let switcher = document.createElement("input");
+        switcher.classList.add('form-check-input');
+        switcher.type = 'checkbox';
+        switcher.role = 'switch';
+        switcher.id = `switcher_${program_id}`;
+        switcher.name = 'switcher';
+        switchContainer.appendChild(switcher);
+
+        let switchLabel = document.createElement("label");
+        switchLabel.classList.add('form-check-label');
+        switchLabel.textContent = 'CENZ не требуется';
+        switchLabel.setAttribute('for', `switcher_${program_id}`);
+        switchContainer.appendChild(switchLabel);
+
+        let cenz_program_id = document.createElement("input");
+        cenz_program_id.type = 'hidden';
+        cenz_program_id.name = 'cenz_program_id';
+        cenz_program_id.value = program_id;
+        cenzContainer.appendChild(cenz_program_id);
+
+        let file_name = document.createElement("h5");
+        file_name.classList.add('my-2');
+        file_name.textContent = old_file_name;
+        file_name.name = 'file_name'
+        cenzContainer.appendChild(file_name);
+
+        let cenz_header = document.createElement("h6");
+        cenz_header.textContent = 'Комментарий к материалу';
+        cenzContainer.appendChild(cenz_header);
+
+        let cenz_comment = document.createElement("textarea");
+        cenz_comment.classList.add('form-control');
+        cenz_comment.classList.add('my-2');
+        cenz_comment.name = 'cenz_comment';
+        cenz_comment.style = 'min-height: 50px';
+        cenzContainer.appendChild(cenz_comment);
+
+        let file_path_header = document.createElement("h6");
+        file_path_header.textContent = 'Новый путь к файлу';
+        cenzContainer.appendChild(file_path_header);
+
+        let cenz_file_path_group = document.createElement("div");
+        cenz_file_path_group.classList.add('input-group');
+        cenzContainer.appendChild(cenz_file_path_group);
+
+        let cenz_file_path = document.createElement("input");
+        cenz_file_path.classList.add('form-control');
+        cenz_file_path.setAttribute('accept', 'video/*');
+        cenz_file_path.setAttribute('type', 'file');
+        cenz_file_path.name = 'cenz_file_path';
+        cenz_file_path.id = `cenz_file_path_${program_id}`;
+        cenz_file_path_group.appendChild(cenz_file_path);
+
+        let divider = document.createElement("hr");
+        divider.style = 'width: 40%; size: 2;';
+        cenzContainer.appendChild(divider);
+
+        cenzList.appendChild(cenzContainer);
+    });
     const TaskReadyModal = bootstrap.Modal.getInstance(document.getElementById('TaskReady')) ||
                         new bootstrap.Modal(document.getElementById('TaskReady'));
-    const readyListModal = bootstrap.Modal.getInstance(document.getElementById('readyListModal')) ||
-                        new bootstrap.Modal(document.getElementById('readyListModal'));
+    console.log(programDataList, programDataList.length);
+    if (programDataList.length > 0) {
+        const readyListModal = bootstrap.Modal.getInstance(document.getElementById('readyListModal')) ||
+                            new bootstrap.Modal(document.getElementById('readyListModal'));
 
+        TaskReadyModal.hide();
+        readyListModal.toggle();
+    }
+    else {
+        console.log('error');
+        errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        TaskReadyModal.hide();
+        errorModal.toggle();
+    }
 
-
-
-
-    TaskReadyModal.hide();
-    readyListModal.toggle();
 };
 
 window.addEventListener('load', function() {
@@ -36,20 +121,20 @@ window.addEventListener('load', function() {
     for (let i = 0; i < seasons.length; i++) {
         let season = seasons[i];
         let parentCheckbox = season.querySelector('input[type="checkbox"]');
-        let episodes = season.getElementsByTagName('li');
-        let episodeCheckboxes = [];
+        let episodes = season.querySelectorAll('.episode');
+        let programIdListChecked = [];
 
         // Все чекбоксы эпизодов
         for (let n = 0; n < episodes.length; n++) {
             let checkbox = episodes[n].querySelector('input[type="checkbox"]');
             if (checkbox) {
-                episodeCheckboxes.push(checkbox);
+                programIdListChecked.push(checkbox);
                 checkbox.addEventListener('change', updateParentCheckbox);
             }
         };
         parentCheckbox.addEventListener('change', function() {
             // При изменении родительского чекбокса обновляем все дочерние
-            for (let checkbox of episodeCheckboxes) {
+            for (let checkbox of programIdListChecked) {
                 checkbox.checked = this.checked;
             }
             // И вызываем обновление состояния
@@ -58,15 +143,15 @@ window.addEventListener('load', function() {
 
         // Функция обновления состояния родительского чекбокса
         function updateParentCheckbox() {
-            let checkedCount = episodeCheckboxes.filter(checkbox => checkbox.checked).length;
+            let checkedCount = programIdListChecked.filter(checkbox => checkbox.checked).length;
             let completeTask = season.querySelector('[name="complete_task"]');
 
-            if (checkedCount > 0 && checkedCount < episodeCheckboxes.length) {
+            if (checkedCount > 0 && checkedCount < programIdListChecked.length) {
                 parentCheckbox.indeterminate = true;
                 parentCheckbox.checked = false;
                 completeTask.style.display = 'inline';
             }
-            else if (checkedCount === episodeCheckboxes.length) {
+            else if (checkedCount === programIdListChecked.length) {
                 parentCheckbox.indeterminate = false;
                 parentCheckbox.checked = true;
                 completeTask.style.display = 'inline';
@@ -83,16 +168,23 @@ window.addEventListener('load', function() {
 function ShowTaskReady(program_id) {
     let season = document.getElementById(program_id);
     let parentCheckbox = season.querySelector('input[type="checkbox"]');
-    let episodes = season.getElementsByTagName('li');
-    let episodeCheckboxes = [];
+    let episodes = season.querySelectorAll('.episode');
+    let programIdListChecked = [];
+    let cenzMaterials = [];
     for (let n = 0; n < episodes.length; n++) {
         let checkbox = episodes[n].querySelector('input[type="checkbox"]');
         if (checkbox && checkbox.checked) {
-            episodeCheckboxes.push(checkbox.value);
-            }
+            programIdListChecked.push(checkbox.value);
+            cenzMaterials.push([checkbox.value || '',
+            checkbox.dataset.fileName || '',
+            checkbox.dataset.filePath || ''
+            ]);
+        }
     };
-    let programIdList = document.getElementById('program_id_list');
-    programIdList.dataset.programId = JSON.stringify(episodeCheckboxes);
+    let programDataList = document.getElementById('program_data_list');
+    programDataList.dataset.programIdList = JSON.stringify(programIdListChecked);
+    programDataList.dataset.cenzMaterials = JSON.stringify(cenzMaterials);
+
     let readyCenzInfo = document.getElementById('ready_cenz_info');
     let modalLabel = document.getElementById('TaskReadyLabel');
     const TaskReadyModal = new bootstrap.Modal(document.getElementById('TaskReady'));
@@ -107,7 +199,7 @@ function ShowTaskReady(program_id) {
                 'X-Requested-With': 'XMLHttpRequest'
             },
 
-            body: JSON.stringify(episodeCheckboxes),
+            body: JSON.stringify(programIdListChecked),
             credentials: 'same-origin'
         })
         .then(response => response.json())
@@ -142,24 +234,46 @@ function checkNoCenz() {
     };
 };
 
-function CenzApproveBatch(task_status) {
-    let noCenz = document.getElementById('no_cenz').checked
-    let programIdList = JSON.parse(document.getElementById('program_id_list').dataset.programId);
-    const cenzFormElements = document.getElementById('cenz_form').elements;
+function CenzApproveBatch(task) {
+    let cenzData = [];
     let forms = {}
-    Array.from(cenzFormElements).forEach(element => {
-        if (element.name) {
-            forms[element.name] = element.value;
-        };
-    });
-    fetch('/cenz_batch/', {
+    
+    if (task === 'cenz_info_change_batch') {
+        let programIdList = JSON.parse(document.getElementById('program_data_list').dataset.programIdList);
+        const cenzFormElements = document.getElementById('cenz_form').elements;
+        Array.from(cenzFormElements).forEach(element => {
+            if (element.name) {
+                forms[element.name] = element.value;
+            };
+        });
+        cenzData.push(programIdList, forms)
+    }
+    else if (task === 'task_ready_batch') {
+        let cenzContainers = document.querySelectorAll('.cenz_container');
+        cenzContainers.forEach(container => {
+            let noCenz = container.querySelector("input[name='no_cenz'");
+            let program_id = container.querySelector("input[name='cenz_program_id']");
+            let cenz_comment = container.querySelector("textarea[name='cenz_comment']");
+            let file_name = container.querySelector("h5[name='file_name']");
+            let cenz_file_path = container.querySelector("input[name='cenz_file_path']");
+            cenzData.push([
+                noCenz?.checked || '',
+                program_id?.value || '',
+                cenz_comment?.value || '',
+                file_name?.textContent || '',
+                cenz_file_path?.value || ''
+            ])
+        });
+    };
+    
+    fetch(`/${task}/`, {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': forms['csrfmiddlewaretoken'],
         'X-Requested-With': 'XMLHttpRequest'
     },
-    body: JSON.stringify([noCenz, task_status, programIdList, forms]),
+    body: JSON.stringify(cenzData),
     credentials: 'same-origin'
     })
     .then(response => response.json())

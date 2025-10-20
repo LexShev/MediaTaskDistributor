@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
+from main.detail_view import insert_filepath_history
 from main.logs_and_history import get_task_status, insert_history_status
 from main.permission_pannel import ask_db_permissions
 from messenger_static.messenger_utils import create_notification
@@ -96,8 +97,8 @@ def set_status_otk(request):
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
 
     task_status = 'otk'
-    for program_id, comment, file_name, file_path in program_list:
-        file_path = '' # !!!!!!!!!!!!!!!!!!!!
+    for program_id, comment, file_name, new_file_path in program_list:
+        new_file_path = ''
         create_notification(
             {'sender': user_id, 'recipient': 14, 'program_id': program_id,
              'message': '', 'comment': 'Материал прошёл ОТК'}
@@ -110,10 +111,11 @@ def set_status_otk(request):
         if db_task_status in ('no_material', 'not_ready'):
             return JsonResponse(
                 {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
-        answer = change_task_status(program_id, task_status, file_name, file_path)
+        answer = change_task_status(program_id, task_status, file_name, new_file_path)
         if answer.get('status') == 'success':
             insert_history_status(program_id, user_id, db_task_status, task_status)
             update_comment(program_id, user_id, task_status, comment)
+            # insert_filepath_history(program_id, new_file_path, task_status, user_id)
             success_messages.append(answer.get('message'))
         else:
             error_messages.append(answer.get('message'))

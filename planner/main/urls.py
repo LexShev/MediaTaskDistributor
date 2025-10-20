@@ -27,5 +27,6 @@ urlpatterns = [
     path("ask_fix/", ask_fix, name='ask_fix'),
     path("cenz_info_change/", cenz_info_change, name='cenz_info_change'),
 
-    path("cenz_batch/", cenz_batch, name='cenz_batch'),
+    path("task_ready_batch/", task_ready_batch, name='task_ready_batch'),
+    path("cenz_info_change_batch/", cenz_info_change_batch, name='cenz_info_change_batch'),
 ]

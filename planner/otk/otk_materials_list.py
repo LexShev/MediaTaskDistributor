@@ -120,19 +120,32 @@ def update_comment(program_id, user_id, task_status=None, comment='Матери�
         return {'status': 'error', 'message': str(error)}
 
 
-def change_task_status(program_id, task_status, file_name, file_path):
+def change_task_status(program_id, task_status, file_name, file_path=None):
     try:
-        with connections[PLANNER_DB].cursor() as cursor:
-            query = f'''
-            UPDATE [{PLANNER_DB}].[dbo].[task_list]
-            SET [task_status] = %s
-            WHERE [program_id] = %s
-            '''
-            cursor.execute(query, (task_status, program_id))
-            if cursor.rowcount:
-                return {'status': 'success', 'message': f'Изменения для {file_name} успешно внесены!'}
-            else:
-                return {'status': 'error', 'message': 'Изменения не внесены!'}
+        if not file_path:
+            with connections[PLANNER_DB].cursor() as cursor:
+                query = f'''
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                SET [task_status] = %s
+                WHERE [program_id] = %s
+                '''
+                cursor.execute(query, (task_status, program_id))
+                if cursor.rowcount:
+                    return {'status': 'success', 'message': f'Статус для {file_name} успешно изменён! Новый файл не прикреплён.'}
+                else:
+                    return {'status': 'error', 'message': 'Изменения не внесены!'}
+        else:
+            with connections[PLANNER_DB].cursor() as cursor:
+                query = f'''
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                SET [task_status] = %s, file_path = %s
+                WHERE [program_id] = %s
+                '''
+                cursor.execute(query, (task_status, file_path, program_id))
+                if cursor.rowcount:
+                    return {'status': 'success', 'message': f'Изменения для {file_name} успешно внесены!'}
+                else:
+                    return {'status': 'error', 'message': 'Изменения не внесены!'}
     except Exception as error:
         print(error)
         return {'status': 'error', 'message': str(error)}
