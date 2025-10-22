@@ -9,10 +9,14 @@ DEFAULT_SCHEDULES_IDS = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
 
 def main_distribution():
     # work_date = datetime.today().date()
-    # work_date = date(day=1, month=11, year=2025)
-    start_work_date = date.today() + timedelta(days=1)
-    end_work_date = date(day=30, month=11, year=2025)
-    work_duration = (end_work_date - start_work_date).days
+
+    # start_work_date = date.today() + timedelta(days=1)
+    # end_work_date = date(day=30, month=11, year=2025)
+    # work_duration = (end_work_date - start_work_date).days
+
+    start_work_date = date(day=1, month=11, year=2025)
+    work_duration = 30
+
     # 3	Крепкое
     # 5	Планета дети
     # 6	Мировой сериал

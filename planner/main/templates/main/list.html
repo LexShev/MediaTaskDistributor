@@ -3,6 +3,8 @@
 
 <main>
 {% block body %}
+<link rel="stylesheet" href="{% static 'css/list.css' %}">
+
 <nav class="nav container-fluid justify-content-end border-bottom shadow py-2 mb-2 px-lg-5">
   {% include 'main/second_header.html' %}
 </nav>
@@ -166,7 +168,7 @@
   </div>
 
 <div class="modal fade" id="readyListModal" tabindex="-1" aria-labelledby="readyListModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
       <div class="modal-content">
         <div class="modal-header">
             <h4 class="modal-title" id="readyListModalLabel">
@@ -184,7 +186,7 @@
         <div class="modal-footer">
           <div class="btn-group ms-auto" role="group">
             <button type="button" class="btn btn-outline-secondary" data-bs-target="#TaskReady" data-bs-toggle="modal">Назад</button>
-            <button type="button" onclick="CenzApproveBatch('task_ready_batch')" name="task_ready_batch" id="task_ready_batch"
+            <button type="button" onclick="ValidateFileUpload('task_ready_batch')" name="task_ready_batch" id="task_ready_batch"
                     class="btn btn-outline-success">Завершить</button>
           </div>
         </div>

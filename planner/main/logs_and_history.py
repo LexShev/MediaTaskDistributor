@@ -6,7 +6,8 @@ from django.db import connections
 from datetime import datetime, date
 
 from main.js_requests import program_name
-from main.templatetags.custom_filters import status_name, engineer_id_to_worker_id
+from main.templatetags.custom_filters import status_name, engineer_id_to_worker_id, worker_name, engineer_name, \
+    cenz_name
 from planner.settings import OPLAN_DB, PLANNER_DB, CURRENT_CENZ_DIR
 
 
@@ -95,8 +96,22 @@ def select_actions(program_id):
             '''
             cursor.execute(history_list_query, (program_id,))
             history_status_result = cursor.fetchall()
+            history_status = []
             if history_status_result:
-                history_status = [dict(zip(history_list_columns, actions)) for actions in history_status_result]
+                for actions in history_status_result:
+                    action = {}
+                    for key, value in zip(history_list_columns, actions):
+                        action[key] = value
+                    if action['new_value'] == '0':
+                        continue
+                    if action['CustomFieldID'] == 14:
+                        action['old_value'] = cenz_name(action['old_value'])
+                        action['new_value'] = cenz_name(action['new_value'])
+                    elif action['CustomFieldID'] == 15:
+                        action['old_value'] = engineer_name(action['old_value'])
+                        action['new_value'] = engineer_name(action['new_value'])
+                    history_status.append(action)
+        print(history_status)
 
         history_status_list = []
         with connections[PLANNER_DB].cursor() as cursor:
@@ -113,12 +128,38 @@ def select_actions(program_id):
             if history_status_list_result:
                 for actions in history_status_list_result:
                     temp_dict = dict(zip(history_status_list_columns, actions))
+                    temp_dict['old_value'] = status_name(temp_dict['old_status'])
+                    temp_dict['new_value'] = status_name(temp_dict['new_status'])
                     temp_dict['field_name'] = 'status'
                     history_status_list.append(temp_dict)
         return history_status + history_status_list
     except Exception as error:
         print(error)
         return []
+
+'''
+
+<!--  <ul class="list-group list-group-flush">-->
+<!--  {% for action in actions_list %}-->
+<!--    <li class="list-group-item list-group-item-action {% if action.field_name == 'status' %}list-group-item-info{% endif %}">-->
+<!--      {{ action.time_of_change|date:'d.m.Y H:i:s' }} - {{ action.worker_id|planner_worker_name }}-->
+<!--      {% if action.CustomFieldID == 14 %}-->
+<!--        <small class="text-body-secondary m-2">({{ action.CustomFieldID|fields_name }})</small>-->
+<!--        <small class="text-body-secondary m-2">{{ action.old_value|cenz_name }} -> {{ action.new_value|cenz_name }}</small>-->
+<!--      {% elif action.CustomFieldID == 15 %}-->
+<!--        <small class="text-body-secondary m-2">({{ action.CustomFieldID|fields_name }})</small>-->
+<!--        <small class="text-body-secondary m-2">{{ action.old_value|worker_name }} -> {{ action.new_value|engineer_name }}</small>-->
+<!--      {% elif action.field_name == 'status' %}-->
+<!--        <small class="text-body-secondary m-2">(Статус)</small>-->
+<!--        <small class="text-body-secondary m-2">{{ action.old_status|status_name }} -> {{ action.new_status|status_name }}</small>-->
+<!--      {% else %}-->
+<!--        <small class="text-body-secondary m-2">({{ action.CustomFieldID|fields_name }})</small>-->
+<!--        <small class="text-body-secondary m-2">{% if action.new_value %}{{ action.old_value }} -> {{ action.new_value }}{% else %}поле очищено{% endif %}</small>-->
+<!--      {% endif %}-->
+<!--    </li>-->
+<!--  {% endfor %}-->
+<!--  </ul>-->
+'''
 
 def find_file_path(program_id):
     columns = (('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
@@ -146,11 +187,9 @@ def find_file_path(program_id):
         return dict(zip(django_columns, file_path_info))
     return {}
 
-def change_task_status_new(program_id, new_values, task_status, db_task_status) -> Dict[str, str]:
+def change_task_status_new(program_id, new_values, task_status, db_task_status, new_file_path=None) -> Dict[str, str]:
     worker_id = engineer_id_to_worker_id(new_values.get('engineers_form'))
     work_date = new_values.get('work_date_form')
-    uploaded_ready_file = new_values.get('uploaded_ready_file', '')
-    new_file_path = str(PureWindowsPath(CURRENT_CENZ_DIR) / uploaded_ready_file)
     program = program_name(program_id)
     with connections[PLANNER_DB].cursor() as cursor:
         if db_task_status:
@@ -180,8 +219,8 @@ def change_task_status_new(program_id, new_values, task_status, db_task_status) 
                     return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. {program}'}
 
             elif task_status == 'ready':
-                if not uploaded_ready_file:
-                    return {'status': 'error', 'message': f'Ошибка! Неверный путь файла. Изменения не были внесены. {program} {uploaded_ready_file}'}
+                if not new_file_path:
+                    return {'status': 'error', 'message': f'Ошибка! Неверный путь файла. Изменения не были внесены. {program} {new_file_path}'}
                 update_status = f'''
                 UPDATE [{PLANNER_DB}].[dbo].[task_list]
                 SET [worker_id] = %s, [work_date] = %s, [ready_date] = GETDATE(), [task_status] = %s, [file_path] = %s
@@ -263,10 +302,10 @@ def change_task_status_final(program_id, task_status, db_task_status):
         if db_task_status:
             update_status = f'''
                 UPDATE [{PLANNER_DB}].[dbo].[task_list]
-                SET [duration] = %s, [task_status] = %s, [file_path] = %s
+                SET [task_status] = %s, [ready_date] = GETDATE()
                 WHERE [program_id] = %s
                 '''
-            cursor.execute(update_status, (duration, task_status, file_path, program_id))
+            cursor.execute(update_status, (task_status, program_id))
             if cursor.rowcount:
                 return {'status': 'success', 'message': f'{program} статус изменён на {task_name}.'}
             else:

@@ -302,61 +302,59 @@ def task_ready_batch(request):
     try:
         data = json.loads(request.body)
         print('task_ready_batch_data', data)
-        # if not data:
-        #     return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
-        # no_cenz, task_ready_list, new_values = data
-        # cenz_comment = new_values.get('cenz_comment')
-        #
-        # for program_id in task_ready_list:
-        #     oplan3_lock = check_oplan3_lock(program_id)
-        #     planner_lock = check_planner_lock(program_id)
-        #     if oplan3_lock.get('message') == 'locked':
-        #         text = f'Карточка материала заблокирована в Oplan3 пользователем: {oplan3_lock.get("worker_name")} в {oplan3_lock.get("lock_time")}'
-        #         error_messages.append(text)
-        #         continue
-        #     if planner_lock.get('message') == 'locked' and planner_lock.get('worker_id') != user_id:
-        #         text = f'Карточка материала заблокирована в Planner пользователем: {planner_lock.get("worker_name")} в {planner_lock.get("lock_time")}'
-        #         error_messages.append(text)
-        #         continue
-        #     old_values = cenz_info(program_id)
-        #
-        #     db_task_status = get_task_status(program_id)
-        #     if db_task_status in ('fix', 'final'):
-        #         return JsonResponse(
-        #             {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
-        #     if no_cenz:
-        #         task_status = 'otk'
-        #         add_mark_no_cenz(program_id)
-        #         answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
-        #         message = answer.get('message')
-        #         if answer.get('status') == 'success':
-        #             change_oplan_cenz_info(program_id, old_values, new_values)
-        #             insert_history_new(program_id, user_id, old_values, new_values)
-        #             insert_history_status(program_id, user_id, db_task_status, task_status)
-        #             update_comment(program_id, user_id, task_status, cenz_comment)
-        #             success_messages.append(message)
-        #         else:
-        #             error_messages.append(message)
-        #             continue
-        #     else:
-        #         task_status = 'ready'
-        #         answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
-        #         message = answer.get('message')
-        #         if answer.get('status') == 'success':
-        #             change_oplan_cenz_info(program_id, old_values, new_values)
-        #             insert_history_new(program_id, user_id, old_values, new_values)
-        #             insert_history_status(program_id, user_id, db_task_status, task_status)
-        #             update_comment(program_id, user_id, task_status, cenz_comment)
-        #             insert_filepath_history(program_id, 'new_file_path', task_status, user_id)
-        #             error_messages.append(message)
-        #         else:
-        #             error_messages.append(message)
-        #             continue
-        # if success_messages:
-        #     messages.success(request, '\n'.join(success_messages))
-        # if error_messages:
-        #     messages.error(request, '\n'.join(error_messages))
-        # return JsonResponse({'status': 'success', 'message': success_messages})
+        if not data:
+            return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
+        new_values, file_info = data
+        for no_cenz, program_id, cenz_comment, file_name, new_file_path in file_info:
+            oplan3_lock = check_oplan3_lock(program_id)
+            planner_lock = check_planner_lock(program_id)
+            if oplan3_lock.get('message') == 'locked':
+                text = f'Карточка материала заблокирована в Oplan3 пользователем: {oplan3_lock.get("worker_name")} в {oplan3_lock.get("lock_time")}'
+                error_messages.append(text)
+                continue
+            if planner_lock.get('message') == 'locked' and planner_lock.get('worker_id') != user_id:
+                text = f'Карточка материала заблокирована в Planner пользователем: {planner_lock.get("worker_name")} в {planner_lock.get("lock_time")}'
+                error_messages.append(text)
+                continue
+            old_values = cenz_info(program_id)
+
+            db_task_status = get_task_status(program_id)
+            if db_task_status in ('fix', 'final'):
+                return JsonResponse(
+                    {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
+            if no_cenz:
+                task_status = 'otk'
+                add_mark_no_cenz(program_id)
+                answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
+                message = answer.get('message')
+                if answer.get('status') == 'success':
+                    change_oplan_cenz_info(program_id, old_values, new_values)
+                    insert_history_new(program_id, user_id, old_values, new_values)
+                    insert_history_status(program_id, user_id, db_task_status, task_status)
+                    update_comment(program_id, user_id, task_status, cenz_comment)
+                    success_messages.append(message)
+                else:
+                    error_messages.append(message)
+                    continue
+            else:
+                task_status = 'ready'
+                answer = change_task_status_new(program_id, new_values, task_status, db_task_status, new_file_path=new_file_path)
+                message = answer.get('message')
+                if answer.get('status') == 'success':
+                    change_oplan_cenz_info(program_id, old_values, new_values)
+                    insert_history_new(program_id, user_id, old_values, new_values)
+                    insert_history_status(program_id, user_id, db_task_status, task_status)
+                    update_comment(program_id, user_id, task_status, cenz_comment)
+                    insert_filepath_history(program_id, new_file_path, task_status, user_id)
+                    success_messages.append(message)
+                else:
+                    error_messages.append(message)
+                    continue
+        if success_messages:
+            messages.success(request, '\n'.join(success_messages))
+        if error_messages:
+            messages.error(request, '\n'.join(error_messages))
+        return JsonResponse({'status': 'success', 'message': success_messages})
     except Exception as error:
         print(error)
         return JsonResponse({'status': 'error', 'message': str(error)})
@@ -367,34 +365,31 @@ def cenz_info_change_batch(request):
     user_id = request.user.id
     try:
         data = json.loads(request.body)
-        print('cenz_info_change_batch_data', data)
 
-        # if not data:
-        #     return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
-        # task_ready_list, new_values = data
-        # cenz_comment = new_values.get('cenz_comment')
-        # for program_id in task_ready_list:
-        #     oplan3_lock = check_oplan3_lock(program_id)
-        #     planner_lock = check_planner_lock(program_id)
-        #     if oplan3_lock.get('message') == 'locked':
-        #         text = f'Карточка материала заблокирована в Oplan3 пользователем: {oplan3_lock.get("worker_name")} в {oplan3_lock.get("lock_time")}'
-        #         error_messages.append(text)
-        #         continue
-        #     if planner_lock.get('message') == 'locked' and planner_lock.get('worker_id') != user_id:
-        #         text = f'Карточка материала заблокирована в Planner пользователем: {planner_lock.get("worker_name")} в {planner_lock.get("lock_time")}'
-        #         error_messages.append(text)
-        #         continue
-        #     old_values = cenz_info(program_id)
-        #     change_oplan_cenz_info(program_id, old_values, new_values)
-        #     insert_history_new(program_id, user_id, old_values, new_values)
-        #     update_comment(program_id, user_id, comment=cenz_comment)
-        #     message = 'Успешно обновлено'
-        #     success_messages.append(message)
-        # if success_messages:
-        #     messages.success(request, '\n'.join(success_messages))
-        # if error_messages:
-        #     messages.error(request, '\n'.join(error_messages))
-        # return JsonResponse({'status': 'success', 'message': success_messages})
+        if not data:
+            return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
+        task_ready_list, new_values = data
+        for program_id in task_ready_list:
+            oplan3_lock = check_oplan3_lock(program_id)
+            planner_lock = check_planner_lock(program_id)
+            if oplan3_lock.get('message') == 'locked':
+                text = f'Карточка материала заблокирована в Oplan3 пользователем: {oplan3_lock.get("worker_name")} в {oplan3_lock.get("lock_time")}'
+                error_messages.append(text)
+                continue
+            if planner_lock.get('message') == 'locked' and planner_lock.get('worker_id') != user_id:
+                text = f'Карточка материала заблокирована в Planner пользователем: {planner_lock.get("worker_name")} в {planner_lock.get("lock_time")}'
+                error_messages.append(text)
+                continue
+            old_values = cenz_info(program_id)
+            change_oplan_cenz_info(program_id, old_values, new_values)
+            insert_history_new(program_id, user_id, old_values, new_values)
+            message = 'Успешно обновлено'
+            success_messages.append(message)
+        if success_messages:
+            messages.success(request, '\n'.join(success_messages))
+        if error_messages:
+            messages.error(request, '\n'.join(error_messages))
+        return JsonResponse({'status': 'success', 'message': success_messages})
     except Exception as error:
         print(error)
         return JsonResponse({'status': 'error', 'message': str(error)})
@@ -498,7 +493,7 @@ def status_ready(request):
             return JsonResponse({'status': 'error', 'message': message})
     else:
         task_status = 'ready'
-        answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
+        answer = change_task_status_new(program_id, new_values, task_status, db_task_status, new_file_path=new_file_path)
         message = answer.get('message')
         if answer.get('status') == 'success':
             change_oplan_cenz_info(program_id, old_values, new_values)

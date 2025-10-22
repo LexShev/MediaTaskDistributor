@@ -166,6 +166,7 @@ function ShowApproveOTK() {
 
             let divider = document.createElement("hr");
             divider.style = 'width: 40%; size: 2;';
+            divider.classList.add('mb-4');
             OTKContainer.appendChild(divider);
 
             OTKList.appendChild(OTKContainer);

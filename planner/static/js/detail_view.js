@@ -222,6 +222,7 @@ function CenzApprove(task) {
             };
         }
     });
+    console.log(forms);
     fetch(`/${task}/`, {
     method: 'POST',
     headers: {

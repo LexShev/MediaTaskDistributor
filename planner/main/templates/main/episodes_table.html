@@ -17,13 +17,7 @@
 <!--        <td>{{ episode.Progs_episode_num }}</td>-->
         <td>{{ episode.Progs_duration|convert_frames_to_time }}</td>
         <td>{{ episode.Progs_DisplayMediumName }}</td>
-        {% if episode.Task_task_status == 'not_ready' %}
-          <td>Не готов</td>
-        {% elif episode.Task_task_status == 'ready' %}
-          <td>Готов</td>
-        {% else %}
-          <td> - </td>
-        {% endif %}
+        <td>{% if episode.Task_task_status %}{{ episode.Task_task_status|status_name }}{% else %} - {% endif %}</td>
       </tr>
     {% endfor %}
   </tbody>
