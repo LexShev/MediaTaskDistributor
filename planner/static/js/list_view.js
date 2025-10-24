@@ -454,6 +454,24 @@ function CenzReadyBatch() {
     sendData('task_ready_batch', [forms, fileInfo]);
 };
 
+function updateMainSwitcher() {
+    let mainSwitcher = document.querySelector("input[name='main_switcher'");
+    let readyListContainer = document.getElementById("cenz_ready_list_container");
+    let cenzContainers = document.querySelectorAll('.cenz_container');
+
+    const isChecked = mainSwitcher.checked;
+
+    cenzContainers.forEach(container => {
+        // Устанавливаем свойство checked
+        const programId = container.dataset.programId
+
+        const switcher = container.querySelector("input[name='switcher'");
+        switcher.checked = isChecked;
+        checkNoCenz(container);
+
+    });
+};
+
 function sendData(task, cenzData) {
     fetch(`/${task}/`, {
     method: 'POST',

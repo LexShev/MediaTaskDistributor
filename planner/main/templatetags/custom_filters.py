@@ -1,3 +1,4 @@
+import datetime
 import re
 
 from django.template.defaulttags import register
@@ -120,7 +121,8 @@ def fields_name(field_id):
                 16: 'Редакторские замечания',
                 17: 'Meta',
                 18: 'Теги',
-                19: 'Иноагент'
+                19: 'Иноагент',
+                99: 'Статус'
             }
             return fields_dict.get(field_id, '')
         except Exception as error:
@@ -365,3 +367,17 @@ def desktop_visibility(task_status):
     if task_status in ('ready', 'otk', 'final'):
         return True
     return False
+
+@register.filter
+def deadline_intensity(task_deadline):
+    try:
+        today = datetime.date.today()
+        diff_days = (task_deadline - today).days
+        if 7 < diff_days <= 14:
+            return 'text-warning-emphasis bg-warning-subtle'
+        elif diff_days <= 7:
+            return 'text-danger-emphasis bg-danger-subtle'
+        return ''
+    except Exception as error:
+        print(error)
+        return ''

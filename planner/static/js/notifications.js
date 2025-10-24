@@ -1,19 +1,37 @@
 const userId = document.body.dataset.userId || null;
 
-
-window.addEventListener('DOMContentLoaded', function(){
+// Вынесем функцию инициализации в отдельную функцию
+function initializeNotifications() {
     const notificationsContainer = document.getElementById('notifications');
-    notificationsContainer.scrollTop = notificationsContainer.scrollHeight;
+    if (notificationsContainer) {
+        notificationsContainer.scrollTop = notificationsContainer.scrollHeight;
+    }
+
+    attachNotificationEvents();
+}
+
+// Функция для привязки обработчиков событий к уведомлениям
+function attachNotificationEvents() {
     let notifications = Array.from(document.getElementsByClassName('notice-item'));
     notifications.forEach(function(elem) {
-        elem.addEventListener('mouseenter', function() {
-            if (elem.classList.contains('new-notice')) {
-                const noticeId = elem.dataset.noticeId;
-                readNotice(noticeId);
-                elem.classList.remove('new-notice');
-            }
-        })
-    })
+        // Удаляем старые обработчики, чтобы избежать дублирования
+        elem.removeEventListener('mouseenter', handleNoticeMouseEnter);
+        // Добавляем новый обработчик
+        elem.addEventListener('mouseenter', handleNoticeMouseEnter);
+    });
+}
+
+// Обработчик события mouseenter
+function handleNoticeMouseEnter() {
+    if (this.classList.contains('new-notice')) {
+        const noticeId = this.dataset.noticeId;
+        readNotice(noticeId);
+        this.classList.remove('new-notice');
+    }
+}
+
+window.addEventListener('DOMContentLoaded', function(){
+    initializeNotifications();
 });
 
 function readNotice(noticeId) {
@@ -37,7 +55,6 @@ function readNotice(noticeId) {
         if (data.status !== 'success') {
             console.error(data.message || 'Unknown server error');
         }
-        console.log(data);
         updateUnreadNotifications(data.unread_notifications);
         updateTotalUnreadCount(data.total_unread);
     })
@@ -74,7 +91,6 @@ function updateTotalUnreadCount(newCount) {
     else {
         totalUnreadBadge.style.display = 'none';
     }
-
 };
 
 function getCookie(name) {
@@ -92,12 +108,17 @@ function getCookie(name) {
     return cookieValue;
 };
 
-
 function loadEarlierNotifications(page) {
     const button = document.querySelector('.load-earlier-btn');
     const originalText = button.innerHTML;
     button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Загрузка...';
     button.disabled = true;
+
+    // Сохраняем текущую позицию скролла и высоту контейнера перед добавлением
+    const messagesContainer = document.querySelector('#notification-messages');
+    const scrollContainer = document.getElementById('notifications');
+    const scrollTopBefore = scrollContainer.scrollTop;
+    const scrollHeightBefore = scrollContainer.scrollHeight;
 
     fetch(`?page=${page}`)
         .then(response => response.text())
@@ -110,8 +131,10 @@ function loadEarlierNotifications(page) {
             const newButtonContainer = tempDiv.querySelector('#load-earlier-container');
 
             // Добавляем новые сообщения в начало
-            const messagesContainer = document.querySelector('#notification-messages');
             messagesContainer.innerHTML = newMessages + messagesContainer.innerHTML;
+
+            // Перепривязываем обработчики событий к ВСЕМ уведомлениям
+            attachNotificationEvents();
 
             // Обновляем кнопку из нового HTML
             if (newButtonContainer) {
@@ -132,8 +155,12 @@ function loadEarlierNotifications(page) {
                 }
             }
 
-            // Прокручиваем к началу
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Восстанавливаем позицию скролла, чтобы контент не "прыгал"
+            // Добавляем разницу в высоте контента до и после загрузки
+            const scrollHeightAfter = scrollContainer.scrollHeight;
+            const heightDifference = scrollHeightAfter - scrollHeightBefore;
+            scrollContainer.scrollTop = scrollTopBefore + heightDifference;
+
         })
         .catch(error => {
             console.error('Ошибка загрузки:', error);
@@ -141,4 +168,3 @@ function loadEarlierNotifications(page) {
             button.disabled = false;
         });
 }
-

@@ -130,7 +130,7 @@ def select_actions(program_id):
                     temp_dict = dict(zip(history_status_list_columns, actions))
                     temp_dict['old_value'] = status_name(temp_dict['old_status'])
                     temp_dict['new_value'] = status_name(temp_dict['new_status'])
-                    temp_dict['field_name'] = 'status'
+                    temp_dict['CustomFieldID'] = '99'
                     history_status_list.append(temp_dict)
         return history_status + history_status_list
     except Exception as error:

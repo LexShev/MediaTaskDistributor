@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+from typing import Dict
 
 from django.db import connections
 from planner.settings import OPLAN_DB, PLANNER_DB
@@ -7,15 +8,16 @@ from tools.ffmpeg_processing import start_ffmpeg_scanners
 DEFAULT_PROGRAM_TYPES = (4, 5, 6, 10, 11, 12, 16)
 DEFAULT_SCHEDULES_IDS = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
 
-def main_distribution():
+def main_distribution() -> Dict[str, str]:
     # work_date = datetime.today().date()
 
     # start_work_date = date.today() + timedelta(days=1)
     # end_work_date = date(day=30, month=11, year=2025)
     # work_duration = (end_work_date - start_work_date).days
+    start_distribution_date = date.today() + timedelta(days=1)
 
-    start_work_date = date(day=1, month=11, year=2025)
-    work_duration = 30
+    start_work_date = date(day=1, month=12, year=2025)
+    work_duration = 31*2
 
     # 3	Крепкое
     # 5	Планета дети
@@ -29,11 +31,15 @@ def main_distribution():
     # 20	Кино +
     material_list_sql, django_columns = oplan_material_list(
         start_date=start_work_date,
-        schedules_id=(3, 5, 6, 7, 8, 9, 10, 11, 12, 20),
+        schedules_id=(7, 10),
         work_duration=work_duration
     )
+    if not material_list_sql:
+        return {'status': 'success', 'message': 'Нет новых задач для распределения'}
     # , schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12)
     program_id_list = []
+    success_list = []
+    failed_list = []
     for i, program_info in enumerate(material_list_sql, 1):
         if not program_info:
             continue
@@ -48,7 +54,6 @@ def main_distribution():
         sched_date = temp_dict.get('SchedDay_day_date')
         duration = temp_dict.get('Progs_duration')
         suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
-        start_distribution_date = date.today() + timedelta(days=1)
         worker_id, kpi, work_date = date_seek(start_distribution_date, duration)
 
         if suitable_material:
@@ -58,8 +63,17 @@ def main_distribution():
         else:
             file_path = ''
             status = 'no_material'
-        insert_film(program_id, worker_id, duration, sched_id, sched_date, work_date, status, file_path)
-    return 'success'
+        rowcount = insert_film(program_id, worker_id, duration, sched_id, sched_date, work_date, status, file_path)
+        if rowcount > 0:
+            success_list.append([program_id, file_path, duration, sched_id, sched_date])
+        else:
+            failed_list.append([program_id, file_path, duration, sched_id, sched_date])
+    if not failed_list:
+        return {'status': 'success', 'message': 'Распределение успешно завершено без ошибок',
+                'success_list': success_list, 'failed_list': []}
+    else:
+        return {'status': 'error', 'message': 'Распределение завершено с ошибками',
+                'success_list': success_list, 'failed_list': failed_list}
 
 
 def oplan_material_list(start_date, work_duration, program_type=DEFAULT_PROGRAM_TYPES, schedules_id=DEFAULT_SCHEDULES_IDS):

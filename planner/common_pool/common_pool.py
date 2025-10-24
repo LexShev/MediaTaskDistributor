@@ -53,7 +53,8 @@ def get_total_count():
                 (SELECT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)
             AND Progs.[program_id] NOT IN
                 (SELECT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
-                WHERE [ProgramCustomFieldId] = 15)
+                WHERE [ProgramCustomFieldId] = 15
+                OR [ProgramCustomFieldId] = 7)
         ''')
         total_count = cursor.fetchone()[0] or 0
     return {'total_count': total_count}

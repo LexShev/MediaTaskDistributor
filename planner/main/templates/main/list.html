@@ -176,7 +176,11 @@
             </h4>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" id="cenz_ready_list_container">
+          <div class="form-check form-switch my-2">
+            <input class="form-check-input" type="checkbox" role="switch" id="main_switcher" name="main_switcher" onclick="updateMainSwitcher()">
+            <label class="form-check-label" for="main_switcher">Применить ко всем</label>
+          </div>
 
           <div id="cenz_ready_list">
 

@@ -7,7 +7,7 @@ from django.shortcuts import render
 from messenger_static.models import Message, Notification
 from home.home_calendar import calendar_skeleton, update_info
 from home.home_kpi import common_kpi, daily_kpi
-from home.home_table import home_common_table
+from home.home_table import home_common_table, home_deadline_table
 from main.permission_pannel import ask_db_permissions
 
 
@@ -21,7 +21,7 @@ def home(request):
     }
     data = {
         'home_calendar': calendar_skeleton(),
-        'home_table': home_common_table(),
+        'home_table': home_deadline_table(worker_id),
         'service_dict': service_dict,
         'permissions': ask_db_permissions(worker_id),
     }

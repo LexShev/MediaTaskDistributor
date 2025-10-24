@@ -36,6 +36,7 @@ function handleMessageHover() {
 }
 
 function readMessage(messageId) {
+    console.log('read');
     fetch('/messenger/read_message/', {
         method: 'POST',
         headers: {
@@ -241,11 +242,15 @@ function loadEarlierMessages(programId, page) {
     button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Загрузка...';
     button.disabled = true;
 
+    // Сохраняем текущую позицию скролла и высоту контейнера перед добавлением
+    const messagesContainer = document.getElementById('messages-content') || document.getElementById('messages');
+    const scrollTopBefore = messagesContainer.scrollTop;
+    const scrollHeightBefore = messagesContainer.scrollHeight;
+
     fetch(`/messenger/${programId}/?page=${page}`)
         .then(response => response.text())
         .then(html => {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
+            const tempDiv = new DOMParser().parseFromString(html, 'text/html');
 
             // Безопасное получение элементов
             const newMessagesContent = tempDiv.querySelector('#messages-content');
@@ -256,10 +261,13 @@ function loadEarlierMessages(programId, page) {
             }
 
             // Добавляем новые сообщения в начало
-            const messagesContent = document.querySelector('#messages-content');
-            if (messagesContent) {
-                messagesContent.innerHTML = newMessagesContent.innerHTML + messagesContent.innerHTML;
+            if (messagesContainer) {
+                messagesContainer.innerHTML = newMessagesContent.innerHTML + messagesContainer.innerHTML;
             }
+
+            // Переинициализируем обработчики сообщений
+            initMessageHandlers();
+            initMediaHandlers();
 
             // Обновляем кнопку
             const currentButtonContainer = document.querySelector('#load-earlier-messages-container');
@@ -280,11 +288,12 @@ function loadEarlierMessages(programId, page) {
                 currentButtonContainer.remove();
             }
 
-            // Переинициализируем обработчики
-            initMediaHandlers();
+            // Восстанавливаем позицию скролла, чтобы контент не "прыгал"
+            // Добавляем разницу в высоте контента до и после загрузки
+            const scrollHeightAfter = messagesContainer.scrollHeight;
+            const heightDifference = scrollHeightAfter - scrollHeightBefore;
+            messagesContainer.scrollTop = scrollTopBefore + heightDifference;
 
-            // Прокручиваем к началу
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         })
         .catch(error => {
             console.error('Ошибка загрузки сообщений:', error);
