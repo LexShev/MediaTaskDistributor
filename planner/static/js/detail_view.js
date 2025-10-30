@@ -352,8 +352,8 @@ function getCookie(name) {
     return cookieValue;
 };
 
-function CopyText() {
-    let text = document.getElementById('file_path')
+function CopyText(copy_id) {
+    let text = document.getElementById(copy_id)
     text.focus()
     text.select()
     document.execCommand('copy');

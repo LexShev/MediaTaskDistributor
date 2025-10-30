@@ -162,8 +162,12 @@ def task_info(field_dict, search_type, search_input, sql_set):
         if program_id in program_id_list:
             material['is_duplicate'] = True
         if not material.get('Task_program_id') and not material.get('Task_worker_id'):
-            material['Oplan_worker_id'] = oplan3_engineer(program_id)
-            material['Oplan_status'] = 'oplan_ready'
+            oplan_worker_id = oplan3_engineer(program_id)
+            if not oplan_worker_id:
+                material['Task_task_status'] = 'no_task_list'
+            else:
+                material['Oplan_worker_id'] = oplan3_engineer(program_id)
+                material['Oplan_status'] = 'oplan_ready'
         if not material.get('Task_worker_id'):
             material['sender'] = ''
         program_id_list.append(program_id)

@@ -138,7 +138,7 @@ class Choices:
             ('final_fail', 'Не прошёл ЭК')
         ]
         if extra:
-            status_list.append(extra)
+            status_list.extend(extra)
         return status_list
 
     def material_type(self, label='-'):

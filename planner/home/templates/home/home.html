@@ -49,7 +49,28 @@
 
       <div class="col-md-6 h-100">
         <div class="card h-100 d-flex flex-column">
-          <div class="card-header text-center">Дедлайн</div>
+          <div class="card-header">
+            <div class="row align-items-center">
+              <div class="col d-flex">
+                <div class="form-check mx-2 my-0">
+                  <input class="form-check-input" type="checkbox" role="switch" id="no_material_filter"
+                         onclick="sortTable()" title="Показать задачи без материала">
+                  <label class="form-check-label" for="no_material_filter" id="no_material_label">Нет материала</label>
+                </div>
+                <div class="form-check mx-2 my-0">
+                  <input class="form-check-input" type="checkbox" role="switch" id="my_tasks_filter" onclick="sortTable()"
+                         title="Скрыть Мои задачи" checked>
+                  <label class="form-check-label" for="my_tasks_filter" id="my_tasks_label">Мои задачи</label>
+                </div>
+              </div>
+              <div class="col">
+                <div class="text-center flex-grow-1">Дедлайн</div>
+              </div>
+              <div class="col text-end">
+                <small class="text-secondary" id="total_tasks">Всего: {{ home_table|length }}</small>
+              </div>
+            </div>
+          </div>
           <div class="card-body p-4 overflow-auto">
             <table class="table table-hover">
               <thead>
@@ -62,10 +83,11 @@
                   <th style="width: 15%;">Крайний срок</th>
                 </tr>
               </thead>
-              <tbody class="table-group-divider" id="tableBody">
+              <tbody class="table-group-divider" id="deadlineTableBody">
                 {% for task in home_table %}
-                  <tr>
-                    <td class="{{ task.Task_deadline|deadline_intensity }}">{{ forloop.counter }}</td>
+                  <tr data-program-id="{{ task.Task_program_id }}" data-sched-id="{{ task.Task_sched_id }}"
+                   data-task-status="{{ task.Task_task_status }}">
+                    <td class="counter {{ task.Task_deadline|deadline_intensity }}">{{ forloop.counter }}</td>
                     <td class="{{ task.Task_deadline|deadline_intensity }}">
                       <a href="{% url 'home' %}{{ task.Task_program_id }}"
                          class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
@@ -91,5 +113,6 @@
 
 <script type="text/javascript" src="{% static 'ChartJS/chart.umd.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/home_dashboard.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/home_table.js' %}"></script>
   {% endblock %}
 </main>

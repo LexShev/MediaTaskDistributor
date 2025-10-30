@@ -1,4 +1,6 @@
-from django.db.models import Model, IntegerField, CharField, FileField, DateTimeField, TextField
+from datetime import date, timedelta
+
+from django.db.models import Model, IntegerField, CharField, FileField, DateTimeField, TextField, DateField
 
 
 def get_upload_path(instance, filename):
@@ -40,3 +42,4 @@ class ModelSorting(Model):
     owner = IntegerField(default=1)
     user_order = TextField(default='sched_date')
     order_type = TextField(default='ASC')
+

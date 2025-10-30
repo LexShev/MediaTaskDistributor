@@ -10,6 +10,7 @@ class MainSettings:
         'final': 'Готов к эфиру',
         'final_fail': 'Не прошёл ЭК',
         'oplan_ready': 'Отсмотрен в Oplan3',
+        'no_task_list': 'Не распределён',
         'common_pool': 'Материал из общего пула',
         'card_error': 'Карточка материала заполнена неверно',
     }
@@ -25,6 +26,7 @@ class MainSettings:
         'final': 'success',
         'final_fail': 'danger',
         'oplan_ready': 'success',
+        'no_task_list': 'warning',
         'common_pool': 'info',
         'card_error': 'danger',
     }
@@ -40,6 +42,7 @@ class MainSettings:
         'final': 'success',
         'final_fail': 'danger',
         'oplan_ready': 'success',
+        'no_task_list': 'warning',
         'common_pool': 'info',
         'card_error': 'danger',
     }

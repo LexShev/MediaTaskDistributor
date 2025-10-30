@@ -8,16 +8,39 @@ from tools.ffmpeg_processing import start_ffmpeg_scanners
 DEFAULT_PROGRAM_TYPES = (4, 5, 6, 10, 11, 12, 16)
 DEFAULT_SCHEDULES_IDS = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
 
-def main_distribution() -> Dict[str, str]:
+
+def check_date(obj):
+    if isinstance(obj, str):
+        try:
+            return datetime.strptime(obj, '%Y-%m-%d').date()
+        except Exception as error:
+            print(error)
+            return date.today()
+    elif isinstance(obj, (datetime, date)):
+        return obj
+    return date.today()
+
+def main_distribution(distr_sched_end_date=None, distr_sched_id=None) -> Dict[str, str]:
     # work_date = datetime.today().date()
 
-    # start_work_date = date.today() + timedelta(days=1)
-    # end_work_date = date(day=30, month=11, year=2025)
-    # work_duration = (end_work_date - start_work_date).days
+    # Дата начала сканирования сеток
+    start_work_date = date.today()
+    if distr_sched_end_date:
+        distr_sched_end_date = check_date(distr_sched_end_date)
+    else:
+        distr_sched_end_date = date.today()
+
+    work_duration = (distr_sched_end_date - start_work_date).days
+    print('будет обработано', work_duration, 'дней')
+    # С какой даты отдавать в работу
     start_distribution_date = date.today() + timedelta(days=1)
 
-    start_work_date = date(day=1, month=12, year=2025)
-    work_duration = 31*2
+    if distr_sched_id:
+        distr_sched_id = (distr_sched_id, distr_sched_id)
+    else:
+        distr_sched_id = DEFAULT_SCHEDULES_IDS
+    # start_work_date = date(day=1, month=12, year=2025)
+    # work_duration = 31*2
 
     # 3	Крепкое
     # 5	Планета дети
@@ -29,17 +52,20 @@ def main_distribution() -> Dict[str, str]:
     # 11	Семейное кино
     # 12	Советское родное кино
     # 20	Кино +
+    print('total sched_id', distr_sched_id, len(distr_sched_id))
+
     material_list_sql, django_columns = oplan_material_list(
         start_date=start_work_date,
-        schedules_id=(7, 10),
+        schedules_id=distr_sched_id,
         work_duration=work_duration
     )
     if not material_list_sql:
-        return {'status': 'success', 'message': 'Нет новых задач для распределения'}
+        return {'status': 'success', 'message': 'Нет новых задач для распределения',
+                'success_list': [], 'error_list': []}
     # , schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12)
     program_id_list = []
     success_list = []
-    failed_list = []
+    error_list = []
     for i, program_info in enumerate(material_list_sql, 1):
         if not program_info:
             continue
@@ -51,6 +77,7 @@ def main_distribution() -> Dict[str, str]:
         temp_dict = dict(zip(django_columns, program_info))
 
         sched_id = temp_dict.get('SchedDay_schedule_id')
+        progs_name = temp_dict.get('Progs_name')
         sched_date = temp_dict.get('SchedDay_day_date')
         duration = temp_dict.get('Progs_duration')
         suitable_material = temp_dict.get('Progs_SuitableMaterialForScheduleID')
@@ -65,15 +92,15 @@ def main_distribution() -> Dict[str, str]:
             status = 'no_material'
         rowcount = insert_film(program_id, worker_id, duration, sched_id, sched_date, work_date, status, file_path)
         if rowcount > 0:
-            success_list.append([program_id, file_path, duration, sched_id, sched_date])
+            success_list.append([program_id, progs_name, file_path, duration, sched_id, sched_date])
         else:
-            failed_list.append([program_id, file_path, duration, sched_id, sched_date])
-    if not failed_list:
+            error_list.append([program_id, progs_name, file_path, duration, sched_id, sched_date])
+    if not error_list:
         return {'status': 'success', 'message': 'Распределение успешно завершено без ошибок',
-                'success_list': success_list, 'failed_list': []}
+                'success_list': success_list, 'error_list': []}
     else:
         return {'status': 'error', 'message': 'Распределение завершено с ошибками',
-                'success_list': success_list, 'failed_list': failed_list}
+                'success_list': success_list, 'error_list': error_list}
 
 
 def oplan_material_list(start_date, work_duration, program_type=DEFAULT_PROGRAM_TYPES, schedules_id=DEFAULT_SCHEDULES_IDS):

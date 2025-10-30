@@ -27,7 +27,8 @@ class OnAirReportFilter(forms.ModelForm):
                 choices=choice.schedules('Канал')),
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown w-100', 'id': 'task_status'},
-                choices=choice.task_status(label='Статус', extra=('oplan_ready', 'Отсмотрен в Oplan3'))),
+                choices=choice.task_status(label='Статус',
+                                           extra=[('oplan_ready', 'Отсмотрен в Oplan3')])),
             'order_type': forms.TextInput(
                 attrs={
                     'class': 'visually-hidden', 'id': 'order_type',

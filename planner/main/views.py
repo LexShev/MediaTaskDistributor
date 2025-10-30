@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.template.loader import render_to_string
+from django.shortcuts import render
 
 from messenger_static.messenger_utils import create_notification
 from planner.settings import CURRENT_CENZ_DIR
@@ -20,8 +21,6 @@ from tools.ffprobe_scan import FfprobeScanner
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm, \
     SortingForm
 
-from main.helpers import get_engineer_id
-from .js_requests import program_name
 from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, update_comment, insert_history_new, \
     change_task_status_new, get_task_status, add_mark_no_cenz, insert_history_status
@@ -55,7 +54,6 @@ def handle_error(request, status_code, exception=None):
 
     return render(request, 'main/errors.html', context, status=status_code)
 
-from django.shortcuts import render
 
 def bad_request(request, exception):
     return render(request, 'main/errors.html', status=400)

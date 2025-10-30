@@ -1,0 +1,7 @@
+.collapse-icon {
+    transition: transform 0.2s ease;
+}
+
+[aria-expanded="true"] .collapse-icon {
+    transform: rotate(90deg);
+}

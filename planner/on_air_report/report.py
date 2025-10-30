@@ -212,8 +212,12 @@ def task_list_for_channel(sched_date, schedule_id, program_type=(4, 5, 6, 7, 8, 
                 # if not temp_dict.get('Task_file_path'):
                 temp_dict['Files_Name'] = find_file_path(program_id)
                 if not temp_dict.get('Task_program_id') and not temp_dict.get('Task_worker_id'):
-                    temp_dict['Oplan_worker_id'] = oplan3_engineer(program_id)
-                    temp_dict['Oplan_status'] = 'oplan_ready'
+                    oplan_worker_id = oplan3_engineer(program_id)
+                    if not oplan_worker_id:
+                        temp_dict['Task_task_status'] = 'no_task_list'
+                    else:
+                        temp_dict['Oplan_worker_id'] = oplan3_engineer(program_id)
+                        temp_dict['Oplan_status'] = 'oplan_ready'
                 if not temp_dict.get('Task_worker_id'):
                     temp_dict['sender'] = ''
                 task_list.append(temp_dict)

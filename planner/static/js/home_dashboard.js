@@ -19,7 +19,6 @@ function initDailyChart() {
   fetch(`/load_daily_kpi_chart/`)
     .then(response => response.json())
     .then(data => {
-    console.log(data);
       if (data.values && data.values.every(item => item === 0)) {
         dailyChartContainer.innerHTML = `<h4 class="text-center">Нет распределённых задач</div>`;
         return
