@@ -116,12 +116,56 @@ dropZone.addEventListener('drop', handleDrop, false);
       fileInput.click();
     }
   });
+  // Обработчик изменения файла через стандартный диалог
+  fileInput.addEventListener('change', function() {
+
+    if (this.files.length > 0) {
+        const fileName = this.files[0].name;
+        updateDropZoneAppearance(dropZone, fileName);
+    } else {
+      // Если файл сброшен
+        resetDropZoneAppearance(dropZone);
+    }
+    });
+
+  function updateDropZoneAppearance(dropZone, fileName) {
+    dropZone.classList.add('file-selected');
+    dropZone.classList.remove('border-secondary', 'text-secondary');
+    dropZone.classList.add('border-success', 'text-success');
+
+    const paragraphs = dropZone.querySelectorAll('p');
+    if (paragraphs.length >= 3) {
+        paragraphs[0].textContent = `Выбран файл: ${fileName}`;
+        paragraphs[1].textContent = '';
+        paragraphs[2].textContent = '';
+    } else if (paragraphs.length === 1) {
+        paragraphs[0].textContent = `Выбран файл: ${fileName}`;
+    }
+  };
+
+  function resetDropZoneAppearance(dropZone) {
+    dropZone.classList.remove('file-selected', 'border-success', 'text-success');
+    dropZone.classList.add('border-secondary', 'text-secondary');
+
+    const paragraphs = dropZone.querySelectorAll('p');
+    if (paragraphs.length >= 2) {
+        paragraphs[0].textContent = 'Перетащите файл сюда...';
+        paragraphs[1].textContent = '(или кликните для выбора)';
+        paragraphs[2].textContent = 'Убедитесь, что загружаете из папки "ContentA\\0_INTERNET_VIDEO\\_CENZ"';
+    }
+  };
 });
 
 function checkNoCenz() {
     const noCenz = document.getElementById('no_cenz').checked
     const dropZone = document.getElementById('drop_zone');
     const fileInput = document.getElementById('uploaded_ready_file_input');
+    fileInput.classList.remove('is-invalid', 'is-valid');
+
+    const event = new Event('change', { bubbles: true });
+    fileInput.dispatchEvent(event);
+    fileInput.value = ''
+
     if (noCenz) {
         dropZone.style.display = 'none';
         fileInput.style.display = 'none';
@@ -199,8 +243,11 @@ function ValidateAskFix(task) {
 function ValidateFileUpload(task) {
     const noCenz = document.getElementById('no_cenz').checked
     const fileInput = document.getElementById('uploaded_ready_file_input');
+
+    fileInput.classList.remove('is-invalid', 'is-valid');
     if (!noCenz && fileInput.files.length < 1 ) {
         fileInput.classList.add('is-invalid');
+        console.log('Есть ошибки валидации - проверьте выделенные поля');
         return;
     }
     fileInput.classList.remove('is-invalid');

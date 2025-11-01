@@ -123,7 +123,7 @@ function initializeDropZones() {
             }
         });
 
-          // Обработчик изменения файла через стандартный диалог
+        // Обработчик изменения файла через стандартный диалог
         fileInput.addEventListener('change', function() {
 
             if (this.files.length > 0) {
@@ -136,9 +136,10 @@ function initializeDropZones() {
         });
 
         function updateDropZoneAppearance(dropZone, fileName) {
-            dropZone.classList.add('file-selected');
             dropZone.classList.remove('border-secondary', 'text-secondary');
-            dropZone.classList.add('border-success', 'text-success');
+            dropZone.classList.add('file-selected', 'border-success', 'text-success');
+            fileInput.classList.remove('border-secondary', 'text-secondary');
+            fileInput.classList.add('border-success', 'text-success');
 
             const paragraphs = dropZone.querySelectorAll('p');
             if (paragraphs.length >= 2) {
@@ -152,6 +153,8 @@ function initializeDropZones() {
         function resetDropZoneAppearance(dropZone) {
             dropZone.classList.remove('file-selected', 'border-success', 'text-success');
             dropZone.classList.add('border-secondary', 'text-secondary');
+            fileInput.classList.remove('border-success', 'text-success');
+            fileInput.classList.add('border-secondary', 'text-secondary');
 
             const paragraphs = dropZone.querySelectorAll('p');
             if (paragraphs.length >= 2) {
@@ -255,7 +258,7 @@ function showReadyListModal() {
         cenzContainer.appendChild(cenz_file_path_group);
 
         let cenz_file_path = document.createElement("input");
-        cenz_file_path.classList.add('form-control');
+        cenz_file_path.classList.add('form-control', 'rounded');
         cenz_file_path.setAttribute('accept', 'video/*');
         cenz_file_path.setAttribute('type', 'file');
         cenz_file_path.name = 'cenz_file_path';

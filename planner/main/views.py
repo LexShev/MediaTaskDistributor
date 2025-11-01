@@ -299,7 +299,6 @@ def task_ready_batch(request):
     user_id = request.user.id
     try:
         data = json.loads(request.body)
-        print('task_ready_batch_data', data)
         if not data:
             return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
         new_values, file_info = data

@@ -107,6 +107,7 @@ class CenzFormText(forms.Form):
                     label = self.fields[field_name].label
                     self.fields[field_name].label = f'{label}\n<{field_value}>'
                     self.fields[field_name].initial = ''
+                    self.fields[field_name].widget.attrs['multiple'] = 'text-warning'
 
 
 class CenzFormDropDown(forms.Form):
@@ -146,7 +147,6 @@ class CenzFormDropDown(forms.Form):
                     label = self.fields[field_name].label
                     self.fields[field_name].label = f'{label} <{field_value}>'
                     self.fields[field_name].initial = ''
-
 
 class KpiForm(forms.Form):
     work_date_form = forms.DateField(widget=forms.DateInput(
