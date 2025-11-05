@@ -177,11 +177,11 @@ function totalCalc() {
 
 
 function ResetFilter() {
-    const [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus] =
-    ['ready_date', 'sched_date', 'deadline', 'engineer_id', 'material_type', 'sched_id', 'task_status']
+    const [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus, extraSet] =
+    ['ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status', 'extra_set']
     .map(id => document.getElementById(id));
 
-    [readyDate, schedDate, deadline, engineerId, materialType, schedId, taskStatus].forEach(el => {el.value = '';});
+    [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus, extraSet].forEach(el => {el.value = '';});
 
     document.getElementById('admin_form').submit();
 

@@ -1,7 +1,9 @@
 import json
 from datetime import datetime
 
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.expressions import result
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -9,7 +11,7 @@ from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
 from .models import AdminModel, TaskSearch
-from .admin_materials_list import task_info, update_task_list, add_in_task_list, del_task
+from .admin_materials_list import task_info, update_task_list, add_in_task_list, del_task, archive_task
 from .forms import AdminForm, DynamicSelector, TaskSearchForm
 
 
@@ -32,7 +34,6 @@ def task_manager(request):
         search_init_dict = TaskSearch.objects.get(owner=user_id)
         print("Новый фильтр создан")
 
-
     if request.method == 'POST':
         search_form = TaskSearchForm(request.POST, instance=search_init_dict)
         if search_form.is_valid():
@@ -40,8 +41,6 @@ def task_manager(request):
 
         filter_form = AdminForm(request.POST, instance=filter_init_dict)
         if filter_form.is_valid():
-            # field_vals = [filter_form.cleaned_data.get(field_key) for field_key in filter_form.fields.keys()]
-            # field_dict = dict(zip(filter_form.fields.keys(), field_vals))
             filter_form.save()
 
         program_id_check = request.POST.getlist('program_id_check')
@@ -49,11 +48,29 @@ def task_manager(request):
 
         if program_id_check:
             if change_type == '1':
-                update_task_list(request)
+                answer = update_task_list(request)
+                if answer.get('status') == 'success':
+                    messages.success(request, answer.get('message'))
+                else:
+                    messages.error(request, answer.get('message'))
             elif change_type == '2':
-                add_in_task_list(request)
+                answer = add_in_task_list(request)
+                if answer.get('status') == 'success':
+                    messages.success(request, answer.get('message'))
+                else:
+                    messages.error(request, answer.get('message'))
             elif change_type == '3':
-                del_task(request)
+                answer = archive_task(request)
+                if answer.get('status') == 'success':
+                    messages.success(request, answer.get('message'))
+                else:
+                    messages.error(request, answer.get('message'))
+            elif change_type == '4':
+                answer = del_task(request)
+                if answer.get('status') == 'success':
+                    messages.success(request, answer.get('message'))
+                else:
+                    messages.error(request, answer.get('message'))
     else:
         filter_form = AdminForm(instance=filter_init_dict)
         search_form = TaskSearchForm(initial={

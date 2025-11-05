@@ -52,7 +52,6 @@ def main_distribution(distr_sched_end_date=None, distr_sched_id=None) -> Dict[st
     # 11	Семейное кино
     # 12	Советское родное кино
     # 20	Кино +
-    print('total sched_id', distr_sched_id, len(distr_sched_id))
 
     material_list_sql, django_columns = oplan_material_list(
         start_date=start_work_date,
@@ -62,7 +61,6 @@ def main_distribution(distr_sched_end_date=None, distr_sched_id=None) -> Dict[st
     if not material_list_sql:
         return {'status': 'success', 'message': 'Нет новых задач для распределения',
                 'success_list': [], 'error_list': []}
-    # , schedules_id = (3, 5, 6, 7, 8, 9, 10, 11, 12)
     program_id_list = []
     success_list = []
     error_list = []

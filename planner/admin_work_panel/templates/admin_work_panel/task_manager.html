@@ -15,27 +15,28 @@
       <div class="row ms-0 m-2 align-items-center">
         {% for field in filter_form %}
           <div class="col ps-0">
-            <div class="form-floating" style="width:210px;">
+            <div class="form-floating" style="width:190px;">
               {{ field }}
               {{ field.label_tag }}
             </div>
           </div>
         {% endfor %}
-        <div class="col ps-0 m-0">
-          <button type="submit" class="btn register-button btn-outline-secondary">Применить</button>
-          <button type="button" onclick="ResetFilter()" class="btn btn-sm register-button btn-outline-secondary">Сбросить</button>
-        </div>
       </div>
     </div>
 
-    <div class="input-group mb-3" style="width: 80%;">
+    <div class="input-group mb-3" style="width: 87%;">
         <label class="input-group-text" for="search_type">Поиск по</label>
         {{ search_form.search_type }}
         {{ search_form.search_input }}
         {{ search_form.sql_set }}
-        <button type="submit" class="btn btn-outline-secondary">
+        <button type="submit" class="btn btn-outline-secondary" style="width: 7rem;">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+          </svg>
+        </button>
+        <button type="button" onclick="ResetFilter()" class="btn register-button btn-outline-secondary" style="width: 3rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eraser" viewBox="0 0 16 16">
+            <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828l6.879-6.879zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293 4.633-4.633a1 1 0 0 0 0-1.414l-3.879-3.879zM8.746 13.547 3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293l.16-.16z"/>
           </svg>
         </button>
     </div>
@@ -85,8 +86,9 @@
             <label class="input-group-text" for="change_type">Выберите действие</label>
             <select class="form-select" id="change_type" name="change_type">
               <option value="1" selected>Внести изменения</option>
-              <option value="2">Добавить в Общую задачу</option>
-              <option value="3">Удалить выбранное</option>
+              <option value="2">Добавить в Мои задачи</option>
+              <option value="3">Переместить в архив</option>
+              <option value="4">Удалить выбранное</option>
             </select>
             <button type="button" class="btn btn-outline-secondary" onclick="showApproveTaskChange()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">

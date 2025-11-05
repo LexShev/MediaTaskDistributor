@@ -6,14 +6,17 @@ from main.form_choices import choice
 class AdminForm(forms.ModelForm):
     class Meta:
         model = AdminModel
-        fields = ('ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status')
+        fields = ('ready_date', 'sched_date', 'deadline', 'worker_id',
+                  'material_type', 'sched_id', 'task_status', 'extra_set')
+
         labels = {'ready_date': 'Дата завершения',
                   'sched_date': 'Дата эфира',
                   'deadline': 'Крайний срок',
                   'worker_id': 'Выполняет',
                   'material_type': 'Тип материала',
                   'sched_id': 'Канал',
-                  'task_status': 'Статус задачи'}
+                  'task_status': 'Статус задачи',
+                  'extra_set': 'Дополнительно'}
 
         widgets = {
             'ready_date': forms.DateInput(
@@ -30,6 +33,8 @@ class AdminForm(forms.ModelForm):
                 attrs={'class': "form-select", 'id': "sched_id"}, choices=choice.schedules),
             'task_status': forms.Select(
                 attrs={'class': "form-select", 'id': "task_status"}, choices=choice.task_status),
+            'extra_set': forms.Select(
+                attrs={'class': "form-select", 'id': "extra_set"}, choices=choice.extra_set),
         }
 class TaskSearchForm(forms.ModelForm):
     class Meta:

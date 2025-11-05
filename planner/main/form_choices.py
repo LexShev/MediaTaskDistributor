@@ -141,6 +141,13 @@ class Choices:
             status_list.extend(extra)
         return status_list
 
+    def extra_set(self, label='-'):
+        return [
+            ('', label),
+            ('deleted', 'Удалено'),
+            ('archived', 'В архиве')
+        ]
+
     def material_type(self, label='-'):
         return [
             ('', label),
