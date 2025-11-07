@@ -15,7 +15,7 @@ def check_value(table, key, value):
 
 def check_sched(schedules):
     if not schedules or not any(schedules):
-        return ''
+        return 'AND SchedProg.[Deleted] = 0'
     query = []
     for schedule in schedules:
         if schedule in ('1', '99'):
@@ -99,16 +99,18 @@ def find_file_path(program_id):
         return None
 
 def check_sched_date(sched_dates):
+    if not sched_dates:
+        return ''
     try:
-        return [datetime.strptime(str_date, '%d.%m.%Y') for str_date in sched_dates.split(' - ')]
+        start, end = [datetime.strptime(str_date, '%d.%m.%Y') for str_date in sched_dates.split(' - ')]
+        return f"AND SchedDay.[day_date] BETWEEN '{start}' AND '{end}'"
     except Exception as error:
         print(error)
-        return [date.today(), date.today()]
+        return f"AND SchedDay.[day_date] BETWEEN '{date.today()}' AND '{date.today()}'"
 
 def task_info(field_dict, search_type, search_input, sql_set):
     # field_dict = check_dict(field_dict)
-    sched_date_start, sched_date_end = check_sched_date(field_dict.get('sched_dates'))
-    sched_prog_end_date = sched_date_end + timedelta(days=1)
+    # sched_prog_end_date = sched_date_end + timedelta(days=1)
     # schedules = field_dict.get('schedules')
 
 
@@ -118,7 +120,7 @@ def task_info(field_dict, search_type, search_input, sql_set):
             ('Task', 'work_date'), ('SchedDay', 'day_date'), ('SchedDay', 'schedule_id'), ('Task', 'sched_id'),
             ('SchedProg', 'DateTime'), ('Task', 'task_status'), ('Task', 'file_path'), ('Progs', 'program_id'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
-            ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Task', 'noCENZ')
+            ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Task', 'CENZ')
         ]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -141,14 +143,13 @@ def task_info(field_dict, search_type, search_input, sql_set):
             ON Progs.[program_id] = Task.[program_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
-        AND SchedProg.[Deleted] = 0
         AND Progs.[program_id] > 0
         {check_value('Task', 'worker_id', field_dict.get('workers'))}
         {check_sched(field_dict.get('schedules'))}
         {check_task_status(field_dict.get('task_status'))}
         {check_material_type(field_dict.get('material_type'))}
         {on_air_search(search_type, search_input)}
-        AND SchedDay.[day_date] BETWEEN '{sched_date_start}' AND '{sched_date_end}'
+        {check_sched_date(field_dict.get('sched_dates'))}
         ORDER BY SchedProg.[DateTime] ASC
         '''
 

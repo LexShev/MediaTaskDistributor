@@ -74,17 +74,21 @@ def planner_worker_username(worker_id):
 
 @register.filter
 def planner_worker_name(worker_id):
-    if worker_id:
-        with connections[OPLAN_DB].cursor() as cursor:
-            query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
-            cursor.execute(query, (worker_id,))
-            worker = cursor.fetchone()
-            if worker:
-                username, first_name, last_name = worker
-                return f'{first_name} {last_name}'
-            else:
-                return 'Аноним'
-    else:
+    try:
+        if worker_id:
+            with connections[OPLAN_DB].cursor() as cursor:
+                query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
+                cursor.execute(query, (worker_id,))
+                worker = cursor.fetchone()
+                if worker:
+                    username, first_name, last_name = worker
+                    return f'{first_name} {last_name}'
+                else:
+                    return 'Аноним'
+        else:
+            return ''
+    except Exception as error:
+        print(error)
         return ''
 
 @register.filter

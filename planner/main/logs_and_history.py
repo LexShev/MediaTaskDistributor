@@ -266,6 +266,23 @@ def add_mark_no_cenz(program_id):
         print(error)
         return {'status': 'error', 'message': str(error)}
 
+def add_mark_cenz(program_id):
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            query = f'''
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                SET [CENZ] = 1
+                WHERE [program_id] = %s
+                '''
+            cursor.execute(query, (program_id,))
+            if cursor.rowcount:
+                return {'status': 'success', 'message': 'mark CENZ was added successfully'}
+            else:
+                return {'status': 'error', 'message': 'mark CENZ was not added'}
+    except Exception as error:
+        print(error)
+        return {'status': 'error', 'message': str(error)}
+
 def update_comment(program_id, user_id, task_status=None, comment=None, deadline=None):
     try:
         with connections[PLANNER_DB].cursor() as cursor:

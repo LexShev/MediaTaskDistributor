@@ -117,9 +117,9 @@ function getCellValue(row, order) {
 
         case 'cenz':
             // cenz
-            const noCenz = cells[10].dataset.noCenz.trim();
-            // Возвращаем true если есть иконка (не Task_noCENZ), false если нет
-            return noCenz === 'False' || noCenz === 'false' || noCenz === null || noCenz === 'None';
+            const cenz = cells[10].dataset.cenz.trim();
+            // Возвращаем true если есть иконка (не Task_CENZ), false если нет
+            return cenz === 'False' || cenz === 'false' || cenz === null || cenz === 'None';
         
         default:
             return '';

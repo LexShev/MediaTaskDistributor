@@ -145,7 +145,8 @@ class Choices:
         return [
             ('', label),
             ('deleted', 'Удалено'),
-            ('archived', 'В архиве')
+            ('archived', 'В архиве'),
+            ('no_cenz', 'Была цензура'),
         ]
 
     def material_type(self, label='-'):

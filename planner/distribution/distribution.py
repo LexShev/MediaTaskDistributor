@@ -86,13 +86,17 @@ def main_distribution(distr_sched_end_date=None, distr_sched_id=None) -> Dict[st
             status = 'not_ready'
             start_ffmpeg_scanners(file_id=file_id, file_path=file_path)
         else:
-            file_path = ''
+            file_id, file_path = '', ''
             status = 'no_material'
         rowcount = insert_film(program_id, worker_id, duration, sched_id, sched_date, work_date, status, file_path)
         if rowcount > 0:
-            success_list.append([program_id, progs_name, file_path, duration, sched_id, sched_date])
+            success_list.append({'program_id': program_id, 'progs_name': progs_name,
+                                 'file_id': file_id, 'file_path': file_path, 'duration': duration,
+                                 'worker_id': worker_id, 'sched_id': sched_id, 'sched_date': sched_date})
         else:
-            error_list.append([program_id, progs_name, file_path, duration, sched_id, sched_date])
+            error_list.append({'program_id': program_id, 'progs_name': progs_name,
+                               'file_id': file_id, 'file_path': file_path, 'duration': duration,
+                               'worker_id': worker_id, 'sched_id': sched_id, 'sched_date': sched_date})
     if not error_list:
         return {'status': 'success', 'message': 'Распределение успешно завершено без ошибок',
                 'success_list': success_list, 'error_list': []}

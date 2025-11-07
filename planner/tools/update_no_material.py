@@ -70,7 +70,7 @@ def get_no_material_list() -> Dict[str, str]:
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(
             f'''
-            SELECT Task.[program_id], Task.[worker_id], Files.[FileID], Files.[Name]
+            SELECT Task.[program_id], Progs.[name], Progs.[duration], Files.[FileID], Files.[Name], Task.[worker_id]
             FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
             JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
                 ON Task.[program_id] = Progs.[program_id]
@@ -88,7 +88,7 @@ def get_no_material_list() -> Dict[str, str]:
         )
         no_material_list = cursor.fetchall()
         if no_material_list:
-            for program_id, worker_id, file_id, file_path in no_material_list:
+            for program_id, progs_name, duration, file_id, file_path, worker_id in no_material_list:
                 try:
                     start_ffmpeg_scanners(file_id, file_path)
                 except Exception as error:
@@ -135,10 +135,17 @@ def get_no_material_list() -> Dict[str, str]:
                          'message': 'Появился недостающий медиафайл',
                          'comment': comment}
                     )
-                    success_list.append([program_id, worker_id, file_id, file_path])
+                    success_list.append({'program_id': program_id, 'progs_name': progs_name,
+                                        'file_id': file_id, 'file_path': file_path, 'duration': duration,
+                                        'worker_id':worker_id, 'sched_id': new_schedule_id, 'sched_date': new_sched_date})
                 except Exception as error:
                     print(error)
-                    error_list.append([program_id, worker_id, file_id, file_path])
+                    error_list.append({'program_id': program_id, 'progs_name': progs_name,
+                                        'file_id': file_id, 'file_path': file_path, 'duration': duration,
+                                        'worker_id':worker_id, 'sched_id': new_schedule_id, 'sched_date': new_sched_date}),
+
     return {
-        'status': 'success', 'message': 'Программы без материала успешно проанализированы', 'success_list': success_list, 'error_list': error_list,
-        'sched_results': sched_results}
+        'status': 'success', 'message': 'Программы без материала успешно проанализированы',
+        'success_list': success_list, 'error_list': error_list,
+        'sched_results': sched_results, 'no_material_list': no_material_list
+    }

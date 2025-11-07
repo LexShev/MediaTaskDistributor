@@ -32,7 +32,8 @@ def choose_order(name):
         'sched_date': 'Task.[sched_date]',
         'status': 'Task.[task_status]',
         'duration': 'Task.[duration]',
-        'file_path': 'Task.[file_path]'
+        'file_path': 'Task.[file_path]',
+        'cenz': 'Task.[CENZ]',
     }
     return order_dict.get(name, 'Progs.[name]')
 
@@ -41,6 +42,8 @@ def check_extra_set(extra_set):
         return 'AND (Progs.[deleted] = 1 OR Progs.[DeletedIncludeParent] = 1)'
     elif extra_set == 'archived':
         return 'AND Task.[archived] = 1'
+    elif extra_set == 'no_cenz':
+        return 'AND Task.[CENZ] = 1'
     else:
         return ''
 
@@ -49,7 +52,7 @@ def task_info(field_dict, search_init_dict):
         columns = [
             ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'), ('Task', 'work_date'),
             ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
-            ('Task', 'archived'), ('Task', 'archiving_date'),
+            ('Task', 'archived'), ('Task', 'archiving_date'), ('Task', 'CENZ'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
             ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Progs', 'deleted'), ('Progs', 'DeletedIncludeParent')
         ]

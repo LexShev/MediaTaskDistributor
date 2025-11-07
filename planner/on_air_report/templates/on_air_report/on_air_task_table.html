@@ -174,8 +174,8 @@
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-datetime="{{ task.SchedProg_DateTime|date:'c' }}">{{ task.SchedProg_DateTime|date:'d.m.Y H:i:s' }}</td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-duration="{{ task.Progs_duration }}">{{ task.Progs_duration|convert_frames_to_time }}</td>
         <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{% if task.Task_task_status %}{{ task.Task_task_status|status_name }}{% else %}{{ task.Oplan_status|status_name }}{% endif %}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-no-cenz="{{ task.Task_noCENZ }}">
-          {% if not task.Task_noCENZ %}
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-cenz="{{ task.Task_CENZ }}">
+          {% if task.Task_CENZ %}
             <span title="Замена файла">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-check" viewBox="0 0 16 16">
                 <path d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 8.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>

@@ -86,6 +86,8 @@ $(function() {
   $('input[name="sched_dates"]').daterangepicker({
     "showWeekNumbers": true,
     "autoApply": true,
+    "autoUpdateInput": false,
+    "cancelClass": "btn-secondary",
     "locale": {
         "format": "DD.MM.YYYY",
         "separator": " - ",
@@ -132,3 +134,8 @@ $(function() {
   });
 
 });
+
+function clearDate() {
+    let schedDates = document.getElementById('sched_dates');
+    schedDates.value = '';
+};

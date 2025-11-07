@@ -15,12 +15,29 @@
     {% if service_report_data.success_list %}
     <h4>Успешно выполнено:</h4>
         <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th style="width: 5%;">Program_id</th>
+                <th style="width: 30%;">Название</th>
+                <th style="width: 5%;">File_id</th>
+                <th style="width: 35%;">Путь к файлу</th>
+                <th style="width: 5%;">Длительность</th>
+                <th style="width: 7%;">Исполнитель</th>
+                <th style="width: 7%;">Расписание</th>
+                <th style="width: 6%;">Дата эфира</th>
+            </tr>
+        </thead>
         <tbody id="sucess_list">
           {% for program in service_report_data.success_list %}
             <tr>
-              {% for data in program %}
-                <td class="text-success-emphasis bg-success-subtle">{{ data }}</td>
-              {% endfor %}
+              <td class="text-success-emphasis bg-success-subtle">{{ program.program_id }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.progs_name }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.file_id }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.file_path }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.duration|convert_frames_to_time }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.worker_id|planner_worker_name }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.sched_id|schedule_name }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.sched_date|date:'d.m.Y' }}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -30,12 +47,29 @@
     {% if service_report_data.error_list %}
     <h4>Не выполнено:</h4>
         <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th style="width: 5%;">Program_id</th>
+                <th style="width: 30%;">Название</th>
+                <th style="width: 5%;">File_id</th>
+                <th style="width: 35%;">Путь к файлу</th>
+                <th style="width: 5%;">Длительность</th>
+                <th style="width: 7%;">Исполнитель</th>
+                <th style="width: 7%;">Расписание</th>
+                <th style="width: 6%;">Дата эфира</th>
+            </tr>
+        </thead>
         <tbody id="error_list">
           {% for program in service_report_data.error_list %}
             <tr>
-              {% for data in program %}
-                <td class="text-danger-emphasis bg-danger-subtle">{{ data }}</td>
-              {% endfor %}
+              <td class="text-success-emphasis bg-success-subtle">{{ program.program_id }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.progs_name }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.file_id }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.file_path }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.duration|convert_frames_to_time }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.worker_id|planner_worker_name }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.sched_id|schedule_name }}</td>
+              <td class="text-success-emphasis bg-success-subtle">{{ program.sched_date|date:'d.m.Y' }}</td>
             </tr>
           {% endfor %}
         </tbody>

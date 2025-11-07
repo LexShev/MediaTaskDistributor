@@ -17,13 +17,12 @@ from planner.settings import CURRENT_CENZ_DIR
 from tools.ffmpeg_processing import start_ffmpeg_scanners
 
 from .ffmpeg_info import ffmpeg_dict
-from tools.ffprobe_scan import FfprobeScanner
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm, \
     SortingForm
 
 from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, update_comment, insert_history_new, \
-    change_task_status_new, get_task_status, add_mark_no_cenz, insert_history_status
+    change_task_status_new, get_task_status, add_mark_no_cenz, insert_history_status, add_mark_cenz
 from .models import ModelFilter, AttachedFiles, ModelSorting
 from .list_view import list_material_list
 from .object_block import unblock_object_planner, block_object_planner, check_planner_lock, \
@@ -335,6 +334,7 @@ def task_ready_batch(request):
                     continue
             else:
                 task_status = 'ready'
+                add_mark_cenz(program_id)
                 answer = change_task_status_new(program_id, new_values, task_status, db_task_status, new_file_path=new_file_path)
                 message = answer.get('message')
                 if answer.get('status') == 'success':
@@ -490,6 +490,7 @@ def status_ready(request):
             return JsonResponse({'status': 'error', 'message': message})
     else:
         task_status = 'ready'
+        add_mark_cenz(program_id)
         answer = change_task_status_new(program_id, new_values, task_status, db_task_status, new_file_path=new_file_path)
         message = answer.get('message')
         if answer.get('status') == 'success':

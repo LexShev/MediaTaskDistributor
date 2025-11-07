@@ -15,7 +15,8 @@ class OnAirReportFilter(forms.ModelForm):
             'ready_dates': forms.DateInput(
                 attrs={'class': 'form-control', 'data-bs-theme': 'light', 'type': 'text', 'id': 'ready_dates'}),
             'sched_dates': forms.DateInput(
-                attrs={'class': 'form-control', 'data-bs-theme': 'light', 'type': 'text', 'id': 'sched_dates'}),
+                attrs={'class': 'form-control', 'data-bs-theme': 'light', 'type': 'text', 'id': 'sched_dates',
+                       'autocomplete': "off", 'autocorrect': "off", 'spellcheck': "false"}),
             'workers': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown w-100', 'id': 'workers'},
                 choices=choice.workers('Выполняет')),
