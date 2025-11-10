@@ -15,7 +15,7 @@ def check_value(table, key, value):
 
 def check_sched(schedules):
     if not schedules or not any(schedules):
-        return 'AND SchedProg.[Deleted] = 0'
+        return ''
     query = []
     for schedule in schedules:
         if schedule in ('1', '99'):
@@ -118,9 +118,9 @@ def task_info(field_dict, search_type, search_input, sql_set):
         columns = [
             ('Task', 'program_id'), ('Task', 'worker_id'), ('Files', 'Name'), ('Files', 'ClipID'), ('Progs', 'duration'),
             ('Task', 'work_date'), ('SchedDay', 'day_date'), ('SchedDay', 'schedule_id'), ('Task', 'sched_id'),
-            ('SchedProg', 'DateTime'), ('Task', 'task_status'), ('Task', 'file_path'), ('Progs', 'program_id'),
-            ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
-            ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Task', 'CENZ')
+            ('SchedProg', 'DateTime'), ('SchedProg', 'Deleted'), ('Task', 'task_status'), ('Task', 'file_path'),
+            ('Progs', 'program_id'), ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'),
+            ('Progs', 'keywords'), ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Task', 'CENZ')
         ]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -162,6 +162,8 @@ def task_info(field_dict, search_type, search_input, sql_set):
         program_id = material.get('Progs_program_id')
         if program_id in program_id_list:
             material['is_duplicate'] = True
+        if material.get('SchedProg_Deleted') != 0:
+            material['deleted_sched'] = True
         if not material.get('Task_program_id') and not material.get('Task_worker_id'):
             oplan_worker_id = oplan3_engineer(program_id)
             if not oplan_worker_id:
