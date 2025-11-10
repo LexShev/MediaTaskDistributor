@@ -1,3 +1,4 @@
+import random
 from datetime import datetime, timedelta, date
 from typing import Dict
 
@@ -64,6 +65,8 @@ def main_distribution(distr_sched_end_date=None, distr_sched_id=None) -> Dict[st
     program_id_list = []
     success_list = []
     error_list = []
+    # Перемешиваем список
+    random.shuffle(material_list_sql)
     for i, program_info in enumerate(material_list_sql, 1):
         if not program_info:
             continue

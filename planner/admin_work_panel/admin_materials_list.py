@@ -145,6 +145,101 @@ def update_task_list(request) -> Dict[str, str]:
         return {'status': 'error', 'message': str(error)}
 
 
+from django.db import transaction
+
+
+def reset_progress(request) -> Dict[str, str]:
+    try:
+        user_id = request.user.id
+        program_id_check = request.POST.getlist('program_id_check')
+
+        if not program_id_check:
+            return {'status': 'error', 'message': 'Пустой список для добавления'}
+
+        # Используем транзакцию Django
+        with transaction.atomic(using=PLANNER_DB):
+            with connections[PLANNER_DB].cursor() as cursor:
+                # 1. Добавление в историю статусов
+                history_values = [
+                    (program_id, user_id, program_id, 'not_ready')
+                    for program_id in program_id_check
+                ]
+                add_history = f'''
+                INSERT INTO [{PLANNER_DB}].[dbo].[history_status_list]
+                ([program_id], [worker_id], [time_of_change], [old_status], [new_status])
+                VALUES (%s, %s, GETDATE(), 
+                    (SELECT task_status FROM [{PLANNER_DB}].[dbo].[task_list] WHERE program_id = %s), 
+                    %s)
+                '''
+                cursor.executemany(add_history, history_values)
+
+                # 2. Добавление в историю комментариев
+                comment_values = [
+                    (program_id, 'not_ready', user_id, 'Статус задачи сброшен администратором')
+                    for program_id in program_id_check
+                ]
+                add_comment = f'''
+                INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
+                ([program_id], [task_status], [worker_id], [comment], [time_of_change])
+                VALUES (%s, %s, %s, %s, GETDATE())
+                '''
+                cursor.executemany(add_comment, comment_values)
+
+                # 3. Сброс задачи + добавление в filepath_history
+                reset_values = [
+                    (program_id, user_id, program_id)
+                    for program_id in program_id_check
+                ]
+                reset_task = f'''
+                UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                SET [task_status] = 'not_ready', [ready_date] = NULL, [CENZ] = NULL, [file_path] = (
+                    SELECT Files.[Name]
+                    FROM [{OPLAN_DB}].[dbo].[File] AS Files
+                    JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
+                        ON Files.[ClipID] = Clips.[ClipID]
+                    JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
+                        ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+                    WHERE Files.[Deleted] = 0
+                    AND Files.[PhysicallyDeleted] = 0
+                    AND Clips.[Deleted] = 0
+                    AND Progs.[deleted] = 0
+                    AND Progs.[DeletedIncludeParent] = 0
+                    AND Progs.[program_id] = %s
+                )
+                OUTPUT
+                    INSERTED.program_id,
+                    INSERTED.file_path,
+                    INSERTED.task_status,
+                    GETDATE(),
+                    %s
+                INTO [{PLANNER_DB}].[dbo].[filepath_history]
+                    (program_id, file_path, task_status, time_of_change, worker_id)
+                WHERE [program_id] = %s
+                '''
+                cursor.executemany(reset_task, reset_values)
+
+                # 4. Удаление кастомных полей
+                delete_values = [(program_id,) for program_id in program_id_check]
+                cust_field_del = f'''
+                DELETE FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
+                WHERE [ProgramCustomFieldId] IN (7, 14, 15)
+                AND [ObjectId] = %s
+                '''
+                cursor.executemany(cust_field_del, delete_values)
+
+            row_count = len(program_id_check)
+            # Автоматический коммит при успешном завершении блока with transaction.atomic
+            return {
+                'status': 'success',
+                'message': f'Успешно обновлено записей: {row_count}',
+                'count': row_count
+            }
+
+    except Exception as error:
+        # Автоматический rollback при исключении
+        print(f"Error in reset_progress: {error}")
+        return {'status': 'error', 'message': str(error)}
+
 def add_in_task_list(request) -> Dict[str, str]:
     try:
         program_id_check = request.POST.getlist('program_id_check')

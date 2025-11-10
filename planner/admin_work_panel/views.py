@@ -11,7 +11,7 @@ from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
 from .models import AdminModel, TaskSearch
-from .admin_materials_list import task_info, update_task_list, add_in_task_list, del_task, archive_task
+from .admin_materials_list import task_info, update_task_list, add_in_task_list, del_task, archive_task, reset_progress
 from .forms import AdminForm, DynamicSelector, TaskSearchForm
 
 
@@ -54,18 +54,24 @@ def task_manager(request):
                 else:
                     messages.error(request, answer.get('message'))
             elif change_type == '2':
-                answer = add_in_task_list(request)
+                answer = reset_progress(request)
                 if answer.get('status') == 'success':
                     messages.success(request, answer.get('message'))
                 else:
                     messages.error(request, answer.get('message'))
             elif change_type == '3':
-                answer = archive_task(request)
+                answer = add_in_task_list(request)
                 if answer.get('status') == 'success':
                     messages.success(request, answer.get('message'))
                 else:
                     messages.error(request, answer.get('message'))
             elif change_type == '4':
+                answer = archive_task(request)
+                if answer.get('status') == 'success':
+                    messages.success(request, answer.get('message'))
+                else:
+                    messages.error(request, answer.get('message'))
+            elif change_type == '5':
                 answer = del_task(request)
                 if answer.get('status') == 'success':
                     messages.success(request, answer.get('message'))
