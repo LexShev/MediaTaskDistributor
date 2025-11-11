@@ -8,9 +8,25 @@ from messenger_static.messenger_utils import create_notification
 from planner.settings import PLANNER_DB, OPLAN_DB
 from tools.ffmpeg_processing import start_ffmpeg_scanners
 
+
 def update_sched_date(program_id) -> Dict[str, str]:
-    # if program_id != 279438:
-    #     return {'status': 'error', 'message': f'Для {program_id} дата эфира не изменялась'}
+    """
+    Обновляет дату эфира для программы.
+    Всегда возвращает dict с ожидаемыми ключами, даже при ошибках.
+    """
+    # Стандартная структура ответа при ошибках
+    error_response = {
+        'status': 'error',
+        'message': f'Ошибка при обработке программы {program_id}',
+        'deleted_list': [],
+        'old_sched_date': None,
+        'new_sched_date': None,
+        'sched_date_changed': False,
+        'channel_changed': False,
+        'old_schedule_id': None,
+        'new_schedule_id': None
+    }
+
     try:
         query = f'''
         SELECT Progs.[Name], Task.[sched_id], SchedDay.[schedule_id],
@@ -25,24 +41,46 @@ def update_sched_date(program_id) -> Dict[str, str]:
         WHERE Task.[program_id] = %s
         ORDER BY SchedDay.[day_date] ASC
         '''
+
         with connections[OPLAN_DB].cursor() as cursor:
             cursor.execute(query, (program_id,))
             sched_list = cursor.fetchall()
+
             if not sched_list:
-                return {'status': 'error', 'message': f'Для {program_id} дата эфира не изменялась'}
+                return {
+                    'status': 'error',
+                    'message': f'Для программы {program_id} не найдено данных в расписании',
+                    'deleted_list': [],
+                    'old_sched_date': None,
+                    'new_sched_date': None,
+                    'sched_date_changed': False,
+                    'channel_changed': False,
+                    'old_schedule_id': None,
+                    'new_schedule_id': None
+                }
+
             today = date.today()
             deleted_list = []
             nearest_sched_date = None
             new_schedule_id = None
+
+            # Извлекаем данные из первой записи для базовой информации
+            name, task_sched_id, sched_schedule_id, task_sched_date, sched_day_date, is_deleted = sched_list[0]
+
             for program in sched_list:
                 name, task_sched_id, sched_schedule_id, task_sched_date, sched_day_date, is_deleted = program
                 if is_deleted and task_sched_date == sched_day_date:
-                    deleted_list.append([program_id, name, task_sched_id, sched_schedule_id, task_sched_date, sched_day_date, is_deleted])
+                    deleted_list.append(
+                        [program_id, name, task_sched_id, sched_schedule_id, task_sched_date, sched_day_date,
+                         is_deleted])
+
                 # Ищем ближайшую будущую дату из НЕудалённых
                 if not is_deleted and sched_day_date > today:
                     if nearest_sched_date is None or sched_day_date < nearest_sched_date:
                         nearest_sched_date = sched_day_date
                         new_schedule_id = sched_schedule_id
+
+            # Если нашли подходящую дату для обновления
             if deleted_list and nearest_sched_date:
                 update_query = f'''
                         DECLARE @new_sched_date DATE
@@ -53,15 +91,37 @@ def update_sched_date(program_id) -> Dict[str, str]:
                         '''
                 cursor.execute(update_query, (nearest_sched_date, program_id))
                 print(f"Для программы {name} обновлена дата эфира с {task_sched_date} на {nearest_sched_date}")
-            return {'status': 'success',
+
+                return {
+                    'status': 'success',
                     'message': f"Для программы {name} обновлена дата эфира с {task_sched_date} на {nearest_sched_date}",
-                    'deleted_list': deleted_list, 'old_sched_date': task_sched_date, 'new_sched_date': nearest_sched_date,
+                    'deleted_list': deleted_list,
+                    'old_sched_date': task_sched_date,
+                    'new_sched_date': nearest_sched_date,
                     'sched_date_changed': task_sched_date != nearest_sched_date,
                     'channel_changed': task_sched_id != new_schedule_id,
-                    'old_schedule_id': task_sched_id, 'new_schedule_id': new_schedule_id}
+                    'old_schedule_id': task_sched_id,
+                    'new_schedule_id': new_schedule_id
+                }
+            else:
+                # Не было что обновлять, но это не ошибка
+                return {
+                    'status': 'success',
+                    'message': f"Для программы {name} не требуется обновление даты эфира",
+                    'deleted_list': deleted_list,
+                    'old_sched_date': task_sched_date,
+                    'new_sched_date': nearest_sched_date or task_sched_date,
+                    'sched_date_changed': False,
+                    'channel_changed': False,
+                    'old_schedule_id': task_sched_id,
+                    'new_schedule_id': new_schedule_id or task_sched_id
+                }
+
     except Exception as error:
-        print(error)
-        return {'status': 'error', 'message': str(error)}
+        print(f"Ошибка в update_sched_date для программы {program_id}: {error}")
+        # Возвращаем полную структуру с описанием ошибки
+        error_response['message'] = f"Ошибка при обновлении даты эфира для программы {program_id}: {str(error)}"
+        return error_response
 
 def get_no_material_list() -> Dict[str, str]:
     success_list = []
@@ -121,6 +181,10 @@ def get_no_material_list() -> Dict[str, str]:
                             AND Progs.[DeletedIncludeParent] = 0
                         ''', (program_id,)
                     )
+                    old_sched_date = None
+                    new_sched_date = None
+                    old_schedule_id = None
+                    new_schedule_id = None
                     comment = 'Статус материала изменился\nМатериал отсутствует -> Не готов\n'
                     if sched_result.get('status') == 'success' and sched_result.get('sched_date_changed'):
                         old_sched_date = sched_result.get('old_sched_date')

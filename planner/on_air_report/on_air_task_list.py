@@ -160,10 +160,11 @@ def task_info(field_dict, search_type, search_input, sql_set):
     program_id_list = []
     for material in material_list:
         program_id = material.get('Progs_program_id')
+        sched_time = material.get('SchedProg_DateTime')
         if program_id in program_id_list:
             material['is_duplicate'] = True
         if material.get('SchedProg_Deleted') != 0:
-            material['deleted_sched'] = True
+            material['deleted_sched'] = check_sched_changes(program_id, sched_time)
         if not material.get('Task_program_id') and not material.get('Task_worker_id'):
             oplan_worker_id = oplan3_engineer(program_id)
             if not oplan_worker_id:
@@ -175,6 +176,24 @@ def task_info(field_dict, search_type, search_input, sql_set):
             material['sender'] = ''
         program_id_list.append(program_id)
     return material_list
+
+def check_sched_changes(program_id, sched_time):
+    try:
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f'''
+            SELECT [Deleted]
+            FROM [{OPLAN_DB}].[dbo].[scheduled_program]
+            WHERE [program_id] = %s
+            AND [DateTime] = CONVERT(DATETIME, %s)
+            '''
+            cursor.execute(query, (program_id, sched_time))
+            result = cursor.fetchone()
+            if result and result[0]:
+                return result[0]
+    except Exception as error:
+        print(error)
+        return 0
+    return 0
 
 def oplan3_engineer(program_id):
     try:

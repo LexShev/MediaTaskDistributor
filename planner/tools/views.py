@@ -1,7 +1,10 @@
+import json
+
 from django.http import JsonResponse
 from django.shortcuts import render
 
 from main.permission_pannel import ask_db_permissions
+from tools.helpers import CustomJSONEncoder
 from tools.update_no_material import get_no_material_list
 
 
@@ -17,7 +20,7 @@ def update_no_material(request):
         #             'channel_changed': True,
         #             'old_schedule_id': 'task_sched_id', 'new_schedule_id': 'new_schedule_id',
         #           'sucess_list': ['program_id', 'worker_id', 'file_id', 'file_path'], 'error_list': [10, 9, 8, 7, 6]}
-        print(result)
+        result = json.loads(json.dumps(result, cls=CustomJSONEncoder))
         request.session['service_report_data'] = result
         return JsonResponse({
             'status': 'success',

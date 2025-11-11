@@ -178,10 +178,15 @@
         </td>
         <td class="{% if task.is_duplicate %}bg-body-tertiary{% endif %}">
           {% if task.Task_worker_id %}{{ task.Task_worker_id|planner_worker_name }}{% else %}{{ task.Oplan_worker_id|planner_worker_name }}{% endif %}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-datetime="{{ task.SchedProg_DateTime|date:'c' }}">{{ task.SchedProg_DateTime|date:'d.m.Y H:i:s' }}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-duration="{{ task.Progs_duration }}">{{ task.Progs_duration|convert_frames_to_time }}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">{% if task.Task_task_status %}{{ task.Task_task_status|status_name }}{% else %}{{ task.Oplan_status|status_name }}{% endif %}</td>
-        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}" data-cenz="{{ task.Task_CENZ }}">
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}{% if task.deleted_sched %}text-decoration-line-through{% endif %}"
+            data-datetime="{{ task.SchedProg_DateTime|date:'c' }}">{{ task.SchedProg_DateTime|date:'d.m.Y H:i:s' }}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}"
+            data-duration="{{ task.Progs_duration }}">{{ task.Progs_duration|convert_frames_to_time }}</td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}">
+          {% if task.Task_task_status %}{{ task.Task_task_status|status_name }}{% else %}{{ task.Oplan_status|status_name }}{% endif %}
+        </td>
+        <td class="{% if task.is_duplicate %}text-body-tertiary bg-body-tertiary{% endif %}"
+            data-cenz="{{ task.Task_CENZ }}">
           {% if task.Task_CENZ %}
             <span title="Замена файла">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-check" viewBox="0 0 16 16">

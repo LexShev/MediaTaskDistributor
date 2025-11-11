@@ -76,10 +76,10 @@ def update_info(current_date, schedule_id):
             #     ready_index = 'fail'
             # if ready_index == 'fail':
             #     color = ''
-            if no_material:
-                color = 'btn-outline-danger'
-            elif not_distr:
+            if not_distr:
                 color = 'btn-outline-warning'
+            elif no_material:
+                color = 'btn-outline-danger'
             elif not total_programs:
                 color = 'btn-outline-secondary'
             elif (total_programs - finished) == 0:

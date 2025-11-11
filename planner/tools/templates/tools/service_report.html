@@ -10,7 +10,11 @@
 <div class="container-flex px-lg-5">
     <br>
     <h3 class="text-center">{% if service_report_data.title %}{{ service_report_data.title }}{% else %}Пустой отчёт{% endif %}</h3>
-    <div class="text-center pb-4">{{ service_report_data.message }}</div>
+    <div class="text-center pb-2">{{ service_report_data.message }}</div>
+    {% if not service_report_data.success_list and not service_report_data.error_list %}
+        <div class="text-center pb-2">Не было внесено изменений</div>
+    {% endif %}
+    <br>
 
     {% if service_report_data.success_list %}
     <h4>Успешно выполнено:</h4>

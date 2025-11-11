@@ -1,7 +1,10 @@
 from typing import Dict
 
 from django.db import connections
+from django.db import transaction
 from datetime import datetime, date
+
+from main.logs_and_history import get_task_status
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 def check_value(key, value):
@@ -96,43 +99,60 @@ def task_info(field_dict, search_init_dict):
 
 def update_task_list(request) -> Dict[str, str]:
     try:
+        user_id = request.user.id
         program_id_check = request.POST.getlist('program_id_check')
         program_id = request.POST.getlist('program_id')
         engineers = request.POST.getlist('workers_selector')
         work_date = request.POST.getlist('work_date_selector')
-        status = request.POST.getlist('status_selector')
+        new_status = request.POST.getlist('status_selector')
         file_path = request.POST.getlist('file_path')
+        print('program_id_check', program_id_check, 'program_id', program_id)
         # Проверка на пустые данные
         if not program_id_check:
             return {'status': 'error', 'message': 'Не выбраны программы для обновления'}
-        if not engineers or not work_date or not status:
+        if not engineers or not work_date or not new_status:
             return {'status': 'error', 'message': 'Отсутствуют обязательные данные (инженер, дата или статус)'}
 
         # Проверка длины массивов
-        if len(program_id) != len(engineers) or len(program_id) != len(work_date) or len(program_id) != len(status):
+        if len(program_id) != len(engineers) or len(program_id) != len(work_date) or len(program_id) != len(new_status):
             return {'status': 'error', 'message': 'Несоответствие количества данных в полях'}
         # Фильтрация и подготовка данных
         selector_data = [
-            params for params in zip(program_id, engineers, work_date, status, file_path)
+            params for params in zip(program_id, engineers, work_date, new_status, file_path)
             if params[0] in program_id_check
         ]
         if not selector_data:
             return {'status': 'error', 'message': 'Нет совпадающих данных для обновления'}
-        # Подготовка данных для запроса с именованными параметрами
-        values_list = [
-            (engineer, work_date, status, file_path, program_id)
-            for program_id, engineer, work_date, status, file_path in selector_data
-        ]
-        with connections[PLANNER_DB].cursor() as cursor:
-            query = f'''
-            UPDATE [{PLANNER_DB}].[dbo].[task_list]
-            SET [worker_id] = %s, [work_date] = %s, 
-                [task_status] = %s, [file_path] = %s
-            WHERE [program_id] = %s
-            '''
-            cursor.executemany(query, values_list)
-            row_count = len(selector_data)
-            connections[PLANNER_DB].commit()
+
+        with transaction.atomic(using=PLANNER_DB):
+            with connections[PLANNER_DB].cursor() as cursor:
+                for program_id, engineer, work_date, new_status, file_path in selector_data:
+                    db_task_status = get_task_status(program_id)
+
+                    update_task = f'''
+                    UPDATE [{PLANNER_DB}].[dbo].[task_list]
+                    SET [worker_id] = %s, [work_date] = %s, 
+                        [task_status] = %s, [file_path] = %s
+                    WHERE [program_id] = %s
+                    '''
+                    cursor.execute(update_task, [engineer, work_date, new_status, file_path, program_id])
+
+                if db_task_status != new_status:
+
+                    add_history = f'''
+                    INSERT INTO [{PLANNER_DB}].[dbo].[history_status_list]
+                    ([program_id], [worker_id], [time_of_change], [old_status], [new_status])
+                    VALUES (%s, %s, GETDATE(), %s, %s)
+                    '''
+                    cursor.execute(add_history, [program_id, user_id, db_task_status, new_status])
+
+                    add_comment = f'''
+                                    INSERT INTO [{PLANNER_DB}].[dbo].[comments_history]
+                                    ([program_id], [task_status], [worker_id], [comment], [time_of_change])
+                                    VALUES (%s, %s, %s, %s, GETDATE())
+                                    '''
+                    cursor.execute(add_comment, [program_id, new_status, user_id, 'Статус задачи изменён администратором'])
+                row_count = len(selector_data)
 
             return {
                 'status': 'success',
@@ -141,12 +161,7 @@ def update_task_list(request) -> Dict[str, str]:
             }
     except Exception as error:
         print(f"Error in update_task_list: {error}")
-        connections[PLANNER_DB].rollback()
         return {'status': 'error', 'message': str(error)}
-
-
-from django.db import transaction
-
 
 def reset_progress(request) -> Dict[str, str]:
     try:
