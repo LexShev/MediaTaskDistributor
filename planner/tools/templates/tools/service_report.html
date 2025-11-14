@@ -16,6 +16,108 @@
     {% endif %}
     <br>
 
+    {% if service_report_data.distribution_plan %}
+        <h4>Распределено</h4>
+        {% for day in service_report_data.distribution_plan %}
+            <div class="day-section mb-4">
+                <h5 class="bg-primary-subtle text-white p-2">
+                    Дата работы: {{ day.work_date|slice:":10" }}
+                </h5>
+
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">Program_id</th>
+                            <th style="width: 30%;">Название</th>
+                            <th style="width: 5%;">File_id</th>
+                            <th style="width: 35%;">Путь к файлу</th>
+                            <th style="width: 5%;">Длительность</th>
+                            <th style="width: 7%;">Исполнитель</th>
+                            <th style="width: 7%;">Расписание</th>
+                            <th style="width: 6%;">Дата эфира</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for program in day.tasks %}
+                        <tr>
+                            <td class="{% if program.is_remake %}text-success-emphasis bg-success-subtle{% endif %}">{{ program.Progs_program_id }}</td>
+                            <td class="{% if program.is_remake %}text-success-emphasis bg-success-subtle{% endif %}">{{ program.Progs_name }}</td>
+                            <td class="{% if program.is_remake %}text-success-emphasis bg-success-subtle{% endif %}">{{ program.Progs_SuitableMaterialForScheduleID }}</td>
+                            {% if program.Progs_SuitableMaterialForScheduleID %}
+                                <td class="text-success-emphasis bg-success-subtle">
+                                    Материал доступен
+                                </td>
+                            {% else %}
+                                <td class="text-warning-emphasis bg-warning-subtle">
+                                    Нет материала
+                                </td>
+                            {% endif %}
+
+                            <td class="{% if program.is_remake %}text-success-emphasis bg-success-subtle{% endif %}">{{ program.Progs_duration|convert_frames_to_time }}</td>
+                            <td class="{% if program.is_remake %}text-success-emphasis bg-success-subtle{% endif %}">{{ program.worker_id|planner_worker_name }}</td>
+                            <td class="{% if program.is_remake %}text-success-emphasis bg-success-subtle{% endif %}">{{ program.SchedDay_schedule_id|schedule_name }}</td>
+                            <td class="{% if program.is_remake %}text-success-emphasis bg-success-subtle{% endif %}">{{ program.SchedDay_day_date|slice:":10" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Общая статистика дня -->
+                <div class="p-2 border-top">
+                    <strong>Суммарный хронометраж:</strong>
+                        {{ day.total_duration|convert_frames_to_time }} |
+                    <strong>Всего задач:</strong>
+                        {{ day.total_tasks }}
+                    <strong>Обычные задачи:</strong>
+                        {{ day.regular_count }} ({{ day.regular_percentage|floatformat:1 }}%) -
+                        {{ day.regular_duration|convert_frames_to_time }}
+                    <strong>Переделки:</strong>
+                    {{ day.remake_count }} ({{ day.remake_percentage|floatformat:1 }}%) -
+                    {{ day.remake_duration|convert_frames_to_time }}
+                </div>
+
+                <!-- Статистика по сотрудникам -->
+                <div class="p-2 border-top">
+                    <h6 class="mb-2"><strong>Статистика по сотрудникам:</strong></h6>
+                    <div class="row">
+                        {% for worker_id, stats in day.worker_stats.items %}
+                        <div class="col-md-6 mb-2">
+                            <div class="card {% if stats.total_duration > 28800000 %}border-danger{% endif %}">
+                                <div class="card-body py-2">
+                                    <h6 class="card-title mb-1">
+                                        {{ worker_id|planner_worker_name }}
+                                        {% if stats.total_duration > 28800000 %}
+                                            <span class="badge bg-danger">Перегруз!</span>
+                                        {% endif %}
+                                    </h6>
+                                    <div class="small mb-1">
+                                        <span class="text-muted">Всего задач распределилось:</span> <strong>{{ stats.task_count }}</strong>
+                                    </div>
+                                    <div class="small">
+                                        <div>
+                                            <span class="text-primary">Ранее распределено:</span>
+                                            ({{ stats.existing_duration|convert_frames_to_time }})
+                                        </div>
+                                        <div>
+                                            <span class="text-warning">Новые:</span>
+                                            {{ stats.regular_count }} ({{ stats.regular_duration|convert_frames_to_time }}) |
+                                            <span class="text-success">Переделки:</span>
+                                            {{ stats.remake_count }} ({{ stats.remake_duration|convert_frames_to_time }})
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer py-1">Общее время: <strong>{{ stats.total_duration|convert_frames_to_time }}</strong></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        <hr width="100%" size="2"><br>
+        {% endfor %}
+
+    {% endif %}
+
     {% if service_report_data.success_list %}
     <h4>Успешно выполнено:</h4>
         <table class="table table-striped table-hover">

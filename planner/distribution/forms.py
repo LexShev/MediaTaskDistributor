@@ -15,5 +15,5 @@ class DistributionForm(forms.ModelForm):
             'distr_sched_end_date': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date', 'id': "distr_sched_end_date"}, format='%Y-%m-%d'),
             'distr_sched_id': forms.Select(
-                attrs={'class': "form-select", 'id': "distr_sched_id"}, choices=choice.schedules(label='Все')),
+                attrs={'class': "form-select", 'id': "distr_sched_id"}, choices=choice.channels),
         }

@@ -157,6 +157,7 @@ def get_no_material_list() -> Dict[str, str]:
                     sched_result = update_sched_date(program_id)
                     sched_results.append(sched_result)
                 except Exception as error:
+                    sched_result = {}
                     print(error)
                 try:
                     cursor.execute(

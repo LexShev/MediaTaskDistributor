@@ -3,7 +3,6 @@
 CREATE TABLE task_list
 (
     program_id INT PRIMARY KEY NOT NULL,
-    engineer_id INT,
     duration INT NOT NULL,
 	sched_id INT,
 	sched_date DATE,
@@ -11,6 +10,37 @@ CREATE TABLE task_list
 	ready_date DATE,
 	task_status NVARCHAR(30) NOT NULL,
 	file_path NVARCHAR(MAX),
+    worker_id INT,
+	deadline DATE,
+	archived BIT,
+	archiving_date DATE,
+	CENZ INT,
+
+);
+
+CREATE TABLE remake_list
+(
+	program_id INT NOT NULL,
+	ready_date DATE,
+	lgbt NVARCHAR(MAX),
+	sig NVARCHAR(MAX),
+	nude NVARCHAR(MAX),
+	nark NVARCHAR(MAX),
+	mat NVARCHAR(MAX),
+	other NVARCHAR(MAX),
+	cenz_rate INT,
+	worker_id INT,
+	editors_note NVARCHAR(MAX),
+	meta_check BIT,
+	inoagent INT,
+	nark_check BIT,
+	file_id INT,
+	file_path NVARCHAR(MAX),
+
+	CONSTRAINT FK_remake_list_task_list 
+    FOREIGN KEY (program_id) 
+    REFERENCES task_list(program_id)
+	ON DELETE CASCADE
 );
 
 CREATE TABLE [vacation_schedule]
