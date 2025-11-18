@@ -1,0 +1,49 @@
+.episodes-container {
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease,
+                transform 0.3s ease;
+    overflow: hidden;
+}
+
+.episodes-container.collapsed {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-8px);
+}
+
+.episodes-container.expanded {
+    max-height: 5000px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Анимация только для появления эпизодов */
+.episode {
+    transition: opacity 0.2s ease;
+}
+
+.episodes-container.expanded .episode {
+    animation: slideInUp 0.5s ease forwards;
+}
+
+.episodes-container.expanded .episode:nth-child(1) { animation-delay: 0.05s; }
+.episodes-container.expanded .episode:nth-child(2) { animation-delay: 0.1s; }
+.episodes-container.expanded .episode:nth-child(3) { animation-delay: 0.15s; }
+.episodes-container.expanded .episode:nth-child(4) { animation-delay: 0.20s; }
+.episodes-container.expanded .episode:nth-child(5) { animation-delay: 0.25s; }
+.episodes-container.expanded .episode:nth-child(n+6) { animation-delay: 0.30s; }
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.season-toggle {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

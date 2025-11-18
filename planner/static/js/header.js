@@ -1,13 +1,16 @@
 // Загружаем форму сразу при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    fetch('/get-distribution-form/')
+    let distributionFormContainer = document.getElementById('distributionFormContainer');
+    if (distributionFormContainer) {
+        fetch('/get-distribution-form/')
         .then(response => response.text())
         .then(html => {
-            document.getElementById('distributionFormContainer').innerHTML = html;
+            distributionFormContainer.innerHTML = html;
         })
         .catch(error => {
             console.error('Error loading distribution form:', error);
         });
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -18,7 +18,7 @@ CREATE TABLE task_list
 
 );
 
-CREATE TABLE remake_list
+CREATE TABLE [remake_list]
 (
 	program_id INT NOT NULL,
 	ready_date DATE,
@@ -29,7 +29,7 @@ CREATE TABLE remake_list
 	mat NVARCHAR(MAX),
 	other NVARCHAR(MAX),
 	cenz_rate INT,
-	worker_id INT,
+	engineer_id INT,
 	editors_note NVARCHAR(MAX),
 	meta_check BIT,
 	inoagent INT,
@@ -42,10 +42,17 @@ CREATE TABLE remake_list
     REFERENCES task_list(program_id)
 	ON DELETE CASCADE
 );
+INSERT INTO [planner].[dbo].[remake_list]
+([program_id], [ready_date], [engineer_id])
+VALUES
+(276650, CONVERT(DATE, '2025-10-20'), 6),
+(274719, CONVERT(DATE, '2025-10-20'), 0),
+(274715, CONVERT(DATE, '2025-10-20'), 0);
+
 
 CREATE TABLE [vacation_schedule]
 (	[vacation_id] INT PRIMARY KEY IDENTITY NOT NULL,
-    [engineer_id] INT NOT NULL,
+    [worker_id] INT NOT NULL,
 	[start_date] DATE,
 	[end_date] DATE,
 	[description] NVARCHAR(MAX)

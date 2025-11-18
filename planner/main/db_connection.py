@@ -137,7 +137,8 @@ def planner_material_list(schedules_id, worker_id, material_type, work_dates, ta
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
                    ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Adult', 'Name'), ('Task', 'worker_id'), ('Task', 'sched_id'),
-                   ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status')]
+                   ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'deadline'),
+                   ('Remake', 'program_id'), ('Remake', 'ready_date'), ('Remake', 'engineer_id')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
         query = f'''
@@ -151,6 +152,8 @@ def planner_material_list(schedules_id, worker_id, material_type, work_dates, ta
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         LEFT JOIN [{OPLAN_DB}].[dbo].[schedule] AS Sched
             ON Task.[sched_id] = Sched.[schedule_id]
+        LEFT JOIN [{PLANNER_DB}].[dbo].[remake_list] AS Remake
+            ON Task.[program_id] = Remake.[program_id]
         WHERE Progs.[deleted] = 0
         AND Task.[sched_id] IN {schedules_id}
         AND Task.[worker_id] IN {worker_id}

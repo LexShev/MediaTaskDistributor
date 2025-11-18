@@ -48,6 +48,51 @@ window.addEventListener('DOMContentLoaded', function() {
     };
 });
 
+function toggleSeason(seasonId) {
+    const episodesContainer = document.getElementById(`episodes-${seasonId}`);
+    const toggleIcon = document.getElementById(`toggle-${seasonId}`);
+
+    // Проверка на существование элементов
+    if (!episodesContainer || !toggleIcon) {
+        console.warn(`Элементы для сезона ${seasonId} не найдены`);
+        return;
+    }
+
+    if (episodesContainer.classList.contains('collapsed')) {
+        episodesContainer.classList.remove('collapsed');
+        episodesContainer.classList.add('expanded');
+        toggleIcon.style.transform = 'rotate(0deg)';
+        localStorage.setItem(`season-${seasonId}`, 'expanded');
+    } else {
+        episodesContainer.classList.remove('expanded');
+        episodesContainer.classList.add('collapsed');
+        toggleIcon.style.transform = 'rotate(-90deg)';
+        localStorage.setItem(`season-${seasonId}`, 'collapsed');
+    }
+}
+
+// Восстановление состояния при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    const seasonContainers = document.querySelectorAll('.episodes-container');
+    if (!seasonContainers || seasonContainers.length === 0) {
+        return;
+    }
+    seasonContainers.forEach(container => {
+        const seasonId = container.id.replace('episodes-', '');
+        const savedState = localStorage.getItem(`season-${seasonId}`);
+
+        if (savedState === 'expanded') {
+            container.classList.add('expanded');
+            document.getElementById(`toggle-${seasonId}`).style.transform = 'rotate(0deg)';
+        } else {
+            container.classList.add('collapsed');
+            document.getElementById(`toggle-${seasonId}`).style.transform = 'rotate(-90deg)';
+
+
+        }
+    });
+});
+
 function initializeDropZones() {
     // Находим все контейнеры с файлами
     const cenzContainers = document.querySelectorAll('.cenz_container');

@@ -18,31 +18,42 @@ def is_active(request, url):
 
 @register.filter
 def cenz_name(cenz_id):
-    if cenz_id:
+    if not cenz_id:
+        return ''
+    try:
         cenz_id = int(cenz_id)
-    cenz_dict = {
-        0: '0+',
-        1: '6+',
-        2: '12+',
-        3: '16+',
-        4: '18+'
-    }
-    return cenz_dict.get(cenz_id, '')
+
+        cenz_dict = {
+            0: '0+',
+            1: '6+',
+            2: '12+',
+            3: '16+',
+            4: '18+'
+        }
+        return cenz_dict.get(cenz_id, '')
+    except Exception as error:
+        print(error)
+        return ''
 
 @register.filter
 def engineer_name(engineer_id):
-    if engineer_id or str(engineer_id) == '0' :
-        with connections[OPLAN_DB].cursor() as cursor:
-            query = f'SELECT [full_name] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
-            cursor.execute(query, (engineer_id,))
-            engineer = cursor.fetchone()
-            if engineer:
-                return engineer[0]
-            else:
-                return 'Аноним'
-
-    else:
+    try:
+        if engineer_id or str(engineer_id) == '0' :
+            with connections[OPLAN_DB].cursor() as cursor:
+                query = f'SELECT [full_name] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
+                cursor.execute(query, (engineer_id,))
+                engineer = cursor.fetchone()
+                if engineer:
+                    return engineer[0]
+                else:
+                    return 'Аноним'
+        else:
+            return ''
+    except Exception as error:
+        print(error)
         return ''
+
+
 
 @register.filter
 def worker_name(worker_id):

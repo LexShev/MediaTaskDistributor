@@ -246,7 +246,9 @@
             </div>
             <div class="col p-0">
               <div class="row m-0">
-                <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">{{ full_info.Progs_name }}. {{ full_info.Adult_Name }}</h5>
+                <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">
+                  {{ full_info.Progs_name }}{% if full_info.Adult_Name %}. {{ full_info.Adult_Name }}{% endif %}
+                </h5>
               </div>
 
               <div class="row m-0">

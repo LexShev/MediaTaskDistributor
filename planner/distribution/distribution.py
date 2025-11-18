@@ -221,11 +221,11 @@ def kpi_min(work_date):
 def insert_film(program_id, worker_id, duration, sched_id, sched_date, work_date, task_status, file_path=''):
     try:
         with connections[PLANNER_DB].cursor() as cursor:
-            columns = '[program_id], [worker_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path]'
-            values = (program_id, worker_id, duration, sched_id, sched_date, work_date, task_status, file_path)
+            columns = '[program_id], [worker_id], [duration], [sched_id], [sched_date], [work_date], [task_status], [file_path], [deadline]'
+            values = (program_id, worker_id, duration, sched_id, sched_date, work_date, task_status, file_path, sched_date)
             query = f'''
             INSERT INTO [{PLANNER_DB}].[dbo].[task_list] ({columns})
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, DATEADD(DAY, -14, CAST(%s AS DATE)))
             '''
             cursor.execute(query, values)
             rowcount = cursor.rowcount

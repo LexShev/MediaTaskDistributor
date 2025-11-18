@@ -62,6 +62,7 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                     'color': select_channel_color(temp_dict.get('Task_sched_id')),
                     'Task_sched_id': temp_dict.get('Task_sched_id'),
                     'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
+                    'has_no_material': temp_dict.get('Task_task_status') == 'no_material',
                     'type': 'season',
                     'episode': [
                         {'Progs_program_id': temp_dict.get('Progs_program_id'),
@@ -71,15 +72,20 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                          'Adult_Name': temp_dict.get('Adult_Name'),
                          'Task_work_date': temp_dict.get('Task_work_date'),
                          'Task_sched_date': temp_dict.get('Task_sched_date'),
-                         'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
+                         'Task_deadline': temp_dict.get('Task_deadline'),
                          'Task_task_status': temp_dict.get('Task_task_status'),
-                         'Task_worker_id': temp_dict.get('Task_worker_id')
+                         'Task_worker_id': temp_dict.get('Task_worker_id'),
+                         'is_remake': bool(temp_dict.get('Remake_program_id')),
+                         'Remake_ready_date': temp_dict.get('Remake_ready_date'),
+                         'Remake_engineer_id': temp_dict.get('Remake_engineer_id'),
                          }
                     ]
                 }
                 material_list.append(program_info_dict)
                 program_id_list.append(program_id)
             else:
+                material_list[repeat_index]['has_no_material'] = material_list[repeat_index]['has_no_material'] or (
+                            temp_dict.get('Task_task_status') == 'no_material')
                 try:
                     material_list[repeat_index]['episode'].append(
                         {'Progs_program_id': temp_dict.get('Progs_program_id'),
@@ -88,10 +94,13 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                         'Progs_duration': temp_dict.get('Progs_duration'),
                         'Adult_Name': temp_dict.get('Adult_Name'),
                         'Task_work_date': temp_dict.get('Task_work_date'),
-                         'Task_sched_date': temp_dict.get('Task_sched_date'),
-                        'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
+                        'Task_sched_date': temp_dict.get('Task_sched_date'),
+                        'Task_deadline': temp_dict.get('Task_deadline'),
                         'Task_task_status': temp_dict.get('Task_task_status'),
-                        'Task_worker_id': temp_dict.get('Task_worker_id')
+                        'Task_worker_id': temp_dict.get('Task_worker_id'),
+                        'is_remake': bool(temp_dict.get('Remake_program_id')),
+                        'Remake_ready_date': temp_dict.get('Remake_ready_date'),
+                        'Remake_engineer_id': temp_dict.get('Remake_engineer_id'),
                         })
                     program_id_list.append(program_id)
                 except Exception as e:
@@ -108,10 +117,13 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                         'color': select_channel_color(temp_dict.get('Task_sched_id')),
                         'Task_sched_id': temp_dict.get('Task_sched_id'),
                         'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
-                        'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
+                        'Task_deadline': temp_dict.get('Task_deadline'),
                         'type': 'film',
                         'Task_task_status': temp_dict.get('Task_task_status'),
-                        'Task_worker_id': temp_dict.get('Task_worker_id')
+                        'Task_worker_id': temp_dict.get('Task_worker_id'),
+                        'is_remake': bool(temp_dict.get('Remake_program_id')),
+                        'Remake_ready_date': temp_dict.get('Remake_ready_date'),
+                        'Remake_engineer_id': temp_dict.get('Remake_engineer_id'),
                     }
                     material_list.append(program_info_dict)
                     program_id_list.append(program_id)
@@ -128,10 +140,13 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                 'color': select_channel_color(temp_dict.get('Task_sched_id')),
                 'Task_sched_id': temp_dict.get('Task_sched_id'),
                 'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
-                'Task_deadline': calc_deadline(temp_dict['Task_sched_date']),
+                'Task_deadline': temp_dict.get('Task_deadline'),
                 'type': 'film',
                 'Task_task_status': temp_dict.get('Task_task_status'),
-                'Task_worker_id': temp_dict.get('Task_worker_id')
+                'Task_worker_id': temp_dict.get('Task_worker_id'),
+                'is_remake': bool(temp_dict.get('Remake_program_id')),
+                'Remake_ready_date': temp_dict.get('Remake_ready_date'),
+                'Remake_engineer_id': temp_dict.get('Remake_engineer_id'),
                 }
             material_list.append(program_info_dict)
             program_id_list.append(program_id)

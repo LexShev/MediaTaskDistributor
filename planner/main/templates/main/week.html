@@ -1,8 +1,10 @@
 {% extends  'main/index.html' %}
+{% load static %}
 
 
 <main role="main">
 {% block body %}
+<link rel="stylesheet" href="{% static 'css/list.css' %}">
 {% if permissions.week %}
 
   <nav class="nav d-flex border-bottom shadow py-2 mb-2 px-lg-5">
@@ -105,8 +107,11 @@
       {% endif %}
     </div>
   </div>
+<script type="text/javascript" src="{% static 'js/week.js' %}"></script>
+
 {% else %}
   <h4 class="text-center">forbidden</h4>
 {% endif %}
+
 {% endblock %}
 </main>
