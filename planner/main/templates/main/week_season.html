@@ -1,7 +1,7 @@
 <!-- Сезон -->
 <div class="season mb-2" data-season-id="{{ material.Progs_parent_id }}" data-day-date="{{ day_index.0.date|date:'Y-m-d' }}">
   <!-- Заголовок сезона -->
-  <div class="card shadow-sm mx-1 my-2" style="border-color: {{ material.color }};">
+  <div class="card shadow-sm m-2" style="border-color: {{ material.color }};">
     <div class="card-body p-2 d-flex align-items-center">
       <div class="season-toggle me-2" style="cursor: pointer;"
            onclick="toggleWeekSeason(this)">
@@ -23,7 +23,7 @@
   <div class="episodes-container collapsed" id="episodes-{{ material.Progs_parent_id }}">
     {% for episode in material.episode|dictsort:"Progs_episode_num" %}
       <!-- Серия -->
-      <div class="row align-items-center mx-0">
+      <div class="row align-items-center m-0">
         <div class="col-auto ps-3" style="width: 50px;">
           <svg viewBox="0 0 24 54" class="DocSearch-Hit-Tree">
             <g stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
@@ -32,7 +32,7 @@
           </svg>
         </div>
         <div class="col p-0">
-          <div class="card shadow mx-1 my-2 p-0" style="border-color: {{ material.color }};">
+          <div class="card shadow-sm m-2 p-0" style="border-color: {{ material.color }};">
             <div class="card-header p-2">
               <h6 class="d-flex align-items-center my-0">
                 <a href="{% url 'home' %}{{ episode.Progs_program_id }}"

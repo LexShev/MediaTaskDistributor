@@ -24,11 +24,11 @@ def validate_file_type(value):
 class ListFilter(forms.ModelForm):
     class Meta:
         model = ModelFilter
-        fields = ('schedules', 'workers', 'material_type', 'work_dates', 'task_status')
+        fields = ('schedules', 'workers', 'material_type', 'work_dates', 'task_status', 'mark')
         labels = {
             'schedules': 'Каналы', 'workers': 'Исполнители',
             'material_type': 'Тип материала', 'work_dates': 'Назначенная дата исполнения',
-            'task_status': 'Статус материала',
+            'task_status': 'Статус материала', 'mark': 'Метки',
         }
         widgets = {
             'schedules': forms.SelectMultiple(
@@ -45,6 +45,9 @@ class ListFilter(forms.ModelForm):
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status'},
                 choices=choice.task_status('Статус')),
+            'mark': forms.SelectMultiple(
+                attrs={'class': 'ui selection dropdown', 'id': 'mark'},
+                choices=choice.mark('Метки')),
         }
 
 class WeekFilter(forms.ModelForm):
@@ -123,9 +126,18 @@ class CenzFormDropDown(forms.Form):
     # tags_form = forms.ChoiceField(widget=forms.Select(
     #     attrs={'class': "form-select", 'id': "tags_form"}),
     #     label='Теги', choices=choice.tags(), required=False)
-    inoagent_form = forms.ChoiceField(
-        widget=forms.Select(attrs={'class': "form-select", 'id': "inoagent_form"}),
-        label='Иноагент', choices=choice.inoagents, required=False)
+
+    inoagent_form = forms.MultipleChoiceField(
+        widget=forms.SelectMultiple(attrs={
+            'class': "form-select",
+            'id': "inoagent_form",
+            'multiple': 'multiple',
+            'size': '4'
+        }),
+        label='Иноагент',
+        choices=choice.inoagents(exclude_init=True),
+        required=False
+    )
     narc_select_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'form-select', 'id': "narc_select_form"}),
         label='Наркотики', choices=((0, 'Нет'), (1, 'Да')), required=False)

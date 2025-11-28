@@ -2,7 +2,7 @@
 {% load static %}
 <main>
 {% block body %}
-<link rel="stylesheet" href="{% static 'css/full_info_card.css' %}">
+<link rel="stylesheet" href="{% static 'css/detail_view.css' %}">
 <br>
 <div class="container-xxl px-0">
   <div id="message_container">
@@ -89,7 +89,7 @@
                 </div>
                 <div class="col-md-6">
                   <div class="form-floating">
-                    <textarea class="form-control" id="director_form" style="height: 50px" disabled>{% if full_info.Progs_Director %}{{ full_info.Progs_Director }}{% endif %}</textarea>
+                    <textarea class="form-control" id="director_form" style="height: 50px;" disabled>{% if full_info.Progs_Director %}{{ full_info.Progs_Director }}{% endif %}</textarea>
                     <label for="director_form">Режиссёр</label>
                   </div>
                 </div>

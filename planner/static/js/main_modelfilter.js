@@ -13,6 +13,10 @@ $('#task_status')
   .dropdown()
 ;
 
+$('#mark')
+  .dropdown()
+;
+
 $(function() {
 
   $('input[name="work_dates"]').daterangepicker({

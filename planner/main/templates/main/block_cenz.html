@@ -1,15 +1,38 @@
+{% load static %}
+
 <form method="post" id="cenz_form">
   {% csrf_token %}
+
+  <link rel="stylesheet" href="{% static 'css/bootstrap-select.min.css' %}">
+
   <div class="row">
-  {% for field in form_drop %}
-  <div class="col">
-    <div class="form-floating mx-1 my-2">
-      {{ field }}
-      {{ field.label_tag }}
-      <div class="invalid-feedback">Необходимо заполнить</div>
+    {% for field in form_drop %}
+    <div class="col">
+      {% if field.name == 'inoagent_form' %}
+      <div class="form-floating mx-1 my-2 position-relative" id="inoagent_form_container">
+        <select name="{{ field.name }}" class="form-select selectpicker" id="inoagent_form"
+          data-live-search="true" data-actions-box="true" data-selected-text-format="count"
+          title="Выберите иноагентов" multiple>
+          {% for value, text in field.field.choices %}
+            <option value="{{ value }}" {% if value in field.value %}selected{% endif %}>
+              {{ text }}
+            </option>
+          {% endfor %}
+        </select>
+        <label for="inoagent_form" id="inoagent_label">{{ field.label_tag }}</label>
+        <!-- Текстовый блок для подсчета - теперь абсолютно позиционирован -->
+        <div class="position-absolute" id="inoagent_counter"></div>
+        <div class="invalid-feedback">Необходимо заполнить</div>
+      </div>
+      {% else %}
+      <div class="form-floating mx-1 my-2">
+        {{ field }}
+        {{ field.label_tag }}
+        <div class="invalid-feedback">Необходимо заполнить</div>
+      </div>
+      {% endif %}
     </div>
-  </div>
-  {% endfor %}
+    {% endfor %}
   </div>
 
   <div class="row row-cols-2">
@@ -17,15 +40,118 @@
     <div class="col">
       <div class="form-floating mx-1 my-2">
         {{ field }}
-        <label for="{{ field.id_for_label }}" class="{{ field.field.widget.attrs.multiple }}">
-                {{ field.label }}
-            </label>
+        <label for="{{ field.id_for_label }}">
+          {{ field.label }}
+        </label>
       </div>
     </div>
     {% endfor %}
   </div>
 
-{% block buttons %}
-
-{% endblock %}
+  {% block buttons %}
+  {% endblock %}
 </form>
+
+<script src="{% static 'js/bootstrap-select.min.js' %}"></script>
+<script src="{% static 'js/bootstrap-select-ru_RU.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    $('.selectpicker').selectpicker();
+
+    $('#inoagent_form').on('changed.bs.select', function() {
+        const selectedValues = $(this).val();
+        const count = selectedValues ? selectedValues.length : 0;
+        const totalCount = $(this).find('option').length;
+
+        // Находим текст первого выбранного элемента
+        const firstSelectedText = $(this).find('option:selected').first().text();
+
+        // Обновляем текст в отдельном блоке
+        if (count === 1) {
+            // Показываем текст единственного выбранного элемента
+            $('#inoagent_counter').text(firstSelectedText);
+        } else if (count > 1) {
+            // Показываем количество выбранных элементов
+            $('#inoagent_counter').text(`${count} из ${totalCount} выбрано`);
+        } else {
+            // Ничего не выбрано
+            $('#inoagent_counter').text(` - `);
+        }
+    });
+
+    // Инициализация при загрузке
+    const initialValues = $('#inoagent_form').val();
+    const initialCount = initialValues ? initialValues.length : 0;
+    const totalCount = $('#inoagent_form').find('option').length;
+    const firstInitialText = $('#inoagent_form').find('option:selected').first().text();
+
+    if (initialCount === 1) {
+        $('#inoagent_counter').text(firstInitialText);
+    } else if (initialCount > 1) {
+        $('#inoagent_counter').text(`${initialCount} из ${totalCount} выбрано`);
+    } else {
+        $('#inoagent_counter').text(` - `);
+    }
+});
+</script>
+
+<style>
+/* Стили для кликабельной области */
+#inoagent_form_container {
+    position: relative;
+    transition: box-shadow 0.3s ease;
+}
+
+/* Делаем лейбл кликабельным */
+#inoagent_label {
+    cursor: pointer;
+    width: 100%;
+    z-index: 10;
+}
+
+/* Стили для текста подсчета - теперь абсолютное позиционирование */
+#inoagent_counter {
+    font-size: 0.875em;
+    color: var(--bs-primary-text);
+    bottom: 5px;
+    left: 12px;
+    z-index: 20;
+    pointer-events: none;
+    margin-bottom: 0;
+    max-width: calc(100% - 40px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Скрываем стандартную кнопку но оставляем функциональность */
+#inoagent_form_container .btn.dropdown-toggle {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 15;
+}
+
+/* Кастомное отображение текста */
+#inoagent_form_container .filter-option {
+    opacity: 0;
+}
+
+.bootstrap-select .dropdown-menu {
+    z-index: 1060 !important;
+}
+
+/* Адаптивность - на маленьких экранах немного корректируем позицию */
+@media (max-width: 768px) {
+    #inoagent_counter {
+        bottom: 6px;
+        right: 8px;
+        font-size: 0.8em;
+    }
+}
+</style>

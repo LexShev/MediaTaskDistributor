@@ -38,15 +38,17 @@ class Choices:
                     tags_list.append(tag)
         return tags_list
 
-    def inoagents(self, label='-'):
+    def inoagents(self, label='-', exclude_init=False):
         inoagents = self.custom_fields.get(19)
         inoagents_list = [('', label)]
+        if exclude_init:
+            inoagents_list = []
         if inoagents:
             for inoagent in inoagents.split('\r\n'):
                 if inoagent:
                     point = (inoagent, inoagent)
                     inoagents_list.append(point)
-        return inoagents_list
+        return sorted(inoagents_list)
 
     def engineers(self, label='-', exclude_init=False):
         engineers = self.custom_fields.get(15)
@@ -140,6 +142,13 @@ class Choices:
         if extra:
             status_list.extend(extra)
         return status_list
+
+    def mark(self, label='-'):
+        return [
+            ('', label),
+            ('remake', 'Пересмотр'),
+            ('archived', 'В архиве'),
+        ]
 
     def extra_set(self, label='-'):
         return [

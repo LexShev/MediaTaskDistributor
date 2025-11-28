@@ -264,12 +264,16 @@ function CenzApprove(task) {
             if (element.type === 'file' && element.files.length > 0) {
                 // Берем только имя файла из File object
                 forms[element.name] = element.files[0].name;
+            } else if (element.type === 'select-multiple') {
+                // Обрабатываем множественный выбор
+                const selectedValues = Array.from(element.selectedOptions).map(option => option.value).join(';');
+                forms[element.name] = selectedValues;
             } else {
                 forms[element.name] = element.value;
             };
         }
     });
-    console.log(forms);
+//    console.log(forms);
     fetch(`/${task}/`, {
     method: 'POST',
     headers: {

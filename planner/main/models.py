@@ -8,11 +8,12 @@ def get_upload_path(instance, filename):
 
 class ModelFilter(Model):
     owner = IntegerField('owner', primary_key=True, default=1)
-    schedules = CharField(max_length=100)
-    workers = CharField(max_length=100)
-    material_type = CharField(max_length=100)
-    work_dates = CharField(max_length=100)
-    task_status = CharField(max_length=100)
+    schedules = CharField(max_length=100, default='', blank=True, null=True)
+    workers = CharField(max_length=100, default='', blank=True, null=True)
+    material_type = CharField(max_length=100, default='', blank=True, null=True)
+    work_dates = CharField(max_length=100, default='', blank=True, null=True)
+    task_status = CharField(max_length=100, default='', blank=True, null=True)
+    mark = CharField(max_length=100, default='', blank=True, null=True)
 
 class AttachedFiles(Model):
     owner = IntegerField(default=1)

@@ -117,13 +117,17 @@ def date_splitter(work_dates):
     return start_date, end_date
 
 def get_order(user_order='sched_date', order_type='ASC'):
-    order_dict = {
-        'sched_date': 'Task.[sched_date]',
-        'work_date': 'Task.[work_date]',
-        'name': 'Progs.[name]',
-        'duration': 'Progs.[duration]'
-    }
-    return f'{order_dict.get(user_order)} {order_type}'
+    try:
+        order_dict = {
+            'sched_date': 'Task.[sched_date]',
+            'work_date': 'Task.[work_date]',
+            'name': 'Progs.[name]',
+            'duration': 'Progs.[duration]'
+        }
+        return f'ORDER BY {order_dict.get(user_order)} {order_type}'
+    except Exception as error:
+        print(error)
+        return ''
 
 
 def planner_material_list(schedules_id, worker_id, material_type, work_dates, task_status, user_order, order_type):
@@ -160,7 +164,7 @@ def planner_material_list(schedules_id, worker_id, material_type, work_dates, ta
         AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'
         AND Task.[task_status] IN {task_status}
-        ORDER BY {get_order(user_order, order_type)}
+        {get_order(user_order, order_type)}
         '''
         cursor.execute(query)
         material_list_sql = cursor.fetchall()

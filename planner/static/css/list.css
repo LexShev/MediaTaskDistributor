@@ -61,3 +61,18 @@
 .season-toggle {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.remake {
+    border: 1px dashed var(--bs-primary);
+    border-radius: 0.375rem;
+}
+
+.remake-header {
+    background-color: var(--bs-tertiary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+    border-radius: 0.375rem 0.375rem 0 0;
+}
+
+.remake-body {
+    opacity: 0.5;
+}

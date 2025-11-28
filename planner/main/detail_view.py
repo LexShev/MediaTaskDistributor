@@ -249,17 +249,17 @@ def update_file_path(program_id, file_path):
     else:
         return 'Новый путь не указан'
 
-def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
-    program_id = service_info_dict.get('program_id')
-    for old_field_id, new_field_id in zip(old_values_dict, new_values_dict):
-        old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
-        old_value, new_value = check_data_type(old_value), check_data_type(new_value)
-        if not old_value and new_value:
-            insert_value(new_field_id, program_id, new_value)
-        elif old_value and not new_value:
-            delete_value(old_field_id, program_id)
-        elif old_value and new_value and str(old_value) != str(new_value):
-            update_value(old_field_id, program_id, new_value)
+# def change_db_cenz_info(service_info_dict, old_values_dict, new_values_dict):
+#     program_id = service_info_dict.get('program_id')
+#     for old_field_id, new_field_id in zip(old_values_dict, new_values_dict):
+#         old_value, new_value = old_values_dict.get(old_field_id), new_values_dict.get(new_field_id)
+#         old_value, new_value = check_data_type(old_value), check_data_type(new_value)
+#         if not old_value and new_value:
+#             insert_value(new_field_id, program_id, new_value)
+#         elif old_value and not new_value:
+#             delete_value(old_field_id, program_id)
+#         elif old_value and new_value and str(old_value) != str(new_value):
+#             update_value(old_field_id, program_id, new_value)
             
 def change_oplan_cenz_info(program_id, old_values, new_values):
     values_list = (
@@ -287,6 +287,7 @@ def change_oplan_cenz_info(program_id, old_values, new_values):
         elif old_value is not None and new_value is None:
             delete_value(num_key, program_id)
         elif old_value is not None and new_value is not None and str(old_value) != str(new_value):
+            print('new_value', new_value)
             update_value(num_key, program_id, new_value)
 
 

@@ -156,6 +156,16 @@ def week_date(request, work_year, work_week):
 @login_required()
 def full_list(request):
     user_id = request.user.id
+
+    def safe_literal_eval(value, default=None):
+        """Безопасный парсинг literal_eval с обработкой ошибок"""
+        if not value:
+            return default
+        try:
+            return ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            return default
+
     try:
         inst_dict = ModelFilter.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -169,11 +179,13 @@ def full_list(request):
             owner=user_id, schedules=schedules,
             workers=[user_id], material_type=material_type,
             work_dates=' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
-            task_status=task_status
+            task_status=task_status,
+            mark='[]'
         )
         default_filter.save()
         inst_dict = ModelFilter.objects.get(owner=user_id)
         print("Новый фильтр создан")
+
     try:
         sorting_inst_dict = ModelSorting.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -181,6 +193,7 @@ def full_list(request):
         default_sorting.save()
         sorting_inst_dict = ModelSorting.objects.get(owner=user_id)
         print("Новая сортировка создана")
+
     if request.method == 'POST':
         filter_form = ListFilter(request.POST, instance=inst_dict)
         sorting_form = SortingForm(request.POST, instance=sorting_inst_dict)
@@ -188,11 +201,20 @@ def full_list(request):
             filter_form.save()
             sorting_form.save()
 
-            schedules = ast.literal_eval(filter_form.cleaned_data.get('schedules'))
-            workers = ast.literal_eval(filter_form.cleaned_data.get('workers'))
-            material_type = ast.literal_eval(filter_form.cleaned_data.get('material_type'))
-            work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), filter_form.cleaned_data.get('work_dates').split(' - ')))
-            task_status = ast.literal_eval(filter_form.cleaned_data.get('task_status'))
+            schedules = safe_literal_eval(filter_form.cleaned_data.get('schedules'), ())
+            workers = safe_literal_eval(filter_form.cleaned_data.get('workers'), ())
+            material_type = safe_literal_eval(filter_form.cleaned_data.get('material_type'), ())
+
+            # Безопасный парсинг дат
+            work_dates_str = filter_form.cleaned_data.get('work_dates', '')
+            if work_dates_str and ' - ' in work_dates_str:
+                work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), work_dates_str.split(' - ')))
+            else:
+                start_date = datetime.today()
+                work_dates = (start_date, start_date)
+
+            task_status = safe_literal_eval(filter_form.cleaned_data.get('task_status'), ())
+            mark = safe_literal_eval(filter_form.cleaned_data.get('mark'), [])
 
             user_order = sorting_form.cleaned_data.get('user_order')
             order_type = sorting_form.cleaned_data.get('order_type')
@@ -203,29 +225,48 @@ def full_list(request):
             work_dates = (start_date, start_date)
             workers = (3, 5, 4, 7, 8, 9, 10, 11, 12, 13)
             task_status = ('not_ready', 'ready', 'fix')
+            mark = []
             material_type = ('film', 'season')
 
             user_order = 'sched_date'
             order_type = 'ASC'
     else:
-        schedules = ast.literal_eval(inst_dict.schedules)
-        workers = ast.literal_eval(inst_dict.workers)
-        material_type = ast.literal_eval(inst_dict.material_type)
-        work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), inst_dict.work_dates.split(' - ')))
-        task_status = ast.literal_eval(inst_dict.task_status)
+        schedules = safe_literal_eval(inst_dict.schedules, ())
+        workers = safe_literal_eval(inst_dict.workers, ())
+        material_type = safe_literal_eval(inst_dict.material_type, ())
+
+        # Безопасный парсинг дат
+        work_dates_str = getattr(inst_dict, 'work_dates', '')
+        if work_dates_str and ' - ' in work_dates_str:
+            work_dates = tuple(map(lambda d: datetime.strptime(d, '%d.%m.%Y'), work_dates_str.split(' - ')))
+        else:
+            start_date = datetime.today()
+            work_dates = (start_date, start_date)
+
+        task_status = safe_literal_eval(inst_dict.task_status, ())
+        mark = safe_literal_eval(inst_dict.mark, [])
 
         user_order = sorting_inst_dict.user_order
         order_type = sorting_inst_dict.order_type
 
-        initial_dict = {'schedules': schedules,
-                        'workers': workers,
-                        'material_type': material_type,
-                        'work_dates': ' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
-                        'task_status': task_status}
+        initial_dict = {
+            'schedules': schedules,
+            'workers': workers,
+            'material_type': material_type,
+            'work_dates': ' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
+            'task_status': task_status,
+            'mark': mark
+        }
         filter_form = ListFilter(initial=initial_dict)
         sorting_form = SortingForm(initial={'user_order': user_order, 'order_type': order_type})
-    data = {'material_list': list_material_list(schedules, workers, material_type, work_dates, task_status, user_order, order_type),
-            'form': filter_form, 'sorting_form': sorting_form, 'permissions': ask_db_permissions(user_id)}
+
+    data = {
+        'material_list': list_material_list(schedules, workers, material_type, work_dates, task_status,
+                                            user_order, order_type, mark),
+        'form': filter_form,
+        'sorting_form': sorting_form,
+        'permissions': ask_db_permissions(user_id)
+    }
     return render(request, 'main/list.html', data)
 
 def get_field_comparison(program_id_list, fields_to_compare):
@@ -520,8 +561,12 @@ def ask_fix(request):
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     message = answer.get('message')
     if answer.get('status') == 'success':
+        # create_notification(
+        #     {'sender': user_id, 'recipient': 6, 'program_id': program_id,
+        #      'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
+        # )
         create_notification(
-            {'sender': user_id, 'recipient': 6, 'program_id': program_id,
+            {'sender': user_id, 'recipient': 2, 'program_id': program_id,
              'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
         )
         insert_history_status(program_id, user_id, db_task_status, task_status)

@@ -137,30 +137,6 @@ def select_actions(program_id):
         print(error)
         return []
 
-'''
-
-<!--  <ul class="list-group list-group-flush">-->
-<!--  {% for action in actions_list %}-->
-<!--    <li class="list-group-item list-group-item-action {% if action.field_name == 'status' %}list-group-item-info{% endif %}">-->
-<!--      {{ action.time_of_change|date:'d.m.Y H:i:s' }} - {{ action.worker_id|planner_worker_name }}-->
-<!--      {% if action.CustomFieldID == 14 %}-->
-<!--        <small class="text-body-secondary m-2">({{ action.CustomFieldID|fields_name }})</small>-->
-<!--        <small class="text-body-secondary m-2">{{ action.old_value|cenz_name }} -> {{ action.new_value|cenz_name }}</small>-->
-<!--      {% elif action.CustomFieldID == 15 %}-->
-<!--        <small class="text-body-secondary m-2">({{ action.CustomFieldID|fields_name }})</small>-->
-<!--        <small class="text-body-secondary m-2">{{ action.old_value|worker_name }} -> {{ action.new_value|engineer_name }}</small>-->
-<!--      {% elif action.field_name == 'status' %}-->
-<!--        <small class="text-body-secondary m-2">(Статус)</small>-->
-<!--        <small class="text-body-secondary m-2">{{ action.old_status|status_name }} -> {{ action.new_status|status_name }}</small>-->
-<!--      {% else %}-->
-<!--        <small class="text-body-secondary m-2">({{ action.CustomFieldID|fields_name }})</small>-->
-<!--        <small class="text-body-secondary m-2">{% if action.new_value %}{{ action.old_value }} -> {{ action.new_value }}{% else %}поле очищено{% endif %}</small>-->
-<!--      {% endif %}-->
-<!--    </li>-->
-<!--  {% endfor %}-->
-<!--  </ul>-->
-'''
-
 def find_file_path(program_id):
     columns = (('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'),
                ('Files', 'ModificationTime'), ('Progs', 'duration'))

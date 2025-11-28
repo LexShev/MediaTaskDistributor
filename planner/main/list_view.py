@@ -10,20 +10,6 @@ def convert_fr_to_tf(frames, fps=25):
     tf = f'{hh:02}:{mm:02}:{ss:02}.{ff:03}'
     return tf
 
-def select_channel_color(schedule_id):
-    color_dict = {
-        3: '#dc3545', # Крепкое
-        5: '#0d6efd', # Планета дети
-        6: '#ffc107', # Мировой сериал
-        7: '#fd7e14', # Мужской сериал
-        8: '#0dcaf0', # Наше детство
-        9: '#d63384', # Романтичный сериал
-        10: '#198754', # Наше родное кино
-        11: '#6f42c1', # Семейное кино
-        12: '#20c997', # Советское родное кино
-        20: '#6610f2'} # Кино +
-    return color_dict.get(schedule_id)
-
 def repeat_index_search(material_list, parent_id):
     if not parent_id or not material_list:
         return None
@@ -39,7 +25,10 @@ def calc_deadline(task_date):
         print(error)
         return ''
 
-def list_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type):
+def list_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type, mark=None):
+    if mark is None:
+        mark = []
+    print('user_order', user_order, 'order_type', order_type)
     material_list_sql, django_columns = planner_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type)
     material_list = []
     program_id_list = []
@@ -59,7 +48,6 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                     'Progs_parent_id': temp_dict.get('Progs_parent_id'),
                     'Progs_AnonsCaption': parent_name(temp_dict.get('Progs_parent_id')),
                     'Progs_production_year': temp_dict.get('Progs_production_year'),
-                    'color': select_channel_color(temp_dict.get('Task_sched_id')),
                     'Task_sched_id': temp_dict.get('Task_sched_id'),
                     'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
                     'has_no_material': temp_dict.get('Task_task_status') == 'no_material',
@@ -114,7 +102,6 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                         'Adult_Name': temp_dict.get('Adult_Name'),
                         'Task_work_date': temp_dict.get('Task_work_date'),
                         'Task_sched_date': temp_dict.get('Task_sched_date'),
-                        'color': select_channel_color(temp_dict.get('Task_sched_id')),
                         'Task_sched_id': temp_dict.get('Task_sched_id'),
                         'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
                         'Task_deadline': temp_dict.get('Task_deadline'),
@@ -137,7 +124,6 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                 'Adult_Name': temp_dict.get('Adult_Name'),
                 'Task_work_date': temp_dict.get('Task_work_date'),
                 'Task_sched_date': temp_dict.get('Task_sched_date'),
-                'color': select_channel_color(temp_dict.get('Task_sched_id')),
                 'Task_sched_id': temp_dict.get('Task_sched_id'),
                 'Sched_schedule_id': temp_dict.get('Sched_schedule_id'),
                 'Task_deadline': temp_dict.get('Task_deadline'),

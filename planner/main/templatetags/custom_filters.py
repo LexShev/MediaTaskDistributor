@@ -318,6 +318,18 @@ def on_air_status_color(status):
     return color_dict.get(status, '')
 
 @register.filter
+def channel_color(schedule_id, frmt='name'):
+    color_dict = MainSettings.channel_color_dict
+    color_data = color_dict.get(schedule_id, {})
+
+    if frmt == 'rgb':
+        return color_data.get('rgb', '')
+    elif frmt == 'hex':
+        return color_data.get('hex', '')
+    else:
+        return color_data.get('name', '')
+
+@register.filter
 def thousands(num):
     try:
         return f'{num:,}'.replace(',', ' ')
