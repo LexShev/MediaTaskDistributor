@@ -16,7 +16,6 @@ from playlist.playlist import get_schedule_days
 @login_required()
 def playlist(request):
     user_id = request.user.id
-    today = date.today()
 
     try:
         init_dict = PlaylistModel.objects.get(owner=user_id)
@@ -28,10 +27,40 @@ def playlist(request):
 
     form = PlaylistFilter(instance=init_dict)
 
-    schedule_list = (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)
+    schedule_list = [
+        {'schedule_id': 3,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 5,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 6,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 7,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 8,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 9,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 10,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 11,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 12,
+         'editor_id': 1,
+         'description': 'Описание'},
+        {'schedule_id': 20,
+         'editor_id': 1,
+         'description': 'Описание'}
+    ]
     service_dict = {
-        'today': today,
-        'cal_month': today.month,
+        'today': date.today(),
         'schedule_list': schedule_list
     }
 
@@ -46,16 +75,12 @@ def playlist(request):
 def load_schedule_table(request):
     user_id = request.user.id
 
-    field_dict = PlaylistModel.objects.filter(owner=user_id).values()
-    schedules = []
-
-    if field_dict:
-        field_dict = field_dict[0]
-        try:
-            schedules = get_schedule_days(field_dict)
-            print('schedules', schedules)
-        except Exception as e:
-            print(e)
+    field_dict = json.loads(request.body)
+    if not field_dict:
+        field_dict = PlaylistModel.objects.filter(owner=user_id).values()
+        if field_dict:
+            field_dict = field_dict[0]
+    schedules = get_schedule_days(field_dict)
     html = render_to_string(
         'playlist/schedule_table.html',
         {
@@ -65,14 +90,16 @@ def load_schedule_table(request):
     )
     return JsonResponse({'html': html})
 
-def update_playlist_values(request):
+def update_schedule_filter(request):
     user_id = request.user.id
     values_list = json.loads(request.body)
-
+    schedule_id = values_list.get('schedule_id', '')
+    if schedule_id == '':
+        schedule_id = None
     if not values_list:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
     PlaylistModel.objects.filter(owner=user_id).update(
         schedule_date=values_list.get('schedule_date'),
-        schedule_id=values_list.get('schedule_id')
+        schedule_id=schedule_id
     )
     return JsonResponse({'status': 'success', 'message': 'Обновлено'})

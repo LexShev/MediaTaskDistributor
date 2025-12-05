@@ -9,17 +9,17 @@ def check_schedule(schedule_id):
     try:
         if not schedule_id:
             return 'AND [schedule_id] IN (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)'
-        return 'AND [schedule_id] = schedule_id'
+        return f'AND [schedule_id] = {schedule_id}'
     except Exception as error:
         print(error)
         return 'AND [schedule_id] IN (3, 5, 6, 7, 8, 9, 10, 11, 12, 20)'
 
 def check_date(schedule_date):
-    today = str(date.today())
+    today = date.today()
     if not schedule_date or schedule_date == '[]':
         return today, today
     try:
-        return [str(datetime.strptime(str_date, '%d.%m.%Y')) for str_date in schedule_date.split(' - ')]
+        return [datetime.strptime(str_date, '%d.%m.%Y') for str_date in schedule_date.split(' - ')]
     except Exception as error:
         print(error)
         return today, today
