@@ -103,3 +103,19 @@ def update_schedule_filter(request):
         schedule_id=schedule_id
     )
     return JsonResponse({'status': 'success', 'message': 'Обновлено'})
+
+def open_sched_day_table(request):
+    user_id = request.user.id
+    schedule_day_id = json.loads(request.body)
+    if not schedule_day_id:
+        return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+
+    schedule_day = schedule_day_id
+    html = render_to_string(
+        'playlist/schedule_day_table.html',
+        {
+            'schedule_day': schedule_day,
+        },
+        request=request
+    )
+    return JsonResponse({'status': 'success', 'message': 'Данные получены', 'html': html})

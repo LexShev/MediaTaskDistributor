@@ -11,7 +11,11 @@
     <tbody id="schedule_table_body">
     {% for schedule in schedules %}
         <tr>
-            <td>{{ schedule.day_date }}</td>
+            <td>
+                <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
+                style="cursor: pointer;" data-schedule-day-id="{{ schedule.schedule_day_id }}" onclick="openSchedDayTable(this)">
+                    {{ schedule.day_date|date:"d.m.Y" }}
+                </a></td>
             <td>{{ schedule.schedule_id|schedule_name }}</td>
             <td><span class="badge bg-success">Активно</span></td>
             <td>{{ schedule.last_edit_time }}</td>

@@ -20,7 +20,7 @@
     <div class="row g-0">
         <!-- Сайдбар -->
         <div class="col-md-3 col-lg-2">
-            <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary" style="height: calc(100vh - 4.3rem);">
+            <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary h-100 overflow-auto">
                 <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
                     <i class="bi bi-speedometer2 me-2"></i>
                 </a>
@@ -102,7 +102,7 @@
         </div>
 
         <!-- Основной контент -->
-        <div class="col-md-9 col-lg-10">
+        <div class="col-md-9 col-lg-10 h-100 overflow-hidden">
             <div class="d-flex flex-column" id="channel_list_container">
                 <!-- Информация о канале -->
                 <div class="p-4" id="channel_info_container">
@@ -116,26 +116,24 @@
                             <h6 class="text-muted mb-1">Канал:</h6>
                             <h3 class="mb-2" id="current_schedule" data-current-schedule-id="">Все</h3>
                             <h5 class="text-secondary mb-2" id="current_editor" data-current-editor="">Редактор</h5>
-                            <p class="text-muted mb-0" id="current_schedule_description">Описание.</p>
+                            <p class="text-muted mb-0" id="current_schedule_description">Описание...</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Таблица с пагинацией -->
-                <div class="border-top flex-grow-1 d-flex flex-column">
-                    <div class="p-4 flex-grow-1">
-                        <div class="d-flex mb-4">
+                <div class="border-top d-flex flex-column" style="height: calc(100vh - 17rem);">
+                    <div class="row align-items-center p-2 flex-shrink-0">
+                        <div class="col-auto">
                             {{ form.schedule_date.label_tag }}
-                            {{ form.schedule_date }}
-                            <div class="ms-auto form-check form-switch">
-                              <input class="form-check-input" type="checkbox" role="switch" id="advert" checked>
-                              <label class="form-check-label" for="advert">Скрыть оформление и рекламу</label>
-                            </div>
                         </div>
-                        <div class="table-responsive h-100" style="overflow-y: auto;">
-                            <div id="schedule_table_container">
+                        <div class="col-auto">
+                            {{ form.schedule_date }}
+                        </div>
+                    </div>
+                     <div class="flex-grow-1 p-2 overflow-auto">
+                        <div class="h-100" id="schedule_table_container">
 
-                            </div>
                         </div>
                     </div>
 

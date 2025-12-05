@@ -106,7 +106,6 @@ function load_schedule_table(options = {}) {
             if (scheduleTable) {
                 scheduleTable.innerHTML = data.html;
             }
-
         })
         .catch(error => {
             console.log(document.getElementById('schedule_table_container'));
@@ -134,16 +133,16 @@ function updateScheduleFilter(options = {}) {
             schedule_id: scheduleId,
         }),
         credentials: 'same-origin'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status !== 'success') {
-                console.log('error', data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error sending info:', error);
-        });
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status !== 'success') {
+            console.log('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending info:', error);
+    });
 };
 
 function updateScheduleTable(schedule) {
@@ -159,6 +158,37 @@ function updateScheduleTable(schedule) {
     };
     updateScheduleFilter({ scheduleId: currentScheduleId });
     load_schedule_table({ scheduleId: currentScheduleId });
+};
+
+function openSchedDayTable(schedule) {
+    let scheduleDayId = schedule.dataset.scheduleDayId;
+    console.log(scheduleDayId);
+
+    fetch('/playlist/open_sched_day_table/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(scheduleDayId),
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+//            scheduleTable.innerHTML = data.html;
+            console.log('html', data.html);
+        }
+        else {
+            console.log('error', data.message);
+        }
+
+    })
+    .catch(error => {
+        console.error('Error sending info:', error);
+    });
+
 };
 
 function getCookie(name) {
