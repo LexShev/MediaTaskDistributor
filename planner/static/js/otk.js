@@ -111,19 +111,23 @@ function updateMainProgramId() {
 function ShowApproveOTK() {
     let OTKList = document.getElementById('otk_list');
     OTKList.innerHTML = '';
+
     let checked_list = document.getElementsByName('program_id_check');
     let program_id_list = [];
     for (let i = 0; i < checked_list.length; i++) {
         if (checked_list[i].checked) {
-            let OTKContainer = document.createElement("div");
-            OTKContainer.classList.add('otk_container')
-            program_id_list.push(checked_list[i].value);
-
             let program_id = checked_list[i].dataset.programId;
             let old_file_name = checked_list[i].dataset.fileName;
             let old_file_path = checked_list[i].dataset.filePath;
             let worker_id = checked_list[i].dataset.workerId;
             let sender = checked_list[i].dataset.sender;
+            program_id_list.push(checked_list[i].value);
+
+            let OTKContainer = document.createElement("div");
+            OTKContainer.id = `otk_container_${program_id}`
+            OTKContainer.dataset.programId = program_id;
+            OTKContainer.dataset.oldFilePath = old_file_path;
+            OTKContainer.classList.add('otk_container')
 
             let otk_program_id = document.createElement("input");
             otk_program_id.type = 'hidden';
@@ -137,24 +141,70 @@ function ShowApproveOTK() {
             file_name.name = 'file_name'
             OTKContainer.appendChild(file_name);
 
-            let otk_header = document.createElement("h6");
-            otk_header.textContent = 'Комментарий';
-            OTKContainer.appendChild(otk_header);
-
-            let otk_comment = document.createElement("textarea");
-            otk_comment.classList.add('form-control');
-            otk_comment.classList.add('my-2');
-            otk_comment.name = 'otk_comment';
-            otk_comment.style = 'min-height: 50px';
-            OTKContainer.appendChild(otk_comment);
-
             let file_path_header = document.createElement("h6");
             file_path_header.textContent = 'Новый путь к файлу';
             OTKContainer.appendChild(file_path_header);
 
+            let filePathContainer = document.createElement('div');
+            filePathContainer.classList.add('d-flex');
+            filePathContainer.name = 'filePathContainer';
+            OTKContainer.appendChild(filePathContainer);
+
+            let switchContainer = document.createElement('div');
+            switchContainer.classList.add('btn-group-vertical', 'm-2');
+            switchContainer.role = 'group';
+            filePathContainer.appendChild(switchContainer);
+
+            let cenz_switcher = document.createElement("input");
+            cenz_switcher.classList.add('btn-check');
+            cenz_switcher.type = 'radio';
+            cenz_switcher.name = `switcher_${program_id}`;
+            cenz_switcher.id = `cenz_switcher_${program_id}`;
+            cenz_switcher.autocomplete = 'off';
+            cenz_switcher.checked = true;
+            switchContainer.appendChild(cenz_switcher);
+
+            let cenzSwitchLabel = document.createElement("label");
+            cenzSwitchLabel.classList.add('btn', 'btn-outline-success');
+            cenzSwitchLabel.textContent = 'CENZ';
+            cenzSwitchLabel.setAttribute('for', `cenz_switcher_${program_id}`);
+            switchContainer.appendChild(cenzSwitchLabel);
+
+            let fix_switcher = document.createElement("input");
+            fix_switcher.classList.add('btn-check');
+            fix_switcher.type = 'radio';
+            fix_switcher.name = `switcher_${program_id}`;
+            fix_switcher.id = `fix_switcher_${program_id}`;
+            fix_switcher.autocomplete = 'off';
+            fix_switcher.checked = false;
+            switchContainer.appendChild(fix_switcher);
+
+            let fixSwitchLabel = document.createElement("label");
+            fixSwitchLabel.classList.add('btn', 'btn-outline-warning');
+            fixSwitchLabel.textContent = 'FIX';
+            fixSwitchLabel.setAttribute('for', `fix_switcher_${program_id}`);
+            switchContainer.appendChild(fixSwitchLabel);
+
+            let dropZoneRow = document.createElement("div");
+            dropZoneRow.classList.add('col');
+            filePathContainer.appendChild(dropZoneRow);
+
+            let drop_zone = document.createElement("div");
+            drop_zone.classList.add('col', 'drop-zone', 'border-secondary', 'text-center', 'text-secondary', 'p-2', 'my-2');
+            dropZoneRow.appendChild(drop_zone);
+
+            let drop_zone_text_1 = document.createElement("p");
+            drop_zone_text_1.textContent = 'Перетащите файл сюда...';
+            drop_zone_text_1.classList.add('my-2');
+            drop_zone.appendChild(drop_zone_text_1);
+            let drop_zone_text_2 = document.createElement("p");
+            drop_zone_text_2.textContent = '(или кликните для выбора)';
+            drop_zone_text_2.classList.add('my-2');
+            drop_zone.appendChild(drop_zone_text_2);
+
             let otk_file_path_group = document.createElement("div");
-            otk_file_path_group.classList.add('input-group');
-            OTKContainer.appendChild(otk_file_path_group);
+            otk_file_path_group.classList.add('col', 'input-group', 'my-2');
+            dropZoneRow.appendChild(otk_file_path_group);
 
             let otk_file_path = document.createElement("input");
             otk_file_path.classList.add('form-control');
@@ -163,6 +213,22 @@ function ShowApproveOTK() {
             otk_file_path.name = 'otk_file_path';
             otk_file_path.id = `otk_file_path_${program_id}`;
             otk_file_path_group.appendChild(otk_file_path);
+
+            let invalid_feedback = document.createElement("div");
+            invalid_feedback.classList.add('invalid-feedback');
+            invalid_feedback.textContent = 'Необходимо указать файл'
+            otk_file_path_group.appendChild(invalid_feedback);
+
+            let otk_header = document.createElement("h6");
+            otk_header.textContent = 'Комментарий';
+            OTKContainer.appendChild(otk_header);
+
+            let otk_comment = document.createElement("textarea");
+            otk_comment.classList.add('form-control');
+            otk_comment.classList.add('m-2');
+            otk_comment.name = 'otk_comment';
+            otk_comment.style = 'min-height: 50px';
+            OTKContainer.appendChild(otk_comment);
 
             let divider = document.createElement("hr");
             divider.style = 'width: 40%; size: 2;';
@@ -174,6 +240,8 @@ function ShowApproveOTK() {
     }
     if (program_id_list.length > 0) {
         ApproveOTK = new bootstrap.Modal(document.getElementById('ApproveOTK'));
+        const OTKContainers = document.querySelectorAll('.otk_container');
+        initializeDropZones(OTKContainers);
         ApproveOTK.toggle();
     }
     else {
@@ -259,72 +327,100 @@ function ProgramIdList() {
         }
     }
     if (program_id_list.length > 0) {
-        ApproveFIX = new bootstrap.Modal(document.getElementById('ApproveFIX'));
-        ApproveFIX.toggle();
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
-                let prog_id = checked_list[i].dataset.programId;
-                let f_name = checked_list[i].dataset.fileName;
-                let f_path = checked_list[i].dataset.filePath;
+                let program_id = checked_list[i].dataset.programId;
+                let old_file_name = checked_list[i].dataset.fileName;
+                let old_file_path = checked_list[i].dataset.filePath;
                 let worker_id = checked_list[i].dataset.workerId;
                 let sender = checked_list[i].dataset.sender;
 
-                let fix_prog_id = document.createElement("input");
-                fix_prog_id.type = 'hidden';
-                fix_prog_id.name = 'fix_prog_id';
-                fix_prog_id.value = prog_id;
-                FixList.appendChild(fix_prog_id);
+                let FIXContainer = document.createElement("div");
+                FIXContainer.id = `otk_container_${program_id}`
+                FIXContainer.dataset.programId = program_id;
+                FIXContainer.classList.add('fix_container')
+
+                let fix_program_id = document.createElement("input");
+                fix_program_id.type = 'hidden';
+                fix_program_id.name = 'fix_program_id';
+                fix_program_id.value = program_id;
+                FIXContainer.appendChild(fix_program_id);
 
                 let file_name = document.createElement("h5");
                 file_name.classList.add('my-2');
-                file_name.textContent = f_name;
+                file_name.textContent = old_file_name;
                 file_name.name = 'file_name'
-                FixList.appendChild(file_name);
-
-                let sub_header = document.createElement("h6");
-                sub_header.textContent = 'Комментарий по исправлению';
-                FixList.appendChild(sub_header);
-
-                let fix_comment = document.createElement("textarea");
-                fix_comment.classList.add('form-control');
-                fix_comment.classList.add('my-2');
-                fix_comment.name = 'fix_comment';
-                fix_comment.style = 'min-height: 130px';
-                fix_comment.placeholder = '1. Перекачан исходник\n2. Исправлен звук\n3. ...';
-                FixList.appendChild(fix_comment);
+                FIXContainer.appendChild(file_name);
 
                 let file_path_header = document.createElement("h6");
                 file_path_header.textContent = 'Новый путь к файлу';
-                FixList.appendChild(file_path_header);
+                FIXContainer.appendChild(file_path_header);
+
+                let drop_zone = document.createElement("div");
+                drop_zone.classList.add('drop-zone', 'border-secondary', 'text-center', 'text-secondary', 'p-2', 'my-2');
+                FIXContainer.appendChild(drop_zone);
+
+                let drop_zone_text_1 = document.createElement("p");
+                drop_zone_text_1.textContent = 'Перетащите файл сюда...';
+                drop_zone_text_1.classList.add('my-2');
+                drop_zone.appendChild(drop_zone_text_1);
+                let drop_zone_text_2 = document.createElement("p");
+                drop_zone_text_2.textContent = '(или кликните для выбора)';
+                drop_zone_text_2.classList.add('my-2');
+                drop_zone.appendChild(drop_zone_text_2);
+
+                let fix_file_path_group = document.createElement("div");
+                fix_file_path_group.classList.add('input-group', 'file-input-group', 'my-2');
+                FIXContainer.appendChild(fix_file_path_group);
 
                 let fix_file_path = document.createElement("input");
-                fix_file_path.classList.add('form-control');
-                fix_file_path.classList.add('my-2');
+                fix_file_path.classList.add('form-control', 'rounded');
+                fix_file_path.setAttribute('accept', 'video/*');
+                fix_file_path.setAttribute('type', 'file');
                 fix_file_path.name = 'fix_file_path';
-                fix_file_path.type = 'text';
-                fix_file_path.style = 'font-style: italic';
-                fix_file_path.placeholder = `Старый: ${f_path}`;
-                FixList.appendChild(fix_file_path);
+                fix_file_path.id = `fix_file_path_${program_id}`;
+                fix_file_path_group.appendChild(fix_file_path);
+
+                let invalid_feedback = document.createElement("div");
+                invalid_feedback.classList.add('invalid-feedback');
+                invalid_feedback.textContent = 'Необходимо указать файл'
+                fix_file_path_group.appendChild(invalid_feedback);
 
                 let fix_worker_id = document.createElement("input");
                 fix_worker_id.type = 'hidden';
                 fix_worker_id.name = 'fix_worker_id';
                 fix_worker_id.value = (worker_id && worker_id !== "None") ? worker_id : sender;
-                FixList.appendChild(fix_worker_id);
+                FIXContainer.appendChild(fix_worker_id);
+
+                let sub_header = document.createElement("h6");
+                sub_header.textContent = 'Комментарий по исправлению';
+                FIXContainer.appendChild(sub_header);
+
+                let fix_comment = document.createElement("textarea");
+                fix_comment.classList.add('form-control', 'my-2');
+                fix_comment.name = 'fix_comment';
+                fix_comment.style = 'min-height: 130px';
+                fix_comment.placeholder = '1. Перекачан исходник\n2. Исправлен звук\n3. ...';
+                FIXContainer.appendChild(fix_comment);
 
                 let divider = document.createElement("hr");
                 divider.style = 'width: 40%; size: 2;';
-                FixList.appendChild(divider);
+                FIXContainer.appendChild(divider);
+
+                FixList.appendChild(FIXContainer);
             }
         }
+    ApproveFIX = new bootstrap.Modal(document.getElementById('ApproveFIX'));
+    ApproveFIX.toggle();
+    const FIXContainers = document.querySelectorAll('.fix_container');
+    initializeDropZones(FIXContainers);
+
     }
     else
         {
             console.log('error');
             errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
             errorModal.toggle();
-
-
         }
     };
 
@@ -344,21 +440,20 @@ function ShowOTKFail() {
 
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
-                let prog_id = checked_list[i].dataset.programId
-                let f_name = checked_list[i].dataset.fileName
-                let f_path = checked_list[i].dataset.filePath
+                let program_id = checked_list[i].dataset.programId
+                let old_file_name = checked_list[i].dataset.fileName
+                let old_file_path = checked_list[i].dataset.filePath
                 let worker_id = checked_list[i].dataset.workerId
-//                let [prog_id, f_name, f_path] = checked_list[i].value.split(';')
 
-                let otk_fail_prog_id = document.createElement("input");
-                otk_fail_prog_id.type = 'hidden';
-                otk_fail_prog_id.name = 'otk_fail_prog_id';
-                otk_fail_prog_id.value = prog_id;
-                OTKFailList.appendChild(otk_fail_prog_id);
+                let otk_fail_program_id = document.createElement("input");
+                otk_fail_program_id.type = 'hidden';
+                otk_fail_program_id.name = 'otk_fail_program_id';
+                otk_fail_program_id.value = program_id;
+                OTKFailList.appendChild(otk_fail_program_id);
 
                 let file_name = document.createElement("h5");
                 file_name.classList.add('my-2');
-                file_name.textContent = f_name;
+                file_name.textContent = old_file_name;
                 file_name.name = 'file_name'
                 OTKFailList.appendChild(file_name);
 
@@ -367,8 +462,7 @@ function ShowOTKFail() {
                 OTKFailList.appendChild(sub_header);
 
                 let otk_fail_comment = document.createElement("textarea");
-                otk_fail_comment.classList.add('form-control');
-                otk_fail_comment.classList.add('my-2');
+                otk_fail_comment.classList.add('form-control', 'my-2');
                 otk_fail_comment.name = 'otk_fail_comment';
                 otk_fail_comment.style = 'min-height: 130px';
                 otk_fail_comment.placeholder = '1. Таймкод - суть проблемы\n2. Таймкод - суть проблемы\n3. ...';
@@ -495,6 +589,121 @@ function ResetFilter() {
 
     document.getElementById('otk_form').submit();
 
+};
+
+function initializeDropZones(containers) {
+    // Находим все контейнеры с файлами
+    containers.forEach(container => {
+        const dropZone = container.querySelector('.drop-zone');
+        const fileInput = container.querySelector('input[type="file"]');
+
+        if (!dropZone || !fileInput) return;
+
+        // Функции для предотвращения стандартного поведения
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight() {
+            dropZone.classList.add('dragover');
+            fileInput.classList.add('dragover');
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('dragover');
+            fileInput.classList.remove('dragover');
+        }
+
+        // Обработчики событий перетаскивания
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Обработка drop - файл перетащили в зону
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length > 0) {
+              // Берем только ПЕРВЫЙ файл, даже если перетащили несколько
+              const firstFile = files[0];
+
+              // Создаем новый FileList с одним файлом
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(firstFile);
+
+              // Присваиваем только первый файл в input
+              fileInput.files = dataTransfer.files;
+
+              // Триггерим событие change
+              const event = new Event('change', { bubbles: true });
+              fileInput.dispatchEvent(event);
+
+              // Меняем стиль drop-zone чтобы показать, что файл выбран
+              updateDropZoneAppearance(firstFile.name); // Без передачи dropZone
+            }
+        }
+
+        // Клик по зоне тоже открывает выбор файла
+        dropZone.addEventListener('click', function(e) {
+            // Кликаем только если кликнули не по самому input
+            if (e.target !== fileInput) {
+              fileInput.click();
+            }
+        });
+
+        // Обработчик изменения файла через стандартный диалог
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const fileName = this.files[0].name;
+                updateDropZoneAppearance(fileName); // Без передачи dropZone
+            } else {
+                // Если файл сброшен
+                resetDropZoneAppearance(); // Без параметров
+            }
+        });
+
+        // Функция обновления внешнего вида - использует dropZone из замыкания
+        function updateDropZoneAppearance(fileName) {
+            dropZone.classList.remove('border-secondary', 'text-secondary');
+            dropZone.classList.add('file-selected', 'border-success', 'text-success');
+            fileInput.classList.remove('border-secondary', 'text-secondary');
+            fileInput.classList.add('border-success', 'text-success');
+            let oldFilePath = container.dataset.oldFilePath;
+            const paragraphs = dropZone.querySelectorAll('p');
+            if (paragraphs.length >= 2) {
+                paragraphs[0].textContent = `Старый файл: ${oldFilePath}`;
+                paragraphs[1].textContent = `Новый файл: ${fileName}`;
+            } else if (paragraphs.length === 1) {
+                paragraphs[0].textContent = `Выбран файл: ${fileName}`;
+            }
+        }
+
+        // Функция сброса внешнего вида - использует dropZone из замыкания
+        function resetDropZoneAppearance() {
+            dropZone.classList.remove('file-selected', 'border-success', 'text-success');
+            dropZone.classList.add('border-secondary', 'text-secondary');
+            fileInput.classList.remove('border-success', 'text-success');
+            fileInput.classList.add('border-secondary', 'text-secondary');
+
+            const paragraphs = dropZone.querySelectorAll('p');
+            if (paragraphs.length >= 2) {
+                paragraphs[0].textContent = 'Перетащите файл сюда...';
+                paragraphs[1].textContent = '(или кликните для выбора)';
+            }
+        }
+    });
 };
 
 function convertFramesToTime(frames, fps = 25) {

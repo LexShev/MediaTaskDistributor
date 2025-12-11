@@ -29,7 +29,7 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
     if mark is None:
         mark = []
     print('user_order', user_order, 'order_type', order_type)
-    material_list_sql, django_columns = planner_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type)
+    material_list_sql, django_columns = planner_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type, mark)
     material_list = []
     program_id_list = []
     for program_info in material_list_sql:

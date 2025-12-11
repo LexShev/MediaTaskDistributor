@@ -1,3 +1,10 @@
+$(document).on('shown.bs.modal', '#TaskReady', function() {
+    // Проверяем и инициализируем selectpicker при каждом открытии модального окна
+    if ($.fn.selectpicker) {
+        $('.selectpicker').selectpicker('refresh');
+    }
+});
+
 window.addEventListener('DOMContentLoaded', function() {
     let seasons = document.getElementsByClassName('season');
 
@@ -265,9 +272,7 @@ function showReadyListModal() {
         cenzContainer.appendChild(file_path_header);
 
         let switchContainer = document.createElement('div');
-        switchContainer.classList.add('form-check');
-        switchContainer.classList.add('form-switch');
-        switchContainer.classList.add('my-2');
+        switchContainer.classList.add('form-check', 'form-switch', 'my-2');
         cenzContainer.appendChild(switchContainer);
 
         let switcher = document.createElement("input");

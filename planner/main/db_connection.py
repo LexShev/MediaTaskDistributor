@@ -116,6 +116,16 @@ def date_splitter(work_dates):
     end_date = datetime.datetime.strptime(end_date, '%d/%m/%Y')
     return start_date, end_date
 
+def get_mark(mark_filter):
+    if not mark_filter:
+        return ''
+    query = []
+    if 'remake' in mark_filter:
+        query.append('AND Remake.[program_id] IS NOT NULL')
+    if 'archived' in mark_filter:
+        query.append('AND Task.[archived] = 1')
+    return '\n'.join(query) + '\n'
+
 def get_order(user_order='sched_date', order_type='ASC'):
     try:
         order_dict = {
@@ -130,7 +140,7 @@ def get_order(user_order='sched_date', order_type='ASC'):
         return ''
 
 
-def planner_material_list(schedules_id, worker_id, material_type, work_dates, task_status, user_order, order_type):
+def planner_material_list(schedules_id, worker_id, material_type, work_dates, task_status, user_order, order_type, mark=None):
     schedules_id = check_param(schedules_id)
     worker_id = check_param(worker_id)
     material_type = check_mat_type(material_type)
@@ -140,7 +150,8 @@ def planner_material_list(schedules_id, worker_id, material_type, work_dates, ta
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [('Progs', 'program_id'), ('Progs', 'parent_id'), ('Progs', 'program_type_id'), ('Progs', 'name'),
                    ('Progs', 'production_year'), ('Progs', 'AnonsCaption'), ('Progs', 'episode_num'),
-                   ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Adult', 'Name'), ('Task', 'worker_id'), ('Task', 'sched_id'),
+                   ('Progs', 'duration'), ('Sched', 'schedule_id'), ('Adult', 'Name'),
+                   ('Task', 'worker_id'), ('Task', 'sched_id'), ('Task', 'archived'),
                    ('Task', 'sched_date'), ('Task', 'work_date'), ('Task', 'task_status'), ('Task', 'deadline'),
                    ('Remake', 'program_id'), ('Remake', 'ready_date'), ('Remake', 'engineer_id')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -164,6 +175,7 @@ def planner_material_list(schedules_id, worker_id, material_type, work_dates, ta
         AND Progs.[program_type_id] IN {material_type}
         AND Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'
         AND Task.[task_status] IN {task_status}
+        {get_mark(mark)}
         {get_order(user_order, order_type)}
         '''
         cursor.execute(query)

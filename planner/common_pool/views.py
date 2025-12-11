@@ -32,7 +32,10 @@ def common_pool(request):
             form.save()
     else:
         form = CommonPoolForm(
-            initial={'sql_set': init_dict.sql_set, 'search_type': init_dict.search_type}
+            initial={'material_type': init_dict.material_type,
+                     'search_input': init_dict.search_input,
+                     'sql_set': init_dict.sql_set,
+                     'search_type': init_dict.search_type}
         )
 
     data = {'pool_list': [],
@@ -83,10 +86,14 @@ def load_pool_table(request):
     except ObjectDoesNotExist:
         init_dict = CommonPool.objects.get(owner=user_id)
 
+    search_type = request.GET.get('search_type', init_dict.search_type)
+    material_type = request.GET.get('material_type', init_dict.material_type)
+    search_input = request.GET.get('search_input', init_dict.search_input)
     sql_set = request.GET.get('sql_set', init_dict.sql_set)
+
     html = render_to_string(
         'common_pool/common_pool_table.html',
-        {'pool_list': select_pool(sql_set),
+        {'pool_list': select_pool(search_type, material_type, search_input, sql_set),
          'permissions': ask_db_permissions(user_id),
          },
         request=request

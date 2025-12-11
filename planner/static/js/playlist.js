@@ -105,6 +105,18 @@ function load_schedule_table(options = {}) {
         .then(data => {
             if (scheduleTable) {
                 scheduleTable.innerHTML = data.html;
+                console.log('Таблица загружена, вызываем инициализацию...');
+
+                // ВАЖНО: Вызываем инициализацию после загрузки
+                if (typeof window.scheduleDay !== 'undefined' &&
+                    typeof window.scheduleDay.initScheduleDay === 'function') {
+                    // Даем время на рендеринг DOM
+                    setTimeout(() => {
+                        window.scheduleDay.initScheduleDay();
+                    }, 50);
+                } else {
+                    console.error('Функция initScheduleDay не найдена!');
+                }
             }
         })
         .catch(error => {
@@ -163,8 +175,12 @@ function updateScheduleTable(schedule) {
 function openSchedDayTable(schedule) {
     let scheduleDayId = schedule.dataset.scheduleDayId;
     console.log(scheduleDayId);
+    const scheduleDayModal = bootstrap.Modal.getInstance(document.getElementById('schedule_day_modal')) ||
+                            new bootstrap.Modal(document.getElementById('schedule_day_modal'));
+    let scheduleDayModalBody = document.getElementById('schedule_day_modal_body')
 
-    fetch('/playlist/open_sched_day_table/', {
+
+    fetch('/playlist/get_schedule_day_table/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -177,8 +193,16 @@ function openSchedDayTable(schedule) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-//            scheduleTable.innerHTML = data.html;
-            console.log('html', data.html);
+            scheduleDayModalBody.innerHTML = data.html;
+            console.log('Модальная таблица загружена, инициализируем...');
+
+            if (typeof window.scheduleDay !== 'undefined' &&
+                typeof window.scheduleDay.initScheduleDay === 'function') {
+                setTimeout(() => {
+                    window.scheduleDay.initScheduleDay();
+                }, 100);
+            }
+            scheduleDayModal.toggle()
         }
         else {
             console.log('error', data.message);

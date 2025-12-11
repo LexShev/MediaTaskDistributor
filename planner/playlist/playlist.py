@@ -55,3 +55,136 @@ def get_schedule_days(field_dict):
             results.append(dict(zip(columns, row)))
 
         return results
+
+def get_schedule_day_table(schedule_day_id):
+    with connections[OPLAN_DB].cursor() as cursor:
+        query = f'''
+        SELECT [schedule_day_id]
+              ,[program_id]
+              ,[start_time]
+              ,[duration]
+              ,[ad_duration]
+              ,[name]
+              ,[can_be_moved]
+              ,[can_be_inserted]
+              ,[scheduled_program_id]
+              ,[ParentID]
+              ,[SlotType]
+              ,[MaterialID]
+              ,[PlannedStartTime]
+              ,[IsBlock]
+              ,[Level]
+              ,[program_type_id]
+              ,[TheAir]
+              ,[Active]
+              ,[Premiere]
+              ,[ChildPosition]
+              ,[Deleted]
+              ,[DeletedIncludeParent]
+              ,[DateTime]
+              ,[LastEditUser]
+              ,[CreatedAt]
+              ,[CreatedBy]
+              ,[LastEditTime]
+              ,[LastPlacementPosition]
+              ,[MediumName]
+          FROM [{OPLAN_DB}].[dbo].[scheduled_program]
+          WHERE [schedule_day_id] = %s
+          AND [Deleted] = 0
+          AND [DeletedIncludeParent] = 0
+          ORDER BY [DateTime]
+        '''
+
+        cursor.execute(query, (schedule_day_id,))
+        columns = [col[0] for col in cursor.description]
+        results = []
+
+        for row in cursor.fetchall():
+            results.append(dict(zip(columns, row)))
+    return build_hierarchy_from_level(results)
+
+
+def build_hierarchy_from_level(schedule_data):
+    """
+    Преобразует плоский список с полями Level и ParentID в иерархическую структуру
+    """
+    # Сортируем по уровню вложенности (от меньшего к большему)
+    schedule_data.sort(key=lambda x: (x['Level'], x.get('ChildPosition', 0)))
+
+    # Создаем словарь для быстрого поиска по ID
+    items_by_id = {}
+    root_items = []
+
+    # Первый проход: создаем структуры с пустыми children
+    for item in schedule_data:
+        item_id = item['scheduled_program_id']
+        items_by_id[item_id] = {
+            **item,
+            'children': [],
+            'is_collapsed': True,  # для фронтенда
+            'type': 'program' if item.get('program_id') else 'folder' if item.get('SlotType') == 1 else 'segment'
+        }
+
+    # Второй проход: строим иерархию
+    for item in schedule_data:
+        item_id = item['scheduled_program_id']
+        parent_id = item.get('ParentID')
+
+        if parent_id is None or parent_id not in items_by_id:
+            # Это корневой элемент
+            root_items.append(items_by_id[item_id])
+        else:
+            # Это дочерний элемент
+            parent_item = items_by_id[parent_id]
+            parent_item['children'].append(items_by_id[item_id])
+
+    return root_items
+
+def create_nested_structure(flat_list, parent_field='ParentID', id_field='scheduled_program_id'):
+    """
+    Универсальная функция для создания вложенной структуры
+
+    Args:
+        flat_list: плоский список словарей
+        parent_field: поле, указывающее на родителя
+        id_field: поле с уникальным ID
+
+    Returns:
+        Вложенный список словарей с ключом 'children'
+    """
+    # Создаем словарь для быстрого поиска
+    item_dict = {item[id_field]: item for item in flat_list}
+
+    # Добавляем пустой список детей каждому элементу
+    for item in flat_list:
+        item['children'] = []
+
+    # Строим дерево
+    root_items = []
+
+    for item in flat_list:
+        parent_id = item.get(parent_field)
+
+        if parent_id is None:
+            # Это корневой элемент
+            root_items.append(item)
+        else:
+            # Находим родителя
+            parent = item_dict.get(parent_id)
+            if parent:
+                parent['children'].append(item)
+            else:
+                # Родитель не найден - возможно ошибка данных
+                # Добавляем как корневой элемент
+                root_items.append(item)
+
+    # Опционально: сортируем детей по какому-либо полю
+    # def sort_children(items, sort_key='ChildPosition'):
+    #     for item in items:
+    #         if item['children']:
+    #             item['children'].sort(key=lambda x: x.get(sort_key, 0))
+    #             sort_children(item['children'], sort_key)
+    #
+    # sort_children(root_items)
+
+    return root_items

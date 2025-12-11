@@ -1,7 +1,25 @@
 from django.db import connections
 from planner.settings import OPLAN_DB, PLANNER_DB
 
-def select_pool(sql_set):
+
+def check_material_type(material_type):
+    if not material_type:
+        return 'AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12, 16)'
+    if material_type == 1:
+        return 'AND Progs.[program_type_id] IN (5, 6, 10, 11)'
+    elif material_type == 2:
+        return 'AND Progs.[program_type_id] IN (4, 12, 16)'
+    else:
+        return 'AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12, 16)'
+
+def search_by_name(search_type, search_input):
+    if not search_input:
+        return ''
+    if search_type == 1:
+        return f"AND Progs.[name] LIKE '%{search_input}%'"
+    return ''
+
+def select_pool(search_type, material_type, search_input, sql_set):
     try:
         with connections[OPLAN_DB].cursor() as cursor:
             columns = [
@@ -17,14 +35,18 @@ def select_pool(sql_set):
             sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
             django_columns = [f'{col}_{val}' for col, val in columns]
             query = f'''
-                SELECT DISTINCT TOP ({sql_set}) {sql_columns}
+                SELECT DISTINCT TOP ({sql_set}) {sql_columns},
+                CASE 
+                    WHEN Progs.[AnonsCaption] IS NULL THEN Progs.[name]
+                    ELSE Progs.[AnonsCaption]
+                END AS SortName
                 FROM [{OPLAN_DB}].[dbo].[program] AS Progs
                 LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
                     ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
                 WHERE Progs.[deleted] = 0
                 AND Progs.[DeletedIncludeParent] = 0
                 AND Progs.[SuitableMaterialForScheduleID] IS NOT NULL
-                AND Progs.[program_type_id] IN (4, 5, 6, 10, 11, 12, 16)
+                {check_material_type(material_type)}
                 AND Progs.[program_kind] IN (0, 3)
                 AND Progs.[program_id] NOT IN
                     (SELECT DISTINCT Task.[program_id] FROM [{PLANNER_DB}].[dbo].[task_list] AS Task)
@@ -32,6 +54,11 @@ def select_pool(sql_set):
                     (SELECT DISTINCT [ObjectId] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
                     WHERE [ProgramCustomFieldId] = 15
                     OR [ProgramCustomFieldId] = 7)
+                {search_by_name(search_type, search_input)}
+                ORDER BY 
+                    SortName,
+                    Progs.[parent_id], 
+                    Progs.[episode_num]
                 '''
             cursor.execute(query)
             return [dict(zip(django_columns, material)) for material in cursor.fetchall()]

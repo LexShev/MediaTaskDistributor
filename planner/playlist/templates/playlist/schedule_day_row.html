@@ -1,0 +1,73 @@
+{% load custom_filters %}
+
+{% comment %} Основная строка элемента {% endcomment %}
+<tr class="schedule-row level-{{ level }}
+    {% if item.type == 'folder' or item.type == 'block' %}folder-row{% endif %}"
+    data-id="{{ item.scheduled_program_id }}"
+    data-parent="{{ item.ParentID|default:'' }}"
+    data-level="{{ level }}"
+    {% if item.children %}data-has-children="true"{% endif %}>
+
+    <td class="toggle-cell">
+        {% if item.children %}
+            <div class="folder-toggle me-2" style="cursor: pointer;"
+                 id="toggle-{{ item.scheduled_program_id }}"
+                 onclick="toggleScheduleFolder('{{ item.scheduled_program_id }}')">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg>
+            </div>
+        {% endif %}
+    </td>
+
+    {% comment %} Убираем padding-left из ячейки времени {% endcomment %}
+    <td>
+        {{ item.DateTime|date:"H:i:s" }}
+    </td>
+
+    <td class="name-cell" style="padding-left: calc({{ level }} * 20px);">
+        <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
+           style="cursor: pointer;"
+           data-scheduled-program-id="{{ item.scheduled_program_id }}"
+           data-ParentID="{{ item.ParentID }}">
+            {{ item.name }}
+            {% if item.type == 'block' %}
+                <span class="badge bg-warning text-dark ms-1">БЛОК</span>
+            {% endif %}
+        </a>
+    </td>
+
+    <td>
+        {% if item.duration %}
+            {{ item.duration|convert_frames_to_time }}
+        {% endif %}
+    </td>
+
+    <td>
+        <span class="badge
+            {% if item.type == 'program' %}bg-primary
+            {% elif item.type == 'folder' %}bg-secondary
+            {% elif item.type == 'block' %}bg-warning text-dark
+            {% elif item.type == 'segment' %}bg-info
+            {% else %}bg-light text-dark{% endif %}">
+            {{ item.type }}
+        </span>
+    </td>
+
+    <td>{{ item.LastEditTime|date:"d.m.Y" }}</td>
+    <td>{{ item.CreatedBy }}</td>
+    <td>
+        {% if item.TheAir %}
+            <span class="badge bg-success">Да</span>
+        {% else %}
+            <span class="badge bg-danger">Нет</span>
+        {% endif %}
+    </td>
+</tr>
+
+{% comment %} Всегда рендерим детей, но скрываем их через display: none {% endcomment %}
+{% if item.children %}
+    {% for child in item.children %}
+        {% include "playlist/schedule_day_row.html" with item=child level=Level %}
+    {% endfor %}
+{% endif %}

@@ -5,6 +5,7 @@ class CommonPool(Model):
     owner = IntegerField('owner', primary_key=True, default=1)
     search_type = IntegerField(default=1)
     search_input = CharField(max_length=200, default=None, null=True, blank=True)
+    material_type = IntegerField(default=0, null=True, blank=True)
     sql_set = IntegerField(default=100)
 
     class Meta:

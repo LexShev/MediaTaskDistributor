@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from main.permission_pannel import ask_db_permissions
 from playlist.forms import PlaylistFilter
 from playlist.models import PlaylistModel
-from playlist.playlist import get_schedule_days
+from playlist.playlist import get_schedule_days, get_schedule_day_table
 
 
 @login_required()
@@ -104,17 +104,17 @@ def update_schedule_filter(request):
     )
     return JsonResponse({'status': 'success', 'message': 'Обновлено'})
 
-def open_sched_day_table(request):
+def open_schedule_day_table(request):
     user_id = request.user.id
     schedule_day_id = json.loads(request.body)
     if not schedule_day_id:
         return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
 
-    schedule_day = schedule_day_id
+    schedule_day_list = get_schedule_day_table(schedule_day_id)
     html = render_to_string(
         'playlist/schedule_day_table.html',
         {
-            'schedule_day': schedule_day,
+            'schedule_day_list': schedule_day_list,
         },
         request=request
     )
