@@ -5,7 +5,7 @@
 <main role="main">
 {% block body %}
 <link rel="stylesheet" href="{% static 'css/otk.css' %}">
-
+<div id="settings" data-current-cenz-dir="{{ settings.current_cenz_dir }}"></div>
 
 <div class="container-flex px-lg-5">
 <br>
@@ -21,7 +21,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <h5>Ни одна задача не выбрана!</h5>
+            <h5 id="error_message">Ни одна задача не выбрана!</h5>
           </div>
         </div>
       </div>
@@ -62,7 +62,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" name="approve_fix" id="approve_fix" value="True" class="btn btn-outline-warning">Отправить</button>
+            <button type="button" name="approve_fix" id="approve_fix" onclick="setStatusFIX()" class="btn btn-outline-warning">Отправить</button>
             <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Отмена</button>
           </div>
         </div>
@@ -81,7 +81,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button name="otk_fail" id="otk_fail" value="True" type="submit" class="btn btn-warning">На доработку</button>
+            <button type="button" onclick="setStatusOTKFail()" name="otk_fail" id="otk_fail" class="btn btn-warning">На доработку</button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
           </div>
         </div>
@@ -149,7 +149,7 @@
             <button type="button" onclick="ShowApproveOTK()" class="btn register-button btn-outline-success mx-2">Утвердить</button>
           </div>
           <div class="ms-auto">
-            <button type="button" onclick="ProgramIdList()" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>
+            <button type="button" onclick="ShowFixReadyList()" class="btn register-button btn-outline-warning mx-2">Отправить FIX</button>
             <button type="button" onclick="ShowOTKFail()" class="btn register-button btn-outline-danger mx-2">На доработку</button>
           </div>
         </div>

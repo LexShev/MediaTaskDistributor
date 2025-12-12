@@ -126,6 +126,7 @@ function ShowApproveOTK() {
             let OTKContainer = document.createElement("div");
             OTKContainer.id = `otk_container_${program_id}`
             OTKContainer.dataset.programId = program_id;
+            OTKContainer.dataset.programName = old_file_name;
             OTKContainer.dataset.oldFilePath = old_file_path;
             OTKContainer.classList.add('otk_container')
 
@@ -138,7 +139,6 @@ function ShowApproveOTK() {
             let file_name = document.createElement("h5");
             file_name.classList.add('my-2');
             file_name.textContent = old_file_name;
-            file_name.name = 'file_name'
             OTKContainer.appendChild(file_name);
 
             let file_path_header = document.createElement("h6");
@@ -156,31 +156,33 @@ function ShowApproveOTK() {
             filePathContainer.appendChild(switchContainer);
 
             let cenz_switcher = document.createElement("input");
-            cenz_switcher.classList.add('btn-check');
+            cenz_switcher.classList.add('btn-check', 'switcher');
             cenz_switcher.type = 'radio';
             cenz_switcher.name = `switcher_${program_id}`;
             cenz_switcher.id = `cenz_switcher_${program_id}`;
+            cenz_switcher.value = 'cenz';
             cenz_switcher.autocomplete = 'off';
             cenz_switcher.checked = true;
             switchContainer.appendChild(cenz_switcher);
 
             let cenzSwitchLabel = document.createElement("label");
-            cenzSwitchLabel.classList.add('btn', 'btn-outline-success');
+            cenzSwitchLabel.classList.add('btn', 'btn-outline-success', 'switch-label');
             cenzSwitchLabel.textContent = 'CENZ';
             cenzSwitchLabel.setAttribute('for', `cenz_switcher_${program_id}`);
             switchContainer.appendChild(cenzSwitchLabel);
 
             let fix_switcher = document.createElement("input");
-            fix_switcher.classList.add('btn-check');
+            fix_switcher.classList.add('btn-check', 'switcher');
             fix_switcher.type = 'radio';
             fix_switcher.name = `switcher_${program_id}`;
             fix_switcher.id = `fix_switcher_${program_id}`;
+            fix_switcher.value = 'fix';
             fix_switcher.autocomplete = 'off';
             fix_switcher.checked = false;
             switchContainer.appendChild(fix_switcher);
 
             let fixSwitchLabel = document.createElement("label");
-            fixSwitchLabel.classList.add('btn', 'btn-outline-warning');
+            fixSwitchLabel.classList.add('btn', 'btn-outline-warning', 'switch-label');
             fixSwitchLabel.textContent = 'FIX';
             fixSwitchLabel.setAttribute('for', `fix_switcher_${program_id}`);
             switchContainer.appendChild(fixSwitchLabel);
@@ -236,6 +238,8 @@ function ShowApproveOTK() {
             OTKContainer.appendChild(divider);
 
             OTKList.appendChild(OTKContainer);
+
+            addSwitchHandlers(switchContainer)
         }
     }
     if (program_id_list.length > 0) {
@@ -251,71 +255,18 @@ function ShowApproveOTK() {
     }
 };
 
-function setStatusOTK() {
-    let OTKContainers = document.querySelectorAll('.otk_container');
-    let otkData = [];
-    OTKContainers.forEach(container => {
-        let program_id = container.querySelector("input[name='otk_program_id']");
-        let otk_comment = container.querySelector("textarea[name='otk_comment']");
-        let file_name = container.querySelector("h5[name='file_name']");
-        let otk_file_path = container.querySelector("input[name='otk_file_path']");
-        otkData.push([
-            program_id?.value || '',
-            otk_comment?.value || '',
-            file_name?.textContent || '',
-            otk_file_path?.value || ''
-        ])
-    });
+//// Обработчики для правильной работы toggle buttons
+//function addRadioHandlers(switchContainer) {
+////    let switchers = switchContainer.querySelectorAll('.switcher');
+//    let labels = switchContainer.querySelectorAll('.switch-label');
+//
+//    labels.forEach(label => {
+//        label.dispatchEvent(new Event('click'));
+//        console.log('event ready')
+//    })
+//};
 
-    fetch('/otk/set_status_otk/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify(otkData),
-        credentials: 'same-origin'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                window.location.href = `/otk/`;
-            }
-            else {
-                console.log('error', data.message)
-
-                const ApproveOTK = bootstrap.Modal.getInstance(document.getElementById('ApproveOTK')) ||
-                            new bootstrap.Modal(document.getElementById('ApproveOTK'));
-                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-                error_message = document.getElementById('error_message');
-                error_message.textContent = data.message;
-
-                ApproveOTK.hide();
-                errorModal.toggle();
-            }
-        })
-        .catch(error => {
-            console.error('Error sending info:', error);
-        });
-};
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-};
-
-function ProgramIdList() {
+function ShowFixReadyList() {
     let FixList = document.getElementById('fix_list');
     FixList.innerHTML = '';
 
@@ -336,8 +287,11 @@ function ProgramIdList() {
                 let sender = checked_list[i].dataset.sender;
 
                 let FIXContainer = document.createElement("div");
-                FIXContainer.id = `otk_container_${program_id}`
+                FIXContainer.id = `fix_container_${program_id}`
                 FIXContainer.dataset.programId = program_id;
+                FIXContainer.dataset.programName = old_file_name;
+                FIXContainer.dataset.oldFilePath = old_file_path;
+                FIXContainer.dataset.workerId = (worker_id && worker_id !== "None") ? worker_id : sender;
                 FIXContainer.classList.add('fix_container')
 
                 let fix_program_id = document.createElement("input");
@@ -346,11 +300,10 @@ function ProgramIdList() {
                 fix_program_id.value = program_id;
                 FIXContainer.appendChild(fix_program_id);
 
-                let file_name = document.createElement("h5");
-                file_name.classList.add('my-2');
-                file_name.textContent = old_file_name;
-                file_name.name = 'file_name'
-                FIXContainer.appendChild(file_name);
+                let program_name = document.createElement("h5");
+                program_name.classList.add('program_name', 'my-2');
+                program_name.textContent = old_file_name;
+                FIXContainer.appendChild(program_name);
 
                 let file_path_header = document.createElement("h6");
                 file_path_header.textContent = 'Новый путь к файлу';
@@ -386,12 +339,6 @@ function ProgramIdList() {
                 invalid_feedback.textContent = 'Необходимо указать файл'
                 fix_file_path_group.appendChild(invalid_feedback);
 
-                let fix_worker_id = document.createElement("input");
-                fix_worker_id.type = 'hidden';
-                fix_worker_id.name = 'fix_worker_id';
-                fix_worker_id.value = (worker_id && worker_id !== "None") ? worker_id : sender;
-                FIXContainer.appendChild(fix_worker_id);
-
                 let sub_header = document.createElement("h6");
                 sub_header.textContent = 'Комментарий по исправлению';
                 FIXContainer.appendChild(sub_header);
@@ -410,10 +357,10 @@ function ProgramIdList() {
                 FixList.appendChild(FIXContainer);
             }
         }
-    ApproveFIX = new bootstrap.Modal(document.getElementById('ApproveFIX'));
-    ApproveFIX.toggle();
-    const FIXContainers = document.querySelectorAll('.fix_container');
-    initializeDropZones(FIXContainers);
+        ApproveFIX = new bootstrap.Modal(document.getElementById('ApproveFIX'));
+        ApproveFIX.toggle();
+        const FIXContainers = document.querySelectorAll('.fix_container');
+        initializeDropZones(FIXContainers);
 
     }
     else
@@ -435,9 +382,6 @@ function ShowOTKFail() {
             program_id_list.push(checked_list[i].value);}
     }
     if (program_id_list.length > 0) {
-        OTKFail = new bootstrap.Modal(document.getElementById('OTKFail'));
-        OTKFail.toggle();
-
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
                 let program_id = checked_list[i].dataset.programId
@@ -445,28 +389,36 @@ function ShowOTKFail() {
                 let old_file_path = checked_list[i].dataset.filePath
                 let worker_id = checked_list[i].dataset.workerId
 
+                let FailContainer = document.createElement("div");
+                FailContainer.id = `fail_container_${program_id}`
+                FailContainer.dataset.programId = program_id;
+                FailContainer.dataset.programName = old_file_name;
+                FailContainer.dataset.oldFilePath = old_file_path;
+                FailContainer.dataset.workerId = (worker_id && worker_id !== "None") ? worker_id : sender;
+                FailContainer.classList.add('fail_container')
+
                 let otk_fail_program_id = document.createElement("input");
                 otk_fail_program_id.type = 'hidden';
                 otk_fail_program_id.name = 'otk_fail_program_id';
                 otk_fail_program_id.value = program_id;
-                OTKFailList.appendChild(otk_fail_program_id);
+                FailContainer.appendChild(otk_fail_program_id);
 
                 let file_name = document.createElement("h5");
                 file_name.classList.add('my-2');
                 file_name.textContent = old_file_name;
                 file_name.name = 'file_name'
-                OTKFailList.appendChild(file_name);
+                FailContainer.appendChild(file_name);
 
                 let sub_header = document.createElement("h6");
                 sub_header.textContent = 'Комментарий по необходимой доработке';
-                OTKFailList.appendChild(sub_header);
+                FailContainer.appendChild(sub_header);
 
                 let otk_fail_comment = document.createElement("textarea");
                 otk_fail_comment.classList.add('form-control', 'my-2');
                 otk_fail_comment.name = 'otk_fail_comment';
                 otk_fail_comment.style = 'min-height: 130px';
                 otk_fail_comment.placeholder = '1. Таймкод - суть проблемы\n2. Таймкод - суть проблемы\n3. ...';
-                OTKFailList.appendChild(otk_fail_comment);
+                FailContainer.appendChild(otk_fail_comment);
 
                 let otk_fail_worker_id = document.createElement("input");
                 otk_fail_worker_id.type = 'hidden';
@@ -476,15 +428,180 @@ function ShowOTKFail() {
 
                 let divider = document.createElement("hr");
                 divider.style = 'width: 40%; size: 2;';
-                OTKFailList.appendChild(divider);
+                FailContainer.appendChild(divider);
+
+                OTKFailList.appendChild(FailContainer);
             }
         }
+        OTKFail = new bootstrap.Modal(document.getElementById('OTKFail'));
+        OTKFail.toggle();
     }
     else {
         console.log('error');
         errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
         errorModal.toggle();
     }
+};
+
+function setStatusOTK() {
+    let OTKContainers = document.querySelectorAll('.otk_container');
+    let otkData = [];
+    OTKContainers.forEach(container => {
+        let program_id = container.querySelector("input[name='otk_program_id']");
+        const programId = program_id?.value || '';
+        let otk_comment = container.querySelector("textarea[name='otk_comment']");
+        let otk_file_path = container.querySelector("input[name='otk_file_path']");
+        let selectedRadio = container.querySelector(`input[name='switcher_${programId}']:checked`);
+
+        otkData.push([
+            programId,
+            otk_comment?.value || '',
+            container?.dataset?.programName || '',
+            otk_file_path?.value || '',
+            selectedRadio ? selectedRadio.value : 'cenz'
+        ])
+    });
+    fetch('/otk/set_status_otk/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(otkData),
+        credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = `/otk/`;
+            }
+            else {
+                console.log('error', data.message)
+
+                const ApproveOTK = bootstrap.Modal.getInstance(document.getElementById('ApproveOTK')) ||
+                            new bootstrap.Modal(document.getElementById('ApproveOTK'));
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                error_message = document.getElementById('error_message');
+                error_message.textContent = data.message;
+
+                ApproveOTK.hide();
+                errorModal.toggle();
+            }
+        })
+        .catch(error => {
+            console.error('Error sending info:', error);
+        });
+};
+
+function setStatusFIX() {
+    let FixList = document.getElementById('fix_list');
+    let OTKContainers = FixList.querySelectorAll('.fix_container');
+    let fixData = [];
+    OTKContainers.forEach(container => {
+        let fix_comment = container.querySelector("textarea[name='fix_comment']");
+        let fix_file_path = container.querySelector("input[name='fix_file_path']");
+        fixData.push([
+            container?.dataset.programId || '',
+            fix_comment?.value || '',
+            container?.dataset.programName || '',
+            fix_file_path?.files?.[0]?.name || '',
+            container?.dataset.workerId || '',
+        ])
+    });
+
+    fetch('/otk/set_status_fix_ready/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(fixData),
+        credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = `/otk/`;
+            }
+            else {
+                console.log('error', data.message)
+
+                const ApproveFIX = bootstrap.Modal.getInstance(document.getElementById('ApproveFIX')) ||
+                            new bootstrap.Modal(document.getElementById('ApproveFIX'));
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                error_message = document.getElementById('error_message');
+                error_message.textContent = data.message;
+
+                ApproveFIX.hide();
+                errorModal.toggle();
+            }
+        })
+        .catch(error => {
+            console.error('Error sending info:', error);
+        });
+};
+
+function setStatusOTKFail() {
+    let FailList = document.getElementById('otk_fail_list');
+    let OTKContainers = FailList.querySelectorAll('.fail_container');
+    let failData = [];
+    OTKContainers.forEach(container => {
+        let fail_comment = container.querySelector("textarea[name='otk_fail_comment']");
+        failData.push([
+            container?.dataset.programId || '',
+            fail_comment?.value || '',
+            container?.dataset.programName || '',
+            container?.dataset.workerId || '',
+        ])
+    });
+    fetch('/otk/set_status_fix_ready/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(failData),
+        credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = `/otk/`;
+            }
+            else {
+                console.log('error', data.message)
+
+                const OTKFail = bootstrap.Modal.getInstance(document.getElementById('OTKFail')) ||
+                            new bootstrap.Modal(document.getElementById('OTKFail'));
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                error_message = document.getElementById('error_message');
+                error_message.textContent = data.message;
+
+                OTKFail.hide();
+                errorModal.toggle();
+            }
+        })
+        .catch(error => {
+            console.error('Error sending info:', error);
+        });
+};
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 };
 
 function ShowOTKComment() {
@@ -591,8 +708,79 @@ function ResetFilter() {
 
 };
 
+// Функция для добавления обработчиков переключателей
+function addSwitchHandlers(container) {
+    const programId = container.dataset.programId;
+    const cenzSwitcher = document.getElementById(`cenz_switcher_${programId}`);
+    const fixSwitcher = document.getElementById(`fix_switcher_${programId}`);
+    const cenzLabel = document.querySelector(`label[for="cenz_switcher_${programId}"]`);
+    const fixLabel = document.querySelector(`label[for="fix_switcher_${programId}"]`);
+
+    if (!cenzSwitcher || !fixSwitcher) return;
+
+    // Функция для обновления drop zone
+    function updateDropZone() {
+        const dropZone = container.querySelector('.drop-zone');
+        const fileInput = container.querySelector('input[type="file"]');
+
+        if (!dropZone || !fileInput || !fileInput.files.length) return;
+
+        const fileName = fileInput.files[0].name;
+        const oldFilePath = container.dataset.oldFilePath || '';
+        const selectedRadio = document.querySelector(`input[name="switcher_${programId}"]:checked`);
+        const mode = selectedRadio ? selectedRadio.value : 'cenz';
+
+        let newFilePath;
+        if (mode === 'cenz') {
+            let currentCenzDir = document.getElementById('settings')?.dataset.currentCenzDir;
+            newFilePath = currentCenzDir + '\\' + fileName;
+        } else {
+            newFilePath = oldFilePath.substring(0, oldFilePath.lastIndexOf('\\') + 1) + fileName;
+        }
+
+        const paragraphs = dropZone.querySelectorAll('p');
+        if (paragraphs.length >= 2) {
+            paragraphs[0].textContent = `Старый файл: ${oldFilePath}`;
+            paragraphs[1].textContent = `Новый файл: ${newFilePath}`;
+        }
+
+        container.dataset.newFilePath = newFilePath;
+    }
+
+    // Обработчик для радио-кнопок
+    function handleRadioChange() {
+        if (this.checked) {
+            // Обновляем checked у другой кнопки
+            if (this === cenzSwitcher) {
+                fixSwitcher.checked = false;
+            } else {
+                cenzSwitcher.checked = false;
+            }
+            updateDropZone();
+        }
+    }
+
+    // Обработчик для клика по лейблам (Bootstrap toggle buttons)
+    function handleLabelClick() {
+        const forId = this.getAttribute('for');
+        const input = document.getElementById(forId);
+
+        if (input) {
+            input.checked = true;
+            // Триггерим событие change для запуска обновления
+            input.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // Добавляем обработчики
+    cenzSwitcher.addEventListener('change', handleRadioChange);
+    fixSwitcher.addEventListener('change', handleRadioChange);
+
+    if (cenzLabel) cenzLabel.addEventListener('click', handleLabelClick);
+    if (fixLabel) fixLabel.addEventListener('click', handleLabelClick);
+}
+
 function initializeDropZones(containers) {
-    // Находим все контейнеры с файлами
     containers.forEach(container => {
         const dropZone = container.querySelector('.drop-zone');
         const fileInput = container.querySelector('input[type="file"]');
@@ -636,22 +824,22 @@ function initializeDropZones(containers) {
             const files = dt.files;
 
             if (files.length > 0) {
-              // Берем только ПЕРВЫЙ файл, даже если перетащили несколько
-              const firstFile = files[0];
+                // Берем только ПЕРВЫЙ файл, даже если перетащили несколько
+                const firstFile = files[0];
 
-              // Создаем новый FileList с одним файлом
-              const dataTransfer = new DataTransfer();
-              dataTransfer.items.add(firstFile);
+                // Создаем новый FileList с одним файлом
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(firstFile);
 
-              // Присваиваем только первый файл в input
-              fileInput.files = dataTransfer.files;
+                // Присваиваем только первый файл в input
+                fileInput.files = dataTransfer.files;
 
-              // Триггерим событие change
-              const event = new Event('change', { bubbles: true });
-              fileInput.dispatchEvent(event);
+                // Триггерим событие change
+                const event = new Event('change', { bubbles: true });
+                fileInput.dispatchEvent(event);
 
-              // Меняем стиль drop-zone чтобы показать, что файл выбран
-              updateDropZoneAppearance(firstFile.name); // Без передачи dropZone
+                // Меняем стиль drop-zone
+                updateDropZoneAppearance(container);
             }
         }
 
@@ -659,52 +847,108 @@ function initializeDropZones(containers) {
         dropZone.addEventListener('click', function(e) {
             // Кликаем только если кликнули не по самому input
             if (e.target !== fileInput) {
-              fileInput.click();
+                fileInput.click();
             }
         });
 
         // Обработчик изменения файла через стандартный диалог
         fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
-                const fileName = this.files[0].name;
-                updateDropZoneAppearance(fileName); // Без передачи dropZone
+                updateDropZoneAppearance(container);
             } else {
-                // Если файл сброшен
-                resetDropZoneAppearance(); // Без параметров
+                resetDropZoneAppearance(container);
             }
         });
 
-        // Функция обновления внешнего вида - использует dropZone из замыкания
-        function updateDropZoneAppearance(fileName) {
-            dropZone.classList.remove('border-secondary', 'text-secondary');
-            dropZone.classList.add('file-selected', 'border-success', 'text-success');
-            fileInput.classList.remove('border-secondary', 'text-secondary');
-            fileInput.classList.add('border-success', 'text-success');
-            let oldFilePath = container.dataset.oldFilePath;
-            const paragraphs = dropZone.querySelectorAll('p');
-            if (paragraphs.length >= 2) {
-                paragraphs[0].textContent = `Старый файл: ${oldFilePath}`;
-                paragraphs[1].textContent = `Новый файл: ${fileName}`;
-            } else if (paragraphs.length === 1) {
-                paragraphs[0].textContent = `Выбран файл: ${fileName}`;
-            }
-        }
+        // Если это контейнер с переключателями, добавляем обработчики изменения радио
+        if (container.classList.contains('otk_container')) {
+            const programId = container.dataset.programId;
+            const cenzSwitcher = document.getElementById(`cenz_switcher_${programId}`);
+            const fixSwitcher = document.getElementById(`fix_switcher_${programId}`);
 
-        // Функция сброса внешнего вида - использует dropZone из замыкания
-        function resetDropZoneAppearance() {
-            dropZone.classList.remove('file-selected', 'border-success', 'text-success');
-            dropZone.classList.add('border-secondary', 'text-secondary');
-            fileInput.classList.remove('border-success', 'text-success');
-            fileInput.classList.add('border-secondary', 'text-secondary');
+            if (cenzSwitcher && fixSwitcher) {
+                // Обработчик для радио-кнопок
+                function handleRadioChange() {
+                    if (fileInput.files.length > 0) {
+                        updateDropZoneAppearance(container);
+                    }
+                }
 
-            const paragraphs = dropZone.querySelectorAll('p');
-            if (paragraphs.length >= 2) {
-                paragraphs[0].textContent = 'Перетащите файл сюда...';
-                paragraphs[1].textContent = '(или кликните для выбора)';
+                cenzSwitcher.addEventListener('change', handleRadioChange);
+                fixSwitcher.addEventListener('change', handleRadioChange);
             }
         }
     });
-};
+}
+
+// Вынесенные функции для обновления внешнего вида
+function updateDropZoneAppearance(container) {
+    const dropZone = container.querySelector('.drop-zone');
+    const fileInput = container.querySelector('input[type="file"]');
+    const fileName = fileInput?.files?.[0]?.name || '';
+
+    if (fileName.length < 1) {
+        resetDropZoneAppearance(container);
+        return;
+    }
+
+    dropZone.classList.remove('border-secondary', 'text-secondary');
+    dropZone.classList.add('file-selected', 'border-success', 'text-success');
+    fileInput.classList.remove('border-secondary', 'text-secondary');
+    fileInput.classList.add('border-success', 'text-success');
+
+    const programId = container.dataset.programId;
+    const oldFilePath = container.dataset.oldFilePath || '';
+
+    // Определяем режим (CENZ или FIX)
+    let mode = 'fix'; // По умолчанию FIX для ShowFixReadyList()
+
+    // Проверяем, есть ли переключатели в контейнере
+    if (container.classList.contains('otk_container')) {
+        const selectedRadio = document.querySelector(`input[name="switcher_${programId}"]:checked`);
+        mode = selectedRadio ? selectedRadio.value : 'cenz';
+    }
+
+    let newFilePath;
+    if (mode === 'cenz') {
+        let currentCenzDir = document.getElementById('settings')?.dataset.currentCenzDir;
+        newFilePath = currentCenzDir + '\\' + fileName;
+    } else {
+        newFilePath = oldFilePath.substring(0, oldFilePath.lastIndexOf('\\') + 1) + fileName;
+    }
+
+    const paragraphs = dropZone.querySelectorAll('p');
+    if (paragraphs.length >= 2) {
+        paragraphs[0].textContent = `Старый файл: ${oldFilePath}`;
+        paragraphs[1].textContent = `Новый файл: ${newFilePath}`;
+    } else if (paragraphs.length === 1) {
+        paragraphs[0].textContent = `Выбран файл: ${newFilePath}`;
+    }
+
+    // Сохраняем вычисленный путь
+    container.dataset.newFilePath = newFilePath;
+}
+
+function resetDropZoneAppearance(container) {
+    const dropZone = container.querySelector('.drop-zone');
+    const fileInput = container.querySelector('input[type="file"]');
+
+    dropZone.classList.remove('file-selected', 'border-success', 'text-success');
+    dropZone.classList.add('border-secondary', 'text-secondary');
+    fileInput.classList.remove('border-success', 'text-success');
+    fileInput.classList.add('border-secondary', 'text-secondary');
+
+    const paragraphs = dropZone.querySelectorAll('p');
+    if (paragraphs.length >= 2) {
+        paragraphs[0].textContent = 'Перетащите файл сюда...';
+        paragraphs[1].textContent = '(или кликните для выбора)';
+    }
+
+    // Удаляем вычисленный путь
+    if (container.dataset.newFilePath) {
+        delete container.dataset.newFilePath;
+    }
+}
 
 function convertFramesToTime(frames, fps = 25) {
     if (isNaN(frames) || frames === null || frames === undefined) {

@@ -339,7 +339,6 @@ def unblock_object(program_id, worker_id):
 def insert_filepath_history(program_id, file_path, task_status, worker_id) -> Dict[str, str]:
     try:
         if not file_path:
-            print('Ошибка! Изменения не были внесены. Нет файла.')
             return {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Нет файла.'}
         with connections[PLANNER_DB].cursor() as cursor:
             values = (program_id, file_path, task_status, datetime.now(), worker_id)

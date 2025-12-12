@@ -5,5 +5,7 @@ urlpatterns = [
     path("", otk, name='otk'),
     path("load_otk_task_table/", load_otk_task_table, name="load_otk_task_table"),
     path("set_status_otk/", set_status_otk, name="set_status_otk"),
+    path("set_status_fix_ready/", set_status_fix_ready, name="set_status_fix_ready"),
+    path("set_status_otk_fail/", set_status_otk_fail, name="set_status_otk_fail"),
 
 ]

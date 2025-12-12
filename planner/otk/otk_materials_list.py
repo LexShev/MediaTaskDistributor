@@ -23,7 +23,21 @@ def check_deadline(value):
     else:
         return ''
 
-def task_info(field_dict, sql_set):
+def search_task(search_init_dict):
+    search_input = search_init_dict.search_input or ''
+    search_type = search_init_dict.search_type or 0
+    if not search_input:
+        return ''
+    if search_type == 0:
+        return f'AND Task.[program_id] = {search_input}'
+    elif search_type == 1:
+        return f'AND Progs.[name] LIKE "%{search_input}%"'
+    elif search_type == 2:
+        return f'AND Task.[file_path] LIKE "%{search_input}%"'
+    return ''
+
+def task_info(field_dict, search_init_dict):
+    sql_set = search_init_dict.sql_set or 100
     with connections[PLANNER_DB].cursor() as cursor:
         columns = [
             ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
@@ -53,6 +67,7 @@ def task_info(field_dict, sql_set):
         {check_value('sched_id', field_dict.get('sched_id'))}
         {check_value('task_status', field_dict.get('task_status'))}
         {check_material_type(field_dict.get('material_type'))}
+        {search_task(search_init_dict)}
         ORDER BY Task.[work_date];
         '''
         cursor.execute(query)
