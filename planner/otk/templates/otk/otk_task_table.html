@@ -23,8 +23,8 @@
       <tr>
         <td>
           <input class="form-check-input me-1" type="checkbox"
-                 data-program-id="{{ task.Task_program_id }}" data-file-name="{{ task.Progs_name }}"
-                 data-file-path="{% if task.Task_file_path %}{{ task.Task_file_path }}{% else %}{{ task.Files_Name }}{% endif %}"
+                 data-program-id="{{ task.Task_program_id }}" data-program-name="{{ task.Progs_name }}"
+                 data-file-path="{{ task.Files_Name }}"
                  data-worker-id="{{ task.Task_worker_id }}"
                  data-sender="{% for comment in task.comments %}{% if forloop.last %}{{ comment.worker_id }}{% endif %}{% endfor %}"
                  value="{{ task.Task_program_id }}"

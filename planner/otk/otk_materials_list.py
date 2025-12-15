@@ -43,7 +43,7 @@ def task_info(field_dict, search_init_dict):
             ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'),
             ('Task', 'work_date'), ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
-            ('Progs', 'production_year'), ('Progs', 'episode_num')
+            ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Files', 'Name')
         ]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
@@ -58,6 +58,12 @@ def task_info(field_dict, search_init_dict):
         FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
         JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
+        JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
+            ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+        JOIN [{OPLAN_DB}].[dbo].[File] AS Files
+            ON Files.[ClipID] = Clips.[ClipID]
+            AND Files.[Deleted] = 0
+            AND Files.[PhysicallyDeleted] = 0
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         {check_value('ready_date', field_dict.get('ready_date'))}
@@ -82,8 +88,8 @@ def task_info(field_dict, search_init_dict):
             continue
         material['comments'] = comments_history(program_id, material.get('Progs_name'))
         duration.append(material.get('Task_duration'))
-        if not material.get('Task_file_path'):
-            material['Files_Name'] = find_file_path(program_id)
+        # if not material.get('Task_file_path'):
+        #     material['Files_Name'] = find_file_path(program_id)
         if not material.get('Task_worker_id'):
             material['sender'] = ''
         program_id_list.append(program_id)

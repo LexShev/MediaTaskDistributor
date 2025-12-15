@@ -104,13 +104,12 @@ def set_status_otk(request):
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
 
     task_status = 'otk'
-    for program_id, comment, file_name, new_file_name, switch_value in program_list:
+    for program_id, comment, old_file_path, program_name, new_file_name, switch_value in program_list:
         if switch_value == 'cenz':
             new_file_path = str(PureWindowsPath(CURRENT_CENZ_DIR) / new_file_name)
         else:
-            new_file_path = str(PureWindowsPath(CURRENT_CENZ_DIR) / new_file_name)
+            new_file_path = str(PureWindowsPath(old_file_path).parent / new_file_name)
 
-        new_file_path = ''
         create_notification(
             {'sender': user_id, 'recipient': 14, 'program_id': program_id,
              'message': '', 'comment': 'Материал прошёл ОТК'}
@@ -123,11 +122,11 @@ def set_status_otk(request):
         if db_task_status in ('no_material', 'not_ready'):
             return JsonResponse(
                 {'status': 'error', 'message': f'Ошибка! Изменения не были внесены. Недостаточно прав доступа.'})
-        answer = change_task_status(program_id, task_status, file_name, new_file_path)
+        answer = change_task_status(program_id, task_status, program_name, new_file_path)
         if answer.get('status') == 'success':
             insert_history_status(program_id, user_id, db_task_status, task_status)
             update_comment(program_id, user_id, task_status, comment)
-            # insert_filepath_history(program_id, new_file_path, task_status, user_id)
+            insert_filepath_history(program_id, new_file_path, task_status, user_id)
             success_messages.append(answer.get('message'))
         else:
             error_messages.append(answer.get('message'))
@@ -148,7 +147,8 @@ def set_status_fix_ready(request):
 
     task_status = 'fix_ready'
 
-    for program_id, comment, program_name, new_file_path, worker_id in fix_ready_list:
+    for program_id, comment, old_file_path, program_name, new_file_name, worker_id in fix_ready_list:
+        new_file_path = str(PureWindowsPath(old_file_path).parent / new_file_name)
         db_task_status = get_task_status(program_id)
         if db_task_status not in ('fix', 'fix_ready'):
             return JsonResponse(

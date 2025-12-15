@@ -403,9 +403,9 @@ function getCookie(name) {
     return cookieValue;
 };
 
-function CopyText(copy_id) {
-    let text = document.getElementById(copy_id)
-    text.focus()
-    text.select()
+function CopyText(field) {
+    let textInput = document.getElementById(field)
+    textInput.focus()
+    textInput.select()
     document.execCommand('copy');
 };

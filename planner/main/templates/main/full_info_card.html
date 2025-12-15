@@ -15,117 +15,134 @@
           <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">
             Описание
           </button></h6>
-      <div id="collapseDescription" class="accordion-collapse collapse show">
-        <div class="accordion-body">
+        <div id="collapseDescription" class="accordion-collapse collapse show">
+            <div class="accordion-body p-2">
 
-          <div class="row m-0 mb-2 gx-1 gy-2">
-            <div class="col px-1 d-flex align-items-center" style="flex: 0 0 15%; max-width: 15%; height: 100%;">
-              <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
-                   class="img-fluid rounded m-0 w-100 h-auto object-fit-cover"
-                   data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
-                   data-program-id="{{ full_info.Progs_program_id }}" data-parent-id="{{ full_info.Progs_parent_id }}"
-                   data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
-                   data-country="{{ full_info.Progs_production_country }}">
-            </div>
+              <div class="row m-0 mb-2 gx-1 gy-2 align-items-stretch">
+                <div class="col px-1 d-flex align-items-center" style="flex: 0 0 17%; max-width: 17%; height: 100%;">
+                  <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
+                       class="img-fluid rounded m-0 w-100 h-100 object-fit-cover"
+                       data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
+                       data-program-id="{{ full_info.Progs_program_id }}" data-parent-id="{{ full_info.Progs_parent_id }}"
+                       data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
+                       data-country="{{ full_info.Progs_production_country }}">
+                </div>
 
-            <div class="col px-1" style="flex: 0 0 85%; max-width: 85%;">
-              <div class="row mb-2 mx-0 align-items-center">
-                <div class="col text-end px-0">
-                  {% if full_info.Task_worker_id %}
-                    <small class="text-secondary text-start">Закреплён за: {{ full_info.Task_worker_id|planner_worker_name }}
-                    {% if full_info.Task_work_date %} на: {{ full_info.Task_work_date|date:'d.m.Y' }}{% endif %}</small>
-                  {% endif %}
-                  <h6 class="text-{{ full_info.material_status|status_color }} text-end">
-                    {{ full_info.material_status|status_name }}
-                    {% if full_info.Task_ready_date and full_info.material_status != 'Не готов' %}
-                      {{ full_info.Task_ready_date|date:'d.m.Y' }}
-                    {% elif not full_info.Task_ready_date and full_info.material_status != 'Не готов' and full_info.oplan3_work_date %}
-                      {{ full_info.oplan3_work_date|date:'d.m.Y' }}
-                    {% endif %}
-                  </h6>
-                </div>
-              </div>
-              <div class="row mb-2 mx-0 align-items-center">
-                <div class="col-md-6 d-flex align-items-center">
-                  {% if full_info.material_type == 'season' %}
-                    <a class="link-body-emphasis link-offset-3-hover link-underline-opacity-0" href="{% url 'home' %}{{ full_info.Progs_parent_id }}">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
-                      </svg>
-                    </a>
-                  {% endif %}
-                  <h5 class="p-1 m-0" title="{{ full_info.Progs_orig_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
-                    {{ full_info.Progs_name }}
-                  </h5>
-                </div>
-                <div class="col p-0">
-                  <div class="row align-items-center text-end mx-1 p-0">
-                    <div class="col ms-0 m-0 p-0">
-                      <input type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle" value="{{ full_info.Files_Name }}" id="file_path">
+                <div class="cold-flex flex-column mt-auto px-1" style="flex: 0 0 83%; max-width: 83%;">
+                  <div class="row mb-2 mx-1 align-items-center">
+                    <div class="col text-end px-0">
+                      {% if full_info.Task_worker_id %}
+                        <small class="text-secondary text-start">Закреплён за: {{ full_info.Task_worker_id|planner_worker_name }}
+                        {% if full_info.Task_work_date %} на: {{ full_info.Task_work_date|date:'d.m.Y' }}{% endif %}</small>
+                      {% endif %}
+                      <h6 class="text-{{ full_info.material_status|status_color }} text-end">
+                        {{ full_info.material_status|status_name }}
+                        {% if full_info.Task_ready_date and full_info.material_status != 'Не готов' %}
+                          {{ full_info.Task_ready_date|date:'d.m.Y' }}
+                        {% elif not full_info.Task_ready_date and full_info.material_status != 'Не готов' and full_info.oplan3_work_date %}
+                          {{ full_info.oplan3_work_date|date:'d.m.Y' }}
+                        {% endif %}
+                      </h6>
                     </div>
-                    <div class="col col-1 m-0 p-0">
-                      <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText('file_path')">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
-                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
-                            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                  </div>
+                  <div class="row mb-2 mx-0 align-items-center">
+                    <div class="col-md-6 d-flex mt-auto">
+                      {% if full_info.material_type == 'season' %}
+                        <a class="link-body-emphasis link-offset-3-hover link-underline-opacity-0" href="{% url 'home' %}{{ full_info.Progs_parent_id }}">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
                           </svg>
-                      </button>
+                        </a>
+                      {% endif %}
+                      <h5 class="p-1 m-0" title="{{ full_info.Progs_orig_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
+                        {{ full_info.Progs_name }}
+                      </h5>
+                    </div>
+                    <div class="col p-0">
+                      <div class="row align-items-center justify-content-end m-1 p-0 ps-1">
+                        <div class="input-group p-0">
+                          <span class="input-group-text">Oplan</span>
+                          <input id="file_path" type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle"
+                                 value="{{ full_info.Files_Name }}">
+
+                          <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText('file_path')">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                              </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      {% if full_info.Task_file_path and full_info.Files_Name != full_info.Task_file_path %}
+                        <div class="row align-items-center justify-content-end m-1 p-0 ps-1">
+                          <div class="input-group p-0">
+                          <span class="input-group-text">Актуальный</span>
+                            <input id="actual_file_path" type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle"
+                                 value="{{ full_info.Task_file_path }}">
+                            <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText('actual_file_path')">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="row g-2 ms-2 mx-0">
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <textarea class="form-control" id="year_form" style="height: 50px" disabled>{% if full_info.Progs_production_year %}{{ full_info.Progs_production_year }}{% endif %}</textarea>
+                        <label for="year_form">Год</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <textarea class="form-control" id="country_form" style="height: 50px" disabled>{% if full_info.Progs_production_country %}{{ full_info.Progs_production_country }}{% endif %}</textarea>
+                        <label for="country_form">Страна</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <textarea class="form-control" id="director_form" style="height: 50px;" disabled>{% if full_info.Progs_Director %}{{ full_info.Progs_Director }}{% endif %}</textarea>
+                        <label for="director_form">Режиссёр</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{% if full_info.Progs_Cast %}{{ full_info.Progs_Cast }}{% endif %}</textarea>
+                        <label for="roles_form">В ролях</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{% if full_info.Progs_duration %}{{ full_info.Progs_duration|convert_frames_to_time }}{% endif %}</textarea>
+                        <label for="theme_form">Хронометраж</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{% if full_info.Progs_keywords %}{{ full_info.Progs_keywords }}{% endif %}</textarea>
+                        <label for="keywords_form">Ключевые слова</label>
+                      </div>
                     </div>
                   </div>
                 </div>
+
               </div>
-              <div class="row g-2 ms-2 mx-0">
-                <div class="col-md-6">
-                  <div class="form-floating">
-                    <textarea class="form-control" id="year_form" style="height: 50px" disabled>{% if full_info.Progs_production_year %}{{ full_info.Progs_production_year }}{% endif %}</textarea>
-                    <label for="year_form">Год</label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-floating">
-                    <textarea class="form-control" id="country_form" style="height: 50px" disabled>{% if full_info.Progs_production_country %}{{ full_info.Progs_production_country }}{% endif %}</textarea>
-                    <label for="country_form">Страна</label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-floating">
-                    <textarea class="form-control" id="director_form" style="height: 50px;" disabled>{% if full_info.Progs_Director %}{{ full_info.Progs_Director }}{% endif %}</textarea>
-                    <label for="director_form">Режиссёр</label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-floating">
-                    <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{% if full_info.Progs_Cast %}{{ full_info.Progs_Cast }}{% endif %}</textarea>
-                    <label for="roles_form">В ролях</label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-floating">
-                    <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{% if full_info.Progs_duration %}{{ full_info.Progs_duration|convert_frames_to_time }}{% endif %}</textarea>
-                    <label for="theme_form">Хронометраж</label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-floating">
-                    <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{% if full_info.Progs_keywords %}{{ full_info.Progs_keywords }}{% endif %}</textarea>
-                    <label for="keywords_form">Ключевые слова</label>
-                  </div>
-                </div>
+
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="short_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>
+                <label for="short_descript_form">Краткое описание</label>
+              </div>
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="full_descript_form" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
+                <label for="full_descript_form">Полное описание</label>
               </div>
             </div>
-
-          </div>
-
-          <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="short_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>
-            <label for="short_descript_form">Краткое описание</label>
-          </div>
-          <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="full_descript_form" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
-            <label for="full_descript_form">Полное описание</label>
-          </div>
         </div>
-      </div>
       </div>
       <!--  </div>-->
 

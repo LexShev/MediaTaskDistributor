@@ -38,7 +38,7 @@ def full_info(program_id):
             ('Progs', 'AnonsCaptionInherit'), ('Progs', 'CreationDate'), ('Progs', 'Subtitled'), ('Progs', 'Season'),
             ('Progs', 'Director'), ('Progs', 'Cast'), ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'),
             ('Adult', 'Name'), ('Task', 'work_date'), ('Task', 'ready_date'),
-            ('Task', 'worker_id'), ('Task', 'task_status')
+            ('Task', 'worker_id'), ('Task', 'task_status'), ('Task', 'file_path')
         ]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])

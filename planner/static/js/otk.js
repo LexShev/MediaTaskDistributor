@@ -126,7 +126,6 @@ function ShowApproveOTK() {
             let OTKContainer = document.createElement("div");
             OTKContainer.id = `otk_container_${program_id}`
             OTKContainer.dataset.programId = program_id;
-            OTKContainer.dataset.programName = old_file_name;
             OTKContainer.dataset.oldFilePath = old_file_path;
             OTKContainer.classList.add('otk_container')
 
@@ -139,6 +138,7 @@ function ShowApproveOTK() {
             let file_name = document.createElement("h5");
             file_name.classList.add('my-2');
             file_name.textContent = old_file_name;
+            file_name.name = 'file_name'
             OTKContainer.appendChild(file_name);
 
             let file_path_header = document.createElement("h6");
@@ -156,33 +156,32 @@ function ShowApproveOTK() {
             filePathContainer.appendChild(switchContainer);
 
             let cenz_switcher = document.createElement("input");
-            cenz_switcher.classList.add('btn-check', 'switcher');
+            cenz_switcher.classList.add('btn-check');
             cenz_switcher.type = 'radio';
             cenz_switcher.name = `switcher_${program_id}`;
             cenz_switcher.id = `cenz_switcher_${program_id}`;
             cenz_switcher.value = 'cenz';
             cenz_switcher.autocomplete = 'off';
-            cenz_switcher.checked = true;
+            cenz_switcher.setAttribute('checked', true);
             switchContainer.appendChild(cenz_switcher);
 
             let cenzSwitchLabel = document.createElement("label");
-            cenzSwitchLabel.classList.add('btn', 'btn-outline-success', 'switch-label');
+            cenzSwitchLabel.classList.add('btn', 'btn-outline-success');
             cenzSwitchLabel.textContent = 'CENZ';
             cenzSwitchLabel.setAttribute('for', `cenz_switcher_${program_id}`);
             switchContainer.appendChild(cenzSwitchLabel);
 
             let fix_switcher = document.createElement("input");
-            fix_switcher.classList.add('btn-check', 'switcher');
+            fix_switcher.classList.add('btn-check');
             fix_switcher.type = 'radio';
             fix_switcher.name = `switcher_${program_id}`;
             fix_switcher.id = `fix_switcher_${program_id}`;
             fix_switcher.value = 'fix';
             fix_switcher.autocomplete = 'off';
-            fix_switcher.checked = false;
             switchContainer.appendChild(fix_switcher);
 
             let fixSwitchLabel = document.createElement("label");
-            fixSwitchLabel.classList.add('btn', 'btn-outline-warning', 'switch-label');
+            fixSwitchLabel.classList.add('btn', 'btn-outline-warning');
             fixSwitchLabel.textContent = 'FIX';
             fixSwitchLabel.setAttribute('for', `fix_switcher_${program_id}`);
             switchContainer.appendChild(fixSwitchLabel);
@@ -238,8 +237,6 @@ function ShowApproveOTK() {
             OTKContainer.appendChild(divider);
 
             OTKList.appendChild(OTKContainer);
-
-            addSwitchHandlers(switchContainer)
         }
     }
     if (program_id_list.length > 0) {
@@ -249,22 +246,11 @@ function ShowApproveOTK() {
         ApproveOTK.toggle();
     }
     else {
-        console.log('error');
+        console.error('error');
         errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
         errorModal.toggle();
     }
 };
-
-//// Обработчики для правильной работы toggle buttons
-//function addRadioHandlers(switchContainer) {
-////    let switchers = switchContainer.querySelectorAll('.switcher');
-//    let labels = switchContainer.querySelectorAll('.switch-label');
-//
-//    labels.forEach(label => {
-//        label.dispatchEvent(new Event('click'));
-//        console.log('event ready')
-//    })
-//};
 
 function ShowFixReadyList() {
     let FixList = document.getElementById('fix_list');
@@ -289,7 +275,7 @@ function ShowFixReadyList() {
                 let FIXContainer = document.createElement("div");
                 FIXContainer.id = `fix_container_${program_id}`
                 FIXContainer.dataset.programId = program_id;
-                FIXContainer.dataset.programName = old_file_name;
+                FIXContainer.dataset.ProgramName = old_file_name;
                 FIXContainer.dataset.oldFilePath = old_file_path;
                 FIXContainer.dataset.workerId = (worker_id && worker_id !== "None") ? worker_id : sender;
                 FIXContainer.classList.add('fix_container')
@@ -392,7 +378,7 @@ function ShowOTKFail() {
                 let FailContainer = document.createElement("div");
                 FailContainer.id = `fail_container_${program_id}`
                 FailContainer.dataset.programId = program_id;
-                FailContainer.dataset.programName = old_file_name;
+                FailContainer.dataset.ProgramName = old_file_name;
                 FailContainer.dataset.oldFilePath = old_file_path;
                 FailContainer.dataset.workerId = (worker_id && worker_id !== "None") ? worker_id : sender;
                 FailContainer.classList.add('fail_container')
@@ -406,7 +392,6 @@ function ShowOTKFail() {
                 let file_name = document.createElement("h5");
                 file_name.classList.add('my-2');
                 file_name.textContent = old_file_name;
-                file_name.name = 'file_name'
                 FailContainer.appendChild(file_name);
 
                 let sub_header = document.createElement("h6");
@@ -447,8 +432,7 @@ function setStatusOTK() {
     let OTKContainers = document.querySelectorAll('.otk_container');
     let otkData = [];
     OTKContainers.forEach(container => {
-        let program_id = container.querySelector("input[name='otk_program_id']");
-        const programId = program_id?.value || '';
+        let programId = container?.dataset.programId || ''
         let otk_comment = container.querySelector("textarea[name='otk_comment']");
         let otk_file_path = container.querySelector("input[name='otk_file_path']");
         let selectedRadio = container.querySelector(`input[name='switcher_${programId}']:checked`);
@@ -456,11 +440,13 @@ function setStatusOTK() {
         otkData.push([
             programId,
             otk_comment?.value || '',
-            container?.dataset?.programName || '',
-            otk_file_path?.value || '',
+            container?.dataset.oldFilePath || '',
+            container?.dataset.fileName || '',
+            otk_file_path?.files?.[0]?.name || '',
             selectedRadio ? selectedRadio.value : 'cenz'
         ])
     });
+
     fetch('/otk/set_status_otk/', {
         method: 'POST',
         headers: {
@@ -504,7 +490,8 @@ function setStatusFIX() {
         fixData.push([
             container?.dataset.programId || '',
             fix_comment?.value || '',
-            container?.dataset.programName || '',
+            container?.dataset.oldFilePath || '',
+            container?.dataset.ProgramName || '',
             fix_file_path?.files?.[0]?.name || '',
             container?.dataset.workerId || '',
         ])
@@ -552,7 +539,7 @@ function setStatusOTKFail() {
         failData.push([
             container?.dataset.programId || '',
             fail_comment?.value || '',
-            container?.dataset.programName || '',
+            container?.dataset.ProgramName || '',
             container?.dataset.workerId || '',
         ])
     });
@@ -708,79 +695,8 @@ function ResetFilter() {
 
 };
 
-// Функция для добавления обработчиков переключателей
-function addSwitchHandlers(container) {
-    const programId = container.dataset.programId;
-    const cenzSwitcher = document.getElementById(`cenz_switcher_${programId}`);
-    const fixSwitcher = document.getElementById(`fix_switcher_${programId}`);
-    const cenzLabel = document.querySelector(`label[for="cenz_switcher_${programId}"]`);
-    const fixLabel = document.querySelector(`label[for="fix_switcher_${programId}"]`);
-
-    if (!cenzSwitcher || !fixSwitcher) return;
-
-    // Функция для обновления drop zone
-    function updateDropZone() {
-        const dropZone = container.querySelector('.drop-zone');
-        const fileInput = container.querySelector('input[type="file"]');
-
-        if (!dropZone || !fileInput || !fileInput.files.length) return;
-
-        const fileName = fileInput.files[0].name;
-        const oldFilePath = container.dataset.oldFilePath || '';
-        const selectedRadio = document.querySelector(`input[name="switcher_${programId}"]:checked`);
-        const mode = selectedRadio ? selectedRadio.value : 'cenz';
-
-        let newFilePath;
-        if (mode === 'cenz') {
-            let currentCenzDir = document.getElementById('settings')?.dataset.currentCenzDir;
-            newFilePath = currentCenzDir + '\\' + fileName;
-        } else {
-            newFilePath = oldFilePath.substring(0, oldFilePath.lastIndexOf('\\') + 1) + fileName;
-        }
-
-        const paragraphs = dropZone.querySelectorAll('p');
-        if (paragraphs.length >= 2) {
-            paragraphs[0].textContent = `Старый файл: ${oldFilePath}`;
-            paragraphs[1].textContent = `Новый файл: ${newFilePath}`;
-        }
-
-        container.dataset.newFilePath = newFilePath;
-    }
-
-    // Обработчик для радио-кнопок
-    function handleRadioChange() {
-        if (this.checked) {
-            // Обновляем checked у другой кнопки
-            if (this === cenzSwitcher) {
-                fixSwitcher.checked = false;
-            } else {
-                cenzSwitcher.checked = false;
-            }
-            updateDropZone();
-        }
-    }
-
-    // Обработчик для клика по лейблам (Bootstrap toggle buttons)
-    function handleLabelClick() {
-        const forId = this.getAttribute('for');
-        const input = document.getElementById(forId);
-
-        if (input) {
-            input.checked = true;
-            // Триггерим событие change для запуска обновления
-            input.dispatchEvent(new Event('change'));
-        }
-    }
-
-    // Добавляем обработчики
-    cenzSwitcher.addEventListener('change', handleRadioChange);
-    fixSwitcher.addEventListener('change', handleRadioChange);
-
-    if (cenzLabel) cenzLabel.addEventListener('click', handleLabelClick);
-    if (fixLabel) fixLabel.addEventListener('click', handleLabelClick);
-}
-
 function initializeDropZones(containers) {
+
     containers.forEach(container => {
         const dropZone = container.querySelector('.drop-zone');
         const fileInput = container.querySelector('input[type="file"]');
@@ -824,28 +740,18 @@ function initializeDropZones(containers) {
             const files = dt.files;
 
             if (files.length > 0) {
-                // Берем только ПЕРВЫЙ файл, даже если перетащили несколько
                 const firstFile = files[0];
-
-                // Создаем новый FileList с одним файлом
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(firstFile);
-
-                // Присваиваем только первый файл в input
                 fileInput.files = dataTransfer.files;
-
-                // Триггерим событие change
                 const event = new Event('change', { bubbles: true });
                 fileInput.dispatchEvent(event);
-
-                // Меняем стиль drop-zone
-                updateDropZoneAppearance(container);
+                updateDropZoneAppearance();
             }
         }
 
         // Клик по зоне тоже открывает выбор файла
         dropZone.addEventListener('click', function(e) {
-            // Кликаем только если кликнули не по самому input
             if (e.target !== fileInput) {
                 fileInput.click();
             }
@@ -854,100 +760,142 @@ function initializeDropZones(containers) {
         // Обработчик изменения файла через стандартный диалог
         fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
-                updateDropZoneAppearance(container);
+                updateDropZoneAppearance();
             } else {
-                resetDropZoneAppearance(container);
+                resetDropZoneAppearance();
             }
         });
 
-        // Если это контейнер с переключателями, добавляем обработчики изменения радио
-        if (container.classList.contains('otk_container')) {
+        // Функция обновления внешнего вида
+        function updateDropZoneAppearance() {
+            console.log('updateDropZoneAppearance called for container');
+
+            const fileName = fileInput?.files?.[0]?.name || '';
+
+            if (!fileName) {
+                console.log('No file selected, resetting appearance');
+                resetDropZoneAppearance();
+                return;
+            }
+
+            // Обновляем классы
+            dropZone.classList.remove('border-secondary', 'text-secondary');
+            dropZone.classList.add('file-selected', 'border-success', 'text-success');
+            fileInput.classList.remove('border-secondary', 'text-secondary');
+            fileInput.classList.add('border-success', 'text-success');
+
+            let oldFilePath = container?.dataset.oldFilePath || '';
+            const programId = container.dataset.programId;
+
+            // Получаем радио-кнопку
+            const selectedRadio = container.querySelector(`input[name="switcher_${programId}"]:checked`);
+            let mode = 'fix';
+
+            if (selectedRadio) {
+                mode = selectedRadio.value;
+            } else {
+                // Если ни одна не выбрана, ищем checked атрибут
+                const checkedRadio = container.querySelector(`input[name="switcher_${programId}"][checked]`);
+                if (checkedRadio) {
+                    mode = checkedRadio.value;
+                }
+            }
+
+            let newFilePath;
+            if (mode === 'cenz') {
+                let currentCenzDir = document.getElementById('settings')?.dataset.currentCenzDir;
+                newFilePath = currentCenzDir + '\\' + fileName;
+            } else {
+                // Для FIX: берем путь до папки из старого файла + новое имя файла
+                const lastBackslashIndex = oldFilePath.lastIndexOf('\\');
+                if (lastBackslashIndex !== -1) {
+                    const directoryPath = oldFilePath.substring(0, lastBackslashIndex + 1);
+                    newFilePath = directoryPath + fileName;
+                } else {
+                    // Если нет бэкслешей, просто используем имя файла
+                    newFilePath = fileName;
+                }
+            }
+
+            const paragraphs = dropZone.querySelectorAll('p');
+            if (paragraphs.length >= 2) {
+                paragraphs[0].textContent = `Старый файл: ${oldFilePath}`;
+                paragraphs[1].textContent = `Новый файл: ${newFilePath}`;
+            } else if (paragraphs.length === 1) {
+                paragraphs[0].textContent = `Выбран файл: ${newFilePath}`;
+            }
+
+            // Сохраняем путь и режим
+            container.dataset.newFilePath = newFilePath;
+            container.dataset.selectedMode = mode;
+        }
+
+        // Функция сброса внешнего вида
+        function resetDropZoneAppearance() {
+            dropZone.classList.remove('file-selected', 'border-success', 'text-success');
+            dropZone.classList.add('border-secondary', 'text-secondary');
+            fileInput.classList.remove('border-success', 'text-success');
+            fileInput.classList.add('border-secondary', 'text-secondary');
+
+            const paragraphs = dropZone.querySelectorAll('p');
+            if (paragraphs.length >= 2) {
+                paragraphs[0].textContent = 'Перетащите файл сюда...';
+                paragraphs[1].textContent = '(или кликните для выбора)';
+            } else if (paragraphs.length === 1) {
+                paragraphs[0].textContent = 'Перетащите файл сюда...';
+                if (dropZone.children.length === 1) {
+                    const secondParagraph = document.createElement('p');
+                    secondParagraph.textContent = '(или кликните для выбора)';
+                    secondParagraph.classList.add('my-2');
+                    dropZone.appendChild(secondParagraph);
+                }
+            }
+
+            // Удаляем путь
+            if (container.dataset.newFilePath) {
+                delete container.dataset.newFilePath;
+            }
+            if (container.dataset.selectedMode) {
+                delete container.dataset.selectedMode;
+            }
+        }
+
+        const switchContainer = container.querySelector('.btn-group-vertical');
+        if (switchContainer) {
             const programId = container.dataset.programId;
             const cenzSwitcher = document.getElementById(`cenz_switcher_${programId}`);
             const fixSwitcher = document.getElementById(`fix_switcher_${programId}`);
+            const cenzLabel = document.querySelector(`label[for="cenz_switcher_${programId}"]`);
+            const fixLabel = document.querySelector(`label[for="fix_switcher_${programId}"]`);
 
-            if (cenzSwitcher && fixSwitcher) {
-                // Обработчик для радио-кнопок
+            if (cenzSwitcher && fixSwitcher && cenzLabel && fixLabel) {
+                // Функция для обновления при изменении радио-кнопки
                 function handleRadioChange() {
-                    if (fileInput.files.length > 0) {
-                        updateDropZoneAppearance(container);
+                    if (fileInput && fileInput.files.length > 0) {
+                        updateDropZoneAppearance();
                     }
                 }
 
+                // Обработчики для радио-кнопок
                 cenzSwitcher.addEventListener('change', handleRadioChange);
                 fixSwitcher.addEventListener('change', handleRadioChange);
+
+                // Обработчики для лейблов
+                cenzLabel.addEventListener('click', function() {
+                    setTimeout(handleRadioChange, 10);
+                });
+
+                fixLabel.addEventListener('click', function() {
+                    setTimeout(handleRadioChange, 10);
+                });
             }
         }
+
+        // Инициализация начального состояния
+        if (fileInput && fileInput.files.length > 0) {
+            updateDropZoneAppearance();
+        }
     });
-}
-
-// Вынесенные функции для обновления внешнего вида
-function updateDropZoneAppearance(container) {
-    const dropZone = container.querySelector('.drop-zone');
-    const fileInput = container.querySelector('input[type="file"]');
-    const fileName = fileInput?.files?.[0]?.name || '';
-
-    if (fileName.length < 1) {
-        resetDropZoneAppearance(container);
-        return;
-    }
-
-    dropZone.classList.remove('border-secondary', 'text-secondary');
-    dropZone.classList.add('file-selected', 'border-success', 'text-success');
-    fileInput.classList.remove('border-secondary', 'text-secondary');
-    fileInput.classList.add('border-success', 'text-success');
-
-    const programId = container.dataset.programId;
-    const oldFilePath = container.dataset.oldFilePath || '';
-
-    // Определяем режим (CENZ или FIX)
-    let mode = 'fix'; // По умолчанию FIX для ShowFixReadyList()
-
-    // Проверяем, есть ли переключатели в контейнере
-    if (container.classList.contains('otk_container')) {
-        const selectedRadio = document.querySelector(`input[name="switcher_${programId}"]:checked`);
-        mode = selectedRadio ? selectedRadio.value : 'cenz';
-    }
-
-    let newFilePath;
-    if (mode === 'cenz') {
-        let currentCenzDir = document.getElementById('settings')?.dataset.currentCenzDir;
-        newFilePath = currentCenzDir + '\\' + fileName;
-    } else {
-        newFilePath = oldFilePath.substring(0, oldFilePath.lastIndexOf('\\') + 1) + fileName;
-    }
-
-    const paragraphs = dropZone.querySelectorAll('p');
-    if (paragraphs.length >= 2) {
-        paragraphs[0].textContent = `Старый файл: ${oldFilePath}`;
-        paragraphs[1].textContent = `Новый файл: ${newFilePath}`;
-    } else if (paragraphs.length === 1) {
-        paragraphs[0].textContent = `Выбран файл: ${newFilePath}`;
-    }
-
-    // Сохраняем вычисленный путь
-    container.dataset.newFilePath = newFilePath;
-}
-
-function resetDropZoneAppearance(container) {
-    const dropZone = container.querySelector('.drop-zone');
-    const fileInput = container.querySelector('input[type="file"]');
-
-    dropZone.classList.remove('file-selected', 'border-success', 'text-success');
-    dropZone.classList.add('border-secondary', 'text-secondary');
-    fileInput.classList.remove('border-success', 'text-success');
-    fileInput.classList.add('border-secondary', 'text-secondary');
-
-    const paragraphs = dropZone.querySelectorAll('p');
-    if (paragraphs.length >= 2) {
-        paragraphs[0].textContent = 'Перетащите файл сюда...';
-        paragraphs[1].textContent = '(или кликните для выбора)';
-    }
-
-    // Удаляем вычисленный путь
-    if (container.dataset.newFilePath) {
-        delete container.dataset.newFilePath;
-    }
 }
 
 function convertFramesToTime(frames, fps = 25) {
