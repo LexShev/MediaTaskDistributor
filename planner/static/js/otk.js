@@ -117,7 +117,7 @@ function ShowApproveOTK() {
     for (let i = 0; i < checked_list.length; i++) {
         if (checked_list[i].checked) {
             let program_id = checked_list[i].dataset.programId;
-            let old_file_name = checked_list[i].dataset.fileName;
+            let old_file_name = checked_list[i].dataset.programName;
             let old_file_path = checked_list[i].dataset.filePath;
             let worker_id = checked_list[i].dataset.workerId;
             let sender = checked_list[i].dataset.sender;
@@ -267,7 +267,7 @@ function ShowFixReadyList() {
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
                 let program_id = checked_list[i].dataset.programId;
-                let old_file_name = checked_list[i].dataset.fileName;
+                let old_file_name = checked_list[i].dataset.programName;
                 let old_file_path = checked_list[i].dataset.filePath;
                 let worker_id = checked_list[i].dataset.workerId;
                 let sender = checked_list[i].dataset.sender;
@@ -371,7 +371,7 @@ function ShowOTKFail() {
         for (let i = 0; i < checked_list.length; i++) {
             if (checked_list[i].checked) {
                 let program_id = checked_list[i].dataset.programId
-                let old_file_name = checked_list[i].dataset.fileName
+                let old_file_name = checked_list[i].dataset.programName
                 let old_file_path = checked_list[i].dataset.filePath
                 let worker_id = checked_list[i].dataset.workerId
 
