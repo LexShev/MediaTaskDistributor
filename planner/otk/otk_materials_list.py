@@ -227,6 +227,8 @@ def comments_history(program_id, progs_name):
         for comment in history:
             comments_dict = {'Progs_name': progs_name}
             for key, val in zip(columns, comment):
+                if not val:
+                    continue
                 if key == 'time_of_change':
                     comments_dict[key] = val.strftime('%H:%M:%S %d-%m-%Y') or ''
                 else:

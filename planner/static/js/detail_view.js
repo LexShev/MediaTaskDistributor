@@ -384,9 +384,35 @@ function enlargeImage(file) {
         link.download = fileName;
         link.click();
     }
-
-
 };
+
+function autoResizeTextareas() {
+    let comments = document.getElementById('comment_textarea')
+    let textareas = comments.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        const text = textarea.value;
+        const cols = 80; // Примерное количество символов в строке (зависит от ширины textarea)
+
+        // Разбиваем текст на строки с учетом явных переносов
+        const explicitLines = text.split(/\r\n|\r|\n/);
+        let totalLines = 0;
+
+        explicitLines.forEach(line => {
+            // Добавляем строки для переноса длинных строк
+            totalLines += Math.max(1, Math.ceil(line.length / cols));
+        });
+
+        textarea.rows = Math.max(1, totalLines);
+    });
+}
+
+// Вызываем при загрузке страницы
+document.addEventListener('DOMContentLoaded', autoResizeTextareas);
+
+// Вызываем при раскрытии аккордеона
+document.getElementById('collapseComments').addEventListener('shown.bs.collapse', function() {
+    autoResizeTextareas();
+});
 
 function getCookie(name) {
     let cookieValue = null;

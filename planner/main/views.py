@@ -484,6 +484,8 @@ def material_card(request, program_id):
     full_info_dict = full_info(program_id)
     file_id = full_info_dict.get('Files_FileID', '')
     file_path = full_info_dict.get('Files_Name', '')
+    actions_list = select_actions(program_id)
+    print('actions_list', actions_list)
     start_ffmpeg_scanners(file_id, file_path)
     data = {
         'full_info': full_info_dict,
@@ -491,7 +493,7 @@ def material_card(request, program_id):
         'comments_history': comments_history(program_id),
         'deadline': calc_otk_deadline(),
         'schedule_info': schedule_info(program_id),
-        'actions_list': select_actions(program_id),
+        'actions_list': sorted(actions_list, key=lambda action: action.get('time_of_change') or datetime.min),
         'filepath_history': select_filepath_history(program_id),
         'attached_files': attached_files,
         'ffmpeg': ffmpeg_dict(file_id),

@@ -111,7 +111,6 @@ def select_actions(program_id):
                         action['old_value'] = engineer_name(action['old_value'])
                         action['new_value'] = engineer_name(action['new_value'])
                     history_status.append(action)
-        print(history_status)
 
         history_status_list = []
         with connections[PLANNER_DB].cursor() as cursor:

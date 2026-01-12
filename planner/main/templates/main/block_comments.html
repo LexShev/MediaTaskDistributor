@@ -24,16 +24,7 @@
 
     </tbody>
   </table>
-<script>
-window.addEventListener('load', autoResize);
-let comments = document.getElementById('comment_textarea')
-let my_textarea = comments.getElementsByTagName('textarea');
-function autoResize() {
-    for (let i = 0;i < my_textarea.length; i++) {
-    my_textarea[i].rows = my_textarea[i].value.split(/\r|\r\n|\n/).length;
-    };
-}
-</script>
+
 {% else %}
     <small>Нет данных</small>
 {% endif %}
