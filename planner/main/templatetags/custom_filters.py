@@ -103,6 +103,31 @@ def planner_worker_name(worker_id):
         return ''
 
 @register.filter
+def oplan_worker_name(oplan_id):
+    try:
+        if oplan_id:
+            with connections[OPLAN_DB].cursor() as cursor:
+                query = f'''
+                SELECT [username], [first_name], [last_name]
+                FROM [{PLANNER_DB}].[dbo].[auth_user] AS PlannerUsers
+                JOIN [{PLANNER_DB}].[dbo].[oplan_users_list] AS OplanUsers
+                    ON [PlannerUsers].[id] = OplanUsers.[planner_id]
+                WHERE [OplanUsers].[oplan_id] = %s
+                '''
+                cursor.execute(query, (oplan_id,))
+                worker = cursor.fetchone()
+                if worker:
+                    username, first_name, last_name = worker
+                    return f'{first_name} {last_name}'
+                else:
+                    return 'Аноним'
+        else:
+            return ''
+    except Exception as error:
+        print(error)
+        return ''
+
+@register.filter
 def engineer_id_to_worker_id(engineer_id) -> int:
     try:
         with connections[PLANNER_DB].cursor() as cursor:

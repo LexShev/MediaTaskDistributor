@@ -177,17 +177,17 @@ function checkNoCenz() {
 };
 
 function FormatDate(timestamp) {
-const date = new Date(timestamp);
+    const date = new Date(timestamp);
 
-const day = String(date.getDate()).padStart(2, '0');
-const month = String(date.getMonth() + 1).padStart(2, '0');
-const year = date.getFullYear();
-const hours = String(date.getHours()).padStart(2, '0');
-const minutes = String(date.getMinutes()).padStart(2, '0');
-const seconds = String(date.getSeconds()).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
 
-const formatted = `${hours}:${minutes}:${seconds} ${day}.${month}.${year}`;
-return formatted
+    const formatted = `${hours}:${minutes}:${seconds} ${day}.${month}.${year}`;
+    return formatted
 };
 
 async function getWorkerName(workerId) {
@@ -389,21 +389,23 @@ function enlargeImage(file) {
 function autoResizeTextareas() {
     let comments = document.getElementById('comment_textarea')
     let textareas = comments.querySelectorAll('textarea');
-    textareas.forEach(textarea => {
-        const text = textarea.value;
-        const cols = 80; // Примерное количество символов в строке (зависит от ширины textarea)
+    if (textareas) {
+        textareas.forEach(textarea => {
+            const text = textarea.value;
+            const cols = 80; // Примерное количество символов в строке (зависит от ширины textarea)
 
-        // Разбиваем текст на строки с учетом явных переносов
-        const explicitLines = text.split(/\r\n|\r|\n/);
-        let totalLines = 0;
+            // Разбиваем текст на строки с учетом явных переносов
+            const explicitLines = text.split(/\r\n|\r|\n/);
+            let totalLines = 0;
 
-        explicitLines.forEach(line => {
-            // Добавляем строки для переноса длинных строк
-            totalLines += Math.max(1, Math.ceil(line.length / cols));
+            explicitLines.forEach(line => {
+                // Добавляем строки для переноса длинных строк
+                totalLines += Math.max(1, Math.ceil(line.length / cols));
+            });
+
+            textarea.rows = Math.max(1, totalLines);
         });
-
-        textarea.rows = Math.max(1, totalLines);
-    });
+    }
 }
 
 // Вызываем при загрузке страницы

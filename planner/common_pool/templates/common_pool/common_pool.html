@@ -69,6 +69,28 @@
       </div>
     </div>
 
+    <div class="modal fade" id="ApproveDistribution" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="distribution_title">Отправить выбранное в распределение?</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <div class="border rounded mb-4" style="overflow-y: auto; max-height: 50rem;">
+                <ol class="list-group list-group-flush list-group-numbered list-group-item-action" id="distribution_name_list">
+                </ol>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button name="approve_common_task" id="approve_distribution_btn" type="button"
+                    class="btn btn-success" onclick="distributeSelected()">Распределить</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     {% if messages %}
       {% for message in messages %}
         <div class="alert alert-success alert-dismissible fade show mx-0 mb-2 mt-0" role="alert">

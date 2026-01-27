@@ -1,14 +1,12 @@
 {% load custom_filters %}
 
-{% comment %} Основная строка элемента {% endcomment %}
 <tr class="schedule-row level-{{ level }}
     {% if item.type == 'folder' or item.type == 'block' %}folder-row{% endif %}"
     data-id="{{ item.scheduled_program_id }}"
     data-parent="{{ item.ParentID|default:'' }}"
     data-level="{{ level }}"
     {% if item.children %}data-has-children="true"{% endif %}>
-
-    <td class="toggle-cell">
+    <td class="d-flex name-cell" style="padding-left: calc(({{ level }} + 1) * 1rem);">
         {% if item.children %}
             <div class="folder-toggle me-2" style="cursor: pointer;"
                  id="toggle-{{ item.scheduled_program_id }}"
@@ -18,14 +16,6 @@
                 </svg>
             </div>
         {% endif %}
-    </td>
-
-    {% comment %} Убираем padding-left из ячейки времени {% endcomment %}
-    <td>
-        {{ item.DateTime|date:"H:i:s" }}
-    </td>
-
-    <td class="name-cell" style="padding-left: calc({{ level }} * 20px);">
         <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
            style="cursor: pointer;"
            data-scheduled-program-id="{{ item.scheduled_program_id }}"
@@ -35,6 +25,10 @@
                 <span class="badge bg-warning text-dark ms-1">БЛОК</span>
             {% endif %}
         </a>
+    </td>
+
+    <td>
+        {{ item.DateTime|date:"H:i:s" }}
     </td>
 
     <td>
@@ -53,9 +47,8 @@
             {{ item.type }}
         </span>
     </td>
-
+    <td>{{ item.CreatedBy|oplan_worker_name }}</td>
     <td>{{ item.LastEditTime|date:"d.m.Y" }}</td>
-    <td>{{ item.CreatedBy }}</td>
     <td>
         {% if item.TheAir %}
             <span class="badge bg-success">Да</span>
@@ -68,6 +61,6 @@
 {% comment %} Всегда рендерим детей, но скрываем их через display: none {% endcomment %}
 {% if item.children %}
     {% for child in item.children %}
-        {% include "playlist/schedule_day_row.html" with item=child level=Level %}
+        {% include "playlist/schedule_day_row.html" with item=child level=level|add:1 %}
     {% endfor %}
 {% endif %}

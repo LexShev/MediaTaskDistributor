@@ -49,7 +49,7 @@
                                     <li class="ms-2" style="cursor: pointer;"
                                         data-schedule-name="{{ channel.schedule_id|schedule_name }}"
                                         data-schedule-id="{{ channel.schedule_id }}"
-                                        data-editor-name="{{ channel.editor_id|engineer_name }}"
+                                        data-editor-name="{{ channel.editor_id|oplan_worker_name }}"
                                         data-editor-id="{{ channel.editor_id }}"
                                         data-description="{{ channel.description }}" onclick="updateScheduleTable(this)">
                                         <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
@@ -147,7 +147,7 @@
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title">TEST</h3>
+        <h3 class="modal-title" id="schedule_day_name"></h3>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="schedule_day_modal_body">

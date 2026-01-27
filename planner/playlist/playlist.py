@@ -101,6 +101,7 @@ def get_schedule_day_table(schedule_day_id):
 
         for row in cursor.fetchall():
             results.append(dict(zip(columns, row)))
+        print('results', results)
     return build_hierarchy_from_level(results)
 
 

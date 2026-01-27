@@ -177,7 +177,8 @@ function openSchedDayTable(schedule) {
     console.log(scheduleDayId);
     const scheduleDayModal = bootstrap.Modal.getInstance(document.getElementById('schedule_day_modal')) ||
                             new bootstrap.Modal(document.getElementById('schedule_day_modal'));
-    let scheduleDayModalBody = document.getElementById('schedule_day_modal_body')
+    let scheduleDayModalName = document.getElementById('schedule_day_name');
+    let scheduleDayModalBody = document.getElementById('schedule_day_modal_body');
 
 
     fetch('/playlist/get_schedule_day_table/', {
@@ -193,6 +194,7 @@ function openSchedDayTable(schedule) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
+            scheduleDayModalName.textContent = schedule?.dataset.scheduleName || '';
             scheduleDayModalBody.innerHTML = data.html;
             console.log('Модальная таблица загружена, инициализируем...');
 

@@ -36,12 +36,12 @@
 <div class="d-flex bg-body py-2 sticky-bottom">
 {% if permissions.auth_group == 'admin' %}
   <div class="me-auto">
-    <button type="button" onclick="showApproveCommonTask(1)" class="btn btn-outline-secondary mx-0">В Общую задачу</button>
+    <button type="button" onclick="showApproveDistribution()" class="btn btn-outline-secondary mx-0">Распределить</button>
   </div>
 {% endif %}
 {% if permissions.auth_group == 'preparation_engineers' or permissions.auth_group == 'moderators' %}
   <div class="me-auto">
-    <button type="button" onclick="showApproveCommonTask(99)" class="btn btn-outline-secondary mx-0">Взять в работу</button>
+    <button type="button" onclick="showApproveCommonTask()" class="btn btn-outline-secondary mx-0">Взять в работу</button>
   </div>
 {% endif %}
 </div>

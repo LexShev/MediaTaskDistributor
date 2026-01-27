@@ -86,6 +86,41 @@ VALUES
 (10, 12, 'Евгений Доманов'),
 (11, 13, 'Арина Анастасеева');
 
+use planner
+CREATE TABLE oplan_users_list
+(
+    oplan_id INT PRIMARY KEY,
+	planner_id INT NOT NULL,
+);
+
+INSERT INTO [planner].[dbo].[oplan_users_list]
+(oplan_id, planner_id)
+VALUES
+(1,	2),
+(9,	1),
+(12, 16),
+(15, 17),
+(16, 22),
+(17, 18),
+(19, 14),
+(21, 3),
+(23, 4),
+(24, 5),
+(25, 23),
+(26, 24),
+(27, 19),
+(28, 25),
+(29, 7),
+(30, 8),
+(32, 15),
+(33, 6),
+(34, 9),
+(35, 12),
+(36, 10),
+(37, 11),
+(39, 13),
+(40, 21);
+
 CREATE TABLE permission_list
 (
 	[permission_group] NVARCHAR(50) NOT NULL,

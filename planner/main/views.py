@@ -565,14 +565,14 @@ def ask_fix(request):
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     message = answer.get('message')
     if answer.get('status') == 'success':
-        # create_notification(
-        #     {'sender': user_id, 'recipient': 6, 'program_id': program_id,
-        #      'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
-        # )
         create_notification(
-            {'sender': user_id, 'recipient': 2, 'program_id': program_id,
+            {'sender': user_id, 'recipient': 6, 'program_id': program_id,
              'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
         )
+        # create_notification(
+        #     {'sender': user_id, 'recipient': 2, 'program_id': program_id,
+        #      'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
+        # )
         insert_history_status(program_id, user_id, db_task_status, task_status)
         update_comment(program_id, user_id, task_status, fix_comment, deadline)
         messages.warning(request, message)

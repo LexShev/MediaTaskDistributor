@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
+from distribution.distribution_manual import start_distribution
 from main.permission_pannel import ask_db_permissions
 from .common_pool import select_pool, get_total_count, get_film_stats, get_season_stats, insert_in_common_task, \
     insert_in_task_list
@@ -74,6 +75,28 @@ def add_in_task_list(request):
         else:
             return JsonResponse({
                 'status': 'error', 'message': result.get('message'), 'busy_list': result.get('busy_list')
+            }, status=400)
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+def distribute_selected(request):
+    user_id = request.user.id
+    try:
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+        program_id_list = json.loads(request.body)
+        if not program_id_list:
+            return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+
+        result = start_distribution(program_id_list)
+        if result.get('status') == 'success':
+            message = result.get('message')
+            messages.success(request, message)
+            return JsonResponse({'status': 'success', 'message': message})
+        else:
+            return JsonResponse({
+                'status': 'error', 'message': result.get('message')
             }, status=400)
     except Exception as e:
         print(e)

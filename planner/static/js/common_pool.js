@@ -161,7 +161,7 @@ function countMaterials(count, duration) {
     totalDur.textContent = `Общий хронометраж: ${convertFramesToTime(duration)}`;
 };
 
-function showApproveCommonTask(sched_id) {
+function showApproveCommonTask() {
 
     let program_id_check_list = document.getElementsByName('program_id_check');
     let checked_list = [];
@@ -180,17 +180,13 @@ function showApproveCommonTask(sched_id) {
         let approveTitle = document.getElementById('approve_title');
         let approveDateTitle = document.getElementById('approve_date_title');
         let approveCommonTask = document.getElementById('approve_common_task');
-        approveCommonTask.dataset.sched_id = sched_id;
+        approveCommonTask.dataset.sched_id = 99;
 
         const ApproveCommonTask = new bootstrap.Modal(document.getElementById('ApproveCommonTask'));
-        if (sched_id === 1) {
-            approveTitle.textContent = 'Отправить выбранное в Общую задачу?';
-            approveDateTitle.textContent = 'Укажите дату выполнения';
-        }
-        else if (sched_id === 99) {
-            approveTitle.textContent = 'Взять выбранное в работу?';
-            approveDateTitle.textContent = 'Укажите планируемую дату выполнения';
-        };
+
+        approveTitle.textContent = 'Взять выбранное в работу?';
+        approveDateTitle.textContent = 'Укажите планируемую дату выполнения';
+
         let program_name_list = document.getElementById('program_name_list');
         let dateInput = document.getElementById('work_date');
         program_name_list.innerHTML = ''
@@ -208,7 +204,7 @@ function showApproveCommonTask(sched_id) {
         console.log('error');
         const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
         error_message = document.getElementById('error_message');
-        error_message.textContent = 'Ни одна задача не выбрана!'
+        error_message.textContent = 'Ни один материал не выбран!'
         errorModal.toggle();
     }
 };
@@ -275,6 +271,85 @@ function addInTaskList() {
             const ApproveCommonTask = bootstrap.Modal.getInstance(document.getElementById('ApproveCommonTask')) ||
              new bootstrap.Modal(document.getElementById('ApproveCommonTask'));
             ApproveCommonTask.hide();
+            errorModal.toggle();
+        }
+        else {
+            window.location.href = '/common_pool/';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+
+    });
+};
+
+function showApproveDistribution() {
+    let distribution_name_list = document.getElementById('distribution_name_list');
+    distribution_name_list.innerHTML = ''
+
+    let checked_list = document.getElementsByName('program_id_check');
+    let program_id_list = [];
+    for (let i = 0; i < checked_list.length; i++) {
+        if (checked_list[i].checked) {
+            let program_id = checked_list[i].dataset.programId;
+            program_id_list.push(program_id);
+            let programName = checked_list[i].dataset.programName;
+                if (checked_list[i].dataset.productionYear) {
+                    programName += ` (${checked_list[i].dataset.productionYear})`;
+                }
+            let list_item = document.createElement("li");
+            list_item.classList.add('list-group-item', 'list-group-item-action', 'distribution_item');
+            list_item.dataset.programId = program_id;
+            list_item.textContent = programName;
+            distribution_name_list.appendChild(list_item);
+        }
+    }
+    if (program_id_list.length > 0) {
+
+        const ApproveDistribution = new bootstrap.Modal(document.getElementById('ApproveDistribution'));
+        ApproveDistribution.toggle();
+    }
+    else {
+        console.log('error');
+        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        error_message = document.getElementById('error_message');
+        error_message.textContent = 'Ни один материал не выбран!'
+        errorModal.toggle();
+    }
+};
+
+function distributeSelected() {
+    let distributionItems = document.querySelectorAll("li.distribution_item");
+    let program_id_list = [];
+    distributionItems.forEach(distributionItem => {
+        program_id_list.push(Number(distributionItem?.dataset.programId))
+    });
+    fetch('distribute_selected/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(program_id_list),
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+             console.error(response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status !== 'success') {
+            console.error(data.message || 'Unknown server error');
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            error_message = document.getElementById('error_message');
+            error_message.textContent = data.message
+
+            const ApproveDistribution = bootstrap.Modal.getInstance(document.getElementById('ApproveDistribution')) ||
+             new bootstrap.Modal(document.getElementById('ApproveDistribution'));
+            ApproveDistribution.hide();
             errorModal.toggle();
         }
         else {

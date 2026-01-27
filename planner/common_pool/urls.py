@@ -9,4 +9,5 @@ urlpatterns = [
     path('season-stats/', season_stats, name='season_stats'),
     path('load_pool_table/', load_pool_table, name='load_pool_table'),
     path('common_pool/add_in_task_list/', add_in_task_list, name='add_in_task_list'),
+    path('common_pool/distribute_selected/', distribute_selected, name='distribute_selected'),
 ]
