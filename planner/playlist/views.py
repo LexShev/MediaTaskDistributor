@@ -64,7 +64,6 @@ def playlist(request):
         'schedule_list': schedule_list
     }
 
-
     data = {
         'service_dict': service_dict,
         'form': form,

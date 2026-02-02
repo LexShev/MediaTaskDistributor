@@ -6,12 +6,11 @@
 </div>
 
 <table class="table table-striped table-hover" id="schedule_table">
-    <thead class="table-dark">
+    <thead class="">
         <tr>
             <th scope="col">Название</th>
             <th scope="col">Время эфира</th>
             <th scope="col">Продолжительность</th>
-            <th scope="col">Тип</th>
             <th scope="col">Изменено</th>
             <th scope="col">Дата изменения</th>
             <th scope="col">Готов</th>
@@ -19,7 +18,7 @@
     </thead>
     <tbody id="schedule_table_body">
         {% for item in schedule_day_list %}
-            {% include "playlist/schedule_day_row.html" with item=item level=0 %}
+            {% include "playlist/schedule_day_row.html" with item=item level=item.Level %}
         {% endfor %}
     </tbody>
 </table>

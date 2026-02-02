@@ -39,7 +39,7 @@ def cenz_name(cenz_id):
 def engineer_name(engineer_id):
     try:
         if engineer_id or str(engineer_id) == '0' :
-            with connections[OPLAN_DB].cursor() as cursor:
+            with connections[PLANNER_DB].cursor() as cursor:
                 query = f'SELECT [full_name] FROM [{PLANNER_DB}].[dbo].[engineers_list] WHERE [engineer_id] = %s'
                 cursor.execute(query, (engineer_id,))
                 engineer = cursor.fetchone()
@@ -72,7 +72,7 @@ def worker_name(worker_id):
 @register.filter
 def planner_worker_username(worker_id):
     if worker_id:
-        with connections[OPLAN_DB].cursor() as cursor:
+        with connections[PLANNER_DB].cursor() as cursor:
             query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
             cursor.execute(query, (worker_id,))
             worker = cursor.fetchone()
@@ -87,7 +87,7 @@ def planner_worker_username(worker_id):
 def planner_worker_name(worker_id):
     try:
         if worker_id:
-            with connections[OPLAN_DB].cursor() as cursor:
+            with connections[PLANNER_DB].cursor() as cursor:
                 query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
                 cursor.execute(query, (worker_id,))
                 worker = cursor.fetchone()

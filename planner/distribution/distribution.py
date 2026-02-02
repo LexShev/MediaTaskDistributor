@@ -53,6 +53,7 @@ def main_distribution(distr_sched_end_date=None, distr_sched_id=None) -> Dict[st
     # 11	Семейное кино
     # 12	Советское родное кино
     # 20	Кино +
+    # 36	Кино Индии
 
     material_list_sql, django_columns = oplan_material_list(
         start_date=start_work_date,

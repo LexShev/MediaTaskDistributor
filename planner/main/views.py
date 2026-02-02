@@ -156,7 +156,7 @@ def week_date(request, work_year, work_week):
 @login_required()
 def full_list(request):
     user_id = request.user.id
-
+    default_workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
     def safe_literal_eval(value, default=None):
         """Безопасный парсинг literal_eval с обработкой ошибок"""
         if not value:
@@ -202,7 +202,7 @@ def full_list(request):
             sorting_form.save()
 
             schedules = safe_literal_eval(filter_form.cleaned_data.get('schedules'), ())
-            workers = safe_literal_eval(filter_form.cleaned_data.get('workers'), ())
+            workers = safe_literal_eval(filter_form.cleaned_data.get('workers'), default_workers)
             material_type = safe_literal_eval(filter_form.cleaned_data.get('material_type'), ())
 
             # Безопасный парсинг дат
@@ -232,7 +232,7 @@ def full_list(request):
             order_type = 'ASC'
     else:
         schedules = safe_literal_eval(inst_dict.schedules, ())
-        workers = safe_literal_eval(inst_dict.workers, ())
+        workers = safe_literal_eval(inst_dict.workers, default_workers)
         material_type = safe_literal_eval(inst_dict.material_type, ())
 
         # Безопасный парсинг дат
