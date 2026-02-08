@@ -106,7 +106,7 @@ def planner_worker_name(worker_id):
 def oplan_worker_name(oplan_id):
     try:
         if oplan_id:
-            with connections[OPLAN_DB].cursor() as cursor:
+            with connections[PLANNER_DB].cursor() as cursor:
                 query = f'''
                 SELECT [username], [first_name], [last_name]
                 FROM [{PLANNER_DB}].[dbo].[auth_user] AS PlannerUsers

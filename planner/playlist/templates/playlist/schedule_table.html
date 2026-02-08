@@ -15,15 +15,17 @@
             <td>
                 <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
                 style="cursor: pointer;" data-schedule-day-id="{{ schedule.schedule_day_id }}"
-                data-schedule-name="{{ schedule.day_date|date:'d.m.Y' }}: {{ schedule.schedule_id|schedule_name }}"
-                   onclick="openSchedDayTable(this)">
+                   data-schedule-id="{{ schedule.schedule_id }}"
+                   data-schedule-day-date="{{ schedule.day_date|date:"Y-m-d" }}"
+                data-schedule-name="{{ schedule.schedule_id|schedule_name }}"
+                   onclick="openSchedDayListById(this)">
                     {{ schedule.day_date|date:"d.m.Y" }}
                 </a></td>
             <td class="schedule-id" data-schedule-id="{{ schedule.schedule_id }}">{{ schedule.schedule_id|schedule_name }}</td>
             <td>{{ schedule.last_edit_time|date:"d.m.Y" }}</td>
-            <td>{{ schedule.last_edit_user_id|oplan_worker_name }}</td>
+            <td data-last_edit_user_id="{{ schedule.last_edit_user_id }}">{{ schedule.last_edit_user_id|oplan_worker_name }}</td>
             <td>
-                <div class="btn-group" role="group">
+                <div class="btn-group btn-group-sm" role="group">
                   <input type="radio" class="btn-check" name="status-radio-{{ schedule.schedule_day_id }}" id="ready-radio-{{ schedule.schedule_day_id }}" autocomplete="off" checked>
                   <label class="btn btn-outline-danger" for="ready-radio-{{ schedule.schedule_day_id }}">не готов</label>
                   <input type="radio" class="btn-check" name="status-radio-{{ schedule.schedule_day_id }}" id="not-ready-radio-{{ schedule.schedule_day_id }}" autocomplete="off">

@@ -1,0 +1,26 @@
+{% load custom_filters %}
+
+<div class="form-check form-switch ms-auto mb-4">
+  <input class="form-check-input" type="checkbox" role="switch" id="advert" onclick="toggleAdvert(this)">
+  <label class="form-check-label" for="advert">Скрыть рекламу</label>
+</div>
+<div class="form-check form-switch ms-auto mb-4">
+  <input class="form-check-input" type="checkbox" role="switch" id="program_switcher" onclick="toggleProgram(this)">
+  <label class="form-check-label" for="program_switcher">Скрыть программы</label>
+</div>
+
+
+<div class="row">
+    <h6 class="col col-1">Время</h6>
+    <h6 class="col col-5">Название</h6>
+    <h6 class="col">Хрон</h6>
+    <h6 class="col">Изменено</h6>
+    <h6 class="col">Дата изменения</h6>
+    <h6 class="col">Готов</h6>
+</div>
+
+<div class="" id="list_body">
+    {% for item in schedule_day_list %}
+        {% include "playlist/schedule_day_item.html" with item=item %}
+    {% endfor %}
+</div>

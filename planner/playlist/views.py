@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from main.permission_pannel import ask_db_permissions
 from playlist.forms import PlaylistFilter
 from playlist.models import PlaylistModel
-from playlist.playlist import get_schedule_days, get_schedule_day_table
+from playlist.playlist import get_schedule_days, get_schedule_list_by_id, get_schedule_list_by_date
 
 
 @login_required()
@@ -103,18 +103,38 @@ def update_schedule_filter(request):
     )
     return JsonResponse({'status': 'success', 'message': 'Обновлено'})
 
-def open_schedule_day_table(request):
+def load_schedule_list_by_id(request):
     user_id = request.user.id
     schedule_day_id = json.loads(request.body)
     if not schedule_day_id:
         return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
 
-    schedule_day_list = get_schedule_day_table(schedule_day_id)
+    schedule_day_list = get_schedule_list_by_id(schedule_day_id)
     html = render_to_string(
-        'playlist/schedule_day_table.html',
+        'playlist/schedule_day_list.html',
         {
             'schedule_day_list': schedule_day_list,
         },
         request=request
     )
     return JsonResponse({'status': 'success', 'message': 'Данные получены', 'html': html})
+
+def load_schedule_list_by_date(request):
+    try:
+        user_id = request.user.id
+        query = json.loads(request.body)
+        if not query:
+            return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+        schedule_id = query.get('schedule_id')
+        schedule_day_date = query.get('schedule_day_date')
+        schedule_day_list = get_schedule_list_by_date(schedule_id, schedule_day_date)
+        html = render_to_string(
+            'playlist/schedule_day_list.html',
+            {
+                'schedule_day_list': schedule_day_list,
+            },
+            request=request
+        )
+        return JsonResponse({'status': 'success', 'message': 'Данные получены', 'html': html})
+    except Exception as error:
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=500)

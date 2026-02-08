@@ -336,3 +336,11 @@ CREATE TABLE filepath_history
 	task_status NVARCHAR(30),
 	time_of_change DATETIME NOT NULL,
 );
+
+CREATE TABLE schedule_status
+(
+    schedule_day_id INT PRIMARY KEY NOT NULL,
+    is_ready BIT NULL,
+    worker_id INT NOT NULL,
+	time_of_change DATETIME NOT NULL,
+);

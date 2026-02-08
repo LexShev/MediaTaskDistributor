@@ -157,7 +157,7 @@ function updateScheduleFilter(options = {}) {
     });
 };
 
-function updateScheduleTable(schedule) {
+function updateScheduleList(schedule) {
     let currentSchedule = document.getElementById('current_schedule');
     let currentScheduleId = schedule?.dataset?.scheduleId ?? null;
     let currentEditor = document.getElementById('current_editor');
@@ -172,16 +172,67 @@ function updateScheduleTable(schedule) {
     load_schedule_table({ scheduleId: currentScheduleId });
 };
 
-function openSchedDayTable(schedule) {
+function formatDateToString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+
+// Функция получения относительных дат
+function getRelativeDate(currentDateString, direction) {
+    const date = new Date(currentDateString);
+
+    if (direction === 'prev') {
+        date.setDate(date.getDate() - 1);
+    } else if (direction === 'next') {
+        date.setDate(date.getDate() + 1);
+    }
+
+    return formatDateToString(date);
+}
+
+// Основная функция открытия модального окна
+function openSchedDayListById(schedule) {
     let scheduleDayId = schedule.dataset.scheduleDayId;
-    console.log(scheduleDayId);
+    let scheduleId = schedule.dataset.scheduleId;
+    let scheduleDayDate = schedule?.dataset?.scheduleDayDate;
+
+    console.log('Opening schedule day by ID:', scheduleDayId);
+
+    // Инициализация модального окна
     const scheduleDayModal = bootstrap.Modal.getInstance(document.getElementById('schedule_day_modal')) ||
                             new bootstrap.Modal(document.getElementById('schedule_day_modal'));
-    let scheduleDayModalName = document.getElementById('schedule_day_name');
-    let scheduleDayModalBody = document.getElementById('schedule_day_modal_body');
 
+    const scheduleDayName = document.getElementById('schedule_day_name');
+    const scheduleDayModalBody = document.getElementById('schedule_day_modal_body');
 
-    fetch('/playlist/get_schedule_day_table/', {
+    // Устанавливаем заголовок и scheduleId
+    scheduleDayName.textContent = schedule?.dataset.scheduleName || '';
+    scheduleDayName.dataset.scheduleId = scheduleId || '';
+
+    // Устанавливаем текущую дату в input
+    const currentDateInput = document.getElementById('current_schedule_day_date');
+    if (currentDateInput && scheduleDayDate) {
+        currentDateInput.value = scheduleDayDate;
+        currentDateInput.dataset.currentScheduleDayDate = scheduleDayDate;
+    }
+
+    // Показываем спиннер загрузки
+    scheduleDayModalBody.innerHTML = `
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Загрузка данных...</span>
+        </div>
+        <p class="mt-3">Идет загрузка таблицы...</p>
+    </div>`;
+
+    // Открываем модальное окно
+    scheduleDayModal.show();
+
+    // Загружаем данные
+    fetch('/playlist/get_schedule_list_by_id/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -194,28 +245,155 @@ function openSchedDayTable(schedule) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            scheduleDayModalName.textContent = schedule?.dataset.scheduleName || '';
             scheduleDayModalBody.innerHTML = data.html;
-            console.log('Модальная таблица загружена, инициализируем...');
-
-            if (typeof window.scheduleDay !== 'undefined' &&
-                typeof window.scheduleDay.initScheduleDay === 'function') {
-                setTimeout(() => {
-                    window.scheduleDay.initScheduleDay();
-                }, 100);
-            }
-            scheduleDayModal.toggle()
-        }
-        else {
+            console.log('Модальная таблица загружена по ID');
+        } else {
             console.log('error', data.message);
+            scheduleDayModalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    Ошибка загрузки: ${data.message}
+                </div>`;
         }
-
     })
     .catch(error => {
         console.error('Error sending info:', error);
+        scheduleDayModalBody.innerHTML = `
+            <div class="alert alert-danger">
+                Ошибка соединения с сервером
+            </div>`;
     });
+}
 
-};
+// Функция загрузки по дате
+function openSchedDayListByDate(scheduleDayDate) {
+    const scheduleDayName = document.getElementById('schedule_day_name');
+    const scheduleId = scheduleDayName?.dataset?.scheduleId;
+    const scheduleDayModalBody = document.getElementById('schedule_day_modal_body');
+
+    console.log('Loading schedule by date:', scheduleId, scheduleDayDate);
+
+    // Обновляем текущую дату в input
+    const currentDateInput = document.getElementById('current_schedule_day_date');
+    if (currentDateInput) {
+        currentDateInput.value = scheduleDayDate;
+        currentDateInput.dataset.currentScheduleDayDate = scheduleDayDate;
+    }
+
+    // Показываем спиннер загрузки
+    scheduleDayModalBody.innerHTML = `
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Загрузка данных...</span>
+        </div>
+        <p class="mt-3">Идет загрузка таблицы...</p>
+    </div>`;
+
+    // Загружаем данные
+    fetch('/playlist/get_schedule_list_by_date/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            'schedule_id': scheduleId,
+            'schedule_day_date': scheduleDayDate
+        }),
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            scheduleDayModalBody.innerHTML = data.html;
+            console.log('Модальная таблица загружена по дате');
+        } else {
+            console.log('error', data.message);
+            scheduleDayModalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    Ошибка загрузки: ${data.message}
+                </div>`;
+        }
+    })
+    .catch(error => {
+        console.error('Error sending info:', error);
+        scheduleDayModalBody.innerHTML = `
+            <div class="alert alert-danger">
+                Ошибка соединения с сервером
+            </div>`;
+    });
+}
+
+// Функция навигации по датам
+function handleDateNavigation(action) {
+    const currentDateInput = document.getElementById('current_schedule_day_date');
+    if (!currentDateInput || !currentDateInput.value) return;
+
+    const currentDate = currentDateInput.value;
+    const newDate = getRelativeDate(currentDate, action);
+
+    // Обновляем input
+    currentDateInput.value = newDate;
+    currentDateInput.dataset.currentScheduleDayDate = newDate;
+
+    // Загружаем данные для новой даты
+    openSchedDayListByDate(newDate);
+}
+
+// Функция для обработки ручного ввода даты
+function handleManualDateChange() {
+    const currentDateInput = document.getElementById('current_schedule_day_date');
+    if (!currentDateInput || !currentDateInput.value) return;
+
+    const newDate = currentDateInput.value;
+    currentDateInput.dataset.currentScheduleDayDate = newDate;
+
+    // Загружаем данные для новой даты
+    openSchedDayListByDate(newDate);
+}
+
+// Инициализация обработчиков событий
+function initDateNavigation() {
+    // Обработчики для кнопок навигации
+    const prevBtn = document.getElementById('prev_date');
+    const nextBtn = document.getElementById('next_date');
+    const dateInput = document.getElementById('current_schedule_day_date');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            handleDateNavigation('prev');
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            handleDateNavigation('next');
+        });
+    }
+
+    if (dateInput) {
+        // Обработчик изменения через клавишу Enter
+        dateInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleManualDateChange();
+            }
+        });
+
+        // Обработчик изменения даты (для браузеров с datepicker)
+        dateInput.addEventListener('change', function() {
+            handleManualDateChange();
+        });
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    initDateNavigation();
+});
+
 
 function getCookie(name) {
     let cookieValue = null;
