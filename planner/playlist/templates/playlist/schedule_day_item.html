@@ -8,7 +8,7 @@
         <div class="col col-1">
             {{ item.DateTime|date:"H:i:s" }}
         </div>
-        <div class="col col-5" style="padding-left: calc({{ item.Level }} * 2rem);">
+        <div class="col col-6" style="padding-left: calc({{ item.Level }} * 2rem);">
             <div class="material-name d-flex align-items-center justify-content-start ms-2 p-1">
                 {% if item.children %}
                     <div class="folder-toggle me-2" style="cursor: pointer;"
@@ -50,15 +50,15 @@
             </div>
         </div>
 
-        <div class="col">
+        <div class="col col-1">
             {% if item.duration %}
                 {{ item.duration|convert_frames_to_time }}
             {% endif %}
         </div>
 
-        <div class="col" data-created-by="{{ item.CreatedBy }}">{{ item.CreatedByName }}</div>
-        <div class="col">{{ item.LastEditTime|date:"d.m.Y" }}</div>
-        <div class="col">
+        <div class="col col-2" data-created-by="{{ item.CreatedBy }}">{{ item.CreatedByName }}</div>
+        <div class="col col-1">{{ item.LastEditTime|date:"d.m.Y" }}</div>
+        <div class="col col-1">
             {% if item.task_status == 'final' %}
                 <span class="badge bg-success" data-planner-status="{{ item.task_status }}" data-oplan-ready="{{ item.oplan_ready }}">Да</span>
             {% elif not item.task_status and item.oplan_ready %}
