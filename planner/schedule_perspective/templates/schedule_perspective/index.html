@@ -1,0 +1,42 @@
+{% extends 'main/index.html' %}
+{% load static %}
+
+
+{% block body %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/schedule_perspective.css' %}">
+
+<div class="container-fluid text-start px-lg-5">
+    <div class="dropdown">
+      <input class='form-control my-4' type="text" name="search_query" id="search_query" value="">
+      <div class="dropdown-menu shadow p-2" id="search_results" style="z-index: 1030; min-height: 30rem; width: 50rem; left: 17rem;">
+      </div>
+    </div>
+
+    <div class="row" id="schedule_list">
+        {% for schedule in schedules %}
+            <div class="schedule_item col px-1">
+                <div class="schedule_name card bg-primary-subtle">
+                    <div class="schedule_name card-header text-center p-1">
+                        {{ schedule }}
+                    </div>
+                    <div class="schedule_duration card-body text-center p-1">
+                        00:00:00
+                    </div>
+                </div>
+                <div class="schedule_container">
+                    <div class="card my-1">
+                        test
+                    </div>
+                    <div class="card my-1">
+                        test
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script type="text/javascript" src="{% static 'js/schedule_perspective.js' %}"></script>
+
+{% endblock %}

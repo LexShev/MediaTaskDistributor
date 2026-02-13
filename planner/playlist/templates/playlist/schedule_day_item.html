@@ -3,12 +3,12 @@
      data-scheduled-program_id="{{ item.scheduled_program_id }}" data-parent="{{ item.ParentID|default:'' }}"
      data-level="{{ item.Level }}">
 
-    <div class="schedule-item border-bottom row level-{{ item.Level }}
+    <div class="schedule-item border-bottom row table-row level-{{ item.Level }}
         {% if item.SuitableMaterial %}text-light-emphasis bg-light-subtle{% endif %}">
-        <div class="col col-1">
+        <div class="col" style="min-width: 5%">
             {{ item.DateTime|date:"H:i:s" }}
         </div>
-        <div class="col col-6" style="padding-left: calc({{ item.Level }} * 2rem);">
+        <div class="col" style="min-width: 57%; padding-left: calc({{ item.Level }} * 2rem);">
             <div class="material-name d-flex align-items-center justify-content-start ms-2 p-1">
                 {% if item.children %}
                     <div class="folder-toggle me-2" style="cursor: pointer;"
@@ -50,15 +50,15 @@
             </div>
         </div>
 
-        <div class="col col-1">
+        <div class="col" style="min-width: 8%">
             {% if item.duration %}
                 {{ item.duration|convert_frames_to_time }}
             {% endif %}
         </div>
 
-        <div class="col col-2" data-created-by="{{ item.CreatedBy }}">{{ item.CreatedByName }}</div>
-        <div class="col col-1">{{ item.LastEditTime|date:"d.m.Y" }}</div>
-        <div class="col col-1">
+        <div class="col" style="min-width: 13%" data-created-by="{{ item.CreatedBy }}">{{ item.CreatedByName }}</div>
+        <div class="col" style="min-width: 12%">{{ item.LastEditTime|date:"d.m.Y" }}</div>
+        <div class="col" style="min-width: 5%">
             {% if item.task_status == 'final' %}
                 <span class="badge bg-success" data-planner-status="{{ item.task_status }}" data-oplan-ready="{{ item.oplan_ready }}">Да</span>
             {% elif not item.task_status and item.oplan_ready %}

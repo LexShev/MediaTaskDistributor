@@ -337,10 +337,71 @@ CREATE TABLE filepath_history
 	time_of_change DATETIME NOT NULL,
 );
 
+use planner;
+
 CREATE TABLE schedule_status
 (
-    schedule_day_id INT PRIMARY KEY NOT NULL,
+    schedule_day_id INT PRIMARY KEY IDENTITY NOT NULL,
     is_ready BIT NULL,
     worker_id INT NOT NULL,
-	time_of_change DATETIME NOT NULL,
+	time_of_change DATETIME NOT NULL DEFAULT GETDATE(),
 );
+
+-- Список плейлистов по дням
+CREATE TABLE schedule_day
+(
+    [schedule_day_id] INT PRIMARY KEY IDENTITY NOT NULL,
+    [schedule_id] INT NOT NULL,
+    [day_date] DATETIME NOT NULL,
+    [approved_for_broadcasting] BIT NULL,
+    [last_edit_user_id] INT NULL,
+    [last_edit_time] DATETIME NOT NULL DEFAULT GETDATE(),
+    [schedule_type] INT NULL
+)
+
+-- Список программ с метаданными
+CREATE TABLE program
+(
+    [planner_program_id] INT PRIMARY KEY IDENTITY NOT NULL,
+    [planner_parent_id] INT NULL,
+    [oplan_program_id] INT NULL,
+    [kinopoisk_id] INT NULL,
+    [material_id] INT NULL,
+    [name] NVARCHAR(200) NULL,
+    [original_name] NVARCHAR(200) NULL,
+    [episode_num] INT NULL,
+    [duration] INT NULL,
+    [program_type] INT NULL,
+    [genre] NVARCHAR(MAX) NULL,
+    [production_year] NVARCHAR(100) NULL,
+    [production_country] NVARCHAR(MAX) NULL,
+    [actors] NVARCHAR(MAX) NULL,
+    [directors] NVARCHAR(MAX) NULL,
+    [adult_type_id] INT NULL,
+    [deleted] BIT NULL
+)
+
+-- Информация о программе, добавленной в плейлист
+CREATE TABLE scheduled_program
+(
+    [id] INT PRIMARY KEY IDENTITY NOT NULL,
+    [schedule_day_id] INT NOT NULL,
+    [planner_program_id] INT NOT NULL,
+    [duration] INT NULL,
+    [name] NVARCHAR(200) NULL,
+    [comment] NVARCHAR(MAX) NULL,
+    [last_edit_time] DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_scheduled_program_schedule_day FOREIGN KEY (schedule_day_id)
+    REFERENCES schedule_day(schedule_day_id) ON DELETE CASCADE,
+    CONSTRAINT FK_scheduled_program_program FOREIGN KEY (planner_program_id)
+    REFERENCES program(planner_program_id) ON DELETE CASCADE
+)
+
+-- Создание индексов для улучшения производительности
+CREATE INDEX IX_schedule_day__schedule_id ON schedule_day(schedule_id);
+CREATE INDEX IX_scheduled_program__schedule_day ON scheduled_program(schedule_day_id);
+CREATE INDEX IX_program__name ON program(name) WHERE deleted = 0;
+CREATE INDEX IX_scheduled_program__planner_program_id ON scheduled_program(planner_program_id);
+
+-- Индекс для поиска по дате
+CREATE INDEX IX_schedule_day__day_date ON schedule_day(day_date);

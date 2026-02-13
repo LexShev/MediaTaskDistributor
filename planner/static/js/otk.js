@@ -543,7 +543,7 @@ function setStatusOTKFail() {
             container?.dataset.workerId || '',
         ])
     });
-    fetch('/otk/set_status_fix_ready/', {
+    fetch('/otk/set_status_otk_fail/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

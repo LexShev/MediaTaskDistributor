@@ -1,46 +1,12 @@
-/* Контейнер для детей */
-.children-container {
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.3s ease,
-                transform 0.3s ease;
-    overflow: hidden;
+.table-row {
+    min-height: 2.5rem;
+    align-items: center;
 }
 
-.children-container.collapsed {
-    max-height: 0;
-    opacity: 0;
-    transform: translateY(-8px);
+.table-row:hover {
+    background-color: var(--bs-secondary-bg);
 }
 
-.children-container.expanded {
-    max-height: 5000px;
-    opacity: 1;
-    transform: translateY(0);
+.modal-xxl {
+    max-width: 1400px;
 }
-
-/* Содержимое детей с отступом */
-.children-content {
-    padding: 0.5rem 0;
-    background-color: rgba(0, 0, 0, 0.02);
-}
-
-/* Анимация для переключателя */
-.folder-toggle svg {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-origin: center;
-}
-
-/* Отступы для вложенных строк */
-.children-content .schedule-row td:first-child {
-    padding-left: calc(var(--level) * 20px);
-}
-
-/* Стили для папок */
-.folder-row {
-    font-weight: 600;
-}
-
-.folder-row.block-row {
-    border-left: 3px solid #ffc107 !important;
-}
-

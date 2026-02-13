@@ -41,7 +41,7 @@ MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
 MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
 
@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     "distribution",
     "playlist",
     "tools",
+    "schedule_perspective",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
