@@ -352,7 +352,7 @@ CREATE TABLE schedule_day
 (
     [schedule_day_id] INT PRIMARY KEY IDENTITY NOT NULL,
     [schedule_id] INT NOT NULL,
-    [day_date] DATETIME NOT NULL,
+    [day_date] DATE NOT NULL,
     [approved_for_broadcasting] BIT NULL,
     [last_edit_user_id] INT NULL,
     [last_edit_time] DATETIME NOT NULL DEFAULT GETDATE(),
@@ -391,6 +391,8 @@ CREATE TABLE scheduled_program
     [name] NVARCHAR(200) NULL,
     [comment] NVARCHAR(MAX) NULL,
     [last_edit_time] DATETIME NOT NULL DEFAULT GETDATE(),
+    [index] INT NOT NULL DEFAULT 0,
+    [air_time] DATETIME NULL,
     CONSTRAINT FK_scheduled_program_schedule_day FOREIGN KEY (schedule_day_id)
     REFERENCES schedule_day(schedule_day_id) ON DELETE CASCADE,
     CONSTRAINT FK_scheduled_program_program FOREIGN KEY (planner_program_id)

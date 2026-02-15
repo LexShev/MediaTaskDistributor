@@ -5,35 +5,59 @@
 {% block body %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'css/schedule_perspective.css' %}">
+<script type="text/javascript" src="{% static 'SortableJS/Sortable.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'SortableJS/jquery-sortable.js' %}"></script>
+
 
 <div class="container-fluid text-start px-lg-5">
-    <div class="dropdown">
-      <input class='form-control my-4' type="text" name="search_query" id="search_query" value="">
-      <div class="dropdown-menu shadow p-2" id="search_results" style="z-index: 1030; min-height: 30rem; width: 50rem; left: 17rem;">
-      </div>
+    <div class="d-flex align-items-center justify-content-center">
+        <select name="schedule_dropdown" class="form-select form-select-lg text-center m-2" id="schedule_dropdown" style="max-width: 20rem;">
+          <option value="3" selected>Крепкое</option>
+          <option value="5">Планета дети</option>
+          <option value="6">Мировой сериал</option>
+          <option value="7">Мужской сериал</option>
+          <option value="8">Наше детство</option>
+          <option value="9">Романтичный сериал</option>
+          <option value="10">Наше родное кино</option>
+          <option value="11">Семейное кино</option>
+          <option value="12">Советское родное кино</option>
+          <option value="20">Кино +</option>
+          <option value="36">Кино Индии</option>
+        </select>
     </div>
-
-    <div class="row" id="schedule_list">
-        {% for schedule in schedules %}
-            <div class="schedule_item col px-1">
-                <div class="schedule_name card bg-primary-subtle">
-                    <div class="schedule_name card-header text-center p-1">
-                        {{ schedule }}
-                    </div>
-                    <div class="schedule_duration card-body text-center p-1">
-                        00:00:00
-                    </div>
-                </div>
-                <div class="schedule_container">
-                    <div class="card my-1">
-                        test
-                    </div>
-                    <div class="card my-1">
-                        test
-                    </div>
-                </div>
+    <div class="row">
+        <div class="col col-3">
+            <div class="dropdown">
+              <input class='form-control' type="text" name="search_query" id="search_query" value="" placeholder="Начните вводить название фильма...">
+              <div class="dropdown-menu shadow p-2" id="search_results" style="z-index: 1030; min-height: 35rem; width: 31rem; top: 4rem;">
+                  <div class="" id="oplan_results"></div>
+                  <div class="" id="kinopoisk_results"></div>
+              </div>
             </div>
-        {% endfor %}
+        </div>
+        <div class="col col-9">
+            <div class="row" id="schedule_list">
+                {% for date, schedule in schedules.items %}
+                    <div class="schedule_day col px-1">
+                        <div class="schedule_name card bg-primary-subtle">
+                            <div class="schedule_name card-header text-center p-1">
+                                {{ date|date:'d-m-Y' }}
+                            </div>
+                            <div class="schedule_duration card-body text-center p-1">
+                                00:00:00
+                            </div>
+                        </div>
+                        <div class="schedule_container" id="{{ date|date:'Y-m-d'}}">
+                            {% for program in schedule %}
+                                <div class="card program my-1 p-1" data-oplan-program-id="{{ program.PlannerProg_oplan_program_id }}">
+                                    {{ program.OplanProg_name }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 

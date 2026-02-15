@@ -1,10 +1,5 @@
 let fullList = document.getElementById('full_list');
-const containers = [
-  document.getElementById('cards_container_1'),
-  document.getElementById('cards_container_2'),
-  document.getElementById('cards_container_3'),
-  document.getElementById('cards_container_4')
-];
+
 
 new Sortable(fullList, {
     group: 'desktop',
@@ -14,6 +9,13 @@ new Sortable(fullList, {
     dragClass: "custom-drag",
     onEnd: WriteOrder
 });
+
+const containers = [
+  document.getElementById('cards_container_1'),
+  document.getElementById('cards_container_2'),
+  document.getElementById('cards_container_3'),
+  document.getElementById('cards_container_4')
+];
 
 containers.forEach(container => {
   new Sortable(container, {

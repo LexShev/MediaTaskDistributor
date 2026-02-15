@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function searchProgram(query) {
-    const dropdownMenu = document.getElementById('search_results');
-    dropdownMenu.innerHTML = `
+    let oplanResults = document.getElementById('oplan_results')
+    oplanResults.innerHTML = `
         <div class="d-flex justify-content-center align-items-center" style="min-height: inherit;">
             <div class="spinner-border text-primary spinner-border-sm align-items-center" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -65,17 +65,48 @@ function searchProgram(query) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            dropdownMenu.innerHTML = '';
+            oplanResults.innerHTML = '';
             if (data.search_list.length > 0) {
                 data.search_list.forEach(program => {
-                        let list_item = document.createElement("p");
-                        list_item.innerText = `${program.Progs_name} ${program.Progs_production_year}`
-                        dropdownMenu.appendChild(list_item);
+                        let listItem = document.createElement("div");
+                        listItem.classList.add('oplan-program', 'd-flex', 'border', 'rounded', 'm-2');
+                        listItem.dataset.oplanProgramId = program.Progs_program_id;
+                        listItem.dataset.duration = program.Progs_duration;
+
+                        let imageContainer = document.createElement("div");
+                        imageContainer.classList.add('align-items-center', 'm-2')
+                        imageContainer.style = "flex: 0 0 12%; max-width: 12%; height: 100%;"
+
+                        let image = document.createElement('img');
+                        let imgSrc = `/media/posters/${program.Progs_program_id}.jpg`;
+                        image.onerror = function() {
+                            this.onerror = null;
+                            this.src = '/static/img/no_poster.jpg';
+                        };
+                        image.src = imgSrc;
+                        image.classList.add('img-fluid', 'rounded', 'm-0', 'w-100', 'h-100', 'object-fit-cover');
+                        imageContainer.appendChild(image);
+
+                        listItem.appendChild(imageContainer);
+
+                        let nameContainer = document.createElement("div");
+                        listItem.appendChild(nameContainer);
+
+                        let header = document.createElement("h6");
+                        header.classList.add('my-2')
+                        header.innerText = program.Progs_name;
+                        nameContainer.appendChild(header);
+
+                        let footer = document.createElement("small");
+                        footer.innerText = program.Progs_production_year;
+                        nameContainer.appendChild(footer);
+
+                        oplanResults.appendChild(listItem);
                     }
                 )
             }
             else {
-                dropdownMenu.innerHTML = 'По вашему запросу ничего не найдено'
+                oplanResults.innerHTML = 'По вашему запросу ничего не найдено'
             }
         } else {
             console.log('error', data.message);
@@ -83,6 +114,84 @@ function searchProgram(query) {
     })
     .catch(error => {
         console.error('Error sending info:', error);
+    });
+}
+
+function moveData(evt) {
+    console.log(evt.item)
+    return {
+        oplanProgramId: evt.item.dataset.oplanProgramId,
+        fromContainer: evt.from.id,
+        toContainer: evt.to.id,
+        oldIndex: evt.oldIndex,
+        newIndex: evt.newIndex,
+        isSameContainer: evt.from === evt.to
+    }
+}
+const oplanResultsContainer = document.getElementById('oplan_results');
+
+new Sortable(oplanResultsContainer, {
+    group: {
+            name: 'schedule',
+            pull: true,    // Можно забирать
+            put: false      // Нельзя добавлять
+        },
+	animation: 200,
+	ghostClass: "custom-ghost",
+    chosenClass: "custom-chosen",
+    dragClass: "custom-drag",
+    sort: false,
+    onEnd: function(evt) {
+            // Получаем всю информацию о перемещении
+            const data = moveData(evt);
+
+            saveMoveToServer(data);
+        }
+});
+
+const containers = document.querySelectorAll('.schedule_container');
+
+containers.forEach(container => {
+    new Sortable(container, {
+        group: {
+            name: 'schedule',
+            pull: true,    // Можно забирать
+            put: true      // Можно добавлять
+        },
+        animation: 200,
+        ghostClass: "custom-ghost",
+        chosenClass: "custom-chosen",
+        dragClass: "custom-drag",
+
+        onEnd: function(evt) {
+            // Получаем всю информацию о перемещении
+            const data = moveData(evt);
+
+            saveMoveToServer(data);
+        }
+    });
+});
+
+function saveMoveToServer(data) {
+    console.log('Отправка данных:', data);
+
+    fetch('/schedule-perspective/update-program-position/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            console.log('Обновление успешно');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
     });
 }
 
