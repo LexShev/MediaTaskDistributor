@@ -12,6 +12,24 @@ function toggleScheduleItem(scheduledProgramId) {
     }
 }
 
+function toggleScheduleAllItem(switcher) {
+    const childrenContainers = document.querySelectorAll('.schedule-children');
+    // const toggleIcons = document.querySelectorAll('.folder-toggle');
+    childrenContainers.forEach(child => {
+            let svgElement = child.parentElement.querySelector('.folder-toggle');
+            // const svgElement = icon.querySelector('svg');
+            if (switcher.checked === false) {
+                    child.style.display = 'block';
+                    svgElement.style.transform = 'rotate(0deg)';
+                } else {
+                    child.style.display = 'none';
+                    svgElement.style.transform = 'rotate(-90deg)';
+                }
+    })
+
+
+}
+
 function toggleAdvert(switcher) {
     let advertContainers = document.querySelectorAll('.is_advert');
     advertContainers.forEach(advertContainer => {

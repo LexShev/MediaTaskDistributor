@@ -79,6 +79,7 @@ function searchProgram(query) {
 
                         let image = document.createElement('img');
                         let imgSrc = `/media/posters/${program.Progs_program_id}.jpg`;
+                        // let imgSrc = `https://www.kinopoisk.ru//images/sm_film/1115407.jpg`;
                         image.onerror = function() {
                             this.onerror = null;
                             this.src = '/static/img/no_poster.jpg';

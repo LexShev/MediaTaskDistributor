@@ -73,6 +73,7 @@ def get_schedule_list_by_id(schedule_day_id):
               ,[scheduled_program_id]
               ,[ParentID]
               ,[SlotType]
+              ,MaterialProg.[MaterialTypeID]
               ,[MaterialID]
               ,[PlannedStartTime]
               ,[IsBlock]
@@ -106,6 +107,8 @@ def get_schedule_list_by_id(schedule_day_id):
             ON SchedProg.[program_id] = Progs.[program_id]
           LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON SchedProg.[program_id] = Task.[program_id]
+          LEFT JOIN [oplan3].[dbo].[program] AS MaterialProg
+            ON Progs.[SuitableMaterialForScheduleID] = MaterialProg.[program_id]
           WHERE [schedule_day_id] = %s
           AND SchedProg.[Deleted] = 0
           AND SchedProg.[DeletedIncludeParent] = 0
@@ -222,7 +225,7 @@ def get_schedule_list_by_date(schedule_id, schedule_date):
 
             temp_dict['CreatedByName'] = workers_dict.get(temp_dict['CreatedBy'], '')
             results.append(temp_dict)
-        # print('results', results)
+        print('results', results)
     return build_hierarchy_from_level(results)
 
 def create_nested_structure(flat_list, parent_field='ParentID', id_field='scheduled_program_id'):

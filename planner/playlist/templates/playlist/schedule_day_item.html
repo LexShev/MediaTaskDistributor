@@ -1,10 +1,13 @@
 {% load custom_filters %}
-<div class="schedule-item-container {% if item.program_type_id == 9 %}is_advert{% else %}is_program{% endif %}" id="item_{{ item.scheduled_program_id }}"
+
+<div class="schedule-item-container {% if item.program_type_id == 9 %}is_advert{% endif %}
+{% if item.MaterialTypeID == 6 %}bg-danger-subtle{% elif item.MaterialTypeID == 4 %}bg-warning-subtle{% endif %}"
+     id="item_{{ item.scheduled_program_id }}"
      data-scheduled-program_id="{{ item.scheduled_program_id }}" data-parent="{{ item.ParentID|default:'' }}"
      data-level="{{ item.Level }}">
 
     <div class="schedule-item border-bottom row table-row level-{{ item.Level }}
-        {% if item.SuitableMaterial %}text-light-emphasis bg-light-subtle{% endif %}">
+        {% if item.SuitableMaterial %}text-light-emphasis bg-light-subtle{% endif %}" data-material_type="{{ item.MaterialTypeID }}">
         <div class="col" style="min-width: 5%">
             {{ item.DateTime|date:"H:i:s" }}
         </div>
