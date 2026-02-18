@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+  calculateDuration();
   const dropdownMenu = document.getElementById('search_results');
   const searchQuery = document.getElementById('search_query');
 
@@ -147,6 +148,7 @@ new Sortable(oplanResultsContainer, {
             const data = moveData(evt);
 
             saveMoveToServer(data);
+            calculateDuration();
         }
 });
 
@@ -169,6 +171,7 @@ containers.forEach(container => {
             const data = moveData(evt);
 
             saveMoveToServer(data);
+            calculateDuration();
         }
     });
 });
@@ -195,6 +198,46 @@ function saveMoveToServer(data) {
         console.error('Ошибка:', error);
     });
 }
+
+function calculateDuration() {
+    const schedules = document.querySelectorAll('.schedule_day');
+    schedules.forEach(schedule => {
+        const totalDurationCounter = schedule.querySelector('.schedule_duration');
+        const programs = schedule.querySelectorAll('.program');
+
+        const durations = Array.from(programs).map(program => parseInt(program.dataset.duration) || 0);
+        const totalDuration = durations.reduce((sum, duration) => sum + duration, 0);
+
+        totalDurationCounter.innerText = convertFramesToTime(totalDuration);
+    })
+
+}
+
+function convertFramesToTime(frames, fps = 25) {
+    const sec = parseInt(frames) / fps;
+    const yy = Math.floor(Math.floor(sec / 3600 / 24) / 365);
+    const dd = Math.floor(Math.floor(sec / 3600 / 24) % 365);
+    const hh = Math.floor((sec / 3600) % 24);
+    const mm = Math.floor((sec % 3600) / 60);
+    const ss = Math.floor((sec % 3600) % 60);
+    const ff = Math.floor((sec % 1) * fps);
+
+    const formatNum = num => num.toString().padStart(2, '0');
+
+    if (yy < 1) {
+        if (dd < 1) {
+            return `${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        } else {
+            return `${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        }
+    } else {
+        if (0 < yy % 10 && yy % 10 < 5) {
+            return `${formatNum(yy)}г. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        } else {
+            return `${formatNum(yy)}л. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
+        }
+    }
+};
 
 function getCookie(name) {
     let cookieValue = null;

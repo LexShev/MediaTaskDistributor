@@ -17,7 +17,7 @@ def get_program_info(start_date, schedule_id) -> dict:
                        ('SchedDay', 'schedule_type'), ('SchedProg', 'name'), ('SchedProg', 'duration'),
                        ('SchedProg', 'index'), ('PlannerProg', 'name'), ('PlannerProg', 'original_name'),
                        ('PlannerProg', 'kinopoisk_id'), ('PlannerProg', 'oplan_program_id'),
-                       ('OplanProg', 'name'), ('OplanProg', 'AnonsCaption')]
+                       ('OplanProg', 'name'), ('OplanProg', 'duration'), ('OplanProg', 'AnonsCaption')]
 
             sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
             django_columns = [f'{col}_{val}' for col, val in columns]

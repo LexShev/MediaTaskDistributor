@@ -49,7 +49,9 @@
                         </div>
                         <div class="schedule_container" id="{{ date|date:'Y-m-d'}}">
                             {% for program in schedule %}
-                                <div class="card program my-1 p-1" data-oplan-program-id="{{ program.PlannerProg_oplan_program_id }}">
+                                <div class="card program my-1 p-1"
+                                     data-oplan-program-id="{{ program.PlannerProg_oplan_program_id }}"
+                                     data-duration="{{ program.OplanProg_duration }}">
                                     {{ program.OplanProg_name }}
                                 </div>
                             {% endfor %}
