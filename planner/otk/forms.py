@@ -24,7 +24,7 @@ class OtkForm(forms.ModelForm):
             'deadline': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date', 'id': "deadline"}, format='%Y-%m-%d'),
             'worker_id': forms.Select(
-                attrs={'class': "form-select", 'id': "worker_id"}, choices=choice.workers),
+                attrs={'class': "form-select", 'id': "worker_id"}, choices=choice.workers()),
             'material_type': forms.Select(
                 attrs={'class': "form-select", 'id': "material_type"}, choices=choice.material_type),
             'sched_id': forms.Select(

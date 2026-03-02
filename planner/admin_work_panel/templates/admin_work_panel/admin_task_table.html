@@ -42,7 +42,7 @@
           </span>
         </div>
       </th>
-      <th style="width: 9%;">
+      <th style="width: 10%;">
         <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
           data-order="engineers" style="cursor: pointer;">
           <span>Исполнитель</span>
@@ -129,7 +129,7 @@
           </span>
         </div>
       </th>
-      <th style="width: 2%;">
+      <th style="width: 1%;">
         <div class="d-flex justify-content-between align-items-center link-body-emphasis link-offset-3-hover" onclick="sortTable(this);"
           data-order="cenz" style="cursor: pointer;">
           <span>
@@ -167,14 +167,13 @@
           <div class="btn-group dropend">
             <button type="button" onclick="adjustTextarea(this)" class="btn btn-sm dropdown-toggle align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill ms-4" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }} </button>
             <div class="dropdown-menu p-3" style="min-width: 560px;">
-              <h5>{{ task.comments.0.Progs_name }}</h5>
-              <div class="dropdown-divider"></div>
               {% for comment in task.comments %}
-                  {% if comment.deadline %}<h6>Исправить до: {{ comment.deadline }}</h6>{% endif %}
+                  {% if comment.deadline %}<h6>Исправить до: {{ comment.deadline|date:'d-m-Y' }}</h6>{% endif %}
                   <div class="form-floating">
                     <textarea class="form-control" style="min-height: 60px;" id="commentId_{{ comment.comment_id }}" disabled>{{ comment.comment }}</textarea>
-                    <label for="commentId_{{ comment.comment_id }}">
-                        {% if comment.time_of_change %}{{ comment.time_of_change }}: {% endif %}{{ comment.worker_id|planner_worker_name }}</label>
+                    <label for="commentId_{{ comment.comment_id }}" data-worker-id="{{ comment.worker_id }}">
+                        {% if comment.time_of_change %}{{ comment.time_of_change|date:'H:i:s d-m-Y' }}: {% endif %}
+                        {{ comment.first_name }} {{ comment.last_name }}</label>
                   </div>
                   <div class="dropdown-divider"></div>
               {% endfor %}

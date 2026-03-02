@@ -9,6 +9,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
+from main.form_choices import choice
 from main.permission_pannel import ask_db_permissions
 from .models import AdminModel, TaskSearch
 from .admin_materials_list import task_info, update_task_list, add_in_task_list, del_task, archive_task, reset_progress
@@ -98,17 +99,24 @@ def load_admin_task_table(request):
     field_dict = AdminModel.objects.filter(owner=user_id).values()
     if field_dict: field_dict = field_dict[0]
     search_init_dict = TaskSearch.objects.get(owner=user_id)
+
     task_list, service_dict = task_info(field_dict, search_init_dict)
     dynamic_selector_list = []
+    workers_list = choice.workers()
+    task_status_list = choice.task_status
+
     for task in task_list:
         file_path = task.get('Task_file_path', '')
         dynamic_selector_list.append(DynamicSelector(
             program_id=task.get('Task_program_id'),
-            initial={'workers_selector': task.get('Task_worker_id'),
-                     'work_date_selector': task.get('Task_work_date'),
-                     'status_selector': task.get('Task_task_status'),
-                     'file_path': file_path or '',
-                     }),
+            workers_list=workers_list,
+            task_status_list=task_status_list,
+            initial={
+                'workers_selector': task.get('Task_worker_id'),
+                'work_date_selector': task.get('Task_work_date'),
+                'status_selector': task.get('Task_task_status'),
+                'file_path': file_path or '',
+            }),
         )
     html = render_to_string(
         'admin_work_panel/admin_task_table.html',

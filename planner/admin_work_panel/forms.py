@@ -26,7 +26,7 @@ class AdminForm(forms.ModelForm):
             'deadline': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date', 'id': "deadline"}, format='%Y-%m-%d'),
             'worker_id': forms.Select(
-                attrs={'class': "form-select", 'id': "worker_id"}, choices=choice.workers),
+                attrs={'class': "form-select", 'id': "worker_id"}, choices=choice.workers()),
             'material_type': forms.Select(
                 attrs={'class': "form-select", 'id': "material_type"}, choices=choice.material_type),
             'sched_id': forms.Select(
@@ -62,7 +62,7 @@ class TaskSearchForm(forms.ModelForm):
         }
 
 class DynamicSelector(forms.Form):
-    def __init__(self, program_id, *args, **kwargs):
+    def __init__(self, program_id, workers_list, task_status_list, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.program_id = program_id
 
@@ -70,7 +70,7 @@ class DynamicSelector(forms.Form):
             widget=forms.Select(
             attrs={'class': 'form-select form-select-sm', 'id': f"workers_selector_{self.program_id}"}),
             label='Исполнитель',
-            choices=choice.workers,
+            choices=workers_list,
             required=False)
         self.fields['work_date_selector'] = forms.DateField(
             widget=forms.DateInput(
@@ -82,7 +82,7 @@ class DynamicSelector(forms.Form):
             widget=forms.Select(
             attrs={'class': 'form-select form-select-sm', 'id': f"status_selector_{self.program_id}"}),
             label='Статус',
-            choices=choice.task_status,
+            choices=task_status_list,
             required=False)
         self.fields['file_path'] = forms.CharField(
             widget=forms.TextInput(

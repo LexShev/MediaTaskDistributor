@@ -1,3 +1,6 @@
+from django.db import connections
+from planner.settings import OPLAN_DB, PLANNER_DB
+
 class MainSettings:
     status_dict = {
         'no_material': 'Материал отсутствует',
@@ -60,3 +63,38 @@ class MainSettings:
         20: {'name': 'indigo', 'hex': '#6610f2', 'rgb': '102, 16, 242'},  # Кино +
         36: {'name': 'orange-700', 'hex': '#984c0c', 'rgb': '152, 76, 12'}  # Кино Индии
     }
+
+    def __init__(self):
+        self._workers_dict = None
+
+    def oplan_workers_dict(self):
+        try:
+            with connections[PLANNER_DB].cursor() as cursor:
+                query = f'''
+                SELECT [OplanUsers].[oplan_id], [first_name], [last_name]
+                FROM [{PLANNER_DB}].[dbo].[auth_user] AS PlannerUsers
+                JOIN [{PLANNER_DB}].[dbo].[oplan_users_list] AS OplanUsers
+                    ON [PlannerUsers].[id] = OplanUsers.[planner_id]
+                '''
+                cursor.execute(query)
+                results = cursor.fetchall()
+                if not results:
+                    return {}
+                return {worker[0]: f'{worker[1]} {worker[2]}' for worker in results}
+
+        except Exception as error:
+            print(error)
+            return {}
+
+    def get_oplan_workers_dict(self):
+        if self._workers_dict is None:
+            return self.oplan_workers_dict()
+        return self._workers_dict
+
+    def refresh_workers_dict(self):
+        """Принудительно обновить словарь сотрудников"""
+        self._workers_dict = self.oplan_workers_dict()
+        return self._workers_dict
+
+main_settings = MainSettings()
+

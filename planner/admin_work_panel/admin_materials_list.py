@@ -55,7 +55,7 @@ def task_info(field_dict, search_init_dict):
         columns = [
             ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'), ('Task', 'work_date'),
             ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
-            ('Task', 'archived'), ('Task', 'archiving_date'), ('Task', 'CENZ'),
+            ('Task', 'archived'), ('Task', 'archiving_date'), ('Task', 'CENZ'), ('Users', 'first_name'), ('Users', 'last_name'),
             ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'keywords'),
             ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Progs', 'deleted'), ('Progs', 'DeletedIncludeParent')
         ]
@@ -66,6 +66,8 @@ def task_info(field_dict, search_init_dict):
         FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
         JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
             ON Task.[program_id] = Progs.[program_id]
+        JOIN [planner].dbo.[auth_user] AS Users
+            ON Task.[worker_id] = Users.[id]
         WHERE Task.[program_id] IS NOT NULL
         {check_extra_set(field_dict.get('extra_set'))}
         {check_value('ready_date', field_dict.get('ready_date'))}
@@ -79,22 +81,38 @@ def task_info(field_dict, search_init_dict):
         '''
         cursor.execute(query)
         result = cursor.fetchall()
-    material_list = [dict(zip(django_columns, task)) for task in result]
+    task_list = [dict(zip(django_columns, task)) for task in result]
+
+    program_id_list = [task.get('Task_program_id') for task in task_list if task.get('Task_program_id')]
+
+    # Предварительно загружаем все комментарии одним запросом
+    comments_by_program = comments_history(program_id_list)
+
+    # Находим program_id, для которых нужно загрузить файлы
+    program_ids_without_file = [task.get('Task_program_id') for task in task_list
+        if task.get('Task_program_id') and not task.get('Task_file_path')
+    ]
+    # Загружаем файлы только для нужных program_id
+    files_by_program = {}
+    if program_ids_without_file:
+        files_by_program = find_file_path(program_ids_without_file)
+
     duration = []
-    for material in material_list:
-        material['comments'] = comments_history(material.get('Task_program_id'), material.get('Progs_name'))
-        duration.append(material.get('Task_duration'))
-        if not material.get('Task_file_path'):
-            material['Files_Name'] = find_file_path(material.get('Task_program_id'))
-        if material.get('Progs_deleted') or material.get('Progs_DeletedIncludeParent'):
-            material['is_deleted'] = True
+    for task in task_list:
+        program_id = task.get('Task_program_id')
+        task['comments'] = comments_by_program.get(program_id)
+        duration.append(task.get('Task_duration'))
+        if not task.get('Task_file_path'):
+            task['Files_Name'] = files_by_program.get(program_id)
+        if task.get('Progs_deleted') or task.get('Progs_DeletedIncludeParent'):
+            task['is_deleted'] = True
     total_duration = sum(duration)
-    total_count = len(material_list)
+    total_count = len(task_list)
     service_dict = {
         'total_duration': total_duration, 'total_count': total_count,
         'order': search_init_dict.order, 'order_type': search_init_dict.order_type
     }
-    return material_list, service_dict
+    return task_list, service_dict
 
 
 def update_task_list(request) -> Dict[str, str]:
@@ -349,10 +367,13 @@ def del_task(request) -> Dict[str, str]:
         return {'status': 'error', 'message': str(error)}
 
 
-def find_file_path(program_id):
+def find_file_path(program_id_list):
+    if not program_id_list:
+        return {}
+    program_ids_str = ','.join(str(program_id) for program_id in program_id_list)
     with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
-        SELECT Files.[Name]
+        SELECT Progs.[program_id], Files.[Name]
         FROM [{OPLAN_DB}].[dbo].[File] AS Files
         JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
             ON Files.[ClipID] = Clips.[ClipID]
@@ -363,38 +384,36 @@ def find_file_path(program_id):
         AND Clips.[Deleted] = 0
         AND Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
-        AND Progs.[program_id] = {program_id}
+        AND Progs.[program_id] IN ({program_ids_str})
         '''
         cursor.execute(query)
-        file_path = cursor.fetchone()
-    if file_path:
-        return file_path[0]
+        results = cursor.fetchall()
+    return {program_id: file_path for program_id, file_path in results}
 
-def comments_history(program_id, progs_name):
+def comments_history(program_id_list) -> dict:
+    if not program_id_list:
+        return {}
+    program_ids_str = ','.join(str(program_id) for program_id in program_id_list)
     with connections[PLANNER_DB].cursor() as cursor:
-        columns = 'comment_id', 'worker_id', 'comment', 'deadline', 'time_of_change'
+        columns = 'program_id', 'comment_id', 'worker_id', 'first_name', 'last_name', 'comment', 'deadline', 'time_of_change'
         sql_columns = ', '.join(columns)
         query = f'''
         SELECT {sql_columns}
-        FROM [{PLANNER_DB}].[dbo].[comments_history]
-        WHERE program_id = {program_id}
-        AND [task_status] = 'fix'
+        FROM [{PLANNER_DB}].[dbo].[comments_history] AS Comments
+        JOIN [planner].dbo.[auth_user] AS Users
+            ON Comments.[worker_id] = Users.[id]
+        WHERE program_id IN ({program_ids_str})
+        AND [task_status] IN ('fix', 'fix_ready', 'final_fail') 
         ORDER BY [time_of_change]
         '''
         cursor.execute(query)
         history = cursor.fetchall()
-        comments_list = []
+        # comments_dict = [dict(zip(columns, task)) for task in history]
+
+        comments_dict = {}
         for comment in history:
-            comments_dict = {'Progs_name': progs_name}
-            for key, val in zip(columns, comment):
-                if not val:
-                    continue
-                if key == 'deadline':
-                    comments_dict[key] = val.strftime('%d-%m-%Y')
-                elif key == 'time_of_change':
-                    comments_dict[key] = val.strftime('%H:%M:%S %d-%m-%Y')
-                else:
-                    comments_dict[key] = val
-            comments_list.append(comments_dict)
-        # json_data = json.dumps(res, default=json_serial, ensure_ascii=False, indent=2)
-        return comments_list
+            program_id = comment[0]
+            if program_id not in comments_dict:
+                comments_dict[program_id] = []
+            comments_dict[program_id].append(dict(zip(columns, comment)))
+        return comments_dict

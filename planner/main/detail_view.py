@@ -5,7 +5,7 @@ from typing import Dict
 from django.db import connections
 
 from .db_connection import parent_name, parent_adult_name
-from .settings.main_set import MainSettings
+from .settings.main_settings import MainSettings
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 def check_data_type(value):

@@ -76,3 +76,7 @@
 .remake-body {
     opacity: 0.5;
 }
+
+:root {
+  --bs-orange-700: #984c0c;
+}

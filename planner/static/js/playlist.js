@@ -107,16 +107,16 @@ function load_schedule_table(options = {}) {
                 scheduleTable.innerHTML = data.html;
                 console.log('Таблица загружена, вызываем инициализацию...');
 
-                // ВАЖНО: Вызываем инициализацию после загрузки
-                if (typeof window.scheduleDay !== 'undefined' &&
-                    typeof window.scheduleDay.initScheduleDay === 'function') {
-                    // Даем время на рендеринг DOM
-                    setTimeout(() => {
-                        window.scheduleDay.initScheduleDay();
-                    }, 50);
-                } else {
-                    console.error('Функция initScheduleDay не найдена!');
-                }
+                // // ВАЖНО: Вызываем инициализацию после загрузки
+                // if (typeof window.scheduleDay !== 'undefined' &&
+                //     typeof window.scheduleDay.initScheduleDay === 'function') {
+                //     // Даем время на рендеринг DOM
+                //     setTimeout(() => {
+                //         window.scheduleDay.initScheduleDay();
+                //     }, 50);
+                // } else {
+                //     console.error('Функция initScheduleDay не найдена!');
+                // }
             }
         })
         .catch(error => {
@@ -157,19 +157,53 @@ function updateScheduleFilter(options = {}) {
     });
 };
 
-function updateScheduleList(schedule) {
+function getScheduleInfo(schedule_id) {
+        fetch('/playlist/get_schedule_info/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(schedule_id),
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status !== 'success') {
+            console.log('error', data.message);
+            return
+        }
+        updateScheduleList(data?.schedule_info)
+    })
+    .catch(error => {
+        console.error('Error sending info:', error);
+    });
+}
+
+function getEditorInfo(editor_id) {
+
+}
+
+function updateScheduleList(scheduleInfo) {
     let currentSchedule = document.getElementById('current_schedule');
-    let currentScheduleId = schedule?.dataset?.scheduleId ?? null;
     let currentEditor = document.getElementById('current_editor');
-    let currentScheduleDescription = document.getElementById('current_schedule_description');
-    if (currentSchedule && currentEditor && currentScheduleDescription) {
-        currentSchedule.textContent = schedule.dataset.scheduleName;
-        currentSchedule.dataset.currentScheduleId = currentScheduleId;
-        currentEditor.textContent = schedule.dataset.editorName;
-        currentScheduleDescription.textContent = schedule.dataset.description;
+    let scheduleImage = document.getElementById('schedule_image');
+    let scheduleImageName = scheduleInfo?.image_name ?? null;
+    let scheduleId = scheduleInfo.schedule_id;
+    let scheduleName = scheduleInfo.schedule_name;
+    if (currentSchedule && currentEditor && scheduleImage) {
+        currentSchedule.textContent = scheduleName;
+        currentEditor.textContent = scheduleInfo.editor_name;
+        if (scheduleImageName) {
+            scheduleImage.src = `/static/img/schedule_logo/${scheduleImageName}.png`;
+        }
+        else {
+            scheduleImage.src = '/static/img/schedule_logo/base.png';
+        }
     };
-    updateScheduleFilter({ scheduleId: currentScheduleId });
-    load_schedule_table({ scheduleId: currentScheduleId });
+    updateScheduleFilter({ scheduleId: scheduleId });
+    load_schedule_table({ scheduleId: scheduleId });
 };
 
 function formatDateToString(date) {
@@ -394,6 +428,37 @@ document.addEventListener('DOMContentLoaded', function() {
     initDateNavigation();
 });
 
+function updateStatus(statusInfo) {
+    console.log(statusInfo.dataset.scheduleDayId);
+    console.log(statusInfo.value);
+};
+
+function updateComment() {
+
+};
+
+function updatePlaylistInfo() {
+    console.log('Отправка данных:', data);
+
+    fetch('/playlist/update_playlist_info/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            console.log('Обновлено успешно');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+    });
+};
 
 function getCookie(name) {
     let cookieValue = null;

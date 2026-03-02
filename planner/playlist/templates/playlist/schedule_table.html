@@ -2,35 +2,53 @@
 <table class="table table-striped table-hover" id="schedule_table">
     <thead class="">
         <tr>
-            <th scope="col">Название</th>
+            <th scope="col">Дата эфира</th>
             <th scope="col">Канал</th>
             <th scope="col">Дата изменения</th>
             <th scope="col">Редактор</th>
             <th scope="col">Статус</th>
+            <th scope="col">Комментарий</th>
         </tr>
     </thead>
-    <tbody id="schedule_table_body">
+    <tbody class="table-group-divider" id="schedule_table_body">
     {% for schedule in schedules %}
         <tr>
             <td>
                 <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
-                style="cursor: pointer;" data-schedule-day-id="{{ schedule.schedule_day_id }}"
-                   data-schedule-id="{{ schedule.schedule_id }}"
-                   data-schedule-day-date="{{ schedule.day_date|date:"Y-m-d" }}"
-                data-schedule-name="{{ schedule.schedule_id|schedule_name }}"
+                style="cursor: pointer;" data-schedule-day-id="{{ schedule.SchedDay_schedule_day_id }}"
+                   data-schedule-id="{{ schedule.SchedDay_schedule_id }}"
+                   data-schedule-day-date="{{ schedule.SchedDay_day_date|date:"Y-m-d" }}"
+                data-schedule-name="{{ schedule.SchedDay_schedule_id|schedule_name }}"
                    onclick="openSchedDayListById(this)">
-                    {{ schedule.day_date|date:"d.m.Y" }}
+                    {{ schedule.SchedDay_day_date|date:"d.m.Y" }}
                 </a></td>
-            <td class="schedule-id" data-schedule-id="{{ schedule.schedule_id }}">{{ schedule.schedule_id|schedule_name }}</td>
+            <td class="schedule-id" data-schedule-id="{{ schedule.SchedDay_schedule_id }}">{{ schedule.SchedDay_schedule_id|schedule_name }}</td>
             <td>{{ schedule.last_edit_time|date:"d.m.Y" }}</td>
-            <td data-last_edit_user_id="{{ schedule.last_edit_user_id }}">{{ schedule.last_edit_user_id|oplan_worker_name }}</td>
+            <td data-last-edit-user-id="{{ schedule.SchedDay_last_edit_user_id }}">{{ schedule.SchedDay_last_edit_user_id|oplan_worker_name }}</td>
             <td>
                 <div class="btn-group btn-group-sm" role="group">
-                  <input type="radio" class="btn-check" name="status-radio-{{ schedule.schedule_day_id }}" id="ready-radio-{{ schedule.schedule_day_id }}" autocomplete="off" checked>
-                  <label class="btn btn-outline-danger" for="ready-radio-{{ schedule.schedule_day_id }}">не готов</label>
-                  <input type="radio" class="btn-check" name="status-radio-{{ schedule.schedule_day_id }}" id="not-ready-radio-{{ schedule.schedule_day_id }}" autocomplete="off">
-                  <label class="btn btn-outline-success" for="not-ready-radio-{{ schedule.schedule_day_id }}">готов</label>
+                  <input type="radio" class="btn-check" name="status-radio-{{ schedule.SchedDay_schedule_day_id }}"
+                         id="not-ready-radio-{{ schedule.SchedDay_schedule_day_id }}" autocomplete="off"
+                         {% if not schedule.Status_status or schedule.Status_status == 'not_ready'%}checked{% endif %}
+                         data-schedule-day-id="{{ schedule.SchedDay_schedule_day_id }}" value="not_ready" onclick="updateStatus(this)">
+                  <label class="btn btn-outline-danger" for="not-ready-radio-{{ schedule.SchedDay_schedule_day_id }}">не готов</label>
+
+                  <input type="radio" class="btn-check" name="status-radio-{{ schedule.SchedDay_schedule_day_id }}"
+                         id="approval-radio-{{ schedule.SchedDay_schedule_day_id }}" autocomplete="off"
+                         data-schedule-day-id="{{ schedule.SchedDay_schedule_day_id }}" value="approval" onclick="updateStatus(this)"
+                         {% if schedule.Status_status == 'approval'%}checked{% endif %}>
+                  <label class="btn btn-outline-warning" for="approval-radio-{{ schedule.SchedDay_schedule_day_id }}">утверждение</label>
+
+                  <input type="radio" class="btn-check" name="status-radio-{{ schedule.SchedDay_schedule_day_id }}"
+                         id="ready-radio-{{ schedule.SchedDay_schedule_day_id }}" autocomplete="off"
+                         data-schedule-day-id="{{ schedule.SchedDay_schedule_day_id }}" value="ready" onclick="updateStatus(this)"
+                         {% if schedule.Status_status == 'ready'%}checked{% endif %}>
+                  <label class="btn btn-outline-success" for="ready-radio-{{ schedule.SchedDay_schedule_day_id }}">готов</label>
                 </div>
+            </td>
+            <td data-worker-id="">
+                <input type="text" name="comment" value="{% if schedule.Comment_comment %}{{ schedule.Comment_comment }}{% endif %}"
+                       class="form-control form-control-sm" id="comment" onclick="updateComment(this)">
             </td>
         </tr>
         {% endfor %}

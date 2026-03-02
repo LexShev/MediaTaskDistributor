@@ -1,11 +1,9 @@
 from datetime import date, datetime
 
 from django.db import connections
-from django.http import JsonResponse
 
-from main.helpers import oplan_workers_dict
 from planner.settings import OPLAN_DB, PLANNER_DB
-
+from main.settings.main_settings import main_settings
 
 def check_schedule(schedule_id):
     try:
@@ -28,38 +26,37 @@ def check_date(schedule_date):
 
 def get_schedule_days(field_dict):
     start_date, end_date = check_date(field_dict.get('schedule_date'))
+    columns = (('SchedDay', 'schedule_day_id'), ('SchedDay', 'schedule_id'), ('SchedDay', 'day_date'),
+               ('SchedDay', 'approved_for_broadcasting'), ('SchedDay', 'last_edit_user_id'), ('SchedDay', 'last_edit_time'),
+               ('SchedDay', 'DayStatus'), ('SchedDay', 'DayType'),
+               ('Status', 'status'), ('Status', 'last_edit_user_id'), ('Status', 'last_edit_time'),
+               ('Comment', 'comment'), ('Comment', 'last_edit_user_id'), ('Comment', 'last_edit_time'),)
+    sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+    django_columns = [f'{col}_{val}' for col, val in columns]
     with connections[OPLAN_DB].cursor() as cursor:
         query = f"""
         SELECT 
-            [schedule_day_id],
-            [schedule_id],
-            [day_date],
-            [approved_for_broadcasting],
-            [last_edit_user_id],
-            [last_edit_time],
-            [DayStatus],
-            [AdvertImportDay],
-            [PromoImportDay],
-            [MusicImportDay],
-            [AdvertListImportDay],
-            [DayType]
-        FROM [{OPLAN_DB}].[dbo].[schedule_day]
+            {sql_columns}
+        FROM [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
+        LEFT JOIN [{PLANNER_DB}].[dbo].[playlist_status] AS Status
+            ON SchedDay.[schedule_day_id] = Status.[schedule_day_id]
+        LEFT JOIN [{PLANNER_DB}].[dbo].[playlist_comment] AS Comment
+            ON SchedDay.[schedule_day_id] = Comment.[schedule_day_id]
         WHERE [day_date] BETWEEN CONVERT(DATE, %s) AND CONVERT(DATE, %s)
         {check_schedule(field_dict.get('schedule_id'))}
         ORDER BY [day_date]
         """
 
         cursor.execute(query, (start_date, end_date))
-        columns = [col[0] for col in cursor.description]
         results = []
 
         for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
-
+            results.append(dict(zip(django_columns, row)))
+        print('results', results)
         return results
 
 def get_schedule_list_by_id(schedule_day_id):
-    workers_dict = oplan_workers_dict()
+    workers_dict = main_settings.get_oplan_workers_dict()
     with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         SELECT [schedule_day_id]
@@ -159,7 +156,7 @@ def build_hierarchy_from_level(schedule_data):
     return root_items
 
 def get_schedule_list_by_date(schedule_id, schedule_date):
-    workers_dict = oplan_workers_dict()
+    workers_dict = main_settings.get_oplan_workers_dict()
     with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
             SELECT SchedProg.[schedule_day_id]
@@ -227,52 +224,3 @@ def get_schedule_list_by_date(schedule_id, schedule_date):
             results.append(temp_dict)
         print('results', results)
     return build_hierarchy_from_level(results)
-
-def create_nested_structure(flat_list, parent_field='ParentID', id_field='scheduled_program_id'):
-    """
-    Универсальная функция для создания вложенной структуры
-
-    Args:
-        flat_list: плоский список словарей
-        parent_field: поле, указывающее на родителя
-        id_field: поле с уникальным ID
-
-    Returns:
-        Вложенный список словарей с ключом 'children'
-    """
-    # Создаем словарь для быстрого поиска
-    item_dict = {item[id_field]: item for item in flat_list}
-
-    # Добавляем пустой список детей каждому элементу
-    for item in flat_list:
-        item['children'] = []
-
-    # Строим дерево
-    root_items = []
-
-    for item in flat_list:
-        parent_id = item.get(parent_field)
-
-        if parent_id is None:
-            # Это корневой элемент
-            root_items.append(item)
-        else:
-            # Находим родителя
-            parent = item_dict.get(parent_id)
-            if parent:
-                parent['children'].append(item)
-            else:
-                # Родитель не найден - возможно ошибка данных
-                # Добавляем как корневой элемент
-                root_items.append(item)
-
-    # Опционально: сортируем детей по какому-либо полю
-    # def sort_children(items, sort_key='ChildPosition'):
-    #     for item in items:
-    #         if item['children']:
-    #             item['children'].sort(key=lambda x: x.get(sort_key, 0))
-    #             sort_children(item['children'], sort_key)
-    #
-    # sort_children(root_items)
-
-    return root_items

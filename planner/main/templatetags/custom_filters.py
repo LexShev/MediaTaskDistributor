@@ -5,7 +5,7 @@ from django.template.defaulttags import register
 from django.db import connections
 import os
 
-from main.settings.main_set import MainSettings
+from main.settings.main_settings import MainSettings
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 
@@ -288,6 +288,7 @@ def schedule_name(schedule_id):
             11: 'Семейное кино',
             12: 'Советское родное кино',
             20: 'Кино +',
+            36: 'Кино Индии',
             99: 'Мои задачи'
         }
         return schedules.get(schedule_id, '')

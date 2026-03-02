@@ -70,7 +70,7 @@ function searchProgram(query) {
             if (data.search_list.length > 0) {
                 data.search_list.forEach(program => {
                         let listItem = document.createElement("div");
-                        listItem.classList.add('oplan-program', 'd-flex', 'border', 'rounded', 'm-2');
+                        listItem.classList.add('program', 'd-flex', 'border', 'rounded', 'm-2');
                         listItem.dataset.oplanProgramId = program.Progs_program_id;
                         listItem.dataset.duration = program.Progs_duration;
 

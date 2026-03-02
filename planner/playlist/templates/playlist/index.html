@@ -1,4 +1,5 @@
 {% extends 'main/index.html' %}
+{% load custom_filters %}
 {% load static %}
 
 
@@ -19,11 +20,9 @@
 <div class="container-fluid p-0">
     <div class="row g-0">
         <!-- Сайдбар -->
-        <div class="col-md-3 col-lg-2">
+        <div class="col-md-3 col-lg-2 border-end">
             <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary h-100 overflow-auto">
-                <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none">
-                    <i class="bi bi-speedometer2 me-2"></i>
-                </a>
+
                 <ul class="nav nav-pills flex-column mb-auto">
                     <!-- Каналы с подпунктами -->
                     <li class="nav-item mb-2">
@@ -37,7 +36,7 @@
                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1">
                                 <li class="ms-2" style="cursor: pointer;">
                                     <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
-                                        data-schedule-name="Все"
+                                        data-schedule-name="Все каналы"
                                         data-schedule-id=""
                                         data-editor-name="Редактор"
                                         data-editor-id=""
@@ -45,15 +44,13 @@
                                         Все
                                     </a>
                                 </li>
-                                {% for channel in service_dict.schedule_list %}
+                                {% for schedule_id in service_dict.schedule_list %}
                                     <li class="ms-2" style="cursor: pointer;"
-                                        data-schedule-name="{{ channel.schedule_id|schedule_name }}"
-                                        data-schedule-id="{{ channel.schedule_id }}"
-                                        data-editor-name="{{ channel.editor_id|oplan_worker_name }}"
-                                        data-editor-id="{{ channel.editor_id }}"
-                                        data-description="{{ channel.description }}" onclick="updateScheduleList(this)">
+                                        data-schedule-name="{{ schedule_id|schedule_name }}"
+                                        data-schedule-id="{{ schedule_id }}"
+                                        onclick="getScheduleInfo({{ schedule_id }})">
                                         <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                                            {{ channel.schedule_id|schedule_name }}
+                                            {{ schedule_id|schedule_name }}
                                         </a>
                                     </li>
                                 {% endfor %}
@@ -71,12 +68,12 @@
                         </button>
                         <div class="collapse" id="users-collapse">
                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1">
-                                <li class="ms-2"><a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                                    Редактор 1</a></li>
-                                <li class="ms-2"><a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                                    Редактор 2</a></li>
-                                <li class="ms-2"><a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-                                    Редактор 3</a></li>
+                                {% for editor_id in service_dict.editors_list %}
+                                <li class="ms-2"><a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
+                                data-editor-id="{{ editor_id }}"
+                                onclick="updateScheduleList(this)">
+                                    {{ editor_id|oplan_worker_name }}</a></li>
+                                {% endfor %}
                             </ul>
                         </div>
                     </li>
@@ -108,29 +105,20 @@
                 <div class="p-4" id="channel_info_container">
                     <div class="d-flex align-items-center">
                         <span class="me-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" fill="currentColor" class="bi bi-exclamation-triangle-fill text-warning" viewBox="0 0 16 16">
-                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
-                            </svg>
+                            <img width="144" height="144" id="schedule_image" class="opacity-100" alt="" src="{% static 'img/schedule_logo/base.png' %}">
                         </span>
                         <div id="channel_info">
-                            <h6 class="text-muted mb-1">Канал:</h6>
-                            <h3 class="mb-2" id="current_schedule" data-current-schedule-id="">Все</h3>
-                            <h5 class="text-secondary mb-2" id="current_editor" data-current-editor="">Редактор</h5>
-                            <p class="text-muted mb-0" id="current_schedule_description">Описание...</p>
+                            <h3 class="my-3" id="current_schedule" data-current-schedule-id="">Все каналы</h3>
+                            <h5 class="text-secondary my-3" id="current_editor" data-current-editor="">Редактор</h5>
+                            <div class="my-3">
+                                {{ form.schedule_date }}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Таблица с пагинацией -->
-                <div class="border-top d-flex flex-column" style="height: calc(100vh - 17rem);">
-                    <div class="row align-items-center p-2 flex-shrink-0">
-                        <div class="col-auto">
-                            {{ form.schedule_date.label_tag }}
-                        </div>
-                        <div class="col-auto">
-                            {{ form.schedule_date }}
-                        </div>
-                    </div>
+                <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="height: calc(100vh - 17.3rem);">
                      <div class="flex-grow-1 overflow-auto">
                         <div class="h-100" id="schedule_table_container">
 
@@ -162,8 +150,23 @@
               </svg>
             </button>
           </div>
-
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="d-flex align-items-center ms-auto">
+            <div class="d-flex me-3">
+              <div class="form-check form-switch ms-4">
+                <input class="form-check-input" type="checkbox" role="switch" id="advert" onclick="toggleAdvert(this)">
+                <label class="form-check-label" for="advert">Скрыть рекламу</label>
+              </div>
+              <div class="form-check form-switch ms-4">
+                <input class="form-check-input" type="checkbox" role="switch" id="program_switcher" onclick="toggleProgram(this)">
+                <label class="form-check-label" for="program_switcher">Скрыть программы</label>
+              </div>
+              <div class="form-check form-switch ms-4">
+                <input class="form-check-input" type="checkbox" role="switch" id="expand_switcher" onclick="toggleScheduleAllItem(this)">
+                <label class="form-check-label" for="expand_switcher">Свернуть всё</label>
+              </div>
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
       </div>
       <div class="modal-body" id="schedule_day_modal_body">
           <div class="text-center py-5">

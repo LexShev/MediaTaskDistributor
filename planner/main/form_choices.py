@@ -28,6 +28,7 @@ def db_workers_list():
 class Choices:
     def __init__(self):
         self.custom_fields = program_custom_fields()
+        self.workers_list = None
 
     def tags(self, label='-'):
         tags = self.custom_fields.get(18)
@@ -62,11 +63,13 @@ class Choices:
         return engineers_list
 
     def workers(self, label='-', exclude_init=False):
-        workers_list = [('', label)]
+        self.workers_list = [('', label)]
         if exclude_init:
-            workers_list = []
-        workers_list.extend(db_workers_list())
-        return workers_list or []
+            self.workers_list = []
+        with connections[PLANNER_DB].cursor() as cursor:
+            cursor.execute('SELECT [worker_id], [full_name] FROM [planner].[dbo].[engineers_list]')
+            self.workers_list.extend(cursor.fetchall() or ())
+        return self.workers_list or []
 
     def sorting(self):
         return (
@@ -107,7 +110,7 @@ class Choices:
             (11, 'Семейное кино'),
             (12, 'Советское родное кино'),
             (20, 'Кино +'),
-            # (36, 'Кино Индии'),
+            (36, 'Кино Индии'),
             (99, 'Мои задачи')
         ]
 
