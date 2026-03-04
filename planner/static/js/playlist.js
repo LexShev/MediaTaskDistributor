@@ -191,7 +191,7 @@ function updateScheduleInfo(scheduleInfoList) {
     if (schedules.length === 0) {
         // Пустой список - сбрасываем интерфейс
         currentSchedule.textContent = 'Все каналы';
-        currentEditor.textContent = 'Редактор';
+        currentEditor.textContent = 'Редакторы';
         scheduleImage.src = '/static/img/schedule_logo/base.png';
         // Очищаем dataset
         delete scheduleImage.dataset.scheduleId;
@@ -215,7 +215,7 @@ function updateScheduleInfo(scheduleInfoList) {
     if (editorNames.length > 0) {
         currentEditor.textContent = editorNames[0];
     } else {
-        currentEditor.textContent = 'Редактор';
+        currentEditor.textContent = 'Редакторы';
     }
 
     // Для нескольких каналов всегда показываем базовую картинку
