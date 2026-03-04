@@ -1,3 +1,4 @@
+import ast
 from datetime import date, datetime
 
 from django.db import connections
@@ -5,18 +6,22 @@ from django.db import connections
 from planner.settings import OPLAN_DB, PLANNER_DB
 from main.settings.main_settings import main_settings
 
-def check_schedule(schedule_id):
+def check_schedule(schedule_id_str):
     try:
-        if not schedule_id:
+        if not schedule_id_str or schedule_id_str == '[]':
             return 'AND [schedule_id] IN (3, 5, 6, 7, 8, 9, 10, 11, 12, 20, 36)'
-        return f'AND [schedule_id] = {schedule_id}'
+        schedule_id_list = [str(x) for x in ast.literal_eval(schedule_id_str)]
+        if len(schedule_id_list) == 1:
+            return f'AND [schedule_id] = {schedule_id_list[0]}'
+        else:
+            return f'AND [schedule_id] IN ({", ".join(schedule_id_list)})'
     except Exception as error:
         print(error)
         return 'AND [schedule_id] IN (3, 5, 6, 7, 8, 9, 10, 11, 12, 20, 36)'
 
 def check_date(schedule_date):
     today = date.today()
-    if not schedule_date or schedule_date == '[]':
+    if not schedule_date or schedule_date == '':
         return today, today
     try:
         return [datetime.strptime(str_date, '%d.%m.%Y') for str_date in schedule_date.split(' - ')]
@@ -52,7 +57,6 @@ def get_schedule_days(field_dict):
 
         for row in cursor.fetchall():
             results.append(dict(zip(django_columns, row)))
-        print('results', results)
         return results
 
 def get_schedule_list_by_id(schedule_day_id):

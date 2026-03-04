@@ -40,15 +40,15 @@
                                         data-schedule-id=""
                                         data-editor-name="Редактор"
                                         data-editor-id=""
-                                        data-description="Описание" onclick="updateScheduleList(this)">
+                                        data-description="Описание" onclick="chooseSchedule(this)">
                                         Все
                                     </a>
                                 </li>
                                 {% for schedule_id in service_dict.schedule_list %}
                                     <li class="ms-2" style="cursor: pointer;"
                                         data-schedule-name="{{ schedule_id|schedule_name }}"
-                                        data-schedule-id="{{ schedule_id }}"
-                                        onclick="getScheduleInfo({{ schedule_id }})">
+                                        data-schedule-id="[{{ schedule_id }}]"
+                                        onclick="chooseSchedule(this)">
                                         <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
                                             {{ schedule_id|schedule_name }}
                                         </a>
@@ -68,10 +68,10 @@
                         </button>
                         <div class="collapse" id="users-collapse">
                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1">
-                                {% for editor_id in service_dict.editors_list %}
+                                {% for editor_id, schedules_list in service_dict.editors_list.items %}
                                 <li class="ms-2"><a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
-                                data-editor-id="{{ editor_id }}"
-                                onclick="updateScheduleList(this)">
+                                data-editor-id="{{ editor_id }}" data-schedules-list="{{ schedules_list }}"
+                                onclick="chooseEditor(this)">
                                     {{ editor_id|oplan_worker_name }}</a></li>
                                 {% endfor %}
                             </ul>

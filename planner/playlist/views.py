@@ -1,3 +1,4 @@
+import ast
 import json
 from datetime import date
 
@@ -11,7 +12,7 @@ from django.template.loader import render_to_string
 from main.permission_pannel import ask_db_permissions
 from main.settings.schedule_manager import schedule_manager
 from playlist.forms import PlaylistFilter
-from playlist.models import PlaylistModel
+from playlist.models import PlaylistModel, Status, Comment
 from playlist.playlist import get_schedule_days, get_schedule_list_by_id, get_schedule_list_by_date
 
 
@@ -32,7 +33,7 @@ def playlist(request):
     service_dict = {
         'today': date.today(),
         'schedule_list': schedule_manager.get_all_schedules(),
-        'editors_list': schedule_manager.get_all_editors()
+        'editors_list': schedule_manager.get_editors_with_schedules()
     }
 
     data = {
@@ -42,7 +43,7 @@ def playlist(request):
     }
     return render(request, 'playlist/index.html', data)
 
-def update_playlist_info(request):
+def update_playlist_status(request):
     user_id = request.user.id
     try:
         update_dict = json.loads(request.body)
@@ -52,38 +53,77 @@ def update_playlist_info(request):
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
     try:
         schedule_day_id = update_dict.get('schedule_day_id')
-        field_id = update_dict.get('field_id')
-        field_name = update_dict.get('field_name')
-        value = update_dict.get('value')
+        status = update_dict.get('status')
 
-        required_fields = ['schedule_day_id', 'field_id', 'field_name', 'value']
+        required_fields = ['schedule_day_id', 'status']
         if not all(field in update_dict for field in required_fields):
             return JsonResponse({'status': 'error', 'message': 'Отсутствуют обязательные поля'}, status=400)
 
+        if schedule_day_id is None or status is None:
+            return JsonResponse({'status': 'error', 'message': 'Поля не могут быть null'}, status=400)
+
         # Пытаемся найти существующую запись
-        # playlist_info, created = PlaylistInfo.objects.update_or_create(
-        #     schedule_day_id=schedule_day_id,
-        #     field_id=field_id,
-        #     defaults={
-        #         'field_name': field_name,
-        #         'value': value,
-        #         'last_edit_user_id': user_id,
-        #     }
-        # )
-        #
-        # action = 'создана' if created else 'обновлена'
-        # return JsonResponse({
-        #     'status': 'success',
-        #     'message': f'Запись успешно {action}',
-        #     'data': {
-        #         'id': playlist_info.id,
-        #         'schedule_day_id': playlist_info.schedule_day_id,
-        #         'field_id': playlist_info.field_id,
-        #         'field_name': playlist_info.field_name,
-        #         'value': playlist_info.value,
-        #         'last_edit_time': playlist_info.last_edit_time
-        #     }
-        # })
+        playlist_status, created = Status.objects.update_or_create(
+            schedule_day_id=schedule_day_id,
+            defaults={
+                'status': status,
+                'last_edit_user_id': user_id,
+            }
+        )
+
+        action = 'создана' if created else 'обновлена'
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Запись успешно {action}',
+            'data': {
+                'schedule_day_id': playlist_status.schedule_day_id,
+                'status': playlist_status.status,
+                'last_edit_time': playlist_status.last_edit_time
+            }
+        })
+    except IntegrityError as error:
+        return JsonResponse({'status': 'error', 'message': 'Конфликт данных: ' + str(error)}, status=409)
+    except Exception as error:
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
+
+def update_playlist_comment(request):
+    user_id = request.user.id
+    try:
+        update_dict = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Неверный формат JSON'}, status=400)
+    if not update_dict:
+        return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
+    try:
+        schedule_day_id = update_dict.get('schedule_day_id')
+        comment = update_dict.get('comment', '')
+
+        required_fields = ['schedule_day_id', 'comment']
+        if not all(field in update_dict for field in required_fields):
+            return JsonResponse({'status': 'error', 'message': 'Отсутствуют обязательные поля'}, status=400)
+
+        if schedule_day_id is None:
+            return JsonResponse({'status': 'error', 'message': 'ID канала не может быть null'}, status=400)
+
+        # Пытаемся найти существующую запись
+        playlist_comment, created = Comment.objects.update_or_create(
+            schedule_day_id=schedule_day_id,
+            defaults={
+                'comment': comment,
+                'last_edit_user_id': user_id,
+            }
+        )
+
+        action = 'создана' if created else 'обновлена'
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Запись успешно {action}',
+            'data': {
+                'schedule_day_id': playlist_comment.schedule_day_id,
+                'comment': playlist_comment.comment,
+                'last_edit_time': playlist_comment.last_edit_time
+            }
+        })
     except IntegrityError as error:
         return JsonResponse({'status': 'error', 'message': 'Конфликт данных: ' + str(error)}, status=409)
     except Exception as error:
@@ -92,11 +132,9 @@ def update_playlist_info(request):
 def load_schedule_table(request):
     user_id = request.user.id
 
-    field_dict = json.loads(request.body)
-    if not field_dict:
-        field_dict = PlaylistModel.objects.filter(owner=user_id).values()
-        if field_dict:
-            field_dict = field_dict[0]
+    field_dict = PlaylistModel.objects.filter(owner=user_id).values()
+    if field_dict: field_dict = field_dict[0]
+
     schedules = get_schedule_days(field_dict)
     html = render_to_string(
         'playlist/schedule_table.html',
@@ -105,21 +143,43 @@ def load_schedule_table(request):
         },
         request=request
     )
-    return JsonResponse({'html': html})
+    schedule_id_list = ast.literal_eval(field_dict.get('schedule_id') or '[]')
+    schedule_info = []
+    for schedule_id in schedule_id_list:
+        schedule_info.append(schedule_manager.get_schedule_info(int(schedule_id)))
+
+    return JsonResponse({'html': html, 'scheduleInfo': schedule_info})
 
 def update_schedule_filter(request):
     user_id = request.user.id
-    values_list = json.loads(request.body)
-    schedule_id = values_list.get('schedule_id', '')
-    if schedule_id == '':
-        schedule_id = None
+    try:
+        values_list = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Неверный формат JSON'}, status=400)
+
     if not values_list:
         return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
-    PlaylistModel.objects.filter(owner=user_id).update(
-        schedule_date=values_list.get('schedule_date'),
-        schedule_id=schedule_id
-    )
-    return JsonResponse({'status': 'success', 'message': 'Обновлено'})
+
+    update_fields = {}
+
+    # Обработка schedule_date
+    if 'schedule_date' in values_list and values_list['schedule_date'] is not None:
+        update_fields['schedule_date'] = values_list['schedule_date']
+
+    # Обработка schedule_id (пустую строку превращаем в None)
+    if 'schedule_id' in values_list:
+        schedule_id = values_list['schedule_id']
+        update_fields['schedule_id'] = None if schedule_id == '' else schedule_id
+
+    if not update_fields:
+        return JsonResponse({'status': 'error', 'message': 'Нет данных для обновления'}, status=400)
+
+    updated_count = PlaylistModel.objects.filter(owner=user_id).update(**update_fields)
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Обновлено {updated_count} записей'
+    })
 
 def load_schedule_list_by_id(request):
     user_id = request.user.id
@@ -137,16 +197,16 @@ def load_schedule_list_by_id(request):
     )
     return JsonResponse({'status': 'success', 'message': 'Данные получены', 'html': html})
 
-def get_schedule_info(request):
-    try:
-        user_id = request.user.id
-        schedule_id = json.loads(request.body)
-        if not schedule_id:
-            return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
-        schedule_info = schedule_manager.get_schedule_info(int(schedule_id))
-        return JsonResponse({'status': 'success', 'message': 'Данные получены', 'schedule_info': schedule_info})
-    except Exception as error:
-        return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
+# def get_schedule_info(request):
+#     try:
+#         user_id = request.user.id
+#         schedule_id = json.loads(request.body)
+#         if not schedule_id:
+#             return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+#         schedule_info = schedule_manager.get_schedule_info(int(schedule_id))
+#         return JsonResponse({'status': 'success', 'message': 'Данные получены', 'schedule_info': schedule_info})
+#     except Exception as error:
+#         return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
 def load_schedule_list_by_date(request):
     try:
         user_id = request.user.id

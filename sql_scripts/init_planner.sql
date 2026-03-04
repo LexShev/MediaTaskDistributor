@@ -145,7 +145,7 @@ INSERT INTO [planner].[dbo].[permission_list]
 VALUES
 ('editors', 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0),
 ('admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-('preparation_engineers', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+('preparation_engineers', 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1),
 ('broadcast_engineers', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 ('otk_engineers', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 ('moderators', 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1);

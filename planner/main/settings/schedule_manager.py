@@ -71,4 +71,10 @@ class ScheduleManager:
             'image_name': info[2]
         } if info else {}
 
+    def get_editors_with_schedules(self):
+        """
+        Возвращает словарь {editor_id: [schedule_id1, schedule_id2, ...]}
+        """
+        return self._by_editor.copy()
+
 schedule_manager = ScheduleManager()
