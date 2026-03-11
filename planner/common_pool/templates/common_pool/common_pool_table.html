@@ -39,7 +39,7 @@
     <button type="button" onclick="showApproveDistribution()" class="btn btn-outline-secondary mx-0">Распределить</button>
   </div>
 {% endif %}
-{% if permissions.auth_group == 'preparation_engineers' or permissions.auth_group == 'moderators' %}
+{% if permissions.auth_group == 'preparation_engineers' or permissions.auth_group == 'moderators' or permissions.auth_group == 'preparation_engineers__editors'%}
   <div class="me-auto">
     <button type="button" onclick="showApproveCommonTask()" class="btn btn-outline-secondary mx-0">Взять в работу</button>
   </div>

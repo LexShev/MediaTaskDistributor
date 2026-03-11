@@ -41,7 +41,7 @@ MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
 MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
 
@@ -76,6 +76,8 @@ CELERY_BEAT_SCHEDULE = {
 
 # Application definition
 INSTALLED_APPS = [
+    "daphne",
+    "channels",
     "home",
     "main",
     "workers",
@@ -89,6 +91,7 @@ INSTALLED_APPS = [
     "distribution",
     "playlist",
     "tools",
+    "notifications",
     "schedule_perspective",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -97,6 +100,24 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379, {
+                "db": 1,  # Для старых версий параметры передаются так
+            })],
+            "prefix": "channels:",
+        },
+    },
+}
+
+# WSGI application
+WSGI_APPLICATION = 'planner.wsgi.application'
+
+# ASGI application
+ASGI_APPLICATION = 'planner.asgi.application'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

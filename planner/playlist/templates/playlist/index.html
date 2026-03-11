@@ -62,11 +62,11 @@
                     <li class="nav-item mb-2">
                         <button class="btn btn-toggle d-inline-flex align-items-center rounded border-0"
                                 data-bs-toggle="collapse"
-                                data-bs-target="#users-collapse">
+                                data-bs-target="#editors-collapse">
                             <i class="bi bi-people me-2"></i>
                             Редакторы
                         </button>
-                        <div class="collapse" id="users-collapse">
+                        <div class="collapse" id="editors-collapse">
                             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1">
                                 {% for editor_id, schedules_list in service_dict.editors_list.items %}
                                 <li class="ms-2"><a href="#" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
@@ -181,6 +181,5 @@
 </div>
 
 <script type="text/javascript" src="{% static 'js/playlist.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/schedule_day_list.js' %}"></script>
 
 {% endblock %}

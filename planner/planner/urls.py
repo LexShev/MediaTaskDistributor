@@ -34,6 +34,7 @@ urlpatterns = ([
     path("on-air-report/", include('on_air_report.urls')),
     path("", include('common_pool.urls')),
     path("messenger/", include('messenger_static.urls')),
+    path("notifications/", include('notifications.urls')),
     path("", include('advanced_search.urls')),
     path("task_manager/", include('admin_work_panel.urls')),
     path("", include('distribution.urls')),

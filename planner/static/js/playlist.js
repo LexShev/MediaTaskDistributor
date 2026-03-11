@@ -66,7 +66,30 @@ document.addEventListener('DOMContentLoaded', function() {
             updateScheduleFilter({ 'schedule_date': event.target.value });
         });
     }
+    try {
+        initPlaylistSettings();
+    }
+    catch(e) {
+        console.error('Ошибка при инициализации:',e);
+    }
+
 });
+
+function initPlaylistSettings() {
+    ['channels-collapse', 'editors-collapse', 'stats-collapse'].forEach(id => {
+        const el = document.getElementById(id);
+
+        el.addEventListener('shown.bs.collapse', () => {
+            localStorage.setItem(id, 'show');
+        });
+
+        el.addEventListener('hidden.bs.collapse', () => {
+            localStorage.setItem(id, '');
+        });
+
+        if (localStorage.getItem(id)) el.classList.add('show');
+    });
+}
 
 function load_schedule_table() {
     let scheduleTable = document.getElementById('schedule_table_container');
@@ -87,18 +110,7 @@ function load_schedule_table() {
             if (scheduleTable) {
                 scheduleTable.innerHTML = data.html;
                 updateScheduleInfo(data.scheduleInfo)
-                console.log('Таблица загружена, вызываем инициализацию...');
-
-                // // ВАЖНО: Вызываем инициализацию после загрузки
-                // if (typeof window.scheduleDay !== 'undefined' &&
-                //     typeof window.scheduleDay.initScheduleDay === 'function') {
-                //     // Даем время на рендеринг DOM
-                //     setTimeout(() => {
-                //         window.scheduleDay.initScheduleDay();
-                //     }, 50);
-                // } else {
-                //     console.error('Функция initScheduleDay не найдена!');
-                // }
+                console.log('Таблица загружена');
             }
         })
         .catch(error => {
@@ -135,33 +147,6 @@ function updateScheduleFilter(filterFields) {
     });
 };
 
-// function getScheduleInfo(schedule) {
-//     let scheduleId = schedule.dataset.scheduleId || null;
-//     if (!scheduleId) return;
-//
-//     fetch('/playlist/get_schedule_info/', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//             'X-CSRFToken': getCookie('csrftoken'),
-//             'X-Requested-With': 'XMLHttpRequest'
-//         },
-//         body: JSON.stringify(scheduleId),
-//         credentials: 'same-origin'
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         if (data.status !== 'success') {
-//             console.log('error', data.message);
-//             return
-//         }
-//         updateScheduleList(data?.schedule_info)
-//     })
-//     .catch(error => {
-//         console.error('Error sending info:', error);
-//     });
-// }
-
 function chooseSchedule(scheduleInfo) {
     let scheduleId = scheduleInfo.dataset.scheduleId;
     updateScheduleFilter({ 'schedule_id': scheduleId });
@@ -169,7 +154,6 @@ function chooseSchedule(scheduleInfo) {
 
 function chooseEditor(editorInfo) {
     let schedulesList = editorInfo.dataset.schedulesList;
-    console.log(schedulesList);
     updateScheduleFilter({ 'schedule_id': schedulesList });
 
 }

@@ -24,3 +24,6 @@ celery==5.3.6
 redis==4.6.0
 flower==2.0.1
 kombu==5.3.6
+channels
+channels-redis
+daphne

@@ -226,3 +226,15 @@ def load_schedule_list_by_date(request):
         return JsonResponse({'status': 'success', 'message': 'Данные получены', 'html': html})
     except Exception as error:
         return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
+
+def editors_notifications(request):
+    user_id = request.user.id
+    notifications_list = [
+        {'date': '2025-06-12 10:22:35', 'category': 'Изменение статуса', 'message': 'text1_'*30, 'worker': 'Worker_1'},
+        {'date': '2025-06-15 12:38:22', 'category': 'Обновление сеток', 'message': 'text2_'*30, 'worker': 'Worker_2'}
+    ]
+    data = {
+        'notifications_list': notifications_list,
+        'permissions': ask_db_permissions(user_id)
+    }
+    return render(request, 'playlist/editors_notifications.html', data)
