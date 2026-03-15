@@ -11,9 +11,10 @@ from django.template.loader import render_to_string
 
 from main.permission_pannel import ask_db_permissions
 from main.settings.schedule_manager import schedule_manager
+from notifications.models import NotificationRecipient
 from playlist.forms import PlaylistFilter
 from playlist.models import PlaylistModel, Status, Comment
-from playlist.playlist import get_schedule_days, get_schedule_list_by_id, get_schedule_list_by_date
+from playlist.playlist import get_schedule_days, get_schedule_list
 
 
 @login_required()
@@ -180,42 +181,52 @@ def update_schedule_filter(request):
         'status': 'success',
         'message': f'Обновлено {updated_count} записей'
     })
-
-def load_schedule_list_by_id(request):
-    user_id = request.user.id
-    schedule_day_id = json.loads(request.body)
-    if not schedule_day_id:
-        return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
-
-    schedule_day_list = get_schedule_list_by_id(schedule_day_id)
-    html = render_to_string(
-        'playlist/schedule_day_list.html',
-        {
-            'schedule_day_list': schedule_day_list,
-        },
-        request=request
-    )
-    return JsonResponse({'status': 'success', 'message': 'Данные получены', 'html': html})
-
-# def get_schedule_info(request):
+#
+# def load_schedule_list_by_id(request):
+#     user_id = request.user.id
+#     schedule_day_id = json.loads(request.body)
+#     if not schedule_day_id:
+#         return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
+#
+#     schedule_day_list = get_schedule_list_by_id(schedule_day_id)
+#     html = render_to_string(
+#         'playlist/schedule_day_list.html',
+#         {
+#             'schedule_day_list': schedule_day_list,
+#         },
+#         request=request
+#     )
+#     return JsonResponse({'status': 'success', 'message': 'Данные получены', 'html': html})
+#
+# def load_schedule_list_by_date(request):
 #     try:
 #         user_id = request.user.id
-#         schedule_id = json.loads(request.body)
-#         if not schedule_id:
+#         query = json.loads(request.body)
+#         if not query:
 #             return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
-#         schedule_info = schedule_manager.get_schedule_info(int(schedule_id))
-#         return JsonResponse({'status': 'success', 'message': 'Данные получены', 'schedule_info': schedule_info})
+#         schedule_id = query.get('schedule_id')
+#         schedule_day_date = query.get('schedule_day_date')
+#         schedule_day_list = get_schedule_list_by_date(schedule_id, schedule_day_date)
+#         html = render_to_string(
+#             'playlist/schedule_day_list.html',
+#             {
+#                 'schedule_day_list': schedule_day_list,
+#             },
+#             request=request
+#         )
+#         return JsonResponse({'status': 'success', 'message': 'Данные получены', 'html': html})
 #     except Exception as error:
 #         return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
-def load_schedule_list_by_date(request):
+
+def load_schedule_list(request):
     try:
         user_id = request.user.id
         query = json.loads(request.body)
         if not query:
             return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
-        schedule_id = query.get('schedule_id')
-        schedule_day_date = query.get('schedule_day_date')
-        schedule_day_list = get_schedule_list_by_date(schedule_id, schedule_day_date)
+
+        schedule_day_list = get_schedule_list(query)
+
         html = render_to_string(
             'playlist/schedule_day_list.html',
             {
@@ -229,10 +240,10 @@ def load_schedule_list_by_date(request):
 
 def editors_notifications(request):
     user_id = request.user.id
-    notifications_list = [
-        {'date': '2025-06-12 10:22:35', 'category': 'Изменение статуса', 'message': 'text1_'*30, 'worker': 'Worker_1'},
-        {'date': '2025-06-15 12:38:22', 'category': 'Обновление сеток', 'message': 'text2_'*30, 'worker': 'Worker_2'}
-    ]
+
+    notifications_list = NotificationRecipient.objects.filter(
+                recipient=user_id
+            ).select_related('notification', 'notification__sender')
     data = {
         'notifications_list': notifications_list,
         'permissions': ask_db_permissions(user_id)

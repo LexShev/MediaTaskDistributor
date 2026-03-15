@@ -129,8 +129,8 @@ class NotificationManager {
 
         // Определяем цвет для svg в зависимости от типа
         const svgColor = {
-            'success': '#28a745', // зеленый
-            'warning': '#ffc107', // желтый
+            'update': '#28a745', // зеленый
+            'status': '#ffc107', // желтый
             'error': '#dc3545',   // красный
             'info': '#17a2b8'      // голубой
         }[notification.type] || '#007aff'; // синий по умолчанию

@@ -14,10 +14,8 @@ function toggleScheduleItem(scheduledProgramId) {
 
 function toggleScheduleAllItem(switcher) {
     const childrenContainers = document.querySelectorAll('.schedule-children');
-    // const toggleIcons = document.querySelectorAll('.folder-toggle');
     childrenContainers.forEach(child => {
             let svgElement = child.parentElement.querySelector('.folder-toggle');
-            // const svgElement = icon.querySelector('svg');
             if (switcher.checked === false) {
                     child.style.display = 'block';
                     svgElement.style.transform = 'rotate(0deg)';
@@ -44,7 +42,7 @@ function toggleAdvert(switcher) {
 }
 
 function toggleProgram(switcher) {
-    let programContainers = document.querySelectorAll('.is_program');
+    let programContainers = document.querySelectorAll('.segment');
     programContainers.forEach(programContainer => {
         if (switcher.checked === true) {
             programContainer.style.display = 'none'

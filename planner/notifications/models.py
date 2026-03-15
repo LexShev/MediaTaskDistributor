@@ -4,10 +4,10 @@ from django.contrib.auth.models import User
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = (
-        ('info', 'Information'),
-        ('success', 'Success'),
-        ('warning', 'Warning'),
-        ('error', 'Error'),
+        ('info', 'Информационное'),
+        ('status', 'Изменение статуса'),
+        ('update', 'Обновление сеток'),
+        ('error', 'Ошибка'),
     )
 
     notice_id = models.AutoField(primary_key=True)
@@ -15,6 +15,7 @@ class Notification(models.Model):
     message = models.TextField()
     comment = models.TextField(blank=True, null=True)
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='info')
+    schedule_id = models.IntegerField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     # Для массовых рассылок - храним список получателей

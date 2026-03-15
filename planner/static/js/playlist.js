@@ -246,7 +246,6 @@ function openSchedDayListById(schedule) {
                             new bootstrap.Modal(document.getElementById('schedule_day_modal'));
 
     const scheduleDayName = document.getElementById('schedule_day_name');
-    const scheduleDayModalBody = document.getElementById('schedule_day_modal_body');
 
     // Устанавливаем заголовок и scheduleId
     scheduleDayName.textContent = schedule?.dataset.scheduleName || '';
@@ -259,56 +258,18 @@ function openSchedDayListById(schedule) {
         currentDateInput.dataset.currentScheduleDayDate = scheduleDayDate;
     }
 
-    // Показываем спиннер загрузки
-    scheduleDayModalBody.innerHTML = `
-    <div class="text-center py-5">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Загрузка данных...</span>
-        </div>
-        <p class="mt-3">Идет загрузка таблицы...</p>
-    </div>`;
-
     // Открываем модальное окно
     scheduleDayModal.show();
 
-    // Загружаем данные
-    fetch('/playlist/get_schedule_list_by_id/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify(scheduleDayId),
-        credentials: 'same-origin'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            scheduleDayModalBody.innerHTML = data.html;
-            console.log('Модальная таблица загружена по ID');
-        } else {
-            console.log('error', data.message);
-            scheduleDayModalBody.innerHTML = `
-                <div class="alert alert-danger">
-                    Ошибка загрузки: ${data.message}
-                </div>`;
-        }
-    })
-    .catch(error => {
-        console.error('Error sending info:', error);
-        scheduleDayModalBody.innerHTML = `
-            <div class="alert alert-danger">
-                Ошибка соединения с сервером
-            </div>`;
-    });
+    let query = JSON.stringify({'schedule_day_id': scheduleDayId})
+    getScheduleList(query)
+
 }
 
 // Функция загрузки по дате
 function openSchedDayListByDate(scheduleDayDate) {
     const scheduleDayName = document.getElementById('schedule_day_name');
     const scheduleId = scheduleDayName?.dataset?.scheduleId;
-    const scheduleDayModalBody = document.getElementById('schedule_day_modal_body');
 
     console.log('Loading schedule by date:', scheduleId, scheduleDayDate);
 
@@ -319,6 +280,16 @@ function openSchedDayListByDate(scheduleDayDate) {
         currentDateInput.dataset.currentScheduleDayDate = scheduleDayDate;
     }
 
+    let query = JSON.stringify({
+            'schedule_id': scheduleId,
+            'schedule_day_date': scheduleDayDate
+        })
+    getScheduleList(query)
+}
+
+function getScheduleList(query) {
+    const scheduleDayModalBody = document.getElementById('schedule_day_modal_body');
+
     // Показываем спиннер загрузки
     scheduleDayModalBody.innerHTML = `
     <div class="text-center py-5">
@@ -328,18 +299,14 @@ function openSchedDayListByDate(scheduleDayDate) {
         <p class="mt-3">Идет загрузка таблицы...</p>
     </div>`;
 
-    // Загружаем данные
-    fetch('/playlist/get_schedule_list_by_date/', {
+    fetch('/playlist/get_schedule_list/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken'),
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({
-            'schedule_id': scheduleId,
-            'schedule_day_date': scheduleDayDate
-        }),
+        body: query,
         credentials: 'same-origin'
     })
     .then(response => response.json())

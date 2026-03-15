@@ -71,9 +71,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def send_pending_notifications(self):
-        """Отправка непрочитанных уведомлений при подключении - ИСПРАВЛЕНО"""
+        """Отправка непрочитанных уведомлений при подключении"""
         try:
-            # 👇 Ищем в NotificationRecipient, а не в Notification!
+            # Ищем в NotificationRecipient, а не в Notification!
             pending = NotificationRecipient.objects.filter(
                 recipient=self.user,
                 is_displayed=False
@@ -108,9 +108,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def mark_notification_as_displayed(self, notification_id):
-        """Отметить уведомление как показанное - ИСПРАВЛЕНО"""
+        """Отметить уведомление как показанное"""
         try:
-            # 👇 Ищем в NotificationRecipient!
+            # Ищем в NotificationRecipient!
             NotificationRecipient.objects.filter(
                 id=notification_id,
                 recipient=self.user
@@ -124,9 +124,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def mark_notification_as_read(self, notification_id):
-        """Отметить уведомление как прочитанное - ИСПРАВЛЕНО"""
+        """Отметить уведомление как прочитанное"""
         try:
-            # 👇 Ищем в NotificationRecipient!
+            # Ищем в NotificationRecipient
             NotificationRecipient.objects.filter(
                 id=notification_id,
                 recipient=self.user
@@ -141,7 +141,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def mark_all_as_read(self):
-        """Отметить все уведомления как прочитанные - ИСПРАВЛЕНО"""
+        """Отметить все уведомления как прочитанные"""
         try:
             NotificationRecipient.objects.filter(
                 recipient=self.user,

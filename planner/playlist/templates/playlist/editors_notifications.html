@@ -84,23 +84,25 @@
           <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id=""></th>
           <th style="width: 10%;">Время</th>
           <th style="width: 7%;">Категория</th>
-          <th style="width: 70%;">Содержание</th>
+          <th style="width: 10%;">Канал</th>
           <th style="width: 12%;">Сотрудник</th>
+          <th style="width: 60%;">Содержание</th>
         </tr>
       </thead>
       <tbody class="table-group-divider" id="tableBody">
-        {% for notification in notifications_list %}
+        {% for item in notifications_list %}
           <tr>
             <td>
               <input class="form-check-input me-1" type="checkbox"
-                     data-sender="{{ notification.worker }}"
-                     value=""
-                     name="">
+                     data-sender="{{ item.notification.sender.id }}"
+                     value="{{ item.id }}"
+                     name="notification_ids">
             </td>
-            <td>{{ notification.date }}</td>
-            <td>{{ notification.category }}</td>
-            <td>{{ notification.message }}</td>
-            <td>{{ notification.worker }}</td>
+            <td>{{ item.notification.timestamp|date:"Y-m-d H:i" }}</td>
+            <td>{{ item.notification.get_notification_type_display }}</td>
+            <td>{{ item.notification.schedule_id }}</td>
+            <td>{{ item.notification.sender.first_name }} {{ item.notification.sender.last_name }}</td>
+            <td>{{ item.notification.message }}</td>
 
           </tr>
         {% endfor %}
