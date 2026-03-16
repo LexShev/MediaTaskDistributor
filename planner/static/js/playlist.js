@@ -56,6 +56,115 @@ $(function() {
     // });
 
 });
+// Объект для хранения состояний
+const displayState = {
+    hideAdvert: false,      // состояние переключателя рекламы
+    hideProgram: false,     // состояние переключателя программ
+    collapseAll: false,     // состояние переключателя "Свернуть всё"
+
+    // Метод для применения всех текущих состояний к таблице
+    applyToTable() {
+        // Применяем состояние рекламы
+        const advertContainers = document.querySelectorAll('.is_advert');
+        advertContainers.forEach(advertContainer => {
+            advertContainer.style.display = this.hideAdvert ? 'none' : 'block';
+        });
+
+        // Применяем состояние программ
+        const programContainers = document.querySelectorAll('.segment');
+        programContainers.forEach(programContainer => {
+            programContainer.style.display = this.hideProgram ? 'none' : 'block';
+        });
+
+        // Применяем состояние сворачивания
+        const childrenContainers = document.querySelectorAll('.schedule-children');
+        childrenContainers.forEach(child => {
+            const svgElement = child.parentElement.querySelector('.folder-toggle svg');
+            if (svgElement) {
+                if (this.collapseAll) {
+                    child.style.display = 'none';
+                    svgElement.style.transform = 'rotate(-90deg)';
+                } else {
+                    child.style.display = 'block';
+                    svgElement.style.transform = 'rotate(0deg)';
+                }
+            }
+        });
+    },
+
+    // Метод для синхронизации переключателей с состояниями
+    syncSwitches() {
+        const advertSwitch = document.getElementById('advert');
+        const programSwitch = document.getElementById('program_switcher');
+        const expandSwitch = document.getElementById('expand_switcher');
+
+        if (advertSwitch) advertSwitch.checked = this.hideAdvert;
+        if (programSwitch) programSwitch.checked = this.hideProgram;
+        if (expandSwitch) expandSwitch.checked = this.collapseAll;
+    },
+
+    // Метод для проверки и обновления состояния collapseAll на основе текущего DOM
+    updateCollapseState() {
+        const allChildren = document.querySelectorAll('.schedule-children');
+        if (allChildren.length === 0) return; // нет элементов для проверки
+
+        const hiddenChildren = Array.from(allChildren).filter(child => child.style.display === 'none');
+        const allHidden = hiddenChildren.length === allChildren.length;
+
+        if (this.collapseAll !== allHidden) {
+            this.collapseAll = allHidden;
+            this.syncSwitches();
+        }
+    }
+};
+
+// Обновленные функции переключателей
+function toggleAdvert(switcher) {
+    displayState.hideAdvert = switcher.checked;
+    displayState.applyToTable();
+}
+
+function toggleProgram(switcher) {
+    displayState.hideProgram = switcher.checked;
+    displayState.applyToTable();
+}
+
+function toggleScheduleAllItem(switcher) {
+    displayState.collapseAll = switcher.checked;
+
+    // Применяем состояние ко всем элементам
+    const childrenContainers = document.querySelectorAll('.schedule-children');
+    childrenContainers.forEach(child => {
+        const svgElement = child.parentElement.querySelector('.folder-toggle svg');
+        if (svgElement) {
+            if (displayState.collapseAll) {
+                child.style.display = 'none';
+                svgElement.style.transform = 'rotate(-90deg)';
+            } else {
+                child.style.display = 'block';
+                svgElement.style.transform = 'rotate(0deg)';
+            }
+        }
+    });
+}
+
+// Обновленная функция для отдельного элемента
+function toggleScheduleItem(scheduledProgramId) {
+    const childrenContainer = document.getElementById(`children_${scheduledProgramId}`);
+    const toggleIcon = document.getElementById(`toggle-${scheduledProgramId}`);
+    const svgElement = toggleIcon.querySelector('svg');
+
+    if (childrenContainer.style.display === 'none') {
+        childrenContainer.style.display = 'block';
+        svgElement.style.transform = 'rotate(0deg)';
+    } else {
+        childrenContainer.style.display = 'none';
+        svgElement.style.transform = 'rotate(-90deg)';
+    }
+
+    // Проверяем и обновляем состояние переключателя "Свернуть всё"
+    displayState.updateCollapseState();
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     load_schedule_table();
@@ -68,12 +177,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     try {
         initPlaylistSettings();
+        initSyncSwitchers();
     }
     catch(e) {
         console.error('Ошибка при инициализации:',e);
     }
 
 });
+
+// Дополнительно: инициализация при загрузке страницы
+function initSyncSwitchers() {
+    // Синхронизируем переключатели с начальным состоянием
+    displayState.syncSwitches();
+
+    // Наблюдаем за изменениями в DOM, чтобы применять состояния к динамически добавляемым элементам
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                // Проверяем, не была ли добавлена новая таблица
+                if (document.getElementById('schedule_day_modal_body').children.length > 0) {
+                    displayState.applyToTable();
+                    displayState.updateCollapseState();
+                    // Дополнительно проверяем состояние collapseAll
+                    displayState.updateCollapseState();
+                }
+            }
+        });
+    });
+
+    // Начинаем наблюдение за изменениями в modal body
+    const modalBody = document.getElementById('schedule_day_modal_body');
+    if (modalBody) {
+        observer.observe(modalBody, { childList: true, subtree: true });
+    }
+};
 
 function initPlaylistSettings() {
     ['channels-collapse', 'editors-collapse', 'stats-collapse'].forEach(id => {
@@ -313,7 +450,9 @@ function getScheduleList(query) {
     .then(data => {
         if (data.status === 'success') {
             scheduleDayModalBody.innerHTML = data.html;
-            console.log('Модальная таблица загружена по дате');
+            console.log('Модальная таблица загружена');
+            displayState.applyToTable();
+            displayState.syncSwitches();
         } else {
             console.log('error', data.message);
             scheduleDayModalBody.innerHTML = `

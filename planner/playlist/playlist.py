@@ -59,177 +59,6 @@ def get_schedule_days(field_dict):
             results.append(dict(zip(django_columns, row)))
         return results
 
-# def get_schedule_list_by_id(schedule_day_id):
-#     workers_dict = main_settings.get_oplan_workers_dict()
-#     with connections[OPLAN_DB].cursor() as cursor:
-#         query = f'''
-#         SELECT [schedule_day_id]
-#               ,SchedProg.[program_id]
-#               ,[start_time]
-#               ,SchedProg.[duration]
-#               ,MaterialProg.[duration]
-#               ,[ad_duration]
-#               ,SchedProg.[name]
-#               ,[can_be_moved]
-#               ,[can_be_inserted]
-#               ,[scheduled_program_id]
-#               ,[ParentID]
-#               ,[SlotType]
-#               ,MaterialProg.[MaterialTypeID]
-#               ,[MaterialID]
-#               ,[PlannedStartTime]
-#               ,[IsBlock]
-#               ,[Level]
-#               ,SchedProg.[program_type_id]
-#               ,MaterialProg.[program_type_id]
-#               ,[TheAir]
-#               ,[Active]
-#               ,[Premiere]
-#               ,[ChildPosition]
-#               ,[DateTime]
-#               ,[LastEditUser]
-#               ,[CreatedAt]
-#               ,[CreatedBy]
-#               ,[LastEditTime]
-#               ,[LastPlacementPosition]
-#               ,[MediumName]
-#               ,[Verified]
-#               ,Progs.[SuitableMaterialForScheduleID] AS SuitableMaterial
-#               ,Task.[task_status]
-#               ,CASE
-#                    WHEN EXISTS (
-#                      SELECT 1
-#                      FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] AS ProgCustField
-#                      WHERE ProgCustField.[ObjectId] = SchedProg.[program_id]
-#                        AND ProgCustField.[ProgramCustomFieldId] IN (7, 15)
-#                    ) THEN 1
-#                    ELSE 0
-#                 END AS oplan_ready
-#           FROM [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
-#           LEFT JOIN [oplan3].[dbo].[program] AS Progs
-#             ON SchedProg.[program_id] = Progs.[program_id]
-#           LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
-#             ON SchedProg.[program_id] = Task.[program_id]
-#           LEFT JOIN [oplan3].[dbo].[program] AS MaterialProg
-#             ON Progs.[SuitableMaterialForScheduleID] = MaterialProg.[program_id]
-#           WHERE [schedule_day_id] = %s
-#           AND SchedProg.[Deleted] = 0
-#           AND SchedProg.[DeletedIncludeParent] = 0
-#           AND SchedProg.[TheAir] = 1
-#           ORDER BY [DateTime], [Level], [ChildPosition]
-#         '''
-#
-#         cursor.execute(query, (schedule_day_id,))
-#         columns = [col[0] for col in cursor.description]
-#         results = []
-#
-#         for row in cursor.fetchall():
-#             temp_dict = dict(zip(columns, row))
-#
-#             temp_dict['CreatedByName'] = workers_dict.get(temp_dict['CreatedBy'], '')
-#             results.append(temp_dict)
-#     return build_hierarchy_from_level(results)
-
-
-def build_hierarchy_from_level(schedule_data):
-    nodes = {}
-
-    # Создаем все узлы
-    for item in schedule_data:
-        nodes[item['scheduled_program_id']] = {**item, 'children': []}
-
-    # Строим дерево
-    root_items = []
-
-    for item in schedule_data:
-        node = nodes[item['scheduled_program_id']]
-        parent_id = item.get('ParentID')
-
-        if parent_id is not None and parent_id in nodes:
-            nodes[parent_id]['children'].append(node)
-        else:
-            root_items.append(node)
-
-    # Сортируем детей по ChildPosition
-    def sort_children(node):
-        node['children'].sort(key=lambda x: x.get('ChildPosition', 0))
-        for child in node['children']:
-            sort_children(child)
-
-    for root in root_items:
-        sort_children(root)
-
-    return root_items
-
-# def get_schedule_list_by_date(schedule_id, schedule_date):
-#     workers_dict = main_settings.get_oplan_workers_dict()
-#     with connections[OPLAN_DB].cursor() as cursor:
-#         query = f'''
-#             SELECT SchedProg.[schedule_day_id]
-#                   ,SchedProg.[program_id]
-#                   ,[start_time]
-#                   ,SchedProg.[duration]
-#                   ,[ad_duration]
-#                   ,SchedProg.[name]
-#                   ,[can_be_moved]
-#                   ,[can_be_inserted]
-#                   ,[scheduled_program_id]
-#                   ,[ParentID]
-#                   ,[SlotType]
-#                   ,[MaterialID]
-#                   ,[PlannedStartTime]
-#                   ,[IsBlock]
-#                   ,[Level]
-#                   ,SchedProg.[program_type_id]
-#                   ,[TheAir]
-#                   ,[Active]
-#                   ,[Premiere]
-#                   ,[ChildPosition]
-#                   ,[DateTime]
-#                   ,[LastEditUser]
-#                   ,[CreatedAt]
-#                   ,[CreatedBy]
-#                   ,[LastEditTime]
-#                   ,[LastPlacementPosition]
-#                   ,[MediumName]
-#                   ,[Verified]
-#                   ,Progs.[SuitableMaterialForScheduleID] AS SuitableMaterial
-#                   ,Task.[task_status]
-#                   ,CASE
-#                        WHEN EXISTS (
-#                          SELECT 1
-#                          FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues] AS ProgCustField
-#                          WHERE ProgCustField.[ObjectId] = SchedProg.[program_id]
-#                            AND ProgCustField.[ProgramCustomFieldId] IN (7, 15)
-#                        ) THEN 1
-#                        ELSE 0
-#                     END AS oplan_ready
-#               FROM [{OPLAN_DB}].[dbo].[scheduled_program] AS SchedProg
-#               LEFT JOIN [oplan3].[dbo].[program] AS Progs
-#                 ON SchedProg.[program_id] = Progs.[program_id]
-#               LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
-#                 ON SchedProg.[program_id] = Task.[program_id]
-#               LEFT JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
-#                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
-#               WHERE SchedProg.[Deleted] = 0
-#               AND SchedDay.[schedule_id] = %s
-#               AND SchedDay.[day_date] = CONVERT(DATE, %s)
-#               AND SchedProg.[DeletedIncludeParent] = 0
-#               AND SchedProg.[TheAir] = 1
-#               ORDER BY [DateTime], [Level], [ChildPosition]
-#             '''
-#
-#         cursor.execute(query, (schedule_id, schedule_date))
-#         columns = [col[0] for col in cursor.description]
-#         results = []
-#
-#         for row in cursor.fetchall():
-#             temp_dict = dict(zip(columns, row))
-#
-#             temp_dict['CreatedByName'] = workers_dict.get(temp_dict['CreatedBy'], '')
-#             results.append(temp_dict)
-#     return build_hierarchy_from_level(results)
-
 def get_schedule_list(query):
     sql_condition, params = choose_type_query(query)
     with connections[OPLAN_DB].cursor() as cursor:
@@ -286,6 +115,7 @@ def get_schedule_list(query):
               LEFT JOIN [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
                 ON SchedProg.[schedule_day_id] = SchedDay.[schedule_day_id]
               WHERE SchedProg.[Deleted] = 0
+              AND NOT (SchedProg.[SlotType] = 2 AND SchedProg.[Level] = 3)
               {sql_condition}
               AND SchedProg.[DeletedIncludeParent] = 0
               AND SchedProg.[TheAir] = 1
@@ -297,6 +127,36 @@ def get_schedule_list(query):
         schedule_data = data_transformation(columns, cursor.fetchall())
 
     return build_hierarchy_from_level(schedule_data)
+
+def build_hierarchy_from_level(schedule_data):
+    nodes = {}
+
+    # Создаем все узлы
+    for item in schedule_data:
+        nodes[item['scheduled_program_id']] = {**item, 'children': []}
+
+    # Строим дерево
+    root_items = []
+
+    for item in schedule_data:
+        node = nodes[item['scheduled_program_id']]
+        parent_id = item.get('ParentID')
+
+        if parent_id is not None and parent_id in nodes:
+            nodes[parent_id]['children'].append(node)
+        else:
+            root_items.append(node)
+
+    # Сортируем детей по ChildPosition
+    def sort_children(node):
+        node['children'].sort(key=lambda x: x.get('ChildPosition', 0))
+        for child in node['children']:
+            sort_children(child)
+
+    for root in root_items:
+        sort_children(root)
+
+    return root_items
 
 def choose_type_query(query):
     schedule_day_id = query.get('schedule_day_id')
@@ -340,13 +200,31 @@ def data_transformation(columns, results):
         if temp_dict.get('MaterialTypeID'):
             pass
 
-        temp_dict['color'] = color_dict.get(temp_dict.get('program_type_id', 0))
+        temp_dict['is_program'] = check_program(temp_dict.get('SlotType'), temp_dict.get('SchedProg_type_id'), temp_dict.get('MaterialProg_type_id'), temp_dict.get('task_status'))
 
+        if temp_dict.get('task_status') == 'final':
+            temp_dict['is_ready'] = True
+        elif not temp_dict.get('task_status') and temp_dict.get('oplan_ready'):
+            temp_dict['is_ready'] = True
+        else:
+            temp_dict['is_ready'] = False
+
+        if temp_dict.get('task_status') == 'no_material':
+            temp_dict['color'] = 'no-material'
+        else:
+            temp_dict['color'] = color_dict.get(temp_dict.get('program_type_id', 0))
 
         data.append(temp_dict)
 
-    print('data', data)
     return data
+
+def check_program(slot_type, sched_prog_type_id, mat_prog_type_id, task_status):
+    program_type_id_list = [1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20]
+    if slot_type == 2:
+        return False
+    if sched_prog_type_id in program_type_id_list or mat_prog_type_id in program_type_id_list or task_status == 'no_material':
+        return True
+    return False
 
 color_dict = {
     0: '',

@@ -62,11 +62,9 @@
         <div class="col" style="min-width: 13%" data-created-by="{{ item.CreatedBy }}">{{ item.CreatedByName }}</div>
         <div class="col" style="min-width: 12%">{{ item.LastEditTime|date:"d.m.Y" }}</div>
         <div class="col" style="min-width: 5%">
-            {% if item.task_status == 'final' %}
+            {% if item.is_program and item.is_ready %}
                 <span class="badge bg-success" data-planner-status="{{ item.task_status }}" data-oplan-ready="{{ item.oplan_ready }}">Да</span>
-            {% elif not item.task_status and item.oplan_ready %}
-                <span class="badge bg-success" data-planner-status="{{ item.task_status }}" data-oplan-ready="{{ item.oplan_ready }}">Да</span>
-            {% else %}
+            {% elif item.is_program and not item.is_ready %}
                 <span class="badge bg-danger" data-planner-status="{{ item.task_status }}" data-oplan-ready="{{ item.oplan_ready }}">Нет</span>
             {% endif %}
         </div>
