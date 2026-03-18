@@ -1,7 +1,6 @@
 {% load custom_filters %}
 
-<div class="schedule-item-container {% if item.program_type_id == 9 %}is_advert{% endif %}
-    {% if item.SlotType == 2 %}segment{% endif %}"
+<div class="schedule-item-container {{ item.type }}"
      id="item_{{ item.scheduled_program_id }}"
      data-scheduled-program_id="{{ item.scheduled_program_id }}" data-parent="{{ item.ParentID|default:'' }}"
      data-level="{{ item.Level }}">
@@ -62,9 +61,9 @@
         <div class="col" style="min-width: 13%" data-created-by="{{ item.CreatedBy }}">{{ item.CreatedByName }}</div>
         <div class="col" style="min-width: 12%">{{ item.LastEditTime|date:"d.m.Y" }}</div>
         <div class="col" style="min-width: 5%">
-            {% if item.is_program and item.is_ready %}
+            {% if item.type == 'program' and item.is_ready %}
                 <span class="badge bg-success" data-planner-status="{{ item.task_status }}" data-oplan-ready="{{ item.oplan_ready }}">Да</span>
-            {% elif item.is_program and not item.is_ready %}
+            {% elif item.type == 'program' and not item.is_ready %}
                 <span class="badge bg-danger" data-planner-status="{{ item.task_status }}" data-oplan-ready="{{ item.oplan_ready }}">Нет</span>
             {% endif %}
         </div>

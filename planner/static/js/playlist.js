@@ -65,7 +65,7 @@ const displayState = {
     // Метод для применения всех текущих состояний к таблице
     applyToTable() {
         // Применяем состояние рекламы
-        const advertContainers = document.querySelectorAll('.is_advert');
+        const advertContainers = document.querySelectorAll('.advert');
         advertContainers.forEach(advertContainer => {
             advertContainer.style.display = this.hideAdvert ? 'none' : 'block';
         });
@@ -451,6 +451,17 @@ function getScheduleList(query) {
         if (data.status === 'success') {
             scheduleDayModalBody.innerHTML = data.html;
             console.log('Модальная таблица загружена');
+
+            // Инициализируем таймлайн
+            setTimeout(() => {
+                if (window.timelineManager) {
+                    console.log('Initializing timeline manager');
+                    window.timelineManager.init();
+                } else {
+                    console.error('TimelineManager not found!');
+                }
+            }, 100); // Небольшая задержка для гарантии
+
             displayState.applyToTable();
             displayState.syncSwitches();
         } else {

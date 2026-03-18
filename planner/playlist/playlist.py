@@ -181,35 +181,43 @@ def data_transformation(columns, results):
     for row in results:
         temp_dict = dict(zip(columns, row))
 
+        sched_prog_type_id = temp_dict.get('SchedProg_type_id')
+        mat_prog_type_id = temp_dict.get('MaterialProg_type_id')
+        task_status = temp_dict.get('task_status')
+        mat_prog_duration = temp_dict.get('MaterialProg_duration')
+        sched_prog_duration = temp_dict.get('SchedProg_duration')
+        slot_type = temp_dict.get('SlotType')
+
         temp_dict['CreatedByName'] = workers_dict.get(temp_dict['CreatedBy'], '')
 
-        if temp_dict.get('SchedProg_duration') is not None:
-            temp_dict['duration'] = temp_dict.get('SchedProg_duration')
-        elif temp_dict.get('SchedProg_duration') is None and temp_dict.get('MaterialProg_duration') is not None:
-            temp_dict['duration'] = temp_dict.get('MaterialProg_duration')
+        if sched_prog_duration is not None:
+            temp_dict['duration'] = sched_prog_duration
+        elif sched_prog_duration is None and mat_prog_duration is not None:
+            temp_dict['duration'] = mat_prog_duration
         else:
             temp_dict['duration'] = None
 
-        if temp_dict.get('SchedProg_type_id') is not None:
-            temp_dict['program_type_id'] = temp_dict.get('SchedProg_type_id')
-        elif temp_dict.get('SchedProg_type_id') is None and temp_dict.get('MaterialProg_type_id') is not None:
-            temp_dict['program_type_id'] = temp_dict.get('MaterialProg_type_id')
+        if sched_prog_type_id is not None:
+            temp_dict['program_type_id'] = sched_prog_type_id
+        elif sched_prog_type_id is None and mat_prog_type_id is not None:
+            temp_dict['program_type_id'] = mat_prog_type_id
         else:
             temp_dict['program_type_id'] = None
 
         if temp_dict.get('MaterialTypeID'):
+            # TODO:
             pass
 
-        temp_dict['is_program'] = check_program(temp_dict.get('SlotType'), temp_dict.get('SchedProg_type_id'), temp_dict.get('MaterialProg_type_id'), temp_dict.get('task_status'))
+        temp_dict['type'] = check_type(slot_type, temp_dict['program_type_id'], task_status)
 
-        if temp_dict.get('task_status') == 'final':
+        if task_status == 'final':
             temp_dict['is_ready'] = True
-        elif not temp_dict.get('task_status') and temp_dict.get('oplan_ready'):
+        elif not task_status and temp_dict.get('oplan_ready'):
             temp_dict['is_ready'] = True
         else:
             temp_dict['is_ready'] = False
 
-        if temp_dict.get('task_status') == 'no_material':
+        if task_status == 'no_material':
             temp_dict['color'] = 'no-material'
         else:
             temp_dict['color'] = color_dict.get(temp_dict.get('program_type_id', 0))
@@ -218,15 +226,18 @@ def data_transformation(columns, results):
 
     return data
 
-def check_program(slot_type, sched_prog_type_id, mat_prog_type_id, task_status):
+def check_type(slot_type, program_type_id, task_status):
     program_type_id_list = [1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20]
     if slot_type == 2:
-        return False
-    if sched_prog_type_id in program_type_id_list or mat_prog_type_id in program_type_id_list or task_status == 'no_material':
-        return True
-    return False
+        return 'segment'
+    elif program_type_id in program_type_id_list or task_status == 'no_material':
+        return 'program'
+    elif program_type_id == 9:
+        return 'advert'
+    return ''
 
 color_dict = {
+    None: '',
     0: '',
     1: 'bg-light-subtle',
     2: 'bg-light-subtle',

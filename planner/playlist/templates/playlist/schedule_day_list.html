@@ -14,3 +14,34 @@
         {% include "playlist/schedule_day_item.html" with item=item %}
     {% endfor %}
 </div>
+<div class="timeline-container mt-4">
+    <div class="timeline-header">
+        <div class="timeline-controls">
+            <button class="btn btn-sm btn-outline-secondary" onclick="timelineManager.zoomIn()">+</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="timelineManager.zoomOut()">-</button>
+            <select class="form-select form-select-sm" onchange="timelineManager.setZoom(this.value)">
+                <option value="24">24 часа</option>
+                <option value="12">12 часов</option>
+                <option value="6">6 часов</option>
+                <option value="3">3 часа</option>
+                <option value="1">1 час</option>
+            </select>
+        </div>
+        <div class="timeline-time-range" id="timelineTimeRange">
+            Показывается: 00:00 - 24:00
+        </div>
+    </div>
+
+    <!-- Canvas для таймлайна -->
+    <div class="timeline-canvas-wrapper">
+        <canvas id="programTimeline" width="1200" height="250"></canvas>
+    </div>
+
+    <!-- Легенда -->
+    <div class="timeline-legend mt-2">
+        <span class="legend-item"><span class="color-box" style="background: #ff6b6b;"></span> Далее в эфире (12с)</span>
+        <span class="legend-item"><span class="color-box" style="background: #4dabf7;"></span> Сегодня в эфире (10с)</span>
+        <span class="legend-item"><span class="color-box" style="background: #51cf66;"></span> Завтра в эфире (10с)</span>
+        <span class="legend-item"><span class="color-box" style="background: #fcc419;"></span> Телеграм (18с)</span>
+    </div>
+</div>
