@@ -29,7 +29,8 @@ function toggleScheduleAllItem(switcher) {
 }
 
 function toggleAdvert(switcher) {
-    let advertContainers = document.querySelectorAll('.advert');
+    let advertContainers = document.querySelectorAll('.advert .block');
+    console.log(advertContainers);
     advertContainers.forEach(advertContainer => {
         if (switcher.checked === true) {
             advertContainer.style.display = 'none'

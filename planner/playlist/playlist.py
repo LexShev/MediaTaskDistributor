@@ -1,4 +1,5 @@
 import ast
+import json
 from datetime import date, datetime
 
 from django.db import connections
@@ -58,6 +59,23 @@ def get_schedule_days(field_dict):
         for row in cursor.fetchall():
             results.append(dict(zip(django_columns, row)))
         return results
+
+def choose_type_query(query):
+    schedule_day_id = query.get('schedule_day_id')
+    schedule_id = query.get('schedule_id')
+    schedule_day_date = query.get('schedule_day_date')
+
+    if schedule_day_id is not None:
+        params = (schedule_day_id, )
+        sql_condition = 'AND SchedProg.[schedule_day_id] = %s'
+
+    else:
+        params = (schedule_id, schedule_day_date)
+        sql_condition = """
+        AND SchedDay.[schedule_id] = %s
+        AND SchedDay.[day_date] = CONVERT(DATE, %s)
+        """
+    return sql_condition, params
 
 def get_schedule_list(query):
     sql_condition, params = choose_type_query(query)
@@ -158,23 +176,6 @@ def build_hierarchy_from_level(schedule_data):
 
     return root_items
 
-def choose_type_query(query):
-    schedule_day_id = query.get('schedule_day_id')
-    schedule_id = query.get('schedule_id')
-    schedule_day_date = query.get('schedule_day_date')
-
-    if schedule_day_id is not None:
-        params = (schedule_day_id, )
-        sql_condition = 'AND SchedProg.[schedule_day_id] = %s'
-
-    else:
-        params = (schedule_id, schedule_day_date)
-        sql_condition = """
-        AND SchedDay.[schedule_id] = %s
-        AND SchedDay.[day_date] = CONVERT(DATE, %s)
-        """
-    return sql_condition, params
-
 def data_transformation(columns, results):
     workers_dict = main_settings.get_oplan_workers_dict()
     data = []
@@ -208,7 +209,7 @@ def data_transformation(columns, results):
             # TODO:
             pass
 
-        temp_dict['type'] = check_type(slot_type, temp_dict['program_type_id'], task_status)
+        temp_dict['type'] = check_type(slot_type, temp_dict.get('IsBlock'), temp_dict['program_type_id'], task_status)
 
         if task_status == 'final':
             temp_dict['is_ready'] = True
@@ -222,19 +223,42 @@ def data_transformation(columns, results):
         else:
             temp_dict['color'] = color_dict.get(temp_dict.get('program_type_id', 0))
 
+        temp_dict['graphics'] = get_graphics_rules()
+
+        temp_dict['graphics_level'] = 1
+
         data.append(temp_dict)
 
     return data
 
-def check_type(slot_type, program_type_id, task_status):
+def get_graphics_rules():
+    graphics_list = [
+        {
+            "id": "g1",
+            "name": "air_now",
+            "alias": "Сейчас в эфире",
+            "programId": "prog1",
+            "start": 21600,
+            "end": 21660,
+            "level": 2,
+            "duration": "постоянно"
+        }
+    ]
+    return json.dumps(graphics_list, ensure_ascii=False, separators=(',', ':'))
+
+def check_type(slot_type, is_block, program_type_id, task_status):
     program_type_id_list = [1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 16, 17, 18, 19, 20]
     if slot_type == 2:
         return 'segment'
+    elif slot_type == 1 and is_block:
+        return 'block'
     elif program_type_id in program_type_id_list or task_status == 'no_material':
         return 'program'
     elif program_type_id == 9:
         return 'advert'
-    return ''
+    elif program_type_id == 15:
+        return 'license'
+    return 'other'
 
 color_dict = {
     None: '',

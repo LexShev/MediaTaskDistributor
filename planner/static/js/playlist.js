@@ -58,6 +58,7 @@ $(function() {
 });
 // Объект для хранения состояний
 const displayState = {
+    showGraphics: false,      // состояние переключателя графики
     hideAdvert: false,      // состояние переключателя рекламы
     hideProgram: false,     // состояние переключателя программ
     collapseAll: false,     // состояние переключателя "Свернуть всё"
@@ -65,7 +66,7 @@ const displayState = {
     // Метод для применения всех текущих состояний к таблице
     applyToTable() {
         // Применяем состояние рекламы
-        const advertContainers = document.querySelectorAll('.advert');
+        const advertContainers = document.querySelectorAll('.advert, .block');
         advertContainers.forEach(advertContainer => {
             advertContainer.style.display = this.hideAdvert ? 'none' : 'block';
         });
@@ -119,6 +120,18 @@ const displayState = {
 };
 
 // Обновленные функции переключателей
+function toggleGraphics(switcher) {
+    const graphicsContainer = document.getElementById('graphics_container');
+    graphicsContainer.style.display = switcher.checked ? 'block' : 'none';
+
+    if (window.timelineManager) {
+        console.log('Initializing timeline manager');
+        window.timelineManager.init();
+    } else {
+        console.error('TimelineManager not found!');
+    }
+}
+
 function toggleAdvert(switcher) {
     displayState.hideAdvert = switcher.checked;
     displayState.applyToTable();
@@ -451,16 +464,6 @@ function getScheduleList(query) {
         if (data.status === 'success') {
             scheduleDayModalBody.innerHTML = data.html;
             console.log('Модальная таблица загружена');
-
-            // Инициализируем таймлайн
-            setTimeout(() => {
-                if (window.timelineManager) {
-                    console.log('Initializing timeline manager');
-                    window.timelineManager.init();
-                } else {
-                    console.error('TimelineManager not found!');
-                }
-            }, 100); // Небольшая задержка для гарантии
 
             displayState.applyToTable();
             displayState.syncSwitches();
