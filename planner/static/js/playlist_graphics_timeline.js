@@ -9,12 +9,21 @@ class TimelineManager {
         this.width = 1370;
         this.height = 230;
 
+        this.paddingLeft = 1;   // отступ в часах
+        this.paddingRight = 1;
+
+        // Минимальный и максимальный диапазон
+        this.minHour = -this.paddingLeft;
+        this.maxHour = 24 + this.paddingRight;
+
         // Масштаб и панорамирование
-        this.startHour = 0;
-        this.endHour = 24;
+        this.startHour = this.minHour;
+        this.endHour = this.maxHour;
         this.isDragging = false;
         this.dragStartX = 0;
         this.dragStartHour = 0;
+
+
 
         // Данные
         this.programsData = [];
@@ -81,6 +90,76 @@ class TimelineManager {
         this.updateTimeRange();
     }
 
+    destroy() {
+        console.log('TimelineManager destroy started');
+
+        // Очищаем canvas
+        if (this.ctx) {
+            this.ctx.clearRect(0, 0, this.width, this.height);
+        }
+
+        // Очищаем данные
+        this.programsData = [];
+        this.hoveredItem = null;
+        this.currentTimeLine = null;
+        this.isHoveringCurrentTime = false;
+        this.drawCurrentTimeLineHighlight = false;
+
+        // Удаляем tooltip, если он существует
+        if (this.tooltip && this.tooltip.parentNode) {
+            this.tooltip.parentNode.removeChild(this.tooltip);
+            this.tooltip = null;
+        }
+
+        // Удаляем обработчики событий с canvas
+        if (this.canvas) {
+            const newCanvas = this.canvas.cloneNode(true);
+            this.canvas.parentNode.replaceChild(newCanvas, this.canvas);
+            this.canvas = newCanvas;
+        }
+
+        console.log('TimelineManager destroyed');
+    }
+
+    isInitialized() {
+        // Проверяем, инициализирован ли менеджер
+        return this.canvas !== null &&
+               this.ctx !== null &&
+               this.programsData !== null &&
+               this.programsData.length > 0;
+    }
+
+    clear() {
+        // Очищаем данные без полного уничтожения
+        if (this.ctx) {
+            this.ctx.clearRect(0, 0, this.width, this.height);
+        }
+
+        this.programsData = [];
+        this.hoveredItem = null;
+        this.currentTimeLine = null;
+
+        // Очищаем canvas белым фоном
+        if (this.ctx) {
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            this.ctx.fillStyle = isDark ? '#212529' : '#f8f9fa';
+            this.ctx.fillRect(0, 0, this.width, this.height);
+        }
+
+        // Скрываем tooltip
+        if (this.tooltip) {
+            this.tooltip.style.display = 'none';
+        }
+
+        console.log('TimelineManager cleared');
+    }
+
+    reinit() {
+        // Переинициализация
+        this.destroy();
+        this.init();
+    }
+
     createTooltip() {
         this.tooltip = document.createElement('div');
         this.tooltip.className = 'timeline-tooltip';
@@ -94,24 +173,18 @@ class TimelineManager {
 
         if (!dateTimeStr) return 0;
 
-        // Разделяем дату и время
-        const [datePart, timePart] = dateTimeStr.split(' ');
-
-        if (!datePart || !timePart) return 0;
-
-        // Парсим дату: ГГГГ-ММ-ДД
-        const [year, month, day] = datePart.split('-').map(Number);
-
-        // Парсим время: ЧЧ:ММ:СС
-        const [hours, minutes, seconds] = timePart.split(':').map(Number);
-
-        // Создаем объект Date для получения timestamp
-        const date = new Date(year, month - 1, day, hours, minutes, seconds);
-
-        // Возвращаем количество секунд с начала суток
-        // (часы * 3600 + минуты * 60 + секунды)
-        return hours * 3600 + minutes * 60 + seconds;
+         return new Date(dateTimeStr.replace(' ', 'T'));
     }
+
+    // parseStartTime(startTimeStr) {
+    //     // Формат: число в кадрах (может быть отрицательным для прошлых суток)
+    //     // Возвращаем количество секунд от 00:00 с учетом перехода через сутки
+    //     const frames = parseInt(startTimeStr);
+    //     if (isNaN(frames)) return 0;
+    //
+    //     // Переводим кадры в секунды (25 кадров = 1 секунда)
+    //     return frames / 25;
+    // }
 
     loadDataFromDOM() {
         const programs = document.querySelectorAll('.program');
@@ -119,16 +192,20 @@ class TimelineManager {
 
         programs.forEach(program => {
             const scheduledProgramId = program?.dataset.scheduledProgramId;
-            const programStart = this.parseDateTime(program.dataset.startTime);
-            const programDuration = Math.floor(parseInt(program.dataset.duration) / 25);
+            const programStartFrame = parseInt(program.dataset.startTime);
+            const programDateTime = this.parseDateTime(program.dataset.dateTime);
+
+            let totalFrames  = 0;
 
             const programObj = {
                 scheduledProgramId: scheduledProgramId,
                 name: program?.dataset.name,
-                startTime: program?.dataset.startTime,
+                startFrame: programStartFrame,
+                endFrame: 0,
+                startDateTime: programDateTime,
+                endDateTime: null,
                 duration: program?.dataset.duration,
-                startSeconds: programStart,
-                endSeconds: programStart + programDuration,
+                totalProgramDuration: 0,
                 type: 'program',
                 graphicsLevel: program?.dataset.graphicsLevel || 1,
                 segments: [],
@@ -138,48 +215,66 @@ class TimelineManager {
             // Сегменты внутри программы
             const segments = program.querySelectorAll('.segment');
             segments.forEach(segment => {
-                const segmentStart = this.parseDateTime(segment.dataset.startTime);
-                const segmentDuration = Math.floor(parseInt(segment.dataset.duration) / 25);
-                const graphicsStr = segment?.dataset.graphics;
-                let graphics = null;
+                const segmentDuration = parseInt(segment.dataset.duration);
+                totalFrames += segmentDuration;
 
-                if (graphicsStr) {
-                    try {
-                        graphics = JSON.parse(graphicsStr.trim());
-                    } catch (e) {
-                        console.warn('Failed to parse JSON for segment', segment, e);
-                    }
-                }
+                const segmentStartFrame = parseInt(segment.dataset.startTime);
+                const segmentEndFrame = segmentStartFrame + segmentDuration;
+                const segmentDateTime = this.parseDateTime(segment.dataset.dateTime);
+                // const graphicsStr = segment?.dataset.graphics;
+                // let graphics = null;
+
+                // if (graphicsStr) {
+                //     try {
+                //         graphics = JSON.parse(graphicsStr.trim());
+                //     } catch (e) {
+                //         console.warn('Failed to parse JSON for segment', segment, e);
+                //     }
+                // }
 
                 const segmentObj = {
                     scheduledProgramId: segment?.dataset.scheduledProgramId,
                     parentId: scheduledProgramId,
                     name: segment?.dataset.name,
-                    startTime: segment?.dataset.startTime,
+                    startFrame: segmentStartFrame,
+                    endFrame: segmentEndFrame,
+                    startDateTime: segmentDateTime,
+                    endDateTime: new Date(segmentDateTime.getTime() + (segmentDuration / 25) * 1000),
                     duration: segment?.dataset.duration,
-                    startSeconds: segmentStart,
-                    endSeconds: segmentStart + segmentDuration,
                     type: 'segment',
                     graphicsLevel: segment?.dataset.graphicsLevel || 1,
-                    graphics: graphics,
-                    graphicsItems: []  // графические элементы внутри сегмента
+                    graphicsItems: [],  // графические элементы внутри сегмента
+                    segmentId: segment.dataset.scheduledProgramId
                 };
 
-                // Добавляем графику как отдельные элементы для отрисовки
-                if (graphics && Array.isArray(graphics)) {
-                    segmentObj.graphicsItems = [];
-                    graphics.forEach(g => {
-                        segmentObj.graphicsItems.push({
-                            id: g.id || `${segment.dataset.scheduledProgramId}_graphic_${Date.now()}`,
-                            name: g.alias || g.name || 'Графика',
-                            startSeconds: segmentStart + (g.start || 0),
-                            endSeconds: segmentStart + (g.end || (g.start + 10)),
-                            graphicsLevel: g.level || 2,
-                            type: 'graphic',
-                            segmentId: segment.dataset.scheduledProgramId
-                        });
+                // Получаем общее количество сегментов
+                const totalSegments = segments.length;
+
+                // Генерируем графику для сегмента
+                const generatedGraphics = this.generateGraphicsForSegment(
+                    segmentObj,
+                    programObj,
+                    Array.from(segments).indexOf(segment),
+                    totalSegments
+                );
+
+                // Добавляем сгенерированную графику
+                generatedGraphics.forEach(g => {
+                    const absoluteStartFrame = segmentObj.startFrame + g.startFrameOffset;
+                    const absoluteEndFrame = segmentObj.startFrame + g.endFrameOffset;
+
+                    segmentObj.graphicsItems.push({
+                        id: g.id,
+                        name: g.name,
+                        startFrame: absoluteStartFrame,
+                        endFrame: absoluteEndFrame,
+                        startDateTime: new Date(segmentObj.startDateTime.getTime() + (g.startFrameOffset / 25) * 1000),
+                        endDateTime: new Date(segmentObj.startDateTime.getTime() + (g.endFrameOffset / 25) * 1000),
+                        graphicsLevel: g.level,
+                        type: 'graphic',
+                        segmentId: segmentObj.scheduledProgramId
                     });
-                }
+                });
 
                 programObj.segments.push(segmentObj);
             });
@@ -188,25 +283,31 @@ class TimelineManager {
             const blocks = program.querySelectorAll('.block');
             blocks.forEach(block => {
                 const blockId = block?.dataset.scheduledProgramId;
-                const blockStart = this.parseDateTime(block.dataset.startTime);
-                // const blockDuration = Math.floor(parseInt(block.dataset.duration) / 25);
+                const blockStartFrame = parseInt(block.dataset.startTime);
+                const blockDateTime = this.parseDateTime(block.dataset.dateTime);
 
                 // Собираем все рекламные ролики внутри блока
                 const adverts = block.querySelectorAll('.advert, .license');
-                let totalDuration = 0;
+                let blockTotalFrames = 0;
                 const blockItems = [];
 
                 adverts.forEach(advert => {
-                    const advertDuration = Math.floor(parseInt(advert.dataset.duration) / 25);
-                    totalDuration += advertDuration;
+                    const advertFrames = parseInt(advert.dataset.duration);
+                    blockTotalFrames += advertFrames;
+                    totalFrames += advertFrames;
+                    const advertStartFrame = parseInt(advert.dataset.startTime);
+                    const advertEndFrame = advertStartFrame + advertFrames;
+                    const advertDateTime = this.parseDateTime(advert.dataset.dateTime);
+
                     blockItems.push({
                         scheduledProgramId: advert?.dataset.scheduledProgramId,
                         parentId: blockId,
                         name: advert?.dataset.name,
-                        startTime: advert?.dataset.startTime,
+                        startFrame: advertStartFrame,
+                        endFrame: advertEndFrame,
+                        startDateTime: advertDateTime,
+                        endDateTime: new Date(advertDateTime.getTime() + (advertFrames / 25) * 1000),
                         duration: advert?.dataset.duration,
-                        startSeconds: blockStart,
-                        endSeconds: blockStart + totalDuration,
                         graphicsLevel: 2,
                         type: 'block'
                     });
@@ -218,17 +319,20 @@ class TimelineManager {
                         scheduledProgramId: blockId,
                         parentId: scheduledProgramId,
                         name: block?.dataset.name || 'Промо-блок',
-                        startTime: block?.dataset.startTime,
                         duration: block?.dataset.duration,
-                        startSeconds: blockStart,
-                        endSeconds: blockStart + totalDuration,
+                        startFrame: blockStartFrame,
+                        endFrame: blockStartFrame + blockTotalFrames,
+                        startDateTime: blockDateTime,
+                        endDateTime: new Date(blockDateTime.getTime() + (blockTotalFrames / 25) * 1000),
                         graphicsLevel: 2,
                         type: 'block',
                         items: blockItems  // сохраняем список реклам для тултипа
                     });
                 }
             });
-
+            programObj.totalProgramDuration = totalFrames;
+            programObj.endFrame = programObj.startFrame + totalFrames;
+            programObj.endDateTime = new Date(programDateTime.getTime() + (totalFrames / 25) * 1000);
             this.programsData.push(programObj);
         });
 
@@ -236,6 +340,222 @@ class TimelineManager {
         console.log('Programs data:', this.programsData);
     }
 
+    generateGraphicsForSegment(segment, program, segmentIndex, totalSegments) {
+        const graphics = [];
+
+        // Работаем только с кадрами
+        const segmentStartFrame = segment.startFrame;
+        const segmentEndFrame = segment.endFrame;
+        const segmentDurationFrames = segmentEndFrame - segmentStartFrame;
+        const segmentDurationSeconds = segmentDurationFrames / 25;
+
+        // Получаем данные из DOM элемента сегмента
+        const segmentElement = document.querySelector(`[data-scheduled-program-id="${segment.scheduledProgramId}"]`);
+        const isNarc = segmentElement?.dataset.isNarc === 'true';
+        const isInoagent = segmentElement?.dataset.isInoagent === 'true';
+        const isMeta = segmentElement?.dataset.isMeta === 'true';
+
+        // Определяем тип контента по названию программы или сегмента
+        const isMovie = program.name?.toLowerCase().includes('фильм') ||
+                        segment.name?.toLowerCase().includes('фильм');
+        const isSeries = program.name?.toLowerCase().includes('сериал') ||
+                         segment.name?.toLowerCase().includes('сериал');
+        const isKids = program.name?.toLowerCase().includes('детский') ||
+                       segment.name?.toLowerCase().includes('детский');
+        const isCinemaChannel = program.name?.toLowerCase().includes('кино+') ||
+                                program.name?.toLowerCase().includes('крепкий') ||
+                                program.name?.toLowerCase().includes('мировой');
+
+        // Определяем канал
+        const channelName = document.getElementById('current_schedule')?.textContent || '';
+
+        // 1. Возрастные 0+, 6+, 12+ (всегда в начале сегмента)
+        graphics.push({
+            id: `age_${segment.scheduledProgramId}`,
+            name: 'Возрастная маркировка 0+/6+/12+',
+            alias: 'Возрастная',
+            startFrameOffset: 0,  // смещение от начала сегмента в кадрах
+            endFrameOffset: 12 * 25,  // 12 секунд * 25 кадров = 300 кадров
+            level: 4
+        });
+
+        // 2. Возрастные 16+, 18+ + Курение
+        if (segmentElement?.dataset.ageRating === '16' || segmentElement?.dataset.ageRating === '18') {
+            graphics.push({
+                id: `age_16_18_${segment.scheduledProgramId}`,
+                name: 'Возрастная маркировка 16+/18+ + Курение',
+                alias: '16+/18+',
+                startFrameOffset: 0,
+                endFrameOffset: 12 * 25,
+                level: 4
+            });
+        }
+
+        // 3. Иноагенты + возрастная
+        if (isInoagent) {
+            graphics.push({
+                id: `inoagent_${segment.scheduledProgramId}`,
+                name: 'Иноагенты + возрастная',
+                alias: 'Иноагенты',
+                startFrameOffset: 0,
+                endFrameOffset: 12 * 25,
+                level: 4
+            });
+        }
+
+        // 4. Мета + возрастная
+        if (isMeta) {
+            graphics.push({
+                id: `meta_${segment.scheduledProgramId}`,
+                name: 'Мета + возрастная',
+                alias: 'Мета',
+                startFrameOffset: 0,
+                endFrameOffset: 12 * 25,
+                level: 4
+            });
+        }
+
+        // 5. Иноагенты + Мета + возрастная
+        if (isInoagent && isMeta) {
+            graphics.push({
+                id: `inoagent_meta_${segment.scheduledProgramId}`,
+                name: 'Иноагенты + Мета + возрастная',
+                alias: 'Иноагенты/Мета',
+                startFrameOffset: 0,
+                endFrameOffset: 20 * 25,  // 20 секунд
+                level: 4
+            });
+        }
+
+        // 6. Сейчас в эфире (весь сегмент)
+        graphics.push({
+            id: `air_now_${segment.scheduledProgramId}`,
+            name: 'Сейчас в эфире',
+            alias: 'Сейчас в эфире',
+            startFrameOffset: 0,
+            endFrameOffset: segmentDurationFrames,
+            level: 3
+        });
+
+        // 7. Далее в эфире (последний сегмент)
+        if (segmentIndex === totalSegments - 1) {
+            let offsetBeforeEndSeconds = 0;
+            if (isMovie && !isKids) offsetBeforeEndSeconds = 10 * 60; // 10 минут
+            else if (isSeries && !isKids) offsetBeforeEndSeconds = 5 * 60; // 5 минут
+            else if (isSeries && isCinemaChannel) offsetBeforeEndSeconds = 2 * 60; // 2 минуты
+            else if (isKids && isMovie) offsetBeforeEndSeconds = 10 * 60; // 10 минут
+            else if (isKids && isSeries) offsetBeforeEndSeconds = 30; // 30 секунд
+
+            if (offsetBeforeEndSeconds > 0 && segmentDurationSeconds > offsetBeforeEndSeconds) {
+                const offsetBeforeEndFrames = offsetBeforeEndSeconds * 25;
+                const startFrameOffset = segmentDurationFrames - offsetBeforeEndFrames;
+                graphics.push({
+                    id: `next_air_${segment.scheduledProgramId}`,
+                    name: 'Далее в эфире',
+                    alias: 'Далее',
+                    startFrameOffset: startFrameOffset,
+                    endFrameOffset: startFrameOffset + (12 * 25),
+                    level: 4
+                });
+            }
+        }
+
+        // 8. Сегодня в эфире (первый сегмент)
+        if (segmentIndex === 0) {
+            let startOffsetSeconds = 0;
+            const currentHour = new Date().getHours();
+
+            if (channelName.includes('Кино+') && currentHour >= 8 && currentHour < 19.5) {
+                startOffsetSeconds = 5 * 60;
+            } else if ((channelName.includes('Крепкий') || channelName.includes('Мировой')) && currentHour >= 8 && currentHour < 20.5) {
+                startOffsetSeconds = segmentDurationSeconds * 0.5;
+            } else if (channelName.includes('Мужской') && currentHour >= 8 && currentHour < 19.5) {
+                startOffsetSeconds = segmentDurationSeconds * 0.5;
+            } else if (channelName.includes('Наше детство') && currentHour >= 8 && currentHour < 18.5) {
+                startOffsetSeconds = 3 * 60;
+            } else if (channelName.includes('Наше родное кино') && currentHour >= 8 && currentHour < 20.5) {
+                startOffsetSeconds = 5 * 60;
+            } else if (channelName.includes('Планета дети') && currentHour >= 8 && currentHour < 17.5) {
+                startOffsetSeconds = 5 * 60;
+            } else if (channelName.includes('Романтичный') && currentHour >= 8 && currentHour < 20.5) {
+                startOffsetSeconds = segmentDurationSeconds * 0.5;
+            } else if (channelName.includes('Семейный') && currentHour >= 8 && currentHour < 20.5) {
+                startOffsetSeconds = 5 * 60;
+            } else if (channelName.includes('Советский будни') && currentHour >= 8 && currentHour < 19) {
+                startOffsetSeconds = 5 * 60;
+            } else if (channelName.includes('Советский выходные') && currentHour >= 8 && currentHour < 17) {
+                startOffsetSeconds = 5 * 60;
+            }
+
+            if (startOffsetSeconds > 0 && startOffsetSeconds < segmentDurationSeconds) {
+                const startFrameOffset = startOffsetSeconds * 25;
+                graphics.push({
+                    id: `today_air_${segment.scheduledProgramId}`,
+                    name: 'Сегодня в эфире',
+                    alias: 'Сегодня',
+                    startFrameOffset: startFrameOffset,
+                    endFrameOffset: startFrameOffset + (10 * 25),
+                    level: 4
+                });
+            }
+        }
+
+        // 9. Завтра в эфире (последний сегмент)
+        if (segmentIndex === totalSegments - 1) {
+            const currentHour = new Date().getHours();
+            if (currentHour >= 7 && currentHour < 23.75) {
+                const startFrameOffset = segmentDurationFrames - (15 * 25); // за 15 секунд до конца
+                if (startFrameOffset > 0) {
+                    graphics.push({
+                        id: `tomorrow_air_${segment.scheduledProgramId}`,
+                        name: 'Завтра в эфире',
+                        alias: 'Завтра',
+                        startFrameOffset: startFrameOffset,
+                        endFrameOffset: startFrameOffset + (10 * 25),
+                        level: 5
+                    });
+                }
+            }
+        }
+
+        // 10. Телеграм (первый сегмент)
+        if (segmentIndex === 0) {
+            let startFrameOffset = 0;
+            if (isMovie && !isKids) {
+                startFrameOffset = 9 * 60 * 25; // через 9 минут в кадрах
+            } else if (isSeries) {
+                startFrameOffset = segmentDurationFrames * 0.5;
+            }
+
+            if (startFrameOffset > 0 && startFrameOffset < segmentDurationFrames) {
+                graphics.push({
+                    id: `telegram_${segment.scheduledProgramId}`,
+                    name: 'Телеграм',
+                    alias: 'Telegram',
+                    startFrameOffset: startFrameOffset,
+                    endFrameOffset: startFrameOffset + (18 * 25),
+                    level: 4
+                });
+            }
+        }
+
+        // 11. Наркотики (через 21 секунду после начала)
+        if (isNarc) {
+            graphics.push({
+                id: `narc_${segment.scheduledProgramId}`,
+                name: 'Наркотики',
+                alias: 'Наркотики',
+                startFrameOffset: 21 * 25,
+                endFrameOffset: 31 * 25,
+                level: 4
+            });
+        }
+
+        // Фильтруем дубликаты
+        return graphics.filter((g, index, self) =>
+            index === self.findIndex(g2 => g2.startFrameOffset === g.startFrameOffset && g2.endFrameOffset === g.endFrameOffset)
+        );
+    }
 
     draw() {
         this.ctx.clearRect(0, 0, this.width, this.height);
@@ -252,8 +572,8 @@ class TimelineManager {
                 scheduledProgramId: program.scheduledProgramId,
                 type: program.type,
                 level: program.graphicsLevel,
-                start: program.startSeconds,
-                end: program.endSeconds,
+                start: program.startFrame,
+                end: program.endFrame,
                 name: program.name,
                 isProgram: true,
                 zIndex: 1  // низкий приоритет
@@ -265,8 +585,8 @@ class TimelineManager {
                     scheduledProgramId: segment.scheduledProgramId,
                     type: segment.type,
                     level: segment.graphicsLevel,
-                    start: segment.startSeconds,
-                    end: segment.endSeconds,
+                    start: segment.startFrame,
+                    end: segment.endFrame,
                     name: segment.name,
                     parentId: segment.parentId,
                     isSegment: true,
@@ -280,8 +600,8 @@ class TimelineManager {
                             scheduledProgramId: graphic.id,
                             type: graphic.type,
                             level: graphic.graphicsLevel,
-                            start: graphic.startSeconds,
-                            end: graphic.endSeconds,
+                            start: graphic.startFrame,
+                            end: graphic.endFrame,
                             name: graphic.name,
                             segmentId: segment.scheduledProgramId,
                             isGraphic: true,
@@ -297,8 +617,8 @@ class TimelineManager {
                     scheduledProgramId: block.scheduledProgramId,
                     type: block.type,
                     level: block.graphicsLevel,
-                    start: block.startSeconds,
-                    end: block.endSeconds,
+                    start: block.startFrame,
+                    end: block.endFrame,
                     name: block.name,
                     programId: program.scheduledProgramId,
                     items: block.items,
@@ -313,8 +633,10 @@ class TimelineManager {
 
         // Рисуем
         itemsToDraw.forEach(item => {
-            const startX = ((item.start / 3600 - this.startHour) / totalHours) * this.width;
-            const endX = ((item.end / 3600 - this.startHour) / totalHours) * this.width;
+            const startSeconds = item.start / 25;
+            const endSeconds = item.end / 25;
+            const startX = ((startSeconds / 3600 - this.startHour) / totalHours) * this.width;
+            const endX = ((endSeconds / 3600 - this.startHour) / totalHours) * this.width;
             let width = endX - startX;
 
             if (width < 1 && item.type !== 'graphic') return;
@@ -435,48 +757,127 @@ class TimelineManager {
         ctx.fillStyle = isDark ? '#212529' : '#f8f9fa';
         ctx.fillRect(0, 0, this.width, this.height);
 
-        // Вертикальные линии (часы)
-        ctx.strokeStyle = isDark ? '#495057' : '#dee2e6';
+        // Вертикальные линии
         ctx.lineWidth = 1;
         ctx.font = '10px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
         ctx.textAlign = 'center';
 
-        const hourStep = totalHours > 12 ? 3 : (totalHours > 6 ? 2 : 1);
+        // Определяем диапазон часов для отображения
+        const startHourFloor = Math.floor(this.startHour);
+        const endHourCeil = Math.ceil(this.endHour);
 
-        for (let hour = 0; hour <= totalHours; hour += 0.5) {
-            const x = (hour / totalHours) * this.width;
-            const realHour = this.startHour + hour;
+        const formatHourLabel = (hour) => {
+            if (hour < 0) {
+                const absHour = Math.abs(hour);
+                const hours = Math.floor(absHour);
+                const minutes = Math.floor((absHour % 1) * 60);
+                if (minutes === 0) {
+                    return `-${hours.toString().padStart(2, '0')}:00`;
+                } else {
+                    return `-${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+            } else if (hour > 24) {
+                const overHour = hour - 24;
+                const hours = Math.floor(overHour);
+                const minutes = Math.floor((overHour % 1) * 60);
+                if (minutes === 0) {
+                    return `+${hours.toString().padStart(2, '0')}:00`;
+                } else {
+                    return `+${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+            } else {
+                const hours = Math.floor(hour);
+                const minutes = Math.floor((hour % 1) * 60);
+                if (minutes === 0) {
+                    return `${hours.toString().padStart(2, '0')}:00`;
+                } else {
+                    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+            }
+        };
 
-            if (Math.abs(hour - Math.round(hour)) < 0.01) {
+        // Рисуем линии для каждого часа и получаса
+        for (let hour = startHourFloor; hour <= endHourCeil; hour += 0.5) {
+            const x = ((hour - this.startHour) / totalHours) * this.width;
+
+            if (x >= 0 && x <= this.width) {
+                const isFullHour = Math.abs(hour - Math.round(hour)) < 0.01;
+                const isHalfHour = Math.abs(hour - Math.floor(hour) - 0.5) < 0.01;
+
                 ctx.beginPath();
-                ctx.strokeStyle = hour % hourStep === 0
-                    ? (isDark ? '#6c757d' : '#adb5bd')
-                    : (isDark ? '#343a40' : '#dee2e6');
+
+                if (isFullHour) {
+                    // Часовые линии - более заметные
+                    ctx.strokeStyle = isDark ? '#6c757d' : '#adb5bd';
+                    ctx.lineWidth = 1;
+                } else if (isHalfHour) {
+                    // Получасовые линии - пунктирные и более светлые
+                    ctx.strokeStyle = isDark ? 'rgba(73, 80, 87, 0.5)' : 'rgba(206, 212, 218, 0.6)';
+                    ctx.lineWidth = 0.8;
+                    ctx.setLineDash([3, 5]);
+                } else {
+                    // Пропускаем другие интервалы
+                    continue;
+                }
+
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, this.height);
                 ctx.stroke();
 
-                if (hour % hourStep === 0) {
+                // Сбрасываем пунктир после отрисовки
+                if (isHalfHour) {
+                    ctx.setLineDash([]);
+                }
+
+                // Подпись только для часовых меток
+                if (isFullHour) {
                     ctx.fillStyle = isDark ? '#dee2e6' : '#495057';
-                    const hourInt = Math.floor(realHour) % 24;
-                    ctx.fillText(`${hourInt.toString().padStart(2, '0')}:00`, x, 25);
+                    ctx.fillText(formatHourLabel(hour), x, 25);
                 }
             }
         }
 
-        // Базовая линия
-        // const baseY = this.height - 30;
-        //
-        // // Подписи уровней слева
-        // ctx.font = '9px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-        // ctx.fillStyle = isDark ? '#adb5bd' : '#6c757d';
-        // ctx.textAlign = 'left';
-        // ctx.shadowColor = 'transparent';
+        // Линия текущего времени (только для сегодняшней даты)
+        try {
+            const currentDateInput = document.getElementById('current_schedule_day_date');
+            if (currentDateInput && currentDateInput.dataset.currentScheduleDayDate) {
+                const scheduleDate = currentDateInput.dataset.currentScheduleDayDate;
+                const today = new Date().toISOString().split('T')[0];
 
-        // for (let level = 1; level <= 5; level++) {
-        //     const y = baseY - this.levelHeights[level] - 5;
-        //     ctx.fillText(`L${level}`, 10, y);
-        // }
+                if (scheduleDate === today) {
+                    const now = new Date();
+                    const currentHour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+
+                    if (currentHour >= this.startHour && currentHour <= this.endHour) {
+                        const x = ((currentHour - this.startHour) / totalHours) * this.width;
+
+                        // Сохраняем информацию о линии текущего времени для обработки наведения
+                        this.currentTimeLine = {
+                            x: x,
+                            hour: currentHour
+                        };
+
+                        ctx.beginPath();
+                        ctx.strokeStyle = '#dc3545';
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([5, 5]);
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, this.height);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    } else {
+                        this.currentTimeLine = null;
+                    }
+                } else {
+                    this.currentTimeLine = null;
+                }
+            } else {
+                this.currentTimeLine = null;
+            }
+        }
+        catch (error) {
+            console.error(error);
+        }
 
         ctx.restore();
     }
@@ -566,8 +967,8 @@ class TimelineManager {
         const items = [];
 
         this.programsData.forEach(program => {
-            const programStart = this.parseDateTime(program.startTime);
-            const programDuration = Math.floor(parseInt(program.duration) / 25);
+            const programStart = this.parseDateTime(program.startFrame);
+            const programDuration = parseInt(program.duration);
 
             items.push({
                 id: program.scheduledProgramId,
@@ -580,8 +981,8 @@ class TimelineManager {
             });
 
             program.segments.forEach(segment => {
-                const segmentStart = this.parseDateTime(segment.startTime);
-                const segmentDuration = Math.floor(parseInt(segment.duration) / 25);
+                const segmentStart = this.parseDateTime(segment.startFrame);
+                const segmentDuration = parseInt(segment.duration);
 
                 items.push({
                     id: segment.scheduledProgramId,
@@ -615,8 +1016,8 @@ class TimelineManager {
 
                 // Блоки
                 program.blocks.forEach(block => {
-                    const blockStart = this.parseDateTime(block.startTime);
-                    const blockDuration = Math.floor(parseInt(block.duration) / 25);
+                    const blockStart = this.parseDateTime(block.startFrame);
+                    const blockDuration = parseInt(block.duration);
 
                     items.push({
                         id: block.scheduledProgramId,
@@ -624,6 +1025,7 @@ class TimelineManager {
                         level: 3,
                         start: blockStart,
                         end: blockStart + blockDuration,
+                        duration: blockDuration,
                         name: block.name || 'Промо-блок',
                         segmentId: segment.scheduledProgramId,
                         originalData: block
@@ -660,11 +1062,21 @@ class TimelineManager {
             const deltaHours = (deltaX / this.width) * (this.endHour - this.startHour);
 
             let newStartHour = this.dragStartHour - deltaHours;
-            newStartHour = Math.round(newStartHour * 6) / 6;
+            let newEndHour = newStartHour + (this.endHour - this.startHour);
 
-            const range = this.endHour - this.startHour;
-            this.startHour = Math.max(0, Math.min(24 - range, newStartHour));
-            this.endHour = this.startHour + range;
+            // Ограничиваем
+            if (newStartHour < this.minHour) {
+                newStartHour = this.minHour;
+                newEndHour = newStartHour + (this.endHour - this.startHour);
+            }
+            if (newEndHour > this.maxHour) {
+                newEndHour = this.maxHour;
+                newStartHour = newEndHour - (this.endHour - this.startHour);
+            }
+
+            // Округляем
+            this.startHour = Math.round(newStartHour * 6) / 6;
+            this.endHour = Math.round(newEndHour * 6) / 6;
 
             this.draw();
             this.updateTimeRange();
@@ -714,22 +1126,42 @@ class TimelineManager {
 
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
-        const mouseXRatio = mouseX / rect.width;
+        const mouseXRatio = Math.max(0, Math.min(1, mouseX / rect.width)); // Ограничиваем от 0 до 1
 
         const centerHour = this.startHour + mouseXRatio * (this.endHour - this.startHour);
 
+        const range = this.endHour - this.startHour;
         const delta = e.deltaY > 0 ? 1.1 : 0.9;
-        let newRange = (this.endHour - this.startHour) * delta;
+        let newRange = range * delta;
 
-        newRange = Math.max(2, Math.min(24, newRange));
+        // Жесткие границы для диапазона
+        const minRange = 1; // минимальный диапазон 1 час
+        const maxRange = this.maxHour - this.minHour;
+        newRange = Math.max(minRange, Math.min(maxRange, newRange));
         newRange = Math.round(newRange * 2) / 2;
 
+        // Вычисляем новые границы, центрируя по позиции мыши
         let newStartHour = centerHour - newRange * mouseXRatio;
-        newStartHour = Math.max(0, Math.min(24 - newRange, newStartHour));
-        newStartHour = Math.round(newStartHour * 6) / 6;
+        let newEndHour = newStartHour + newRange;
 
-        this.startHour = newStartHour;
-        this.endHour = this.startHour + newRange;
+        // Корректируем, если вышли за пределы
+        if (newStartHour < this.minHour) {
+            newStartHour = this.minHour;
+            newEndHour = newStartHour + newRange;
+        }
+        if (newEndHour > this.maxHour) {
+            newEndHour = this.maxHour;
+            newStartHour = newEndHour - newRange;
+        }
+
+        // Округляем для плавности
+        this.startHour = Math.round(newStartHour * 6) / 6;
+        this.endHour = Math.round(newEndHour * 6) / 6;
+
+        // Дополнительная проверка, чтобы startHour и endHour были в пределах
+        this.startHour = Math.max(this.minHour, Math.min(this.maxHour - (this.endHour - this.startHour), this.startHour));
+        this.endHour = this.startHour + (this.endHour - this.startHour);
+        this.endHour = Math.min(this.maxHour, this.endHour);
 
         this.draw();
         this.updateTimeRange();
@@ -748,8 +1180,8 @@ class TimelineManager {
                     scheduledProgramId: segment.scheduledProgramId,
                     type: segment.type,
                     level: segment.graphicsLevel,
-                    start: segment.startSeconds,
-                    end: segment.endSeconds,
+                    start: segment.startFrame,
+                    end: segment.endFrame,
                     yStart: baseY - 30,
                     yEnd: baseY,
                     zIndex: 2,
@@ -764,8 +1196,8 @@ class TimelineManager {
                             scheduledProgramId: graphic.id,
                             type: graphic.type,
                             level: graphic.graphicsLevel,
-                            start: graphic.startSeconds,
-                            end: graphic.endSeconds,
+                            start: graphic.startFrame,
+                            end: graphic.endFrame,
                             yStart: graphicY,
                             yEnd: graphicY + 30,
                             zIndex: 3,
@@ -782,8 +1214,8 @@ class TimelineManager {
                     scheduledProgramId: block.scheduledProgramId,
                     type: block.type,
                     level: block.graphicsLevel,
-                    start: block.startSeconds,
-                    end: block.endSeconds,
+                    start: block.startFrame,
+                    end: block.endFrame,
                     yStart: blockY,
                     yEnd: blockY + 30,
                     zIndex: 3,
@@ -796,8 +1228,8 @@ class TimelineManager {
                 scheduledProgramId: program.scheduledProgramId,
                 type: program.type,
                 level: program.graphicsLevel,
-                start: program.startSeconds,
-                end: program.endSeconds,
+                start: program.startFrame,
+                end: program.endFrame,
                 yStart: baseY - 60,
                 yEnd: baseY,
                 zIndex: 1,
@@ -809,8 +1241,10 @@ class TimelineManager {
         const sortedItems = [...items].sort((a, b) => b.zIndex - a.zIndex);
 
         for (const item of sortedItems) {
-            const startX = ((item.start / 3600 - this.startHour) / totalHours) * this.width;
-            const endX = ((item.end / 3600 - this.startHour) / totalHours) * this.width;
+            const startSeconds = item.start / 25;
+            const endSeconds = item.end / 25;
+            const startX = ((startSeconds / 3600 - this.startHour) / totalHours) * this.width;
+            const endX = ((endSeconds / 3600 - this.startHour) / totalHours) * this.width;
             let width = endX - startX;
 
             let checkStartX = startX;
@@ -897,42 +1331,63 @@ class TimelineManager {
 
     showTooltip(item, clientX, clientY) {
         const style = this.levelStyles[item.level] || this.levelStyles[2];
-        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
 
         let content = '';
+
         if (item.type === 'block') {
-            // Для блока показываем список рекламных роликов
+            // Для блока показываем список всех элементов внутри
             let itemsList = '';
-            if (item.originalData) {
-                itemsList = `<div>• ${item.name || 'Промо-блок'}</div>`;
+            if (item.items && item.items.length > 0) {
+                item.items.forEach(i => {
+                    // Длительность в секундах
+                    const durationSeconds = (i.endFrame - i.startFrame) / 25;
+                    itemsList += `<div style="font-size: 11px; margin-left: 8px;">• ${i.name || 'Промо'}: ${this.formatTime(durationSeconds)}</div>`;
+                });
             }
 
+            // Длительность блока в секундах
+            const blockDurationSeconds = (item.endFrame - item.startFrame) / 25;
+            const startTimeSeconds = item.startFrame / 25;
+            const endTimeSeconds = item.endFrame / 25;
+
             content = `
-                <div style="color: ${style.stroke}; font-weight: 600; margin-bottom: 6px;">📦 ${item.name || 'Промо-блок'}</div>
-                <hr style="margin: 6px 0;">
-                <div style="font-size: 11px;">🕐 ${this.formatTime(item.start)} - ${this.formatTime(item.end)}</div>
-                <div style="font-size: 11px;">⏱ Длительность: ${this.formatTime(item.duration)}</div>
+                <div style="color: ${style.stroke}; font-weight: 600; margin-bottom: 6px;">${item.name || 'Промо-блок'}</div>
+                ${itemsList ? `<div style="margin: 4px 0;">${itemsList}</div><hr style="margin: 4px 0;">` : ''}
+                <div style="font-size: 11px;">${this.formatTime(startTimeSeconds)} - ${this.formatTime(endTimeSeconds)}</div>
+                <div style="font-size: 11px;">Длительность: ${this.formatTime(blockDurationSeconds)}</div>
             `;
         } else if (item.type === 'segment') {
+            const startTimeSeconds = item.startFrame / 25;
+            const endTimeSeconds = item.endFrame / 25;
+            const durationSeconds = (item.endFrame - item.startFrame) / 25;
+
             content = `
-                <div style="font-weight: 600; margin-bottom: 4px;">📺 ${item.name}</div>
+                <div style="font-weight: 600; margin-bottom: 4px;">${item.name}</div>
                 <hr style="margin: 4px 0;">
-                <div style="font-size: 11px;">🕐 ${this.formatTime(item.start)} - ${this.formatTime(item.end)}</div>
-                <div style="font-size: 11px;">⏱ Длительность: ${this.formatTime(item.duration)}</div>
+                <div style="font-size: 11px;">${this.formatTime(startTimeSeconds)} - ${this.formatTime(endTimeSeconds)}</div>
+                <div style="font-size: 11px;">Длительность: ${this.formatTime(durationSeconds)}</div>
             `;
         } else if (item.type === 'program') {
+            const startTimeSeconds = item.startFrame / 25;
+            const endTimeSeconds = item.endFrame / 25;
+            const durationSeconds = (item.endFrame - item.startFrame) / 25;
+
             content = `
-                <div style="font-weight: 600; margin-bottom: 4px;">🎬 ${item.name}</div>
+                <div style="font-weight: 600; margin-bottom: 4px;">${item.name}</div>
                 <hr style="margin: 4px 0;">
-                <div style="font-size: 11px;">🕐 ${this.formatTime(item.start)} - ${this.formatTime(item.end)}</div>
-                <div style="font-size: 11px;">⏱ Длительность: ${this.formatTime(item.duration)}</div>
+                <div style="font-size: 11px;">${this.formatTime(startTimeSeconds)} - ${this.formatTime(endTimeSeconds)}</div>
+                <div style="font-size: 11px;">Длительность: ${this.formatTime(durationSeconds)}</div>
             `;
         } else if (item.type === 'graphic') {
+            const startTimeSeconds = item.startFrame / 25;
+            const endTimeSeconds = item.endFrame / 25;
+            const durationSeconds = (item.endFrame - item.startFrame) / 25;
+
             content = `
-                <div style="color: ${style.stroke}; font-weight: 600; margin-bottom: 4px;">✨ ${item.name}</div>
+                <div style="color: ${style.stroke}; font-weight: 600; margin-bottom: 4px;">${item.name}</div>
                 <hr style="margin: 4px 0;">
-                <div style="font-size: 11px;">🕐 ${this.formatTime(item.start)} - ${this.formatTime(item.end)}</div>
-                <div style="font-size: 11px;">⏱ Длительность: ${this.formatTime(item.duration)}</div>
+                <div style="font-size: 11px;">${this.formatTime(startTimeSeconds)} - ${this.formatTime(endTimeSeconds)}</div>
+                <div style="font-size: 11px;">Длительность: ${this.formatTime(durationSeconds)}</div>
             `;
         }
 
@@ -1027,9 +1482,15 @@ class TimelineManager {
             let newRange = Math.max(2, range - 4);
             newRange = Math.round(newRange * 2) / 2;
 
-            this.startHour = Math.max(0, center - newRange/2);
-            this.startHour = Math.round(this.startHour * 6) / 6;
-            this.endHour = this.startHour + newRange;
+            let newStartHour = center - newRange/2;
+            let newEndHour = center + newRange/2;
+
+            // Ограничиваем, но с учетом отступов
+            newStartHour = Math.max(this.minHour, newStartHour);
+            newEndHour = Math.min(this.maxHour, newEndHour);
+
+            this.startHour = newStartHour;
+            this.endHour = newEndHour;
 
             this.draw();
             this.updateTimeRange();
@@ -1038,14 +1499,20 @@ class TimelineManager {
 
     zoomOut() {
         const range = this.endHour - this.startHour;
-        if (range < 24) {
+        if (range < (this.maxHour - this.minHour)) {
             const center = (this.startHour + this.endHour) / 2;
-            let newRange = Math.min(24, range + 4);
+            let newRange = Math.min(this.maxHour - this.minHour, range + 4);
             newRange = Math.round(newRange * 2) / 2;
 
-            this.startHour = Math.max(0, center - newRange/2);
-            this.startHour = Math.round(this.startHour * 6) / 6;
-            this.endHour = this.startHour + newRange;
+            let newStartHour = center - newRange/2;
+            let newEndHour = center + newRange/2;
+
+            // Ограничиваем, но с учетом отступов
+            newStartHour = Math.max(this.minHour, newStartHour);
+            newEndHour = Math.min(this.maxHour, newEndHour);
+
+            this.startHour = newStartHour;
+            this.endHour = newEndHour;
 
             this.draw();
             this.updateTimeRange();
@@ -1068,8 +1535,30 @@ class TimelineManager {
     updateTimeRange() {
         const rangeElement = document.getElementById('timelineTimeRange');
         if (rangeElement) {
-            const startStr = this.formatTime(this.startHour * 3600);
-            const endStr = this.formatTime(this.endHour * 3600);
+            const formatHourWithOffset = (hour) => {
+                if (hour < 0) {
+                    const absHour = Math.abs(hour);
+                    const hours = Math.floor(absHour);
+                    const minutes = Math.floor((absHour % 1) * 60);
+                    const seconds = Math.floor(((absHour % 1) * 60 % 1) * 60);
+                    return `(-${hours.toString().padStart(2, '0')}):${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                } else if (hour > 24) {
+                    const overHour = hour - 24;
+                    const hours = Math.floor(overHour);
+                    const minutes = Math.floor((overHour % 1) * 60);
+                    const seconds = Math.floor(((overHour % 1) * 60 % 1) * 60);
+                    return `(+${hours.toString().padStart(2, '0')}):${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                } else {
+                    const hours = Math.floor(hour);
+                    const minutes = Math.floor((hour % 1) * 60);
+                    const seconds = Math.floor(((hour % 1) * 60 % 1) * 60);
+                    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            };
+
+            const startStr = formatHourWithOffset(this.startHour);
+            const endStr = formatHourWithOffset(this.endHour);
+
             rangeElement.textContent = `${startStr} - ${endStr}`;
         }
     }

@@ -1,8 +1,8 @@
 {% load custom_filters %}
 
 <div class="schedule-item-container {{ item.type }}"
-     id="item_{{ item.scheduled_program_id }}" data-name="{{ item.name }}" data-start-time="{{ item.DateTime|date:'Y-m-d H:i:s' }}"
-     data-duration="{{ item.duration }}" data-graphics-level = "{{ item.graphics_level }}"
+     id="item_{{ item.scheduled_program_id }}" data-name="{{ item.name }}" data-start-time="{{ item.start_time }}"
+     data-date-time="{{ item.DateTime|date:'Y-m-d H:i:s' }}" data-duration="{{ item.duration }}" data-graphics-level = "{{ item.graphics_level }}"
      data-scheduled-program-id="{{ item.scheduled_program_id }}" data-parent-id="{{ item.ParentID|default:'' }}"
      data-level="{{ item.Level }}" data-graphics="{% if item.graphics %}{{ item.graphics|safe }}{% else %}[]{% endif %}">
 

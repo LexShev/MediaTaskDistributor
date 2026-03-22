@@ -122,13 +122,21 @@ const displayState = {
 // Обновленные функции переключателей
 function toggleGraphics(switcher) {
     const graphicsContainer = document.getElementById('graphics_container');
-    graphicsContainer.style.display = switcher.checked ? 'block' : 'none';
+    if (switcher.checked) {
+        graphicsContainer.style.display = 'block';
 
-    if (window.timelineManager) {
-        console.log('Initializing timeline manager');
-        window.timelineManager.init();
+        if (window.timelineManager) {
+            console.log('Initializing timeline manager');
+            window.timelineManager.init();
+        } else {
+            console.error('TimelineManager not found!');
+        }
     } else {
-        console.error('TimelineManager not found!');
+        if (window.timelineManager) {
+            console.log('Destroying timeline manager');
+            window.timelineManager.destroy()
+        }
+        graphicsContainer.style.display = 'none'
     }
 }
 
