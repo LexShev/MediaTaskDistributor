@@ -18,6 +18,12 @@ class MainSettings:
         'card_error': 'Карточка материала заполнена неверно',
     }
 
+    editors_status_dict = {
+        'not_ready': 'Не готов',
+        'approval': 'Утверждение',
+        'ready': 'Готов',
+    }
+
     color_dict = {
         'no_material': 'danger',
         'not_ready': 'primary',
@@ -95,6 +101,13 @@ class MainSettings:
         """Принудительно обновить словарь сотрудников"""
         self._workers_dict = self.oplan_workers_dict()
         return self._workers_dict
+
+    def get_oplan_channels_dict(self, status):
+        try:
+            return self.editors_status_dict.get(status, '')
+        except Exception as error:
+            print(error)
+            return ''
 
 main_settings = MainSettings()
 

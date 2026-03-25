@@ -71,6 +71,13 @@
                           <li><a href="{% url 'home' %}on-air-report/search/"
                                  class="dropdown-item {% is_active request '/on-air-report/search/' %}">Поиск</a></li>
                       {% endif %}
+
+                       {% if permissions.auth_group == 'admin' %}
+                          <li><a href="{% url 'home' %}playlist/" class="dropdown-item">Сетки вещания</a></li>
+                      {% endif %}
+                        {% if permissions.auth_group == 'admin' %}
+                          <li><a href="{% url 'home' %}playlist/editors_notifications/" class="dropdown-item">Уведомления</a></li>
+                      {% endif %}
                   </ul>
               </li>
             {% endif %}

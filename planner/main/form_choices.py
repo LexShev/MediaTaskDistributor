@@ -71,6 +71,15 @@ class Choices:
             self.workers_list.extend(cursor.fetchall() or ())
         return self.workers_list or []
 
+    def editors(self, label='-', exclude_init=False):
+        self.editors_list = [('', label)]
+        if exclude_init:
+            self.editors_list = []
+        with connections[PLANNER_DB].cursor() as cursor:
+            cursor.execute('SELECT [planner_editor_id], [full_name] FROM [planner].[dbo].[editors_list]')
+            self.editors_list.extend(cursor.fetchall() or ())
+        return self.editors_list or []
+
     def sorting(self):
         return (
             ('sched_date', 'дате эфира'),
@@ -147,6 +156,28 @@ class Choices:
         if extra:
             status_list.extend(extra)
         return status_list
+
+    def read_status(self, label='-', extra=None):
+        status_list = [
+            ('', label),
+            (1, 'Прочитано'),
+            (0, 'Не прочитано'),
+        ]
+        if extra:
+            status_list.extend(extra)
+        return status_list
+
+    def notification_type(self, label='-', extra=None):
+        notification_type_list = [
+            ('', label),
+            ('info', 'Информационное'),
+            ('status', 'Изменение статуса'),
+            ('update', 'Обновление сеток'),
+            ('error', 'Ошибка'),
+        ]
+        if extra:
+            notification_type_list.extend(extra)
+        return notification_type_list
 
     def mark(self, label='-'):
         return [

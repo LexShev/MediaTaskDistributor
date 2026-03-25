@@ -7,10 +7,10 @@ class NotificationManager {
 
         // Если контейнер не найден, создаем его
         if (!this.container) {
-            console.warn('⚠️ Notification container not found, creating one...');
+            console.warn('Notification container not found, creating one...');
             this.createContainer();
         } else {
-            console.log('✅ Notification container found');
+            console.log('Notification container found');
         }
 
         this.queue = [];
@@ -34,34 +34,34 @@ class NotificationManager {
         container.style.maxWidth = '350px';
         document.body.appendChild(container);
         this.container = container;
-        console.log('✅ Notification container created in bottom-right corner');
+        console.log('Notification container created in bottom-right corner');
     }
 
     initWebSocket() {
         const wsScheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = wsScheme + '//' + window.location.host + '/ws/notifications/';
 
-        console.log('🔌 Connecting to WebSocket:', wsUrl);
+        console.log('Connecting to WebSocket:', wsUrl);
 
         try {
             this.ws = new WebSocket(wsUrl);
 
             this.ws.onopen = () => {
-                console.log('✅ WebSocket connected');
+                console.log('WebSocket connected');
                 this.reconnectAttempts = 0;
             };
 
             this.ws.onmessage = (event) => {
-                console.log('📨 Raw message:', event.data);
+                console.log('Raw message:', event.data);
                 try {
                     const data = JSON.parse(event.data);
-                    console.log('📨 Parsed message:', data);
+                    console.log("Parsed message:", data);
 
                     if (data.type === 'notification') {
-                        console.log('🔔 Got notification:', data.notification);
+                        console.log(`Got notification:`, data.notification);
                         this.addToQueue(data.notification);
                     } else if (data.type === 'connection_established') {
-                        console.log('🔌 Connection established:', data.message);
+                        console.log('Connection established:', data.message);
                     }
                 } catch (e) {
                     console.error('Error parsing message:', e);
@@ -92,7 +92,7 @@ class NotificationManager {
     }
 
     addToQueue(notification) {
-        console.log('📥 Adding to queue:', notification);
+        console.log('Adding to queue:', notification);
         this.queue.push(notification);
         this.processQueue();
     }
@@ -129,8 +129,8 @@ class NotificationManager {
 
         // Определяем цвет для svg в зависимости от типа
         const svgColor = {
-            'update': '#28a745', // зеленый
-            'status': '#ffc107', // желтый
+            'update': '#ffc107', // желтый
+            'status': '#28a745', // зеленый
             'error': '#dc3545',   // красный
             'info': '#17a2b8'      // голубой
         }[notification.type] || '#007aff'; // синий по умолчанию

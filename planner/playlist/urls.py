@@ -10,5 +10,7 @@ urlpatterns = [
     path("update_playlist_status/", update_playlist_status, name="update_playlist_status"),
     path("update_playlist_comment/", update_playlist_comment, name="update_playlist_comment"),
     path("editors_notifications/", editors_notifications, name="editors_notifications"),
+    path("load_notification_list/", load_notification_list, name="load_notification_list"),
+    path("update_editors_notification_filter/", update_editors_notification_filter, name="update_editors_notification_filter"),
 
 ]

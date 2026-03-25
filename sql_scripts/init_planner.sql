@@ -87,6 +87,23 @@ VALUES
 (11, 13, 'Арина Анастасеева');
 
 use planner
+CREATE TABLE editors_list
+(
+    oplan_editor_id INT PRIMARY KEY,
+	planner_editor_id INT NOT NULL,
+	full_name NVARCHAR(50)
+);
+
+INSERT INTO [planner].[dbo].[editors_list]
+(oplan_editor_id, planner_editor_id, full_name)
+VALUES
+(12, 16, 'Иван Лянгер'),
+(15, 17, 'Ника Леонтьева'),
+(16, 22, 'Денис Быков'),
+(17, 18, 'Павел Нестратенко'),
+(40, 21, 'Алёна	Хвостицкая');
+
+use planner
 CREATE TABLE oplan_users_list
 (
     oplan_id INT PRIMARY KEY,

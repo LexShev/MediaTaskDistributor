@@ -1,4 +1,3 @@
-# notifications/consumers.py - ИСПРАВЛЕННЫЙ ИМПОРТ
 import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -6,7 +5,7 @@ from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from .models import Notification, NotificationRecipient  # 👈 Импортируем обе модели!
+from .models import Notification, NotificationRecipient
 
 logger = logging.getLogger(__name__)
 

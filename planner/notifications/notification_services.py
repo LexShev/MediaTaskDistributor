@@ -4,7 +4,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 
-def create_notification(sender, recipients, message, comment='', notification_type='info'):
+def create_notification(sender, recipients, message, comment='', notification_type='info', schedule_id=None):
     """
     Создание уведомления для одного или нескольких получателей
 
@@ -20,7 +20,8 @@ def create_notification(sender, recipients, message, comment='', notification_ty
         sender=sender if isinstance(sender, User) else None,
         message=message,
         comment=comment,
-        notification_type=notification_type
+        notification_type=notification_type,
+        schedule_id=schedule_id
     )
 
     # Определяем получателей

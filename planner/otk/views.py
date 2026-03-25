@@ -43,39 +43,6 @@ def otk(request):
         if search_form.is_valid():
             search_form.save()
 
-        # otk_fail = request.POST.get('otk_fail')
-        # approve_fix = request.POST.get('approve_fix')
-        #
-        # if otk_fail:
-        #     otk_fail_prog_id = request.POST.getlist('otk_fail_prog_id')
-        #     otk_fail_comment = request.POST.getlist('otk_fail_comment')
-        #     worker_id_list = request.POST.getlist('otk_fail_worker_id')
-        #     otk_fail_list = []
-        #     for program_id, comment, worker_id in zip(otk_fail_prog_id, otk_fail_comment, worker_id_list):
-        #         otk_fail_list.append({'program_id': program_id, 'comment': comment})
-        #         create_notification(
-        #             {'sender': user_id, 'recipient': worker_id, 'program_id': program_id,
-        #              'message': comment, 'comment': 'Задача отправлена на доработку'}
-        #         )
-        #
-        #     change_task_status_batch(otk_fail_list, 'otk_fail')
-        #     update_comment_batch(otk_fail_list, 'otk_fail', user_id)
-        # if approve_fix:
-        #     fix_id = request.POST.getlist('fix_program_id')
-        #     fix_comment = request.POST.getlist('fix_comment')
-        #     fix_file_path = request.POST.getlist('fix_file_path')
-        #     worker_id_list = request.POST.getlist('fix_worker_id')
-        #     otk_fix_list = []
-        #     for program_id, comment, file_path, worker_id in zip(fix_id, fix_comment, fix_file_path, worker_id_list):
-        #         otk_fix_list.append({'program_id': program_id, 'comment': comment, 'file_path': file_path})
-        #         create_notification(
-        #             {'sender': user_id, 'recipient': worker_id, 'program_id': program_id,
-        #              'message': comment, 'comment': 'Исходник исправлен'}
-        #         )
-        #
-        #     change_task_status_batch(otk_fix_list, 'fix_ready')
-        #     update_comment_batch(otk_fix_list, 'fix_ready', user_id)
-
         filter_form = OtkForm(request.POST, instance=init_dict)
         if filter_form.is_valid():
             filter_form.save()

@@ -5,160 +5,34 @@
 
 {% block body %}
 
-<link href="{% static '/css/playlist.css' %}" rel="stylesheet">
+<link href="{% static '/css/editors_notifications.css' %}" rel="stylesheet">
+
 <div class="container-flex px-lg-5">
     <br>
-<div class="row mx-0 mb-3 align-items-center">
-          <div class="col ps-0">
-            <div class="form-floating">
-              <input type="date" name="ready_date" class="form-control" id="ready_date">
-              <label for="ready_date">Время:</label>
-            </div>
-          </div>
-
-          <div class="col ps-0">
-            <div class="form-floating">
-              <select name="worker_id" class="form-select" id="worker_id">
-                  <option value="" selected="">-</option>
-                  <option value="3">Александр Кисляков</option>
-                  <option value="5">Ольга Кузовкина</option>
-                  <option value="4">Дмитрий Гатенян</option>
-                  <option value="7">Мария Сучкова</option>
-                  <option value="8">Роман Рогачев</option>
-                  <option value="9">Анастасия Чебакова</option>
-                  <option value="10">Олег Кашежев</option>
-                  <option value="11">Марфа Тарусина</option>
-                  <option value="12">Евгений Доманов</option>
-                  <option value="13">Арина Анастасеева</option>
-                </select>
-              <label for="worker_id">Сотрудник:</label>
-            </div>
-          </div>
-
-          <div class="col ps-0">
-            <div class="form-floating">
-              <select name="material_type" class="form-select" id="material_type" maxlength="50">
-                <option value="" selected="">-</option>
-                <option value="film">Фильм</option>
-                <option value="season">Сериал</option>
-              </select>
-              <label for="material_type">Категория:</label>
-            </div>
-          </div>
-
-          <div class="col ps-0">
-            <div class="form-floating">
-              <select name="sched_id" class="form-select" id="sched_id">
-                  <option value="" selected="">-</option>
-                  <option value="1">Общая задача</option>
-                  <option value="3">Крепкое</option>
-                  <option value="5">Планета дети</option>
-                  <option value="6">Мировой сериал</option>
-                  <option value="7">Мужской сериал</option>
-                  <option value="8">Наше детство</option>
-                  <option value="9">Романтичный сериал</option>
-                  <option value="10">Наше родное кино</option>
-                  <option value="11">Семейное кино</option>
-                  <option value="12">Советское родное кино</option>
-                  <option value="20">Кино +</option>
-                  <option value="36">Кино Индии</option>
-                  <option value="99">Мои задачи</option>
-                </select>
-              <label for="sched_id">Канал:</label>
-            </div>
-          </div>
+  <div class="row mx-0 mb-3 align-items-center">
+    {% for field in filter_form %}
+      <div class="col ps-0">
+        <div class="form-floating">
+          {{ field }}
+          {{ field.label_tag }}
+        </div>
       </div>
+    {% endfor %}
+
+  </div>
 
     <div class="input-group mb-3">
-      <label class="input-group-text" for="search_type">Поиск</label>
-        <input type="text" name="search_input" class="form-control" id="search_input" placeholder="начните вводить содержание уведомления ..." maxlength="200">
-        <button type="button" class="btn btn-outline-secondary" onclick="showNotification()" style="width: 7rem;">
+      <label class="input-group-text" for="{{ search_form.search_input.id_for_label }}">{{ search_form.search_input.label }}</label>
+        {{ search_form.search_input }}
+        <button type="button" class="btn btn-outline-secondary" onclick="loadNotificationList()" id="search_btn" style="width: 7rem;">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
           </svg>
         </button>
     </div>
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id=""></th>
-          <th style="width: 10%;">Время</th>
-          <th style="width: 7%;">Категория</th>
-          <th style="width: 10%;">Канал</th>
-          <th style="width: 12%;">Сотрудник</th>
-          <th style="width: 60%;">Содержание</th>
-        </tr>
-      </thead>
-      <tbody class="table-group-divider" id="tableBody">
-        {% for item in notifications_list %}
-          <tr>
-            <td>
-              <input class="form-check-input me-1" type="checkbox"
-                     data-sender="{{ item.notification.sender.id }}"
-                     value="{{ item.id }}"
-                     name="notification_ids">
-            </td>
-            <td>{{ item.notification.timestamp|date:"Y-m-d H:i" }}</td>
-            <td>{{ item.notification.get_notification_type_display }}</td>
-            <td>{{ item.notification.schedule_id }}</td>
-            <td>{{ item.notification.sender.first_name }} {{ item.notification.sender.last_name }}</td>
-            <td>{{ item.notification.message }}</td>
 
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div id="editors_list_container">
 
-    <nav class="">
-      <ul class="pagination justify-content-end">
-        <li class="page-item">
-          <a class="page-link" href="#" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-          <a class="page-link" href="#" aria-label="Next">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-</div>
-
-<div aria-live="polite" aria-atomic="true" class="position-relative">
-  <!-- Position it: -->
-  <!-- - `.toast-container` for spacing between toasts -->
-  <!-- - `top-0` & `end-0` to position the toasts in the upper right corner -->
-  <!-- - `.p-3` to prevent the toasts from sticking to the edge of the container  -->
-  <div class="toast-container top-0 end-0 p-3">
-
-    <!-- Then put toasts within -->
-    <div class="toast" role="alert" id='notification_1' aria-live="assertive" aria-atomic="true">
-      <div class="toast-header">
-        <img src="" class="rounded me-2" alt="">
-        <strong class="me-auto">Bootstrap</strong>
-        <small class="text-body-secondary">just now</small>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        See? Just like this.
-      </div>
-    </div>
-
-    <div class="toast" role="alert" id="notification_2" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header">
-        <img src="" class="rounded me-2" alt="">
-        <strong class="me-auto">Bootstrap</strong>
-        <small class="text-body-secondary">2 seconds ago</small>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        Heads up, toasts will stack automatically
-      </div>
-    </div>
   </div>
 </div>
 <script type="text/javascript" src="{% static 'js/editors_notifications.js' %}"></script>

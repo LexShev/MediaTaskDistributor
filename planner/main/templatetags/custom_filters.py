@@ -438,3 +438,23 @@ def deadline_intensity(task_deadline):
     except Exception as error:
         print(error)
         return ''
+
+
+@register.filter
+def page_range_three(page_obj):
+    """Всегда показывает 3 страницы, если их достаточно"""
+    current = page_obj.number
+    total = page_obj.paginator.num_pages
+
+    if total <= 3:
+        return range(1, total + 1)
+
+    # Определяем начальную страницу
+    if current == 1:
+        start = 1
+    elif current == total:
+        start = total - 2
+    else:
+        start = current - 1
+
+    return range(start, start + 3)

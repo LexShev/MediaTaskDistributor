@@ -77,6 +77,25 @@ def choose_type_query(query):
         """
     return sql_condition, params
 
+def get_schedule_by_schedule_day_id(schedule_day_id):
+    try:
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f"""
+            SELECT
+                SchedDay.[schedule_id], SchedDay.[day_date], Schedule.[schedule_name]
+            FROM [oplan3].[dbo].[schedule_day] AS SchedDay
+            JOIN [oplan3].[dbo].[schedule] AS Schedule
+                ON SchedDay.[schedule_id] = Schedule.[schedule_id]
+            WHERE SchedDay.[schedule_day_id] = %s
+            """
+            cursor.execute(query, (schedule_day_id,))
+            result = cursor.fetchone()
+            if result:
+                return dict(zip(['schedule_id', 'schedule_date', 'schedule_name'], result))
+    except Exception as error:
+        print(error)
+        return None
+
 def get_schedule_list(query):
     sql_condition, params = choose_type_query(query)
     with connections[OPLAN_DB].cursor() as cursor:

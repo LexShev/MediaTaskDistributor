@@ -1,0 +1,89 @@
+{% load custom_filters %}
+
+{% if notifications_list|length > 0 %}
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>
+              <input class="form-check-input me-1" type="checkbox" value="" id="main_notification_checkbox" onclick="changeTableCheckboxes()"></th>
+          <th>Время</th>
+          <th>Категория</th>
+          <th>Канал</th>
+          <th>Сотрудник</th>
+          <th>Содержание</th>
+          <th>Комментарий</th>
+        </tr>
+      </thead>
+      <tbody class="table-group-divider" id="notifications_table">
+        {% for item in notifications_list %}
+          <tr class="{% if not item.is_read %}table-active{% endif %}
+                     {% if item.notification.notification_type == 'info' %}border-info-subtle
+                     {% elif item.notification.notification_type == 'status' %}border-success-subtle
+                     {% elif item.notification.notification_type == 'update' %}border-warning-subtle
+                     {% elif item.notification.notification_type == 'error' %}border-danger-subtle
+                     {% endif %}">
+            <td>
+              <input class="form-check-input me-1 notification-checkbox" type="checkbox"
+                     data-sender="{{ item.notification.sender.id }}"
+                     value="{{ item.id }}"
+                     name="notification_ids">
+            </td>
+            <td>{{ item.notification.timestamp|date:"Y-m-d H:i" }}</td>
+            <td>{{ item.notification.get_notification_type_display }}</td>
+            <td>{{ item.notification.schedule_id|schedule_name }}</td>
+            <td>{{ item.notification.sender.first_name }} {{ item.notification.sender.last_name }}</td>
+            <td>{{ item.notification.message }}</td>
+            <td>{{ item.notification.comment }}</td>
+
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+{% else %}
+    <div class="alert alert-info" role="alert">Нет данных</div>
+{% endif %}
+
+{% if paginator.num_pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination justify-content-end">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <div class="page-link pagination-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ page_obj.previous_page_number }}">
+                    <span aria-hidden="true">&laquo;</span>
+                </div>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj|page_range_three %}
+                {% if num == page_obj.number %}
+                <li class="page-item active" data-page-number="{{ num }}">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <div class="page-link pagination-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ num }}">{{ num }}</div>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <div class="page-link pagination-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ page_obj.next_page_number }}">
+                    <span aria-hidden="true">&raquo;</span>
+                </div>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+        <div class="text-muted text-end small">
+            Всего уведомлений: {{ paginator.count }}
+        </div>
+    </nav>
+{% endif %}

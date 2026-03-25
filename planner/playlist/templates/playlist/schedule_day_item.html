@@ -51,7 +51,7 @@
                 </span>
                 <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
                    style="cursor: pointer;" {% if item.MediumName %}title="{{ item.MediumName }}"{% endif %}
-                   data-ParentID="{{ item.ParentID }}" href="{% url 'home' %}{{ item.program_id }}">
+                   data-ParentID="{{ item.ParentID }}" {% if item.type == 'program' %}href="{% url 'home' %}{{ item.program_id }}{% endif %}">
                     {{ item.name }}
                 </a>
             </div>
