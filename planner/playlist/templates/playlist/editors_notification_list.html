@@ -42,9 +42,10 @@
 {% else %}
     <div class="alert alert-info" role="alert">Нет данных</div>
 {% endif %}
-
+<div class="d-flex mt-3">
+    <button class="btn" style="display: none;" id="mark_as_read_btn" onclick="markAsRead()">Пометить прочитанным</button>
 {% if paginator.num_pages > 1 %}
-    <nav class="mt-3">
+    <nav class="ms-auto">
         <ul class="pagination justify-content-end">
             {% if page_obj.has_previous %}
             <li class="page-item">
@@ -87,3 +88,4 @@
         </div>
     </nav>
 {% endif %}
+</div>

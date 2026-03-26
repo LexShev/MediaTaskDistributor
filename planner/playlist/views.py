@@ -85,7 +85,7 @@ def update_playlist_status(request):
 
         try:
             message = f'Статус плейлиста {schedule_name} на {schedule_date} изменён'
-            create_notification(request.user, (1,),
+            create_notification(request.user, (1, 2),
                                 message=message,
                                 comment=f'Статус изменён на "{main_settings.get_oplan_channels_dict(status)}"',
                                 notification_type='status',

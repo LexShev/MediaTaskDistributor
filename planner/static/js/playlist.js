@@ -91,14 +91,103 @@ const displayState = {
                 }
             }
         });
+
+    },
+
+    // Метод для применения состояния графики
+    applyGraphicsState() {
+        const graphicsContainer = document.getElementById('graphics_container');
+        if (!graphicsContainer) return;
+
+        if (this.showGraphics) {
+            graphicsContainer.style.display = 'block';
+            this.initializeGraphics();
+        } else {
+            graphicsContainer.style.display = 'none';
+            this.destroyGraphics();
+        }
+    },
+
+    // Метод для инициализации графики
+    initializeGraphics() {
+        if (window.timelineManager) {
+            // Проверяем, есть ли данные для отрисовки
+            const hasData = document.querySelectorAll('.program').length > 0;
+
+            if (!window.timelineManager.isInitialized() && hasData) {
+                console.log('Initializing timeline manager');
+                window.timelineManager.init();
+            } else if (window.timelineManager.isInitialized() && hasData) {
+                console.log('Timeline manager already initialized, reinitializing');
+                window.timelineManager.reinit();
+            } else if (!hasData) {
+                console.log('No data to display in timeline');
+                window.timelineManager.clear();
+            }
+        } else {
+            console.error('TimelineManager not found!');
+        }
+    },
+
+    // Метод для уничтожения графики
+    destroyGraphics() {
+        if (window.timelineManager && window.timelineManager.isInitialized()) {
+            console.log('Destroying timeline manager');
+            window.timelineManager.destroy();
+        }
+    },
+
+    // Метод для очистки графики (при загрузке новых данных)
+    clearGraphics() {
+        const graphicsContainer = document.getElementById('graphics_container');
+        if (graphicsContainer && this.showGraphics) {
+            // Скрываем контейнер во время загрузки
+            graphicsContainer.style.display = 'none';
+        }
+
+        if (window.timelineManager) {
+            window.timelineManager.clear();
+        }
+    },
+
+    // Метод для восстановления графики после загрузки
+    restoreGraphics() {
+        const graphicsContainer = document.getElementById('graphics_container');
+        if (!graphicsContainer) return;
+
+        if (this.showGraphics) {
+            graphicsContainer.style.display = 'block';
+            // Даем время на отрисовку DOM
+            setTimeout(() => {
+                if (window.timelineManager) {
+                    const hasData = document.querySelectorAll('.program').length > 0;
+                    if (hasData) {
+                        if (window.timelineManager.isInitialized()) {
+                            window.timelineManager.reinit();
+                        } else {
+                            window.timelineManager.init();
+                        }
+                    } else {
+                        window.timelineManager.clear();
+                    }
+                }
+            }, 50);
+        } else {
+            graphicsContainer.style.display = 'none';
+            if (window.timelineManager) {
+                window.timelineManager.destroy();
+            }
+        }
     },
 
     // Метод для синхронизации переключателей с состояниями
     syncSwitches() {
+        const graphicsSwitch = document.getElementById('graphics_switcher');
         const advertSwitch = document.getElementById('advert');
         const programSwitch = document.getElementById('program_switcher');
         const expandSwitch = document.getElementById('expand_switcher');
 
+        if (graphicsSwitch) graphicsSwitch.checked = this.showGraphics;
         if (advertSwitch) advertSwitch.checked = this.hideAdvert;
         if (programSwitch) programSwitch.checked = this.hideProgram;
         if (expandSwitch) expandSwitch.checked = this.collapseAll;
@@ -116,28 +205,23 @@ const displayState = {
             this.collapseAll = allHidden;
             this.syncSwitches();
         }
+    },
+    refreshAfterLoad() {
+        this.applyToTable();
+        this.syncSwitches();
+        this.restoreGraphics();
     }
 };
 
 // Обновленные функции переключателей
 function toggleGraphics(switcher) {
-    const graphicsContainer = document.getElementById('graphics_container');
-    if (switcher.checked) {
-        graphicsContainer.style.display = 'block';
+    displayState.showGraphics = switcher.checked;
 
-        if (window.timelineManager) {
-            console.log('Initializing timeline manager');
-            window.timelineManager.init();
-        } else {
-            console.error('TimelineManager not found!');
-        }
-    } else {
-        if (window.timelineManager) {
-            console.log('Destroying timeline manager');
-            window.timelineManager.destroy()
-        }
-        graphicsContainer.style.display = 'none'
-    }
+    // Применяем состояние
+    displayState.applyGraphicsState();
+
+    // Сохраняем состояние в localStorage (опционально)
+    localStorage.setItem('showGraphics', switcher.checked);
 }
 
 function toggleAdvert(switcher) {
@@ -187,7 +271,26 @@ function toggleScheduleItem(scheduledProgramId) {
     displayState.updateCollapseState();
 }
 
+// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
+    // Загружаем сохраненное состояние графики из localStorage
+    const savedGraphicsState = localStorage.getItem('showGraphics');
+    if (savedGraphicsState !== null) {
+        displayState.showGraphics = savedGraphicsState === 'true';
+    } else {
+        displayState.showGraphics = false; // По умолчанию выключено
+    }
+
+    // Синхронизируем переключатели с состоянием
+    displayState.syncSwitches();
+
+    // Применяем состояние графики
+    displayState.applyGraphicsState();
+
+    // Инициализация date navigation
+    initDateNavigation();
+
+    // Загружаем таблицу
     load_schedule_table();
 
     let inputScheduleDate = document.getElementById('schedule_date');
@@ -196,14 +299,13 @@ document.addEventListener('DOMContentLoaded', function() {
             updateScheduleFilter({ 'schedule_date': event.target.value });
         });
     }
+
     try {
         initPlaylistSettings();
         initSyncSwitchers();
+    } catch(e) {
+        console.error('Ошибка при инициализации:', e);
     }
-    catch(e) {
-        console.error('Ошибка при инициализации:',e);
-    }
-
 });
 
 // Дополнительно: инициализация при загрузке страницы
@@ -217,10 +319,7 @@ function initSyncSwitchers() {
             if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                 // Проверяем, не была ли добавлена новая таблица
                 if (document.getElementById('schedule_day_modal_body').children.length > 0) {
-                    displayState.applyToTable();
-                    displayState.updateCollapseState();
-                    // Дополнительно проверяем состояние collapseAll
-                    displayState.updateCollapseState();
+                    displayState.refreshAfterLoad();
                 }
             }
         });
@@ -399,6 +498,9 @@ function openSchedDayListById(schedule) {
 
     console.log('Opening schedule day by ID:', scheduleDayId);
 
+    // Очищаем графику перед загрузкой
+    displayState.clearGraphics();
+
     // Инициализация модального окна
     const scheduleDayModal = bootstrap.Modal.getInstance(document.getElementById('schedule_day_modal')) ||
                             new bootstrap.Modal(document.getElementById('schedule_day_modal'));
@@ -431,6 +533,9 @@ function openSchedDayListByDate(scheduleDayDate) {
 
     console.log('Loading schedule by date:', scheduleId, scheduleDayDate);
 
+    // Очищаем графику перед загрузкой
+    displayState.clearGraphics();
+
     // Обновляем текущую дату в input
     const currentDateInput = document.getElementById('current_schedule_day_date');
     if (currentDateInput) {
@@ -447,6 +552,17 @@ function openSchedDayListByDate(scheduleDayDate) {
 
 function getScheduleList(query) {
     const scheduleDayModalBody = document.getElementById('schedule_day_modal_body');
+    const graphicsContainer = document.getElementById('graphics_container');
+
+    // Скрываем графику во время загрузки
+    if (graphicsContainer && displayState.showGraphics) {
+        graphicsContainer.style.display = 'none';
+    }
+
+    // Очищаем canvas
+    if (window.timelineManager) {
+        window.timelineManager.clear();
+    }
 
     // Показываем спиннер загрузки
     scheduleDayModalBody.innerHTML = `
@@ -473,14 +589,20 @@ function getScheduleList(query) {
             scheduleDayModalBody.innerHTML = data.html;
             console.log('Модальная таблица загружена');
 
-            displayState.applyToTable();
-            displayState.syncSwitches();
+            setTimeout(() => {
+                // Применяем все сохраненные состояния к новой таблице
+                displayState.refreshAfterLoad();
+            }, 100);
         } else {
             console.log('error', data.message);
             scheduleDayModalBody.innerHTML = `
                 <div class="alert alert-danger">
                     Ошибка загрузки: ${data.message}
                 </div>`;
+            // Показываем графику, если была включена
+            if (graphicsContainer && displayState.showGraphics) {
+                graphicsContainer.style.display = 'block';
+            }
         }
     })
     .catch(error => {
@@ -556,11 +678,6 @@ function initDateNavigation() {
         });
     }
 }
-
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    initDateNavigation();
-});
 
 function updatePlaylistStatus(statusInfo) {
     const scheduleDayId = statusInfo.parentElement?.dataset?.scheduleDayId || null;

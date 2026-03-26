@@ -2,13 +2,13 @@
 <table class="table table-striped table-hover" id="schedule_table">
     <thead class="">
         <tr>
-            <th style="width: 1%;"></th>
-            <th style="width: 10%;">Дата эфира</th>
-            <th style="width: 15%;">Канал</th>
-            <th style="width: 10%;">Дата изменения</th>
-            <th style="width: 10%;">Редактор</th>
-            <th style="width: 15%;">Статус</th>
-            <th style="width: 39%;">Комментарий</th>
+            <th></th>
+            <th>Дата эфира</th>
+            <th>Канал</th>
+            <th>Дата изменения</th>
+            <th>Редактор</th>
+            <th>Статус</th>
+            <th>Комментарий</th>
         </tr>
     </thead>
     <tbody class="table-group-divider" id="schedule_table_body">
@@ -33,19 +33,19 @@
                          id="not-ready-radio-{{ schedule.SchedDay_schedule_day_id }}" autocomplete="off"
                          {% if not schedule.Status_status or schedule.Status_status == 'not_ready'%}checked{% endif %}
                          value="not_ready" onclick="updatePlaylistStatus(this)">
-                  <label class="btn btn-outline-danger" for="not-ready-radio-{{ schedule.SchedDay_schedule_day_id }}">не готов</label>
+                  <label class="btn btn-outline-danger text-nowrap" for="not-ready-radio-{{ schedule.SchedDay_schedule_day_id }}">не готов</label>
 
                   <input type="radio" class="btn-check" name="status-radio-{{ schedule.SchedDay_schedule_day_id }}"
                          id="approval-radio-{{ schedule.SchedDay_schedule_day_id }}" autocomplete="off"
                          value="approval" onclick="updatePlaylistStatus(this)"
                          {% if schedule.Status_status == 'approval'%}checked{% endif %}>
-                  <label class="btn btn-outline-warning" for="approval-radio-{{ schedule.SchedDay_schedule_day_id }}">утверждение</label>
+                  <label class="btn btn-outline-warning text-nowrap" for="approval-radio-{{ schedule.SchedDay_schedule_day_id }}">утверждение</label>
 
                   <input type="radio" class="btn-check" name="status-radio-{{ schedule.SchedDay_schedule_day_id }}"
                          id="ready-radio-{{ schedule.SchedDay_schedule_day_id }}" autocomplete="off"
                          value="ready" onclick="updatePlaylistStatus(this)"
                          {% if schedule.Status_status == 'ready'%}checked{% endif %}>
-                  <label class="btn btn-outline-success" for="ready-radio-{{ schedule.SchedDay_schedule_day_id }}">готов</label>
+                  <label class="btn btn-outline-success text-nowrap" for="ready-radio-{{ schedule.SchedDay_schedule_day_id }}">готов</label>
                 </div>
             </td>
             <td data-schedule-day-id="{{ schedule.SchedDay_schedule_day_id }}">

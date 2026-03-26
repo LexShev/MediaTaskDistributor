@@ -23,6 +23,55 @@ function showNotification() {
     });
 }
 
+function handleReadButton() {
+    const markAsReadBtn = document.getElementById('mark_as_read_btn')
+    let notificationsTable = document.getElementById('notifications_table');
+    let tableCheckboxes = notificationsTable.querySelectorAll('.notification-checkbox');
+    let checkedIds = Array.from(tableCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.value);
+    if (checkedIds.length > 0) {
+        markAsReadBtn.style.display = 'block'
+    } else {
+        markAsReadBtn.style.display = 'none'
+    }
+}
+
+function markAsRead() {
+    const mainCheckbox = document.getElementById('main_notification_checkbox');
+    const markAsReadBtn = document.getElementById('mark_as_read_btn')
+    let notificationsTable = document.getElementById('notifications_table');
+    let tableCheckboxes = notificationsTable.querySelectorAll('.notification-checkbox');
+    let checkedIds = Array.from(tableCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.value);
+
+        fetch('/notifications/mark_notification_as_read/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(checkedIds),
+        credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                console.log(data.status, data.message);
+                loadNotificationList();
+
+            }
+            else {
+                console.log('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error marking as read notifications:', error);
+        })
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     try {
         loadNotificationList();
@@ -63,6 +112,13 @@ function initTableCheckboxes() {
             checkbox.addEventListener('change', changeMainCheckbox)
         })
     } catch(error) {
+        console.error('Error setup event:', error);
+    }
+
+    try {
+        let mainCheckbox = document.getElementById('main_notification_checkbox');
+        mainCheckbox.addEventListener('change', handleReadButton)
+    } catch (error) {
         console.error('Error setup event:', error);
     }
 }
@@ -170,6 +226,7 @@ function changeTableCheckboxes() {
 };
 
 function changeMainCheckbox() {
+    const markAsReadBtn = document.getElementById('mark_as_read_btn')
     let mainCheckbox = document.getElementById('main_notification_checkbox');
     let notificationsTable = document.getElementById('notifications_table');
     let tableCheckboxes = notificationsTable.querySelectorAll('.notification-checkbox');
@@ -183,14 +240,17 @@ function changeMainCheckbox() {
     if (0 < checkedCheckboxesList.length && checkedCheckboxesList.length < tableCheckboxes.length) {
         mainCheckbox.indeterminate = true;
         mainCheckbox.checked = false;
+        markAsReadBtn.style.display = 'block'
     }
     else if (checkedCheckboxesList.length === tableCheckboxes.length) {
         mainCheckbox.indeterminate = false;
         mainCheckbox.checked = true;
+        markAsReadBtn.style.display = 'block'
     }
     else if (checkedCheckboxesList.length === 0) {
         mainCheckbox.indeterminate = false;
         mainCheckbox.checked = false;
+        markAsReadBtn.style.display = 'none'
     }
 }
 

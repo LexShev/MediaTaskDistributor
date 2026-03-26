@@ -142,7 +142,7 @@ class NotificationManager {
         });
 
         const toastHtml = `
-            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="7000">
+            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="10000">
                 <div class="toast-header">
                     <svg aria-hidden="true" class="rounded me-2" width="20" height="20" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
                         <rect width="100%" height="100%" fill="${svgColor}"></rect>
@@ -179,7 +179,7 @@ class NotificationManager {
         try {
             const toast = new bootstrap.Toast(toastElement, {
                 autohide: true,
-                delay: 7000
+                delay: 10000
             });
 
             this.activeToasts.add(toastId);

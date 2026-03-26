@@ -41,14 +41,14 @@ class TimelineManager {
                 text: '#0a58ca'
             },
             3: { // промо-блоки
-                fill: 'rgba(25, 135, 84, 0.15)',
-                stroke: '#198754',
-                text: '#146c43'
-            },
-            4: {
                 fill: 'rgba(255, 193, 7, 0.15)',
                 stroke: '#ffc107',
                 text: '#997404'
+            },
+            4: {
+                fill: 'rgba(25, 135, 84, 0.15)',
+                stroke: '#198754',
+                text: '#146c43'
             },
             5: {
                 fill: 'rgba(13, 202, 240, 0.15)',
@@ -85,6 +85,14 @@ class TimelineManager {
 
         this.createTooltip();
         this.loadDataFromDOM();
+
+        // Проверяем, есть ли данные
+        if (this.programsData.length === 0) {
+            console.log('No data to display');
+            this.clear();
+            return;
+        }
+
         this.draw();
         this.addEventListeners();
         this.updateTimeRange();
@@ -337,7 +345,6 @@ class TimelineManager {
         });
 
         console.log('Loaded programs:', this.programsData.length);
-        console.log('Programs data:', this.programsData);
     }
 
     generateGraphicsForSegment(segment, program, segmentIndex, totalSegments) {
@@ -351,7 +358,7 @@ class TimelineManager {
 
         // Получаем данные из DOM элемента сегмента
         const segmentElement = document.querySelector(`[data-scheduled-program-id="${segment.scheduledProgramId}"]`);
-        const isNarc = segmentElement?.dataset.isNarc === 'true';
+        const isNarc = segmentElement?.dataset.isNarc === 'true' || true;
         const isInoagent = segmentElement?.dataset.isInoagent === 'true';
         const isMeta = segmentElement?.dataset.isMeta === 'true';
 
@@ -510,7 +517,7 @@ class TimelineManager {
                         id: `tomorrow_air_${segment.scheduledProgramId}`,
                         name: 'Завтра в эфире',
                         alias: 'Завтра',
-                        startFrameOffset: startFrameOffset,
+                        startFrameOffset: startFrameOffset - (20 * 25),
                         endFrameOffset: startFrameOffset + (10 * 25),
                         level: 5
                     });
@@ -547,7 +554,7 @@ class TimelineManager {
                 alias: 'Наркотики',
                 startFrameOffset: 21 * 25,
                 endFrameOffset: 31 * 25,
-                level: 4
+                level: 5
             });
         }
 
@@ -717,7 +724,7 @@ class TimelineManager {
                     this.ctx.clip();
 
                     let name = item.name;
-                    const maxLen = 25;
+                    const maxLen = 30;
                     if (name.length > maxLen) {
                         name = name.substring(0, maxLen - 3) + '…';
                     }
@@ -734,7 +741,7 @@ class TimelineManager {
                     this.ctx.clip();
 
                     let name = item.name;
-                    const maxLen = 25;
+                    const maxLen = 30;
                     if (name.length > maxLen) {
                         name = name.substring(0, maxLen - 3) + '…';
                     }
