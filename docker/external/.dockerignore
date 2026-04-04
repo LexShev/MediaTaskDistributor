@@ -1,14 +1,6 @@
-# Игнорируем ВСЕ по умолчанию
-*
-
-# Включаем только нужные для сборки папки/файлы
-!planner/planner/
-!planner/distribution/
-!planner/tools/
-!planner/messenger_static/
-!requirements.txt
-!docker/
-!.env
+# static & media
+planner/media/waveforms/**/*.jpg
+planner/media/posters/**/*.jpg
 
 # Игнорируем служебные файлы даже в разрешенных папках
 **/__pycache__

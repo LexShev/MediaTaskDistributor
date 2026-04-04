@@ -12,9 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from celery.schedules import crontab
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,43 +20,50 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key-only-for-dev')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-OPLAN_DB = os.getenv('OPLAN_DB', 'planner')
-OPLAN_USER = os.getenv('OPLAN_USER', 'planner')
-OPLAN_PASSWORD = os.getenv('OPLAN_PASSWORD')
-OPLAN_HOST = os.getenv('OPLAN_HOST', 'mssql')
+MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
+MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
 
-PLANNER_DB = os.getenv('PLANNER_DB', 'planner')
-PLANNER_USER = os.getenv('PLANNER_USER', 'planner')
-PLANNER_PASSWORD = os.getenv('PLANNER_PASSWORD')
-PLANNER_HOST = os.getenv('PLANNER_HOST', 'mssql')
-
-ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
-
-MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
-MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
+MONGO_DB = 'planner'
+DB_MONGO_PORT = os.getenv('DB_MONGO_PORT')
+MONGO_USER = os.getenv('DB_MONGO_USER')
+MONGO_PASSWORD = os.getenv('DB_MONGO_PASSWORD')
+MONGO_HOST =  f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MEDIA_SERVER_IP}:{DB_MONGO_PORT}'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.33.3']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+if DEBUG:
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
 
 # Для работы HTTPS
-CSRF_TRUSTED_ORIGINS = ['http://192.168.33.3:8000', 'https://192.168.33.3:8000',
-                        'https://127.0.0.1:8000', 'https://localhost:8000',]
-SECURE_SSL_REDIRECT = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS').split(',')
+
+# Безопасные куки
+SESSION_COOKIE_SECURE = True      # Только по HTTPS
+CSRF_COOKIE_SECURE = True         # Только по HTTPS
+SESSION_COOKIE_HTTPONLY = True    # Недоступны из JavaScript
+CSRF_COOKIE_HTTPONLY = True       # CSRF куки только HTTP
+
+# Дополнительные заголовки безопасности
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
 # Настройки для стриминга
-STREAMING_SERVER_URL = 'https://192.168.33.3:8001'  # отдельный порт
-STREAMING_HLS_URL = f'{STREAMING_SERVER_URL}/hls/'
+STREAMING_HLS_URL = f'https://{MEDIA_SERVER_IP}:{MEDIA_SERVER_PORT}/hls/'
+
+# Доверять заголовкам от Nginx
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
 # Celery Configuration
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+REDIS_PORT = os.getenv('REDIS_PORT')
+CELERY_BROKER_URL = f'redis://{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
+CELERY_RESULT_BACKEND = f'redis://{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -150,6 +154,20 @@ TEMPLATES = [
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
+OPLAN_DB = 'oplan3'
+OPLAN_USER = os.getenv('DB_MSSQL_USER')
+OPLAN_PASSWORD = os.getenv('DB_MSSQL_PASSWORD')
+OPLAN_HOST = os.getenv('DB_MSSQL_HOST')
+OPLAN_PORT = os.getenv('DB_MSSQL_PORT')
+
+PLANNER_DB = 'planner'
+PLANNER_USER = os.getenv('DB_MSSQL_USER')
+PLANNER_PASSWORD = os.getenv('DB_MSSQL_PASSWORD')
+PLANNER_HOST = os.getenv('DB_MSSQL_HOST')
+PLANNER_PORT = os.getenv('DB_MSSQL_PORT')
+
+ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
 
 DATABASES = {
     "default": {
