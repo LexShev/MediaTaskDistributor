@@ -1,6 +1,6 @@
 FROM python:3.10-slim-bookworm
 
-# Устанавливаем системные зависимости для ODBC + FFmpeg
+# Устанавливаем системные зависимости для ODBC
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
@@ -8,7 +8,6 @@ RUN apt-get update && \
     gcc \
     unixodbc-dev \
     libgssapi-krb5-2 \
-    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Установка Microsoft ODBC драйвера 18
@@ -33,16 +32,19 @@ RUN set -ex \
     && echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> /etc/bash.bashrc \
     && rm -rf /var/lib/apt/lists/*
 
+# Создаем пользователя
+RUN groupadd -r planner && useradd -r -g planner planner
+
 WORKDIR /app
-COPY ../requirements.txt .
-COPY ../.env .
+
+COPY requirements.txt .
 RUN python -m pip install pip==25.2 && \
     python -m pip install --no-cache-dir -r requirements.txt
 
-# Копируем ТОЛЬКО необходимые папки
-COPY ../planner/planner/ ./planner/
-COPY ../planner/distribution/ ./distribution/
-COPY ../planner/messenger_static/ ./messenger_static/
-COPY ../planner/tools/ ./tools/
+COPY . .
 
-# CMD будет задан в docker-compose
+RUN chown -R planner:planner /app
+
+USER planner
+
+CMD ["python", "planner/manage.py", "runserver", "0.0.0.0:8000"]

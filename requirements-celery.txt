@@ -12,3 +12,4 @@ pytz==2025.2
 RapidFuzz==3.13.0
 requests==2.32.4
 soupsieve==2.6
+mssql-django==1.5

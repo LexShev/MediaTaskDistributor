@@ -9,7 +9,7 @@ services:
     container_name: planner_wsgi
     build:
       context: ../..  # Собираем из корня проекта
-      dockerfile: docker/Dockerfile.web  # Путь к Dockerfile относительно контекста
+      dockerfile: docker/internal/Dockerfile  # Путь к Dockerfile относительно контекста
     command: >
       sh -c "
       cd /app/planner &&
@@ -21,6 +21,7 @@ services:
       --error-logfile -
       "
     environment:
+      - TZ=Europe/Moscow
       - DJANGO_SETTINGS_MODULE=planner.settings
       - PYTHONPATH=/app
       - BIND=0.0.0.0:8000
@@ -39,13 +40,14 @@ services:
     container_name: planner_asgi
     build:
       context: ../..  # Собираем из корня проекта
-      dockerfile: docker/Dockerfile.web  # Путь к Dockerfile относительно контекста
+      dockerfile: docker/internal/Dockerfile  # Путь к Dockerfile относительно контекста
     command: >
       sh -c "
       cd /app/planner &&
       daphne -b 0.0.0.0 -p 8001 planner.asgi:application
       "
     environment:
+      - TZ=Europe/Moscow
       - DJANGO_SETTINGS_MODULE=planner.settings
       - PYTHONPATH=/app
       - BIND=0.0.0.0:8000
@@ -65,19 +67,21 @@ services:
     image: nginx:alpine
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ../../ssl:/etc/nginx/ssl:ro
+      - ./ssl:/etc/nginx/ssl:ro
       - ../../planner/static:/app/planner/static:ro
       - ../../planner/media:/app/planner/media:ro
+    environment:
+      - TZ=Europe/Moscow
     ports:
+      - "80:80"
+      - "443:443"
       - "8000:8000"
     depends_on:
-      - prod_wsgi
+      - wsgi
     restart: unless-stopped
     networks:
       - planner-network
 
 networks:
   planner-network:
-    name: planner-network
-    external: true
     driver: bridge

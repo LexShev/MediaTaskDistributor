@@ -485,7 +485,6 @@ def material_card(request, program_id):
     file_id = full_info_dict.get('Files_FileID', '')
     file_path = full_info_dict.get('Files_Name', '')
     actions_list = select_actions(program_id)
-    print('actions_list', actions_list)
     start_ffmpeg_scanners(file_id, file_path)
     data = {
         'full_info': full_info_dict,
@@ -503,6 +502,7 @@ def material_card(request, program_id):
         # 'lock_material': lock_material,
         'permissions': ask_db_permissions(user_id)
     }
+
     return render(request, 'main/full_info_card.html', data)
 
 def status_ready(request):

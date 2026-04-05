@@ -33,15 +33,20 @@ RUN set -ex \
     && echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> /etc/bash.bashrc \
     && rm -rf /var/lib/apt/lists/*
 
+# Создаем пользователя
+RUN groupadd -r celery_worker && useradd -r -g celery_worker celery_worker
+
 WORKDIR /app
-COPY ../requirements.txt .
-COPY ../.env .
+COPY requirements-celery.txt .
+COPY docker/streaming/.env .
 RUN python -m pip install pip==25.2 && \
-    python -m pip install --no-cache-dir -r requirements.txt
+    python -m pip install --no-cache-dir -r requirements-celery.txt
 
 # Копируем ТОЛЬКО необходимые папки
-COPY ../planner/planner/ ./planner/
-COPY ../planner/distribution/ ./distribution/
-COPY ../planner/tools/ ./tools/
+COPY planner/planner/ ./planner/
+COPY planner/distribution/ ./distribution/
+COPY planner/tools/ ./tools/
 
-# CMD будет задан в docker-compose
+RUN chown -R celery_worker:celery_worker /app
+
+USER celery_worker

@@ -16,7 +16,6 @@ from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -25,21 +24,15 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
 MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
 
-MONGO_DB = 'planner'
-DB_MONGO_PORT = os.getenv('DB_MONGO_PORT')
-MONGO_USER = os.getenv('DB_MONGO_USER')
-MONGO_PASSWORD = os.getenv('DB_MONGO_PASSWORD')
-MONGO_HOST =  f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MEDIA_SERVER_IP}:{DB_MONGO_PORT}'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 if DEBUG:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
 
 # Для работы HTTPS
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 # Безопасные куки
 SESSION_COOKIE_SECURE = True      # Только по HTTPS
@@ -62,8 +55,8 @@ USE_X_FORWARDED_PORT = True
 # Celery Configuration
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 REDIS_PORT = os.getenv('REDIS_PORT')
-CELERY_BROKER_URL = f'redis://{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
-CELERY_RESULT_BACKEND = f'redis://{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
+CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
+CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -109,10 +102,9 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('redis', 6379, {
-                "db": 1,  # Для старых версий параметры передаются так
-            })],
-            "prefix": "channels:",
+            "hosts": [{
+                "address": f"redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/1",
+            }],
         },
     },
 }
@@ -168,6 +160,12 @@ PLANNER_HOST = os.getenv('DB_MSSQL_HOST')
 PLANNER_PORT = os.getenv('DB_MSSQL_PORT')
 
 ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
+
+MONGO_DB = 'planner'
+DB_MONGO_PORT = os.getenv('DB_MONGO_PORT')
+MONGO_USER = os.getenv('DB_MONGO_USER')
+MONGO_PASSWORD = os.getenv('DB_MONGO_PASSWORD')
+MONGO_HOST =  f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MEDIA_SERVER_IP}:{DB_MONGO_PORT}'
 
 DATABASES = {
     "default": {

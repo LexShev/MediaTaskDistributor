@@ -24,13 +24,13 @@ RUN set -ex \
     && echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> /etc/bash.bashrc \
     && rm -rf /var/lib/apt/lists/*
 
-# Создаем непользовательского пользователя
+# Создаем пользователя
 RUN groupadd -r django && useradd -r -g django django
 
 WORKDIR /app
 
 # Копируем requirements (пути ОТНОСИТЕЛЬНО контекста сборки)
-COPY planner/requirements.txt .
+COPY requirements.txt .
 RUN python -m pip install pip==25.2 && \
     python -m pip install --no-cache-dir -r requirements.txt
 

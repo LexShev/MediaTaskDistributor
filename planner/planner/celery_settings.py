@@ -1,30 +1,14 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-fallback-key-only-for-dev')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-OPLAN_DB = os.getenv('OPLAN_DB', 'planner')
-OPLAN_USER = os.getenv('OPLAN_USER', 'planner')
-OPLAN_PASSWORD = os.getenv('OPLAN_PASSWORD')
-OPLAN_HOST = os.getenv('OPLAN_HOST', 'mssql')
-
-PLANNER_DB = os.getenv('PLANNER_DB', 'planner')
-PLANNER_USER = os.getenv('PLANNER_USER', 'planner')
-PLANNER_PASSWORD = os.getenv('PLANNER_PASSWORD')
-PLANNER_HOST = os.getenv('PLANNER_HOST', 'mssql')
-
-ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
-
-MONGO_DB = os.getenv('MONGO_DB', 'mongo_db')
-MONGO_HOST = os.getenv('MONGO_HOST', 'mongodb://localhost:27017')
+MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
+MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
 
 # Application definition
 INSTALLED_APPS = [
     "distribution",
-    "messenger_static",
     "tools",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -45,14 +29,36 @@ MIDDLEWARE = [
 ]
 
 # Celery Configuration
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+REDIS_PORT = os.getenv('REDIS_PORT')
+CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
+CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Moscow'
 CELERY_ENABLE_UTC = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+OPLAN_DB = 'oplan3'
+OPLAN_USER = os.getenv('DB_MSSQL_USER')
+OPLAN_PASSWORD = os.getenv('DB_MSSQL_PASSWORD')
+OPLAN_HOST = os.getenv('DB_MSSQL_HOST')
+OPLAN_PORT = os.getenv('DB_MSSQL_PORT')
+
+PLANNER_DB = 'planner'
+PLANNER_USER = os.getenv('DB_MSSQL_USER')
+PLANNER_PASSWORD = os.getenv('DB_MSSQL_PASSWORD')
+PLANNER_HOST = os.getenv('DB_MSSQL_HOST')
+PLANNER_PORT = os.getenv('DB_MSSQL_PORT')
+
+ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
+
+MONGO_DB = 'planner'
+DB_MONGO_PORT = os.getenv('DB_MONGO_PORT')
+MONGO_USER = os.getenv('DB_MONGO_USER')
+MONGO_PASSWORD = os.getenv('DB_MONGO_PASSWORD')
+MONGO_HOST =  f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MEDIA_SERVER_IP}:{DB_MONGO_PORT}'
 
 DATABASES = {
     "default": {
