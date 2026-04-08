@@ -145,7 +145,7 @@ def update_playlist_comment(request):
 
         try:
             message = f'Добавлен комментарий для {schedule_name} на {schedule_date}'
-            create_notification(request.user, (1,),
+            create_notification(request.user, (1, 2),
                                 message=message,
                                 comment=comment, notification_type='info',
                                 schedule_id=schedule_id)

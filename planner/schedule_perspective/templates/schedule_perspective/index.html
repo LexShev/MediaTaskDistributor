@@ -1,4 +1,5 @@
 {% extends 'main/index.html' %}
+{% load custom_filters %}
 {% load static %}
 
 
@@ -49,11 +50,12 @@
                         </div>
                         <div class="schedule_container" id="{{ date|date:'Y-m-d'}}">
                             {% for program in schedule %}
-                                <div class="card program my-1 p-1"
+                                <h6 class="card program my-1 p-1"
                                      data-oplan-program-id="{{ program.PlannerProg_oplan_program_id }}"
-                                     data-duration="{{ program.OplanProg_duration }}">
+                                     data-duration="{{ program.OplanProg_duration }}"
+                                title="{% if program.OplanProg_production_year %}- Год: {{ program.OplanProg_production_year }}{% endif %}{% if program.OplanProg_production_country %}&#10;- Страна: {{ program.OplanProg_production_country }}{% endif %}{% if program.OplanProg_Director %}&#10;- Режиссёр: {{ program.OplanProg_Director }}{% endif %}{% if program.OplanProg_duration %}&#10;- Длительность: {{ program.OplanProg_duration|convert_frames_to_time }}{% endif %}">
                                     {{ program.OplanProg_name }}
-                                </div>
+                                </h6>
                             {% endfor %}
                         </div>
                     </div>

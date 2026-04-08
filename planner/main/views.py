@@ -34,6 +34,7 @@ from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .detail_view import full_info, cenz_info, schedule_info, calc_otk_deadline, \
     comments_history, select_filepath_history, change_oplan_cenz_info, insert_filepath_history
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
+from main.settings.main_settings import main_settings
 
 
 def handle_error(request, status_code, exception=None):
@@ -156,6 +157,7 @@ def week_date(request, work_year, work_week):
 @login_required()
 def full_list(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     default_workers = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
     def safe_literal_eval(value, default=None):
         """Безопасный парсинг literal_eval с обработкой ошибок"""
@@ -265,7 +267,8 @@ def full_list(request):
                                             user_order, order_type, mark),
         'form': filter_form,
         'sorting_form': sorting_form,
-        'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'main/list.html', data)
 
@@ -495,7 +498,7 @@ def material_card(request, program_id):
         'actions_list': sorted(actions_list, key=lambda action: action.get('time_of_change') or datetime.min),
         'filepath_history': select_filepath_history(program_id),
         'attached_files': attached_files,
-        'ffmpeg': ffmpeg_dict(file_id),
+        # 'ffmpeg': ffmpeg_dict(file_id),
         'form_text': form_text,
         'form_drop': form_drop,
         'form_attached_files': form_attached_files,
@@ -565,14 +568,14 @@ def ask_fix(request):
     answer = change_task_status_new(program_id, new_values, task_status, db_task_status)
     message = answer.get('message')
     if answer.get('status') == 'success':
-        create_notification(
-            {'sender': user_id, 'recipient': 6, 'program_id': program_id,
-             'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
-        )
         # create_notification(
-        #     {'sender': user_id, 'recipient': 2, 'program_id': program_id,
+        #     {'sender': user_id, 'recipient': 6, 'program_id': program_id,
         #      'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
         # )
+        create_notification(
+            {'sender': user_id, 'recipient': 2, 'program_id': program_id,
+             'message': 'Запрос на исправление исходника', 'comment': 'Системное уведомление'}
+        )
         insert_history_status(program_id, user_id, db_task_status, task_status)
         update_comment(program_id, user_id, task_status, fix_comment, deadline)
         messages.warning(request, message)

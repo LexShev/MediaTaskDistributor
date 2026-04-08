@@ -70,6 +70,25 @@ class MainSettings:
         36: {'name': 'orange-700', 'hex': '#984c0c', 'rgb': '152, 76, 12'}  # Кино Индии
     }
 
+    header_panels = {
+        3: {'name': 'broadcast_engineers', 'tabs':
+            ['air_day_report', 'air_month_report', 'air_search', 'advanced_search']
+            },
+        6: {'name': 'editors', 'tabs':
+            ['air_day_report', 'air_month_report', 'common_pool', 'advanced_search']
+            },
+        4: {'name': 'otk_engineers', 'tabs':
+            ['otk', 'common_pool', 'advanced_search']
+            },
+        2: {'name': 'preparation_engineers', 'tabs':
+            ['week', 'list', 'common_pool', 'advanced_search', 'desktop']
+            },
+        7: {'name': 'broadcast_engineers', 'tabs':
+            ['week', 'list', 'common_pool', 'air_day_report', 'air_month_report', 'common_pool', 'desktop',
+             'advanced_search']
+            },
+    }
+
     def __init__(self):
         self._workers_dict = None
 
@@ -108,6 +127,19 @@ class MainSettings:
         except Exception as error:
             print(error)
             return ''
+
+
+    def get_header_panels(self, group_id):
+        try:
+            if group_id == 5:
+                return {department.get('name'): department.get('tabs') for department in self.header_panels.values()}
+            elif group_id == 1:
+                return {department.get('name'): department.get('tabs') for department in self.header_panels.values()}
+            else:
+                return self.header_panels.get(group_id, {}).get('tabs', [])
+        except Exception as e:
+            print(e)
+            return []
 
 main_settings = MainSettings()
 

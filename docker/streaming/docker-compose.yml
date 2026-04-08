@@ -133,6 +133,7 @@ services:
       - MONGODB_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
       - MONGODB_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
       - MONGODB_INITDB_DATABASE=admin
+    command: ["mongod", "--bind_ip_all"]
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s

@@ -1,0 +1,60 @@
+/* Контейнер для таблицы задач */
+#admin_task_table {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер с информацией о количестве и продолжительности */
+#admin_task_table .d-flex.mb-3 {
+    flex-shrink: 0; /* Чтобы не сжимался */
+}
+
+/* Контейнер с сообщениями */
+#message_container {
+    flex-shrink: 0; /* Чтобы не сжимался */
+}
+
+/* Основная таблица задач */
+#admin_task_table table {
+    width: 100%;
+    border-collapse: collapse;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin-bottom: 0;
+}
+
+/* Заголовок таблицы задач */
+#admin_task_table table thead {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    background-color: #fff;
+}
+
+/* Тело таблицы задач с прокруткой */
+#admin_task_table table tbody {
+    display: block;
+    overflow-y: auto;
+    width: 100%;
+    flex: 1;
+}
+
+/* Строки в теле таблицы задач */
+#admin_task_table table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Для спиннера загрузки */
+#admin_task_table .text-center.py-5 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}

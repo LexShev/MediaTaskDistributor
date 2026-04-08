@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
+        logger.info(f"USER: {self.user}, AUTH: {self.user.is_authenticated}")
 
         if self.user.is_authenticated:
             self.group_name = f'user_{self.user.id}'
@@ -69,39 +70,39 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             logger.error(f"Error sending notification: {e}")
 
     @database_sync_to_async
-    def send_pending_notifications(self):
-        """Отправка непрочитанных уведомлений при подключении"""
+    def get_pending_notifications(self):
+        pending = NotificationRecipient.objects.filter(
+            recipient=self.user,
+            is_displayed=False
+        ).select_related('notification').order_by('-notification__timestamp')[:10]
+
+        result = []
+
+        for recipient_link in pending:
+            notification = recipient_link.notification
+
+            result.append({
+                'id': notification.notice_id,
+                'recipient_id': recipient_link.id,
+                'message': notification.message,
+                'comment': notification.comment or '',
+                'type': notification.notification_type,
+                'timestamp': notification.timestamp.isoformat(),
+                'sender': notification.sender.username if notification.sender else 'System',
+            })
+
+        return result
+
+    async def send_pending_notifications(self):
         try:
-            # Ищем в NotificationRecipient, а не в Notification!
-            pending = NotificationRecipient.objects.filter(
-                recipient=self.user,
-                is_displayed=False
-            ).select_related('notification').order_by('-notification__timestamp')[:10]
+            pending = await self.get_pending_notifications()
 
-            logger.info(f"Found {pending.count()} pending notifications for user {self.user.id}")
+            for notification in pending:
+                await self.send(text_data=json.dumps({
+                    'type': 'notification',
+                    'notification': notification
+                }))
 
-            for recipient_link in pending:
-                notification = recipient_link.notification
-
-                from channels.layers import get_channel_layer
-                from asgiref.sync import async_to_sync
-
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.group_send)(
-                    self.group_name,
-                    {
-                        'type': 'send_notification',
-                        'notification': {
-                            'id': notification.notice_id,
-                            'recipient_id': recipient_link.id,
-                            'message': notification.message,
-                            'comment': notification.comment or '',
-                            'type': notification.notification_type,
-                            'timestamp': notification.timestamp.isoformat(),
-                            'sender': notification.sender.username if notification.sender else 'System',
-                        }
-                    }
-                )
         except Exception as e:
             logger.error(f"Error sending pending notifications: {e}")
 

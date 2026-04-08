@@ -69,41 +69,42 @@ function searchProgram(query) {
             oplanResults.innerHTML = '';
             if (data.search_list.length > 0) {
                 data.search_list.forEach(program => {
-                        let listItem = document.createElement("div");
-                        listItem.classList.add('program', 'd-flex', 'border', 'rounded', 'm-2');
-                        listItem.dataset.oplanProgramId = program.Progs_program_id;
-                        listItem.dataset.duration = program.Progs_duration;
+                    let listItem = document.createElement("div");
+                    listItem.classList.add('program', 'd-flex', 'rounded', 'my-2');
+                    listItem.dataset.oplanProgramId = program.Progs_program_id;
+                    listItem.dataset.duration = program.Progs_duration;
 
-                        let imageContainer = document.createElement("div");
-                        imageContainer.classList.add('align-items-center', 'm-2')
-                        imageContainer.style = "flex: 0 0 12%; max-width: 12%; height: 100%;"
+                    let imageContainer = document.createElement("div");
+                    imageContainer.classList.add('poster-container', 'align-items-center', 'm-2')
+                    imageContainer.style = "flex: 0 0 12%; max-width: 12%; height: 100%;"
 
-                        let image = document.createElement('img');
-                        let imgSrc = `/media/posters/${program.Progs_program_id}.jpg`;
-                        // let imgSrc = `https://www.kinopoisk.ru//images/sm_film/1115407.jpg`;
-                        image.onerror = function() {
-                            this.onerror = null;
-                            this.src = '/static/img/no_poster.jpg';
-                        };
-                        image.src = imgSrc;
-                        image.classList.add('img-fluid', 'rounded', 'm-0', 'w-100', 'h-100', 'object-fit-cover');
-                        imageContainer.appendChild(image);
+                    let image = document.createElement('img');
+                    let imgSrc = `/media/posters/${program.Progs_program_id}.jpg`;
+                    // let imgSrc = `https://www.kinopoisk.ru//images/sm_film/1115407.jpg`;
+                    image.onerror = function() {
+                        this.onerror = null;
+                        this.src = '/static/img/no_poster.jpg';
+                    };
+                    image.src = imgSrc;
+                    image.classList.add('img-fluid', 'rounded', 'm-0', 'w-100', 'h-100', 'object-fit-cover');
+                    imageContainer.appendChild(image);
 
-                        listItem.appendChild(imageContainer);
+                    listItem.appendChild(imageContainer);
 
-                        let nameContainer = document.createElement("div");
-                        listItem.appendChild(nameContainer);
+                    let nameContainer = document.createElement("div");
+                    listItem.appendChild(nameContainer);
 
-                        let header = document.createElement("h6");
-                        header.classList.add('my-2')
-                        header.innerText = program.Progs_name;
-                        nameContainer.appendChild(header);
+                    let header = document.createElement("h6");
+                    header.classList.add('my-1', 'p-1')
+                    header.innerText = program.Progs_name;
+                    nameContainer.appendChild(header);
 
-                        let footer = document.createElement("small");
-                        footer.innerText = program.Progs_production_year;
-                        nameContainer.appendChild(footer);
+                    let footer = document.createElement("small");
+                    footer.classList.add('production-year')
+                    footer.innerText = program.Progs_production_year;
+                    nameContainer.appendChild(footer);
 
-                        oplanResults.appendChild(listItem);
+                    oplanResults.appendChild(listItem);
                     }
                 )
             }

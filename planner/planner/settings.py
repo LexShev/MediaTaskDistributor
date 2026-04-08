@@ -25,25 +25,31 @@ MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
 MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-if DEBUG:
-    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
+ALLOWED_HOSTS.extend(['tvfab.local', 'localhost'])
+# if DEBUG:
+#     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
 
 # Для работы HTTPS
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+CSRF_TRUSTED_ORIGINS.extend(['https://tvfab.local', 'localhost'])
 
 # Безопасные куки
 SESSION_COOKIE_SECURE = True      # Только по HTTPS
-CSRF_COOKIE_SECURE = True         # Только по HTTPS
 SESSION_COOKIE_HTTPONLY = True    # Недоступны из JavaScript
-CSRF_COOKIE_HTTPONLY = True       # CSRF куки только HTTP
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Дополнительные заголовки безопасности
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Настройки для стриминга
 STREAMING_HLS_URL = f'https://{MEDIA_SERVER_IP}:{MEDIA_SERVER_PORT}/hls/'
