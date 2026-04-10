@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
+SERVICE_TYPE = os.getenv('SERVICE_TYPE', 'internal')
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
@@ -34,7 +34,6 @@ ALLOWED_HOSTS.extend(['tvfab.local', 'localhost'])
 
 # Для работы HTTPS
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-CSRF_TRUSTED_ORIGINS.extend(['https://tvfab.local', 'localhost'])
 
 # Безопасные куки
 SESSION_COOKIE_SECURE = True      # Только по HTTPS

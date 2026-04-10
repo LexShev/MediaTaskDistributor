@@ -13,7 +13,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import render
 
 from messenger_static.messenger_utils import create_notification
-from planner.settings import CURRENT_CENZ_DIR
+from planner.settings import CURRENT_CENZ_DIR, SERVICE_TYPE
 from tools.ffmpeg_processing import start_ffmpeg_scanners
 
 from .ffmpeg_info import ffmpeg_dict
@@ -78,6 +78,7 @@ def week(request):
 @login_required()
 def week_date(request, work_year, work_week):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     try:
         inst_dict = ModelFilter.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -148,6 +149,7 @@ def week_date(request, work_year, work_week):
         'week_material_list': material_list,
         'service_dict': service_dict,
         'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group),
         'form': filter_form,
         'sorting_form': sorting_form
     }
@@ -440,6 +442,7 @@ def cenz_info_change_batch(request):
 @login_required()
 def material_card(request, program_id):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     custom_fields = cenz_info(program_id)
 
     # work_date
@@ -488,7 +491,7 @@ def material_card(request, program_id):
     file_id = full_info_dict.get('Files_FileID', '')
     file_path = full_info_dict.get('Files_Name', '')
     actions_list = select_actions(program_id)
-    start_ffmpeg_scanners(file_id, file_path)
+    # start_ffmpeg_scanners(file_id, file_path)
     data = {
         'full_info': full_info_dict,
         'custom_fields': custom_fields,
@@ -498,12 +501,14 @@ def material_card(request, program_id):
         'actions_list': sorted(actions_list, key=lambda action: action.get('time_of_change') or datetime.min),
         'filepath_history': select_filepath_history(program_id),
         'attached_files': attached_files,
-        # 'ffmpeg': ffmpeg_dict(file_id),
+        'ffmpeg': ffmpeg_dict(file_id),
         'form_text': form_text,
         'form_drop': form_drop,
         'form_attached_files': form_attached_files,
         # 'lock_material': lock_material,
-        'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group),
+        'service_type': SERVICE_TYPE
     }
 
     return render(request, 'main/full_info_card.html', data)
@@ -646,14 +651,17 @@ def get_movie_poster(request):
 @login_required()
 def user_settings(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     data = {
-            'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'main/user_settings.html', data)
 
 @login_required()
 def kpi_info(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     work_date = datetime.today().date()
     workers = ''
     task_status = ''
@@ -676,17 +684,20 @@ def kpi_info(request):
         {'work_date': work_date, 'workers': workers,
          'material_type': material_type, 'task_status': task_status})
 
-    data = {'task_list': task_list,
-            'summary_dict': summary_dict,
-            'today': datetime.today().date(),
-            'form': form,
-            'permissions': ask_db_permissions(user_id)}
+    data = {
+        'task_list': task_list,
+        'summary_dict': summary_dict,
+        'today': datetime.today().date(),
+        'form': form,
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
+    }
     return render(request, 'main/kpi_admin_panel.html', data)
 
 @login_required()
 def engineer_profile(request, worker_id):
     user_id = request.user.id
-    # engineer_id = get_engineer_id(worker_id)
+    user_group = request.user.groups.first().id
     work_date = datetime.today().date()
     task_status = ''
     material_type = ''
@@ -711,13 +722,14 @@ def engineer_profile(request, worker_id):
             'summary_dict': summary_dict,
             'today': datetime.today().date(),
             'permissions': ask_db_permissions(user_id),
+            'tabs': main_settings.get_header_panels(user_group),
             'form': form}
     return render(request, 'main/kpi_engineer.html', data)
 
 @login_required()
 def work_year_calendar(request, cal_year):
     user_id = request.user.id
-
+    user_group = request.user.groups.first().id
     approve_day_off = request.POST.get('approve_day_off', None)
     if approve_day_off:
         insert_day_off(approve_day_off)
@@ -746,6 +758,7 @@ def work_year_calendar(request, cal_year):
             'next_year': cal_year+1,
             'vacation_list': vacation_info(cal_year),
             'permissions': ask_db_permissions(user_id),
+            'tabs': main_settings.get_header_panels(user_group),
             'form': form}
     return render(request, 'main/work_calendar.html', data)
 

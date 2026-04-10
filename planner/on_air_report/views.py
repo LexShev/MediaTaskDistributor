@@ -12,6 +12,7 @@ from django.contrib import messages
 
 from main.logs_and_history import get_task_status, change_task_status_final, insert_history_status, update_comment
 from main.permission_pannel import ask_db_permissions
+from main.settings.main_settings import main_settings
 from messenger_static.messenger_utils import create_notification
 from .forms import TaskSearchForm, OnAirReportFilter, OnAirCalendar
 from .models import OnAirModel, TaskSearch
@@ -28,8 +29,8 @@ def report(request):
 
 @login_required()
 def month_report(request):
-    worker_id = request.user.id
-
+    user_id = request.user.id
+    user_group = request.user.groups.first().id
     current_date = datetime.now()
 
     # Получаем параметры из GET-запроса или используем значения по умолчанию
@@ -65,7 +66,8 @@ def month_report(request):
         'on_air_calendar': calendar_skeleton(cal_year, cal_month),
         'calendar_form': calendar_form,
         'summary_table': summary_table,
-        'permissions': ask_db_permissions(worker_id),
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'on_air_report/on_air_calendar.html', data)
 
@@ -89,6 +91,7 @@ def today_report(request):
 @login_required()
 def date_report(request, cal_year, cal_month, cal_day, schedule_id=None):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     cal_date = date(cal_year, cal_month, cal_day)
     if schedule_id:
         schedule_id_list = (schedule_id,)
@@ -97,12 +100,14 @@ def date_report(request, cal_year, cal_month, cal_day, schedule_id=None):
     data = {
         'schedule_id_list': schedule_id_list,
         'service_dict': prepare_service_dict(cal_year, cal_month, cal_day, cal_date),
-        'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'on_air_report/on_air_report.html', data)
 
 def get_schedule_table(request, sched_date, schedule_id):
     worker_id = request.user.id
+    user_group = request.user.groups.first().id
     try:
         html = render_to_string(
             'on_air_report/schedule_table.html',
@@ -110,6 +115,7 @@ def get_schedule_table(request, sched_date, schedule_id):
                 'task_list': task_list_for_channel(sched_date, schedule_id),
                 # 'service_dict': prepare_service_dict(cal_year, cal_month, cal_day),
                 'permissions': ask_db_permissions(worker_id),
+                'tabs': main_settings.get_header_panels(user_group)
             },
             request=request
         )
@@ -121,6 +127,7 @@ def get_schedule_table(request, sched_date, schedule_id):
 @login_required()
 def on_air_search(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     order = request.GET.get('order', 'progs_name')
     order_type = request.GET.get('order_type', 'ASC')
     try:
@@ -154,12 +161,14 @@ def on_air_search(request):
         'search_filter': search_filter,
         'service_dict': {'order': order, 'order_type': order_type},
         'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'on_air_report/on_air_search.html', data)
 
 def load_on_air_task_table(request):
     search_input = request.GET.get('search_input', '')
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     queryset = OnAirModel.objects.get(owner=user_id)
     field_dict = {}
     if queryset:
@@ -175,6 +184,7 @@ def load_on_air_task_table(request):
         {
             'task_list': task_list,
             'permissions': ask_db_permissions(user_id),
+            'tabs': main_settings.get_header_panels(user_group)
         },
         request=request
     )

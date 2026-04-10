@@ -12,6 +12,7 @@ from desktop.desktop_list import task_info, cards_container
 from desktop.forms import DeskTopFilter
 from desktop.models import ModelDeskTopFilter, ModelCardsContainer, ModelListNames
 from main.permission_pannel import ask_db_permissions
+from main.settings.main_settings import main_settings
 
 
 @login_required()
@@ -21,22 +22,23 @@ def show_desktop(request):
     work_dates = (start_date, start_date)
     task_status = ('not_ready', 'ready', 'fix')
     material_type = ('film', 'season')
-    worker_id = request.user.id
-    if worker_id:
+    user_id = request.user.id
+    user_group = request.user.groups.first().id
+    if user_id:
         try:
-            inst_dict = ModelDeskTopFilter.objects.get(owner=worker_id)
+            inst_dict = ModelDeskTopFilter.objects.get(owner=user_id)
         except ObjectDoesNotExist:
 
 
             default_filter = ModelDeskTopFilter(
-                owner=worker_id, schedules=schedules,
+                owner=user_id, schedules=schedules,
                 material_type=material_type,
                 work_dates=' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
                 task_status=task_status
             )
 
             default_filter.save()
-            inst_dict = ModelDeskTopFilter.objects.get(owner=worker_id)
+            inst_dict = ModelDeskTopFilter.objects.get(owner=user_id)
             print("Новый фильтр создан")
 
     else:
@@ -64,22 +66,23 @@ def show_desktop(request):
                         'work_dates': ' - '.join([work_date.strftime('%d.%m.%Y') for work_date in work_dates]),
                         'task_status': task_status}
         desktop_form = DeskTopFilter(initial=initial_dict)
-    cards_list_01 = read_cards_list(0, worker_id)
-    cards_list_02 = read_cards_list(1, worker_id)
-    cards_list_03 = read_cards_list(2, worker_id)
-    cards_list_04 = read_cards_list(3, worker_id)
+    cards_list_01 = read_cards_list(0, user_id)
+    cards_list_02 = read_cards_list(1, user_id)
+    cards_list_03 = read_cards_list(2, user_id)
+    cards_list_04 = read_cards_list(3, user_id)
     exclusion_list = cards_list_01 + cards_list_02 + cards_list_03 + cards_list_04
 
     # [ModelListNames(owner=worker_id, list_id=i, name=f'Список_{i}').save() for i in range(1, 5)]
-    dict_names = ModelListNames.objects.filter(owner=worker_id).values('list_id', 'name')
+    dict_names = ModelListNames.objects.filter(owner=user_id).values('list_id', 'name')
     data = {
-        'permissions': ask_db_permissions(worker_id),
-        'full_list': task_info(worker_id, schedules, material_type, task_status, work_dates, exclusion_list),
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group),
+        'full_list': task_info(user_id, schedules, material_type, task_status, work_dates, exclusion_list),
         'list_names': dict(map(lambda items: (items['list_id'], items['name']), dict_names)),
-        'cards_container_1': cards_container(worker_id, cards_list_01),
-        'cards_container_2': cards_container(worker_id, cards_list_02),
-        'cards_container_3': cards_container(worker_id, cards_list_03),
-        'cards_container_4': cards_container(worker_id, cards_list_04),
+        'cards_container_1': cards_container(user_id, cards_list_01),
+        'cards_container_2': cards_container(user_id, cards_list_02),
+        'cards_container_3': cards_container(user_id, cards_list_03),
+        'cards_container_4': cards_container(user_id, cards_list_04),
         'desktop_form': desktop_form,
     }
     return render(request, 'desktop/index.html', data)

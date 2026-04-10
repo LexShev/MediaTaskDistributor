@@ -91,8 +91,8 @@
                 id="total_unread_badge"></span>
         </a>
 
-        <div class="dropdown">
-          <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
+        <div class="dropdown text-end" style="z-index: 1050;">
+          <a class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
              data-bs-toggle="dropdown" aria-expanded="false">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
               <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
@@ -111,14 +111,14 @@
 
         <div class="vr d-none d-md-block mx-1"></div>
 
-        <div class="dropdown">
+        <div class="dropdown" style="z-index: 1050;">
           <button class="btn btn-outline-secondary py-2 dropdown-toggle d-flex align-items-center"
                   id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown"
                   aria-label="Toggle theme (auto)">
             <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
               <use href="#circle-half"></use>
             </svg>
-            <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+            <span class="visually-hidden" id="bd-theme-text">Переключение темы</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
             <li><button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light">

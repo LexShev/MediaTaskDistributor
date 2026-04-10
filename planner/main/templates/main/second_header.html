@@ -5,7 +5,6 @@
 <link rel="stylesheet" type="text/css" href="{% static '/bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'css/daterangepicker.css' %}"/>
 
-<script type="text/javascript" src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/moment-2.30.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/daterangepicker-3.1.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'Semantic-UI-master/dist/semantic.min.js' %}"></script>
@@ -26,7 +25,7 @@
       </svg>
       </button>
 
-      <div class="dropdown-menu dropdown-menu-end shadow p-2" id="main_filter" style="z-index: 1030; min-height: 30rem; width: 50rem;">
+      <div class="dropdown-menu dropdown-menu-end shadow p-2" id="main_filter" style="z-index: 1030; min-height: 30rem; width: auto; min-width: 60vw; max-width: 95vw;">
 
         <div class="form-floating">
           {% for field in form %}
@@ -56,7 +55,7 @@
         </svg>
         {% endif %}
       </button>
-      <div class="dropdown-menu dropdown-menu-start p-2" style="z-index: 1030; min-width: 22rem;">
+      <div class="dropdown-menu dropdown-menu-end shadow p-3" style="z-index: 1030; min-width: 280px; width: auto; max-width: 95vw;">
         <div class="input-group mb-3">
           <label class="input-group-text" for="user_order">Сортировка по</label>
           {{ sorting_form.user_order }}
@@ -73,21 +72,23 @@
 </form>
 
 <form method="get" action="{% url 'fast_search' %}" class="ms-1 mb-0" role="search">
-  <div class="input-group">
-  <input type="search" name="fast_search" id="fast_search" class="form-control border border-outline-secondary" placeholder="Поиск..." aria-label="Search" style="width: 250px">
-  <button type="submit" class="btn btn-outline-secondary">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-    </svg>
-  </button>
+    <div class="d-none d-md-block">
+      <div class="input-group">
+          <input type="search" name="fast_search" id="fast_search" class="form-control border border-outline-secondary" placeholder="Поиск..." aria-label="Search" style="min-width: 220px">
+          <button type="submit" class="btn btn-outline-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            </svg>
+          </button>
+      </div>
   </div>
 </form>
 <script>
-  var input = document.getElementById('fast_search');
+  let input = document.getElementById('fast_search');
   input.addEventListener('focus', function() {
   this.style.width = 450 + "px";
   });
   input.addEventListener('blur', function() {
-  this.style.width = 250 + "px";
+  this.style.width = 220 + "px";
   });
 </script>

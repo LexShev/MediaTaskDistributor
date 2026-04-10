@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
 from main.permission_pannel import ask_db_permissions
+from main.settings.main_settings import main_settings
 from messenger_static.forms import MessageForm
 from .messenger_utils import all_messages, show_viewed_messages, create_notification, find_worker_id
 from .models import Message, Program, Notification, MessageViews
@@ -15,31 +16,33 @@ from planner.settings import OPLAN_DB, PLANNER_DB
 
 @login_required()
 def index(request):
-    worker_id = request.user.id
-    last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
-    all_notifications = Notification.objects.filter(recipient=worker_id).order_by('timestamp')[:50] or []
-    unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
+    user_id = request.user.id
+    user_group = request.user.groups.first().id
+    last_notice = Notification.objects.filter(recipient=user_id).order_by('-timestamp')[:1] or []
+    all_notifications = Notification.objects.filter(recipient=user_id).order_by('timestamp')[:50] or []
+    unread_notifications = Notification.objects.filter(recipient=user_id, is_read=False).count()
     data = {
-        'all_messages': all_messages(worker_id),
+        'all_messages': all_messages(user_id),
         'last_notice': last_notice,
         'all_notifications': all_notifications,
         'unread_notifications': unread_notifications,
-        'permissions': ask_db_permissions(worker_id),
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'messenger_static/messenger_empty.html', data)
 
-
 @login_required()
 def messenger(request, program_id):
-    worker_id = request.user.id
+    user_id = request.user.id
+    user_group = request.user.groups.first().id
     if request.method == 'POST':
         form = MessageForm(request.POST, request.FILES)
         if form.is_valid():
             message = form.save(commit=False)
-            message.owner = worker_id
+            message.owner = user_id
             message.program_id = program_id
             message.save()
-            MessageViews.objects.create(message=message, worker_id=worker_id)
+            MessageViews.objects.create(message=message, worker_id=user_id)
 
             message_text = form.cleaned_data.get('message')
             pattern_1 = r'(?<!\w)@([А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+)(?!\w)'
@@ -50,7 +53,7 @@ def messenger(request, program_id):
             if mentions:
                 for mention in mentions:
                     planner_worker_id = find_worker_id(mention)
-                    data = {'sender': worker_id, 'recipient': planner_worker_id, 'program_id': program_id,
+                    data = {'sender': user_id, 'recipient': planner_worker_id, 'program_id': program_id,
                      'message': message_text, 'comment': 'Упоминание в чате'}
                     create_notification(data)
 
@@ -62,7 +65,7 @@ def messenger(request, program_id):
     # ).order_by('timestamp')[:50] or []
 
     # Пагинация для сообщений чата
-    read_message_ids = MessageViews.objects.filter(worker_id=worker_id).values_list('message_id', flat=True)
+    read_message_ids = MessageViews.objects.filter(worker_id=user_id).values_list('message_id', flat=True)
     all_messages_query = Message.objects.filter(program_id=program_id).annotate(
         is_read=Case(When(message_id__in=read_message_ids, then=True), default=False, output_field=BooleanField())
     ).order_by('-timestamp')
@@ -77,18 +80,19 @@ def messenger(request, program_id):
 
     program_info = Program.objects.using(OPLAN_DB).get(program_id=program_id)
 
-    viewed_messages = show_viewed_messages(program_id, worker_id) or []
-    last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
-    unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
+    viewed_messages = show_viewed_messages(program_id, user_id) or []
+    last_notice = Notification.objects.filter(recipient=user_id).order_by('-timestamp')[:1] or []
+    unread_notifications = Notification.objects.filter(recipient=user_id, is_read=False).count()
     data = {
         'messages': messages,
         'viewed_messages': viewed_messages,
-        'all_messages': all_messages(worker_id),
+        'all_messages': all_messages(user_id),
         'last_notice': last_notice,
         'unread_notifications': unread_notifications,
         'program_info': program_info,
         'form': form,
-        'permissions': ask_db_permissions(worker_id),
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group),
         'page_obj': page_obj,
         'has_next': page_obj.has_next(),
         'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
@@ -100,8 +104,9 @@ def messenger(request, program_id):
     return render(request, 'messenger_static/messenger.html', data)
 
 def notificator(request):
-    worker_id = request.user.id
-    notifications = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')
+    user_id = request.user.id
+    user_group = request.user.groups.first().id
+    notifications = Notification.objects.filter(recipient=user_id).order_by('-timestamp')
     paginator = Paginator(notifications, 50)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -111,13 +116,14 @@ def notificator(request):
     # last_notice = Notification.objects.filter(recipient=worker_id).order_by('-timestamp')[:1] or []
     # latest_ids = Notification.objects.filter(recipient=worker_id).order_by('-timestamp').values('notice_id')[:60]
     # all_notifications = Notification.objects.filter(notice_id__in=Subquery(latest_ids)).order_by('timestamp') or []
-    unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
+    unread_notifications = Notification.objects.filter(recipient=user_id, is_read=False).count()
     data = {
-        'all_messages': all_messages(worker_id),
+        'all_messages': all_messages(user_id),
         'last_notice': last_notice,
         'all_notifications': all_notifications,
         'unread_notifications': unread_notifications,
-        'permissions': ask_db_permissions(worker_id),
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group),
         'page_obj': page_obj,
         'has_next': page_obj.has_next(),
         'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,

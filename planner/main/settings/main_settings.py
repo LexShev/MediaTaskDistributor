@@ -71,26 +71,65 @@ class MainSettings:
     }
 
     header_panels = {
-        3: {'name': 'broadcast_engineers', 'tabs':
+        1: {'name': 'moderators', 'label': 'Админ панель', 'tabs':
+            ['task_manager', 'kpi_info', 'work_calendar']
+            },
+        3: {'name': 'broadcast_engineers', 'label': 'Эфирный контроль', 'tabs':
             ['air_day_report', 'air_month_report', 'air_search', 'advanced_search']
             },
-        6: {'name': 'editors', 'tabs':
-            ['air_day_report', 'air_month_report', 'common_pool', 'advanced_search']
+        6: {'name': 'editors', 'label': 'Редакторы', 'tabs':
+            ['air_day_report', 'air_month_report', 'common_pool', 'playlist_daily', 'editors_notifications', 'advanced_search']
             },
-        4: {'name': 'otk_engineers', 'tabs':
+        4: {'name': 'otk_engineers', 'label': 'ОТК', 'tabs':
             ['otk', 'common_pool', 'advanced_search']
             },
-        2: {'name': 'preparation_engineers', 'tabs':
+        2: {'name': 'preparation_engineers', 'label': 'Инженеры подготовки', 'tabs':
             ['week', 'list', 'common_pool', 'advanced_search', 'desktop']
             },
-        7: {'name': 'broadcast_engineers', 'tabs':
-            ['week', 'list', 'common_pool', 'air_day_report', 'air_month_report', 'common_pool', 'desktop',
-             'advanced_search']
+        7: {'name': 'preparation_engineers__editors', 'label': 'Арина', 'tabs':
+            ['week', 'list', 'common_pool', 'air_day_report', 'air_month_report', 'desktop', 'playlist_daily', 'editors_notifications', 'advanced_search']
             },
+    }
+
+    label_dict = {
+        'air_day_report': 'Отчёт на день',
+        'air_month_report': 'Отчёт на месяц',
+        'air_search': 'Поиск задач',
+        'playlist_daily': 'Сетки вещания',
+        'editors_notifications': 'Уведомления',
+        'schedule_perspective': 'Перспективные сетки',
+        'advanced_search': 'Расширенный поиск',
+        'common_pool': 'Общий пул',
+        'otk': 'Технический контроль',
+        'week': 'Неделя',
+        'list': 'Список',
+        'desktop': 'Рабочий стол',
+        'task_manager': 'Управление задачами',
+        'kpi_info': 'KPI',
+        'work_calendar': 'Календарь',
+    }
+
+    url_dict = {
+        'air_day_report': 'on-air-report/today',
+        'air_month_report': 'on-air-report/month',
+        'air_search': 'on-air-report/search',
+        'playlist_daily': 'playlist/daily',
+        'editors_notifications': 'playlist/editors_notifications',
+        'schedule_perspective': 'schedule-perspective',
+        'advanced_search': 'advanced_search',
+        'common_pool': 'common_pool',
+        'otk': 'otk',
+        'week': 'week',
+        'list': 'list',
+        'desktop': 'desktop',
+        'task_manager': 'task_manager',
+        'kpi_info': 'kpi_info',
+        'work_calendar': 'work_calendar',
     }
 
     def __init__(self):
         self._workers_dict = None
+        self._label_panels = None
 
     def oplan_workers_dict(self):
         try:
@@ -128,15 +167,38 @@ class MainSettings:
             print(error)
             return ''
 
+    def _build_label_panels(self):
+        label_panels = {}
+        for group_id, department in self.header_panels.items():
+            label_panels[group_id] = {
+                'name': department['name'],
+                'label': department['label'],
+                'tabs': [
+                    {
+                        'key': tab,
+                        'label': self.label_dict.get(tab, tab),
+                        'url': self.url_dict.get(tab, '')
+                    } for tab in department['tabs']
+                ],
+            }
+        return label_panels
+
+    @property
+    def label_panels(self):
+        if self._label_panels is None:
+            self._label_panels = self._build_label_panels()
+        return self._label_panels
 
     def get_header_panels(self, group_id):
         try:
+            # group_id = 2
+            panels = self.label_panels
             if group_id == 5:
-                return {department.get('name'): department.get('tabs') for department in self.header_panels.values()}
+                return [panels.get(department, {}) for department in panels.keys()]
             elif group_id == 1:
-                return {department.get('name'): department.get('tabs') for department in self.header_panels.values()}
+                return [panels.get(department, {}) for department in panels.keys()]
             else:
-                return self.header_panels.get(group_id, {}).get('tabs', [])
+                return [panels.get(group_id, {})]
         except Exception as e:
             print(e)
             return []

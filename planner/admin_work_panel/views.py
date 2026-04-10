@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 
 from main.form_choices import choice
 from main.permission_pannel import ask_db_permissions
+from main.settings.main_settings import main_settings
 from .models import AdminModel, TaskSearch
 from .admin_materials_list import task_info, update_task_list, add_in_task_list, del_task, archive_task, reset_progress
 from .forms import AdminForm, DynamicSelector, TaskSearchForm
@@ -19,6 +20,7 @@ from .forms import AdminForm, DynamicSelector, TaskSearchForm
 @login_required()
 def task_manager(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     try:
         filter_init_dict = AdminModel.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -90,12 +92,14 @@ def task_manager(request):
     data = {
         'filter_form': filter_form,
         'search_form': search_form,
-        'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'admin_work_panel/task_manager.html', data)
 
 def load_admin_task_table(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     field_dict = AdminModel.objects.filter(owner=user_id).values()
     if field_dict: field_dict = field_dict[0]
     search_init_dict = TaskSearch.objects.get(owner=user_id)
@@ -124,6 +128,7 @@ def load_admin_task_table(request):
             'task_list_zip': zip(task_list, dynamic_selector_list),
             'service_dict': service_dict,
             'permissions': ask_db_permissions(user_id),
+            'tabs': main_settings.get_header_panels(user_group)
         },
         request=request
     )

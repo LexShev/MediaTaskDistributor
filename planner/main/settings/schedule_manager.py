@@ -28,7 +28,6 @@ class ScheduleManager:
         self._build_indexes()
         self.main_settings = main_settings
 
-
     def _build_indexes(self):
         """Строит индексы для быстрого поиска"""
         for schedule_id, schedule_info in self.schedule_dict.items():

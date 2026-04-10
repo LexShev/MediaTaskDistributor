@@ -25,7 +25,7 @@ from playlist.playlist import get_schedule_days, get_schedule_list, get_schedule
 @login_required()
 def playlist(request):
     user_id = request.user.id
-
+    user_group = request.user.groups.first().id
     try:
         init_dict = PlaylistModel.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -45,7 +45,8 @@ def playlist(request):
     data = {
         'service_dict': service_dict,
         'form': form,
-        'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'playlist/index.html', data)
 
@@ -241,7 +242,7 @@ def load_schedule_list(request):
 
 def editors_notifications(request):
     user_id = request.user.id
-
+    user_group = request.user.groups.first().id
     try:
         filter_init_dict = EditorsNotificationFilter.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -265,7 +266,8 @@ def editors_notifications(request):
     data = {
         'filter_form': filter_form,
         'search_form': search_form,
-        'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'playlist/editors_notifications.html', data)
 

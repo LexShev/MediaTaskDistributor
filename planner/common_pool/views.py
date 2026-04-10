@@ -2,7 +2,6 @@ import json
 
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import connections
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -10,6 +9,7 @@ from django.template.loader import render_to_string
 
 from distribution.distribution_manual import start_distribution
 from main.permission_pannel import ask_db_permissions
+from main.settings.main_settings import main_settings
 from .common_pool import select_pool, get_total_count, get_film_stats, get_season_stats, insert_in_common_task, \
     insert_in_task_list
 from .forms import CommonPoolForm
@@ -19,7 +19,7 @@ from .models import CommonPool
 @login_required()
 def common_pool(request):
     user_id = request.user.id
-
+    user_group = request.user.groups.first().id
     try:
         init_dict = CommonPool.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -41,6 +41,7 @@ def common_pool(request):
 
     data = {'pool_list': [],
             'permissions': ask_db_permissions(user_id),
+            'tabs': main_settings.get_header_panels(user_group),
             'form': form,
             }
     return render(request, 'common_pool/common_pool.html', data)
@@ -104,6 +105,7 @@ def distribute_selected(request):
 
 def load_pool_table(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     try:
         init_dict = CommonPool.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -118,6 +120,7 @@ def load_pool_table(request):
         'common_pool/common_pool_table.html',
         {'pool_list': select_pool(search_type, material_type, search_input, sql_set),
          'permissions': ask_db_permissions(user_id),
+         'tabs': main_settings.get_header_panels(user_group),
          },
         request=request
     )

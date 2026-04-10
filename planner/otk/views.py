@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from main.detail_view import insert_filepath_history
 from main.logs_and_history import get_task_status, insert_history_status
 from main.permission_pannel import ask_db_permissions
+from main.settings.main_settings import main_settings
 from messenger_static.messenger_utils import create_notification
 from planner.settings import CURRENT_CENZ_DIR
 from .models import OtkModel, TaskSearch
@@ -22,6 +23,7 @@ from .forms import OtkForm, TaskSearchForm
 @login_required()
 def otk(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     try:
         init_dict = OtkModel.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -57,7 +59,8 @@ def otk(request):
         'settings': settings,
         'filter_form': filter_form,
         'search_form': search_form,
-        'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
             }
     return render(request, 'otk/otk.html', data)
 
@@ -176,7 +179,7 @@ def set_status_otk_fail(request):
 
 def load_otk_task_table(request):
     user_id = request.user.id
-
+    user_group = request.user.groups.first().id
     field_dict = OtkModel.objects.filter(owner=user_id).values()
     if field_dict:
         field_dict = field_dict[0]
@@ -190,6 +193,7 @@ def load_otk_task_table(request):
             'task_list': task_list,
             'service_dict': service_dict,
             'permissions': ask_db_permissions(user_id),
+            'tabs': main_settings.get_header_panels(user_group)
         },
         request=request
     )

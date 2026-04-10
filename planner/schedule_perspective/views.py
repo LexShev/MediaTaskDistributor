@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
+from main.settings.main_settings import main_settings
 from schedule_perspective.program_info import get_program_info, update_schedule_info
 from schedule_perspective.search import fast_search
 
@@ -13,13 +14,15 @@ from schedule_perspective.search import fast_search
 @login_required()
 def schedule_perspective(request):
     user_id = request.user.id
+    user_group = request.user.groups.first().id
     start_date = date.fromisocalendar(date.today().year, date.today().isocalendar().week, 1)
     # schedules = [start_date + timedelta(day) for day in range(7)]
     start_date = date(2026, 11, 2)
     schedule_id = 3
     data = {
         'schedules': get_program_info(start_date, schedule_id),
-        'permissions': ask_db_permissions(user_id)
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'schedule_perspective/index.html', data)
 

@@ -18,7 +18,6 @@
     <script type="text/javascript" src="{% static '/jquery/jquery-3.7.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static '/js/notifications_websocket.js' %}"></script>
 
-
     <link href="{% static '/css/main.css' %}"  rel="stylesheet">
     <script src="{% static '/bootstrap-5.3.3-dist/js/color-modes.js' %}"></script>
 
@@ -28,7 +27,12 @@
 </head>
 
 {% if user.is_authenticated %}
-  {% include 'main/header.html' %}
+    {% if request.user.id == 1 %}
+        {% include 'main/header_upd.html' %}
+    {% else %}
+        {% include 'main/header.html' %}
+    {% endif %}
+
 {% endif %}
 
 <body data-user-id="{{ request.user.id|default:'' }}">

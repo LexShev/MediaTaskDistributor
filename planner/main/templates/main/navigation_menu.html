@@ -1,31 +1,36 @@
 <ul class="navbar-nav me-auto mb-2 mb-lg-0 flex-wrap">
 
-  {% for tab, item in header_panels.items %}
-
-    {% if permissions.auth_group != 'admin' %}
+    {% if header_panels|length == 1 %}
       <!-- Обычный пункт меню -->
-      <li class="nav-item">
-        <a href="{% url 'home' %}{{ item }}/" class="nav-link px-3 {% if request.path|slice:'1:'|cut:'/' == item %}active{% endif %}">
-          {{ item }}
-        </a>
-      </li>
+        {% for tab in header_panels.0.tabs %}
+          <li class="nav-item">
+            <a href="{% url 'home' %}{{ tab.url }}/" class="nav-link px-3 {% if request.path|slice:'1:'|cut:'/' == tab.url %}active{% endif %}">
+              {{ tab.label }}
+            </a>
+          </li>
+        {% endfor %}
     {% else %}
       <!-- Вложенный список (группа по отделам) -->
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle px-3" href="#" role="button"
-           data-bs-toggle="dropdown" aria-expanded="false">
-          {{ tab }}
-        </a>
-        <ul class="dropdown-menu {% if is_mobile %}dropdown-menu-start position-static{% endif %}">
-          {% for sub_item in item %}
-            <li>
-              <a href="{% url 'home' %}{{ sub_item }}/" class="dropdown-item">
-                {{ sub_item }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </li>
+        {% for department in header_panels %}
+          <li class="nav-item dropdown" style="z-index: 1050;">
+            <a class="nav-link dropdown-toggle px-3" role="button"
+               data-bs-toggle="dropdown"
+               data-bs-auto-close="outside"
+               data-bs-display="static"
+               data-bs-popper="false"
+               aria-expanded="false">
+              {{ department.label }}
+            </a>
+            <ul class="dropdown-menu {% if is_mobile %}dropdown-menu-start position-static{% endif %}">
+              {% for tab in department.tabs %}
+                <li class="nav-item">
+                  <a href="{% url 'home' %}{{ tab.url }}/" class="dropdown-item">
+                    {{ tab.label }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+        {% endfor %}
     {% endif %}
-  {% endfor %}
 </ul>

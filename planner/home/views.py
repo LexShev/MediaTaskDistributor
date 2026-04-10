@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 
+from main.settings.main_settings import main_settings
 from messenger_static.models import Message, Notification
 from home.home_calendar import calendar_skeleton, update_info
 from home.home_kpi import common_kpi, daily_kpi
@@ -13,7 +14,8 @@ from main.permission_pannel import ask_db_permissions
 
 @login_required()
 def home(request):
-    worker_id = request.user.id
+    user_id = request.user.id
+    user_group = request.user.groups.first().id
     today = date.today()
     service_dict = {
         'today': today,
@@ -21,9 +23,10 @@ def home(request):
     }
     data = {
         'home_calendar': calendar_skeleton(),
-        'home_table': home_deadline_table(worker_id),
+        'home_table': home_deadline_table(user_id),
         'service_dict': service_dict,
-        'permissions': ask_db_permissions(worker_id),
+        'permissions': ask_db_permissions(user_id),
+        'tabs': main_settings.get_header_panels(user_group)
     }
     return render(request, 'home/home.html', data)
 
@@ -34,10 +37,10 @@ def load_kpi_chart(request):
     return JsonResponse(common_kpi())
 
 def update_total_unread_count(request):
-    worker_id = request.user.id
+    user_id = request.user.id
     try:
-        total_unread_count = Message.objects.exclude(views__worker_id=worker_id).count()
-        unread_notifications = Notification.objects.filter(recipient=worker_id, is_read=False).count()
+        total_unread_count = Message.objects.exclude(views__worker_id=user_id).count()
+        unread_notifications = Notification.objects.filter(recipient=user_id, is_read=False).count()
         return JsonResponse({
             'status': 'success',
             'message': 'Updated successfully',
