@@ -12,5 +12,9 @@ urlpatterns = [
     path("editors_notifications/", editors_notifications, name="editors_notifications"),
     path("load_notification_list/", load_notification_list, name="load_notification_list"),
     path("update_editors_notification_filter/", update_editors_notification_filter, name="update_editors_notification_filter"),
+    path('player/', video_player, name='video_player'),
+    path('external_player/', external_video_player, name='external_video_player'),
+    path('player/<path:video_path>/', video_player, name='video_player_with_path'),
+    path('videos/', video_list, name='video_list'),
 
 ]

@@ -1,13 +1,32 @@
 {% extends  'main/index.html' %}
 {% load custom_filters %}
 {% load static %}
+
 <main>
 {% block body %}
 <link rel="stylesheet" href="{% static 'css/detail_view.css' %}">
+<script type="text/javascript" src="{% static 'HLS/hls.min.js' %}"></script>
+
 <div class="container-xxl pt-4 px-2">
   <div id="message_container">
     {% include  'main/messages.html' %}
   </div>
+    <div class="modal fade" id="VideoPlayerModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="VideoPlayerTitle" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fs-5" id="VideoPlayerTitle">Название</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" data-material-type="{{ full_info.material_type }}"
+               data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
+               data-file-path="{{ full_info.Files_Name }}" id="video_player_container">
+          </div>
+            <div class="border-top px-3 py-2" id="video_player_file_path"></div>
+        </div>
+      </div>
+    </div>
+
   {% if full_info.Progs_program_kind != 1 and full_info.Progs_program_kind != 4 %}
     <div class="accordion shadow mx-0 mb-2 mt-0 p-0" id="accordion_sum_info">
       <div class="accordion-item">
@@ -21,12 +40,23 @@
 
               <div class="row m-0 mb-2 gx-1 gy-2 align-items-stretch">
                 <div class="col px-1 d-flex align-items-center" style="flex: 0 0 16%; max-width: 16%; height: 95%;">
-                  <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
-                       class="img-fluid rounded m-0 w-100 h-100 object-fit-cover"
-                       data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
-                       data-program-id="{{ full_info.Progs_program_id }}" data-parent-id="{{ full_info.Progs_parent_id }}"
-                       data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
-                       data-country="{{ full_info.Progs_production_country }}">
+                  <div class="position-relative w-100 h-100 poster-container" onclick="startVideoPlayer()">
+                    <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
+                         class="img-fluid rounded m-0 w-100 h-100 object-fit-cover"
+                         data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
+                         data-program-id="{{ full_info.Progs_program_id }}" data-parent-id="{{ full_info.Progs_parent_id }}"
+                         data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
+                         data-country="{{ full_info.Progs_production_country }}">
+
+                    <!-- Кнопка Play -->
+                    <div class="position-absolute top-50 start-50 translate-middle">
+                      <button class="btn p-0 border-0 play-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
+                          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="cold-flex flex-column mt-auto px-1" style="flex: 0 0 84%; max-width: 84%;">
@@ -264,6 +294,7 @@
         </div>
     </div>
   <script type="text/javascript" src="{% static 'js/detail_view.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/card_video_player.js' %}"></script>
   {% else %}
 
     <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_folder_info">

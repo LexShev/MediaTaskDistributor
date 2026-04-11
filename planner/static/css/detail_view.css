@@ -16,3 +16,33 @@
     white-space: nowrap;
     overflow: hidden;
 }
+
+.poster-container {
+  cursor: pointer;
+}
+
+.poster-container .play-button {
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+  background: transparent;
+  text-decoration: none;
+}
+
+.poster-container:hover .play-button {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.poster-container .play-button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 768px) {
+  .poster-container .play-button svg {
+    width: 36px;
+    height: 36px;
+  }
+}

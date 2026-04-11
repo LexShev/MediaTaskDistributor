@@ -408,3 +408,41 @@ def update_editors_notification_filter(request):
         })
     except Exception as error:
         return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
+
+
+def video_player(request, video_path=None):
+    """Простой видео плеер"""
+    context = {
+        'video_title': 'Тестовое видео'
+    }
+
+    # Если нужно динамически подставлять путь к видео
+    if video_path:
+        context['video_path'] = video_path
+
+    return render(request, 'playlist/video_test.html', context)
+
+def external_video_player(request, video_path=None):
+    """Простой видео плеер"""
+    context = {
+        'video_title': 'Тестовое видео'
+    }
+
+    # Если нужно динамически подставлять путь к видео
+    if video_path:
+        context['video_path'] = video_path
+
+    return render(request, 'playlist/external_video_test.html', context)
+
+def video_list(request):
+    """Список доступных видео (для теста)"""
+    # Здесь можно сканировать директорию или получать из БД
+    videos = [
+        {
+            'title': 'F_007 Spectr',
+            'path': 'ContentX/FILMS/F_007%20Spectr_FIX_1080p25_H264_6Mbps.mp4',
+            'thumbnail': '/media/thumbnails/spectr.jpg'
+        },
+        # Добавьте другие видео
+    ]
+    return render(request, 'playlist/video_list.html', {'videos': videos})
