@@ -7,7 +7,17 @@ function startVideoPlayer() {
             const modal = new bootstrap.Modal(VideoPlayerModal);
             let VideoPlayerTitle = document.getElementById('VideoPlayerTitle');
             let videoPlayerContainer = document.getElementById('video_player_container');
+            let filePathFooter = document.getElementById('video_player_file_path');
+            VideoPlayerTitle.innerText = '';
             videoPlayerContainer.innerHTML = '';
+            filePathFooter.innerHTML = '';
+
+            let filePath = videoPlayerContainer?.dataset.filePath || ''
+            if (!filePath) {
+                console.log('Нет материала');
+                return;
+            }
+
             let videoPlayer = document.createElement('video');
             videoPlayer.setAttribute('width', '100%');
             videoPlayer.setAttribute('controls', true);
@@ -36,14 +46,9 @@ function startVideoPlayer() {
                 VideoPlayerTitle.innerText = 'Название';
             }
 
-            let filePath = videoPlayerContainer?.dataset.filePath || ''
-            if (!filePath) {
-                return;
-            }
-            let filePathFooter = document.getElementById('video_player_file_path');
             let filePathTitle = document.createElement('small');
             filePathTitle.classList.add('text-secondary');
-            filePathTitle.innerText = filePath;
+            filePathTitle.innerText = filePath.length > 167 ? filePath.slice(0, 167) + '...' : filePath;
             filePathFooter.appendChild(filePathTitle);
 
             const videoPath = getHlsUrl(filePath)

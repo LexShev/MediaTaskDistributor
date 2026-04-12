@@ -40,7 +40,8 @@
 
               <div class="row m-0 mb-2 gx-1 gy-2 align-items-stretch">
                 <div class="col px-1 d-flex align-items-center" style="flex: 0 0 16%; max-width: 16%; height: 95%;">
-                  <div class="position-relative w-100 h-100 poster-container" onclick="startVideoPlayer()">
+                  <div class="position-relative w-100 h-100 poster-container"
+                       {% if full_info.material_status != 'no_material' %}onclick="startVideoPlayer()" style="cursor: pointer;"{% endif %}>
                     <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
                          class="img-fluid rounded m-0 w-100 h-100 object-fit-cover"
                          data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
@@ -49,13 +50,15 @@
                          data-country="{{ full_info.Progs_production_country }}">
 
                     <!-- Кнопка Play -->
-                    <div class="position-absolute top-50 start-50 translate-middle">
-                      <button class="btn p-0 border-0 play-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
-                          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
-                        </svg>
-                      </button>
-                    </div>
+                    {% if full_info.material_status != 'no_material' %}
+                        <div class="position-absolute top-50 start-50 translate-middle">
+                          <button class="btn p-0 border-0 play-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
+                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                            </svg>
+                          </button>
+                        </div>
+                    {% endif %}
                   </div>
                 </div>
 
