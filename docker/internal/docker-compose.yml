@@ -81,7 +81,10 @@ services:
     restart: unless-stopped
     networks:
       - planner-network
+      - media_media-network
 
 networks:
   planner-network:
     driver: bridge
+  media_media-network:
+    external: true

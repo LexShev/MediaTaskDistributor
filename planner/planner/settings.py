@@ -28,12 +28,13 @@ MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
 DEBUG = False
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-ALLOWED_HOSTS.extend(['tvfab.local', 'localhost'])
+ALLOWED_HOSTS.extend(['tvfab.local', 'localhost', '192.168.33.3'])
 # if DEBUG:
 #     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
 
 # Для работы HTTPS
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+CSRF_TRUSTED_ORIGINS.extend(['www.tvfab.local', 'localhost', '192.168.33.3'])
 
 # Безопасные куки
 SESSION_COOKIE_SECURE = True      # Только по HTTPS
