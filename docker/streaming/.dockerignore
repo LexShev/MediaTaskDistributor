@@ -1,6 +1,6 @@
 # static & media
-planner/media/waveforms/**/*.jpg
-planner/media/posters/**/*.jpg
+**/media/waveforms/
+**/media/posters/
 
 # Игнорируем служебные файлы даже в разрешенных папках
 **/__pycache__
