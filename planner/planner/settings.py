@@ -25,7 +25,7 @@ MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
 MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 ALLOWED_HOSTS.extend(['tvfab.local', 'localhost', '192.168.33.3'])
@@ -60,9 +60,10 @@ USE_X_FORWARDED_PORT = True
 
 # Celery Configuration
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+REDIS_HOST = os.getenv('REDIS_HOST')
 REDIS_PORT = os.getenv('REDIS_PORT')
-CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
-CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/0'
+CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0'
+CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -143,6 +144,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
+                'django.template.context_processors.media',
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -168,10 +170,11 @@ PLANNER_PORT = os.getenv('DB_MSSQL_PORT')
 ODBC_DRIVER = os.getenv('ODBC_DRIVER', 'ODBC Driver 17 for SQL Server')
 
 MONGO_DB = 'planner'
+DB_MONGO_HOST = os.getenv('DB_MONGO_HOST')
 DB_MONGO_PORT = os.getenv('DB_MONGO_PORT')
 MONGO_USER = os.getenv('DB_MONGO_USER')
 MONGO_PASSWORD = os.getenv('DB_MONGO_PASSWORD')
-MONGO_HOST =  f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MEDIA_SERVER_IP}:{DB_MONGO_PORT}'
+MONGO_HOST =  f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{DB_MONGO_HOST}:{DB_MONGO_PORT}'
 
 DATABASES = {
     "default": {
@@ -269,7 +272,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-DEFAULT_LOG_DIR = '/logs/'
+DEFAULT_LOG_DIR = os.path.join(BASE_DIR, 'logs/')
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [

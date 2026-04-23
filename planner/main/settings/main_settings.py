@@ -128,8 +128,29 @@ class MainSettings:
     }
 
     def __init__(self):
-        self._workers_dict = None
+        self._oplan_workers_dict = None
+        self._planner_workers_dict = None
         self._label_panels = None
+
+    def planner_workers_dict(self):
+        try:
+            with connections[PLANNER_DB].cursor() as cursor:
+                query = f'SELECT [id], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user]'
+                cursor.execute(query)
+                workers = cursor.fetchall()
+                if not workers:
+                    return {}
+                return {worker[0]: f'{worker[1]} {worker[2]}' for worker in workers}
+
+        except Exception as error:
+            print(error)
+            return {}
+
+    @property
+    def get_planner_workers_dict(self):
+        if self._planner_workers_dict is None:
+            self._planner_workers_dict = self.planner_workers_dict()
+        return self._planner_workers_dict
 
     def oplan_workers_dict(self):
         try:
@@ -150,15 +171,16 @@ class MainSettings:
             print(error)
             return {}
 
+    @property
     def get_oplan_workers_dict(self):
-        if self._workers_dict is None:
-            return self.oplan_workers_dict()
-        return self._workers_dict
+        if self._oplan_workers_dict is None:
+            self._oplan_workers_dict = self.oplan_workers_dict()
+        return self._oplan_workers_dict
 
     def refresh_workers_dict(self):
         """Принудительно обновить словарь сотрудников"""
-        self._workers_dict = self.oplan_workers_dict()
-        return self._workers_dict
+        self._oplan_workers_dict = self.oplan_workers_dict()
+        return self._oplan_workers_dict
 
     def get_oplan_channels_dict(self, status):
         try:

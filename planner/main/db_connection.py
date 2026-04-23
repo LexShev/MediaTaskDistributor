@@ -188,33 +188,6 @@ def parent_name(program_id):
         cursor.execute(query)
         for name in cursor.fetchone():
             return name
-#
-# def planner_task_list(program_id):
-#     with connections[PLANNER_DB].cursor() as cursor:
-#         query_planner = f'''
-#         SELECT worker_id, engineer, work_date, task_status
-#         FROM [{PLANNER_DB}].[dbo].[task_list]
-#         WHERE [program_id] = {program_id}'''
-#         cursor.execute(query_planner)
-#         task_list = cursor.fetchone()
-#         if task_list:
-#             return task_list
-#         else:
-#             return None, None, None, None
-
-# def oplan3_engineer(program_id):
-#     with connections[OPLAN_DB].cursor() as cursor:
-#         query_oplan3 = f'''
-#         SELECT [IntValue]
-#         FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
-#         WHERE [ObjectId] = {program_id}
-#         AND [ProgramCustomFieldId] = 15
-#         '''
-#         cursor.execute(query_oplan3)
-#         int_value = cursor.fetchone()
-#         if int_value:
-#             return int_value[0]
-
 
 def program_custom_fields():
     with connections[OPLAN_DB].cursor() as cursor:

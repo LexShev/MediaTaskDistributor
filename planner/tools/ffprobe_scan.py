@@ -55,37 +55,6 @@ class FfprobeScanner:
         self.ffprobe_file_path = None
         self.logger = setup_logging()
 
-    # def get_file_id(self):
-    #     try:
-    #         with connections[OPLAN_DB].cursor() as cursor:
-    #             query = f'''
-    #                 SELECT Files.[FileID], Files.[Name]
-    #                 FROM [{OPLAN_DB}].[dbo].[File] AS Files
-    #                 JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
-    #                     ON Files.[ClipID] = Clips.[ClipID]
-    #                 JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
-    #                     ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
-    #                 WHERE Files.[Deleted] = 0
-    #                 AND Files.[PhysicallyDeleted] = 0
-    #                 AND Clips.[Deleted] = 0
-    #                 AND Progs.[deleted] = 0
-    #                 AND Progs.[DeletedIncludeParent] = 0
-    #                 AND Progs.[program_id] = {self.program_id}
-    #                 '''
-    #
-    #             cursor.execute(query)
-    #             result = cursor.fetchone()
-    #             if result:
-    #                 self.file_id, self.file_path = result
-    #                 self.ffprobe_file_path = self.file_path.replace('\\', '/').replace('//192.168.80.3', '/mnt').replace('//192.168.80.5', '/mnt')
-    #                 return True
-    #             else:
-    #                 self.logger.warning(f"Файл для program_id {self.program_id} не найден в БД.")
-    #                 return False
-    #     except Exception as error:
-    #         self.logger.error(f"Ошибка при запросе к БД: {error}")
-    #         return False
-
     def ffprobe_scan(self):
         if not self.file_id or not self.file_path:
             return None

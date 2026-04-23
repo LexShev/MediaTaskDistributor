@@ -86,6 +86,7 @@ class R128Scanner:
                 waveform_result = self.generate_waveforms()
             else:
                 self.logger.warning('image file has already been existed')
+                self._insert_or_update_db({'waveforms': True})
                 waveform_result = {'status': 'error', 'message': 'image file has already been existed', 'waveforms_created': False}
 
             self.logger.info("scanning has finished")

@@ -28,7 +28,6 @@ def calc_deadline(task_date):
 def list_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type, mark=None):
     if mark is None:
         mark = []
-    print('user_order', user_order, 'order_type', order_type)
     material_list_sql, django_columns = planner_material_list(schedules_id, worker_id, material_type, dates, task_status, user_order, order_type, mark)
     material_list = []
     program_id_list = []
@@ -72,11 +71,15 @@ def list_material_list(schedules_id, worker_id, material_type, dates, task_statu
                 material_list.append(program_info_dict)
                 program_id_list.append(program_id)
             else:
+                # Убедимся, что ключ существует
+                if 'has_no_material' not in material_list[repeat_index]:
+                    material_list[repeat_index]['has_no_material'] = False
+
                 material_list[repeat_index]['has_no_material'] = material_list[repeat_index]['has_no_material'] or (
                             temp_dict.get('Task_task_status') == 'no_material')
                 try:
-                    material_list[repeat_index]['episode'].append(
-                        {'Progs_program_id': temp_dict.get('Progs_program_id'),
+                    material_list[repeat_index]['episode'].append({
+                        'Progs_program_id': temp_dict.get('Progs_program_id'),
                         'Progs_name': temp_dict.get('Progs_name'),
                         'Progs_episode_num': temp_dict.get('Progs_episode_num'),
                         'Progs_duration': temp_dict.get('Progs_duration'),

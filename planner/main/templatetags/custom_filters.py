@@ -5,9 +5,8 @@ from django.template.defaulttags import register
 from django.db import connections
 import os
 
-from main.settings.main_settings import MainSettings
-from planner.settings import OPLAN_DB, PLANNER_DB
-
+from main.settings.main_settings import main_settings
+from planner.settings import OPLAN_DB, PLANNER_DB, MEDIA_WAVEFORMS
 
 
 @register.simple_tag
@@ -87,15 +86,16 @@ def planner_worker_username(worker_id):
 def planner_worker_name(worker_id):
     try:
         if worker_id:
-            with connections[PLANNER_DB].cursor() as cursor:
-                query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
-                cursor.execute(query, (worker_id,))
-                worker = cursor.fetchone()
-                if worker:
-                    username, first_name, last_name = worker
-                    return f'{first_name} {last_name}'
-                else:
-                    return 'Аноним'
+            return main_settings.get_planner_workers_dict.get(worker_id, 'Аноним')
+            # with connections[PLANNER_DB].cursor() as cursor:
+            #     query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
+            #     cursor.execute(query, (worker_id,))
+            #     worker = cursor.fetchone()
+            #     if worker:
+            #         username, first_name, last_name = worker
+            #         return f'{first_name} {last_name}'
+            #     else:
+            #         return 'Аноним'
         else:
             return ''
     except Exception as error:
@@ -226,6 +226,18 @@ def convert_sec_to_time(sec, fps=25):
 def get_value(dictionary, key):
     return dictionary.get(key)
 
+
+@register.filter
+def waveform_exists(file_id):
+    print("FILE_ID", file_id)
+    """Проверяет существование файла звуковой волны"""
+    if not file_id:
+        return False
+
+    waveform_path = os.path.join(MEDIA_WAVEFORMS, f'{file_id}.png')
+    print('FILE EXIST', os.path.isfile(waveform_path))
+    return os.path.isfile(waveform_path)
+
 @register.filter
 def convert_frames_to_time(frames, fps=25):
     try:
@@ -334,22 +346,22 @@ def day_name(cal_date):
 
 @register.filter
 def status_name(status):
-    status_dict = MainSettings.status_dict
+    status_dict = main_settings.status_dict
     return status_dict.get(status, '')
 
 @register.filter
 def status_color(status):
-    color_dict = MainSettings.color_dict
+    color_dict = main_settings.color_dict
     return color_dict.get(status, '')
 
 @register.filter
 def on_air_status_color(status):
-    color_dict = MainSettings.on_air_color_dict
+    color_dict = main_settings.on_air_color_dict
     return color_dict.get(status, '')
 
 @register.filter
 def channel_color(schedule_id, frmt='name'):
-    color_dict = MainSettings.channel_color_dict
+    color_dict = main_settings.channel_color_dict
     color_data = color_dict.get(schedule_id, {})
 
     if frmt == 'rgb':

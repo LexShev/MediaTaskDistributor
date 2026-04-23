@@ -491,7 +491,8 @@ def material_card(request, program_id):
     file_id = full_info_dict.get('Files_FileID', '')
     file_path = full_info_dict.get('Files_Name', '')
     actions_list = select_actions(program_id)
-    # start_ffmpeg_scanners(file_id, file_path)
+    ffmpeg_info = ffmpeg_dict(file_id)
+    start_ffmpeg_scanners(file_id, file_path, ffmpeg_info)
     data = {
         'full_info': full_info_dict,
         'custom_fields': custom_fields,
@@ -501,7 +502,7 @@ def material_card(request, program_id):
         'actions_list': sorted(actions_list, key=lambda action: action.get('time_of_change') or datetime.min),
         'filepath_history': select_filepath_history(program_id),
         'attached_files': attached_files,
-        'ffmpeg': ffmpeg_dict(file_id),
+        'ffmpeg': ffmpeg_info,
         'form_text': form_text,
         'form_drop': form_drop,
         'form_attached_files': form_attached_files,
