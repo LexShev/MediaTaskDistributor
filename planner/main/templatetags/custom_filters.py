@@ -229,13 +229,11 @@ def get_value(dictionary, key):
 
 @register.filter
 def waveform_exists(file_id):
-    print("FILE_ID", file_id)
     """Проверяет существование файла звуковой волны"""
     if not file_id:
         return False
 
     waveform_path = os.path.join(MEDIA_WAVEFORMS, f'{file_id}.png')
-    print('FILE EXIST', os.path.isfile(waveform_path))
     return os.path.isfile(waveform_path)
 
 @register.filter

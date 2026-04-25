@@ -437,3 +437,39 @@ function CopyText(field) {
     textInput.select()
     document.execCommand('copy');
 };
+
+function copyToSFTP(fileInfo) {
+    console.log('copy queue started')
+    const fileId = fileInfo.dataset?.fileId || null
+    const filePath = fileInfo.dataset?.filePath || null
+
+    if (!fileId && !filePath) {
+        console.error('No FileInfo')
+        return
+    }
+    fetch('/file_copy_to_sftp/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({
+        'file_id': fileId,
+        'file_path': filePath
+    }),
+    credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            console.log('copy success')
+        }
+        else {
+            console.log('error', data.message)
+        }
+    })
+    .catch(error => {
+        console.error('Error checking poster:', error);
+    });
+}

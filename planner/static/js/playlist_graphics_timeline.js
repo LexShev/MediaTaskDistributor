@@ -159,7 +159,6 @@ class TimelineManager {
             this.tooltip.style.display = 'none';
         }
 
-        console.log('TimelineManager cleared');
     }
 
     reinit() {
@@ -344,7 +343,6 @@ class TimelineManager {
             this.programsData.push(programObj);
         });
 
-        console.log('Loaded programs:', this.programsData.length);
     }
 
     generateGraphicsForSegment(segment, program, segmentIndex, totalSegments) {

@@ -55,7 +55,7 @@
       </div>
 
       <!-- Правая часть: иконки действий -->
-      <div class="col-4 col-md-auto d-flex justify-content-end gap-2">
+      <div class="col-4 col-md-auto d-flex justify-content-end gap-3">
         {% if permissions.auth_group == 'admin' or permissions.auth_group == 'broadcast_engineers' %}
           <button onclick="updateNoMaterial()" class="btn btn-outline-secondary"
                   id="update_no_material" type="button" title="Обновить материалы">
@@ -91,7 +91,7 @@
                 id="total_unread_badge"></span>
         </a>
 
-        <div class="dropdown text-end" style="z-index: 1050;">
+        <div class="dropdown text-end" style="z-index: 1050; cursor: pointer;">
           <a class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
              data-bs-toggle="dropdown" aria-expanded="false">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">

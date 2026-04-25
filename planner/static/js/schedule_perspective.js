@@ -178,8 +178,6 @@ containers.forEach(container => {
 });
 
 function saveMoveToServer(data) {
-    console.log('Отправка данных:', data);
-
     fetch('/schedule-perspective/update-program-position/', {
         method: 'POST',
         headers: {

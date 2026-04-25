@@ -20,6 +20,7 @@
 
     <link href="{% static '/css/main.css' %}"  rel="stylesheet">
     <script src="{% static '/bootstrap-5.3.3-dist/js/color-modes.js' %}"></script>
+    <link href="{% static '/video-js/video-js.css' %}" rel="stylesheet" />
 
     <link href="{% static '/css/sidebars.css' %}"  rel="stylesheet">
 
@@ -27,10 +28,10 @@
 </head>
 
 {% if user.is_authenticated %}
-    {% if request.user.id == 1 %}
-        {% include 'main/header_upd.html' %}
-    {% else %}
+    {% if request.user.id == 2 %}
         {% include 'main/header.html' %}
+    {% else %}
+        {% include 'main/header_upd.html' %}
     {% endif %}
 
 {% endif %}

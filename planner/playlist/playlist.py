@@ -196,7 +196,6 @@ def build_hierarchy_from_level(schedule_data):
     return root_items
 
 def data_transformation(columns, results):
-    workers_dict = main_settings.get_oplan_workers_dict()
     data = []
     for row in results:
         temp_dict = dict(zip(columns, row))
@@ -208,7 +207,7 @@ def data_transformation(columns, results):
         sched_prog_duration = temp_dict.get('SchedProg_duration')
         slot_type = temp_dict.get('SlotType')
 
-        temp_dict['CreatedByName'] = workers_dict.get(temp_dict['CreatedBy'], '')
+        temp_dict['CreatedByName'] = main_settings.get_oplan_workers_dict.get(temp_dict['CreatedBy'], '')
 
         if sched_prog_duration is not None:
             temp_dict['duration'] = sched_prog_duration

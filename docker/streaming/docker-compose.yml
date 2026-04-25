@@ -57,6 +57,59 @@ services:
     networks:
       - media-network
 
+  celery_file_copy:
+    container_name: media_file_copy_worker
+    build:
+      context: ../..
+      dockerfile: docker/streaming/Dockerfile.filecopy
+    user: "0:543401276"
+    command: >
+      sh -c "
+      cd /app/planner &&
+      celery -A planner worker --loglevel=info --concurrency=2 -Q file_copy -n file_copy_worker@%h
+      "
+    volumes:
+      - ../../planner/planner:/app/planner:ro
+      - ../../planner/tools:/app/tools:ro
+      - ../../planner/media:/app/media
+      - /mnt:/mnt
+    working_dir: /app
+    environment:
+      - TZ=Europe/Moscow
+      - DJANGO_SETTINGS_MODULE=planner.celery_settings
+      - PYTHONPATH=/app
+      - DB_MSSQL_HOST=${DB_MSSQL_HOST}
+      - DB_MSSQL_PORT=${DB_MSSQL_PORT}
+      - DB_MSSQL_USER=${DB_MSSQL_USER}
+      - DB_MSSQL_PASSWORD=${DB_MSSQL_PASSWORD}
+      - DB_MONGO_HOST=mongodb
+      - DB_MONGO_PORT=${DB_MONGO_PORT}
+      - DB_MONGO_USER=${DB_MONGO_USER}
+      - DB_MONGO_PASSWORD=${DB_MONGO_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    env_file:
+      - .env
+    # GPU не нужен для копирования
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - media-network
+    # Ограничения по CPU/памяти
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
   redis:
     container_name: media_redis
     image: redis:7-alpine
@@ -144,6 +197,52 @@ services:
     networks:
       - media-network
 
+  # ========== MinIO ==========
+  minio:
+    image: minio/minio:latest
+    container_name: media_minio
+    hostname: minio
+    command: server /data --console-address ":9001"
+    environment:
+      TZ: Europe/Moscow
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - /home/a.shevchenko@tltv.local/minio_data:/data
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Веб-консоль
+    restart: unless-stopped
+    networks:
+      - media-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ========== СЕРВИС АВТО-СОЗДАНИЯ БАКЕТА ==========
+  minio-create-bucket:
+    image: minio/mc:latest
+    container_name: media_minio_create_bucket
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/${S3_BUCKET_NAME} --ignore-existing;
+      /usr/bin/mc anonymous set private myminio/${S3_BUCKET_NAME};
+      /usr/bin/mc admin user add myminio ${MINIO_DJANGO_USER} ${MINIO_DJANGO_PASSWORD};
+      /usr/bin/mc admin policy attach myminio readwrite --user ${MINIO_DJANGO_USER};
+      echo 'MinIO bucket and user created successfully';
+      exit 0;
+      "
+    networks:
+      - media-network
+    environment:
+      TZ: Europe/Moscow
 
 networks:
   media-network:

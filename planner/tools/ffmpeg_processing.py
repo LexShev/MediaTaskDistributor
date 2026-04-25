@@ -2,7 +2,7 @@ from tools.tasks import process_ffprobe_scan, process_r128_scan
 from planner.mongo_settings import mongo_connection
 
 
-def start_ffmpeg_scanners(file_id, file_path, ffmpeg_info):
+def start_ffmpeg_scanners(file_id, file_path, ffmpeg_info=None):
     try:
         if not ffmpeg_info:
             print('ffmpeg info not found. Starting ffprobe_scan.')

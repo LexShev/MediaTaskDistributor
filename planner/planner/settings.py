@@ -25,7 +25,7 @@ MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
 MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 ALLOWED_HOSTS.extend(['tvfab.local', 'localhost', '192.168.33.3'])
@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "storages"
 ]
 
 CHANNEL_LAYERS = {
@@ -132,6 +133,21 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "workers.middleware.WorkTimeTrackingMiddleware",
 ]
+
+# Настройки для S3 (MinIO)
+AWS_ACCESS_KEY_ID = os.getenv('MINIO_DJANGO_USER')
+AWS_SECRET_ACCESS_KEY = os.getenv('MINIO_DJANGO_PASSWORD')
+
+S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', 'http://minio:9000')
+AWS_S3_USE_SSL = os.getenv('AWS_S3_USE_SSL', True)  # HTTPS
+AWS_S3_VERIFY = os.getenv('AWS_S3_VERIFY')
+
+# Чтобы файлы не были общедоступными (загружаются через приложение)
+AWS_DEFAULT_ACL = os.getenv('AWS_DEFAULT_ACL', 'private')
+AWS_QUERYSTRING_AUTH = True  # генерирует временные подписанные URL
+
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 ROOT_URLCONF = "planner.urls"
 
@@ -284,6 +300,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_POSTERS = os.path.join(BASE_DIR, 'media/posters')
 MEDIA_WAVEFORMS = os.path.join(BASE_DIR, 'media/waveforms')
+SFTP_FOLDER = os.getenv('SFTP_FOLDER', '/mnt/sftp/Planner')
 
 CURRENT_CENZ_DIR = r'\\192.168.80.5\ContentA\0_INTERNET_VIDEO\_CENZ'
 

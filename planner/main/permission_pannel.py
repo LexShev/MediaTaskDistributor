@@ -4,7 +4,7 @@ from planner.settings import PLANNER_DB
 def ask_db_permissions(worker_id) -> dict:
     with connections[PLANNER_DB].cursor() as cursor:
         perm_list = ['home', 'day', 'on_air_report', 'week', 'list', 'kpi_info', 'work_calendar', 'common_pool',
-                     'full_info_card', 'otk', 'advanced_search', 'task_manager', 'messenger', 'desktop']
+                     'full_info_card', 'otk', 'advanced_search', 'task_manager', 'messenger', 'desktop', 'playlist']
         columns = ', '.join([f'Perm.[{perm}]' for perm in perm_list])
         columns += ', GroupName.[name]'
         query = f'''

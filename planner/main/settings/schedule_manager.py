@@ -57,7 +57,7 @@ class ScheduleManager:
         return self._by_editor.get(editor_id, [])
 
     def get_editor_name_by_id(self, editor_id: int):
-        return self.main_settings.get_oplan_workers_dict().get(editor_id, '')
+        return self.main_settings.get_oplan_workers_dict.get(editor_id, '')
 
     def get_schedule_info(self, schedule_id: int):
         """Получить полную информацию о канале"""

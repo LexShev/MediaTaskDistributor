@@ -1,5 +1,7 @@
 from datetime import datetime, date, timedelta
 from decimal import Decimal
+from pathlib import Path
+
 from django.core.serializers.json import DjangoJSONEncoder
 
 
@@ -46,3 +48,27 @@ class CustomJSONEncoder(DjangoJSONEncoder):
             print(error)
             # Если ничего не помогло, используем родительский метод
             return super().default(obj)
+
+def normalize_path(file_path: str) -> str:
+    """Преобразует Windows-путь в Linux-путь"""
+    return (
+        file_path
+        .replace('\\', '/')           # Меняем слеши
+        .replace('//', '/')           # Убираем двойные слеши
+        .replace('192.168.80.3', 'mnt')
+        .replace('192.168.80.5', 'mnt')
+    )
+
+
+def get_filename_only(windows_path: str) -> str:
+    """
+    Извлекает только имя файла из Windows-пути.
+
+    Args:
+        windows_path: \\192.168.80.5\ContentA\FILMS\F_Muppet Show_2026_LEP_1080p25_H264_10Mbps.mp4
+
+    Returns:
+        F_Muppet Show_2026_LEP_1080p25_H264_10Mbps.mp4
+    """
+    clean_path = windows_path.replace('\\', '/')
+    return Path(clean_path).name

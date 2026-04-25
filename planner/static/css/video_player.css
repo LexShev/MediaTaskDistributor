@@ -1,0 +1,91 @@
+/* Анимация для перемотки */
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
+
+.time-skip-toast {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 1000;
+    pointer-events: none;
+    animation: fadeInOut 0.6s ease-in-out;
+}
+
+/* Стили для маркеров на таймлайне */
+.marker-dot {
+    position: absolute;
+    top: -12px;
+    width: 4px;
+    height: 12px;
+    cursor: pointer;
+    pointer-events: all;
+    z-index: 2;
+    transition: transform 0.2s;
+}
+
+.marker-dot:hover {
+    transform: scale(1.5);
+    z-index: 3;
+}
+
+/* Стили для панели меток */
+.marker-item {
+    transition: background-color 0.2s;
+}
+
+.marker-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.marker-item.editing .marker-time,
+.marker-item.editing .marker-label {
+    display: none;
+}
+
+.marker-item.editing .marker-edit-form {
+    display: flex;
+}
+
+.marker-edit-form {
+    display: none;
+}
+
+.btn-marker-action {
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.btn-marker-action:hover {
+    opacity: 1;
+}
+
+/* Улучшение внешнего вида кнопок */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+/* Toasts для действий с метками */
+.marker-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 200px;
+}

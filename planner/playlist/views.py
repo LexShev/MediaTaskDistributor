@@ -41,7 +41,6 @@ def playlist(request):
         'schedule_list': schedule_manager.get_all_schedules(),
         'editors_list': schedule_manager.get_editors_with_schedules()
     }
-
     data = {
         'service_dict': service_dict,
         'form': form,
@@ -86,7 +85,7 @@ def update_playlist_status(request):
 
         try:
             message = f'Статус плейлиста {schedule_name} на {schedule_date} изменён'
-            create_notification(request.user, (1, 2),
+            create_notification(request.user, (16, 17),
                                 message=message,
                                 comment=f'Статус изменён на "{main_settings.get_oplan_channels_dict(status)}"',
                                 notification_type='status',
@@ -146,7 +145,7 @@ def update_playlist_comment(request):
 
         try:
             message = f'Добавлен комментарий для {schedule_name} на {schedule_date}'
-            create_notification(request.user, (1, 2),
+            create_notification(request.user, (16, 17),
                                 message=message,
                                 comment=comment, notification_type='info',
                                 schedule_id=schedule_id)
@@ -179,6 +178,7 @@ def load_schedule_table(request):
         'playlist/schedule_table.html',
         {
             'schedules': schedules,
+            'permissions': ask_db_permissions(user_id),
         },
         request=request
     )
@@ -409,40 +409,3 @@ def update_editors_notification_filter(request):
     except Exception as error:
         return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
 
-
-def video_player(request, video_path=None):
-    """Простой видео плеер"""
-    context = {
-        'video_title': 'Тестовое видео'
-    }
-
-    # Если нужно динамически подставлять путь к видео
-    if video_path:
-        context['video_path'] = video_path
-
-    return render(request, 'playlist/video_test.html', context)
-
-def external_video_player(request, video_path=None):
-    """Простой видео плеер"""
-    context = {
-        'video_title': 'Тестовое видео'
-    }
-
-    # Если нужно динамически подставлять путь к видео
-    if video_path:
-        context['video_path'] = video_path
-
-    return render(request, 'playlist/external_video_test.html', context)
-
-def video_list(request):
-    """Список доступных видео (для теста)"""
-    # Здесь можно сканировать директорию или получать из БД
-    videos = [
-        {
-            'title': 'F_007 Spectr',
-            'path': 'ContentX/FILMS/F_007%20Spectr_FIX_1080p25_H264_6Mbps.mp4',
-            'thumbnail': '/media/thumbnails/spectr.jpg'
-        },
-        # Добавьте другие видео
-    ]
-    return render(request, 'playlist/video_list.html', {'videos': videos})

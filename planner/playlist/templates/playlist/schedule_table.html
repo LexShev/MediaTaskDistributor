@@ -1,4 +1,5 @@
 {% load custom_filters %}
+
 <table class="table table-striped table-hover" id="schedule_table">
     <thead class="">
         <tr>
@@ -40,12 +41,13 @@
                          value="approval" onclick="updatePlaylistStatus(this)"
                          {% if schedule.Status_status == 'approval'%}checked{% endif %}>
                   <label class="btn btn-outline-warning text-nowrap" for="approval-radio-{{ schedule.SchedDay_schedule_day_id }}">утверждение</label>
-
+                  {% if request.user.id == 16 or request.user.id == 17 or permissions.auth_group == 'admin' %}
                   <input type="radio" class="btn-check" name="status-radio-{{ schedule.SchedDay_schedule_day_id }}"
                          id="ready-radio-{{ schedule.SchedDay_schedule_day_id }}" autocomplete="off"
                          value="ready" onclick="updatePlaylistStatus(this)"
                          {% if schedule.Status_status == 'ready'%}checked{% endif %}>
                   <label class="btn btn-outline-success text-nowrap" for="ready-radio-{{ schedule.SchedDay_schedule_day_id }}">готов</label>
+                  {%  endif %}
                 </div>
             </td>
             <td data-schedule-day-id="{{ schedule.SchedDay_schedule_day_id }}">

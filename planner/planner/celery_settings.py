@@ -16,7 +16,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "storages"
 ]
+
+# Настройки для S3 (MinIO)
+AWS_ACCESS_KEY_ID = os.getenv('MINIO_DJANGO_USER')
+AWS_SECRET_ACCESS_KEY = os.getenv('MINIO_DJANGO_PASSWORD')
+
+S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', 'http://minio:9000')
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

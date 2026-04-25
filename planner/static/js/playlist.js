@@ -683,11 +683,6 @@ function updatePlaylistStatus(statusInfo) {
     const scheduleDayId = statusInfo.parentElement?.dataset?.scheduleDayId || null;
     const status = statusInfo.value || null;
 
-    console.log('Отправка данных:', {
-            'schedule_day_id': scheduleDayId,
-            'status': status,
-        });
-
     fetch('/playlist/update_playlist_status/', {
         method: 'POST',
         headers: {
@@ -835,11 +830,6 @@ function showIndicator(input, status) {
 function updatePlaylistComment(input) {
     const scheduleDayId = input.parentElement?.dataset?.scheduleDayId || null;
     const comment = input.value || '';
-
-    console.log('Отправка данных:', {
-            'schedule_day_id': scheduleDayId,
-            'comment': comment,
-        });
 
     fetch('/playlist/update_playlist_comment/', {
         method: 'POST',

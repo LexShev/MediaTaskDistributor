@@ -13,8 +13,10 @@ from django.template.loader import render_to_string
 from django.shortcuts import render
 
 from messenger_static.messenger_utils import create_notification
-from planner.settings import CURRENT_CENZ_DIR, SERVICE_TYPE
+from planner.settings import CURRENT_CENZ_DIR, SERVICE_TYPE, SFTP_FOLDER
 from tools.ffmpeg_processing import start_ffmpeg_scanners
+from tools.helpers import normalize_path, get_filename_only
+from tools.tasks import copy_large_file
 
 from .ffmpeg_info import ffmpeg_dict
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm, \
@@ -513,6 +515,37 @@ def material_card(request, program_id):
     }
 
     return render(request, 'main/full_info_card.html', data)
+
+def file_copy_to_sftp(request):
+    try:
+        file_info = json.loads(request.body)
+
+        if not file_info:
+            return JsonResponse({'status': 'error', 'message': 'FileInfo was lost'}, status=400)
+
+        file_id = file_info.get('file_id')
+        file_path = file_info.get('file_path')
+
+        if not file_path:
+            return JsonResponse({'status': 'error', 'message': 'Отсутствуют обязательные поля'}, status=400)
+
+        source = normalize_path(file_path)
+        destination = os.path.join(SFTP_FOLDER, get_filename_only(file_path))
+
+        task = copy_large_file.apply_async(
+            args=(source, destination),
+            kwargs={'priority': 'high'},
+            queue='file_copy'
+        )
+        task_info = {
+            'task_id': task.id,  # UUID задачи
+            'status': task.status,  # 'PENDING' сразу после отправки
+        }
+        return JsonResponse({'status': 'success', 'message': f'Задача {task.id} добавлена в очередь', 'task': task_info})
+    except Exception as error:
+        print(error)
+        return JsonResponse(
+            {'status': 'error', 'message': f'Ошибка! Не удалось скопировать файл: {error}'}, status=500)
 
 def status_ready(request):
     user_id = request.user.id

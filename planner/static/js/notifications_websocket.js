@@ -1,6 +1,6 @@
 class NotificationManager {
     constructor() {
-        console.log('🔧 Initializing NotificationManager...');
+        console.log('Initializing NotificationManager...');
 
         // Ищем контейнер
         this.container = document.getElementById('notification-container');
@@ -52,13 +52,10 @@ class NotificationManager {
             };
 
             this.ws.onmessage = (event) => {
-                console.log('Raw message:', event.data);
                 try {
                     const data = JSON.parse(event.data);
-                    console.log("Parsed message:", data);
 
                     if (data.type === 'notification') {
-                        console.log(`Got notification:`, data.notification);
                         this.addToQueue(data.notification);
                     } else if (data.type === 'connection_established') {
                         console.log('Connection established:', data.message);
@@ -111,8 +108,6 @@ class NotificationManager {
     }
 
     showToast(notification) {
-        console.log('🖥️ Showing toast:', notification);
-
         // Дополнительная проверка контейнера
         if (!this.container) {
             console.error('❌ Container is null, creating again...');
@@ -199,7 +194,6 @@ class NotificationManager {
             }, { once: true });
 
             toast.show();
-            console.log('✅ Toast shown successfully');
 
         } catch (e) {
             console.error('❌ Error showing toast:', e);
@@ -240,10 +234,10 @@ class NotificationManager {
 // Убедимся, что DOM загружен
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('🚀 DOM loaded, initializing NotificationManager...');
+        console.log('DOM loaded, initializing NotificationManager...');
         window.notificationManager = new NotificationManager();
     });
 } else {
-    console.log('🚀 DOM already loaded, initializing NotificationManager...');
+    console.log('DOM already loaded, initializing NotificationManager...');
     window.notificationManager = new NotificationManager();
 }

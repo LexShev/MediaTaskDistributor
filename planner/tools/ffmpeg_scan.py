@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess
 from datetime import datetime
+from django.core.files.storage import default_storage
 
 from django.db import connections
 
@@ -172,6 +173,11 @@ class R128Scanner:
             if os.path.exists(self.image_file):
                 self._insert_or_update_db({'waveforms': True})
                 self._insert_or_update_db({'file_path': self.file_path})
+
+                with open(self.image_file, 'rb') as img:
+                    default_storage.save(f'waveforms/{self.file_id}.png', img)
+                self.logger.info('waveforms generated and saved')
+
                 return {'status': 'success', 'waveforms_created': True, 'message': 'file does not exist'}
             else:
                 return {'status': 'error', 'waveforms_created': False}
