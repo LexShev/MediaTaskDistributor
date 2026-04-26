@@ -7,7 +7,9 @@ from django.core.files.storage import default_storage
 
 from django.db import connections
 
+from planner.celery_settings import S3_BUCKET_NAME
 from planner.mongo_settings import mongo_connection
+from planner.s3_manager import s3_client
 from planner.settings import OPLAN_DB, DEFAULT_LOG_DIR, MEDIA_WAVEFORMS
 
 
@@ -62,7 +64,7 @@ class R128Scanner:
                 if db_info and db_info.get('ffmpeg_scanners'):
                     return True
                 else:
-                    self.logger.error('file does not found in the database')
+                    self.logger.warning('file does not found in the database')
                     return False
         except Exception as error:
             self.logger.error(f"Database Error: {error}")
@@ -174,8 +176,13 @@ class R128Scanner:
                 self._insert_or_update_db({'waveforms': True})
                 self._insert_or_update_db({'file_path': self.file_path})
 
+                self.logger.warning("Waveforms S3 saving started")
+                bucket_name = S3_BUCKET_NAME
+                s3_key = f'waveforms/{self.file_id}.png'
+
                 with open(self.image_file, 'rb') as img:
-                    default_storage.save(f'waveforms/{self.file_id}.png', img)
+                    s3_client.upload_fileobj(img, bucket_name, s3_key)
+
                 self.logger.info('waveforms generated and saved')
 
                 return {'status': 'success', 'waveforms_created': True, 'message': 'file does not exist'}

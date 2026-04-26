@@ -236,6 +236,23 @@ def waveform_exists(file_id):
     waveform_path = os.path.join(MEDIA_WAVEFORMS, f'{file_id}.png')
     return os.path.isfile(waveform_path)
 
+# from django.core.files.storage import default_storage
+# @register.filter
+# def waveform_exists(file_id):
+#     """Проверяет существование waveform в S3"""
+#     s3_path = f'waveforms/{file_id}.png'
+#     return default_storage.exists(s3_path)
+#
+# @register.simple_tag
+# def waveform_url(file_id):
+#     """Генерирует URL для waveform из S3"""
+#     if not file_id:
+#         return ''
+#     s3_path = f'waveforms/{file_id}.png'
+#     if default_storage.exists(s3_path):
+#         return default_storage.url(s3_path)
+#     return f'{MEDIA_WAVEFORMS}/no_wave.png'
+
 @register.filter
 def convert_frames_to_time(frames, fps=25):
     try:

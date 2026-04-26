@@ -453,7 +453,7 @@ def material_card(request, program_id):
     if request.method == 'POST':
         form_drop = CenzFormDropDown(request.POST)
         form_text = CenzFormText(request.POST)
-
+        # TODO:
         form_attached_files = AttachedFilesForm(request.POST, request.FILES)
         uploaded_file = request.FILES.get('file_path')
         if uploaded_file and uploaded_file.size > 10 * 1024 * 1024:  # 10 МБ
