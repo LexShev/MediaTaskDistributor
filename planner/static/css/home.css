@@ -1,5 +1,6 @@
 .month {
     width: 100%;
+    table-layout: fixed; /* Для равномерного распределения колонок */
 }
 
 .cal-btn {
@@ -8,9 +9,92 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 0.9rem;
+    min-width: 0; /* Позволяет кнопке сжиматься */
+    overflow: hidden; /* Предотвращает выход содержимого */
 }
 
 .week-number {
-        width: 2rem;
+    width: 2rem;
 }
 
+/* Адаптивность для мобильных устройств */
+@media (max-width: 767.98px) {
+    .month {
+        font-size: 0.7rem;
+    }
+
+    .cal-btn {
+        padding: 0.15rem !important; /* Уменьшаем padding */
+        font-size: 0.7rem; /* Уменьшаем размер шрифта */
+    }
+
+    .month thead th {
+        padding: 0.2rem !important; /* Уменьшаем отступы в заголовках */
+        font-size: 0.65rem;
+    }
+
+    .month tbody th {
+        padding: 0.2rem !important;
+        font-size: 0.65rem;
+    }
+
+    .week-number {
+        width: 1.2rem; /* Уменьшаем ширину колонки с номерами недель */
+    }
+
+    .month td {
+        padding: 0.15rem !important; /* Уменьшаем отступы в ячейках */
+    }
+
+    #dailyChartContainer {
+        height: auto !important;
+    }
+
+    .card-header {
+        font-size: 0.9rem;
+    }
+
+    .list-group-item {
+        font-size: 0.85rem;
+    }
+
+    h4.text-center {
+        font-size: 1.1rem;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 375px) {
+    .cal-btn {
+        padding: 0.1rem !important;
+        font-size: 0.6rem;
+    }
+
+    .month thead th,
+    .month tbody th {
+        padding: 0.1rem !important;
+        font-size: 0.55rem;
+    }
+
+    .week-number {
+        width: 1rem;
+    }
+
+    .month td {
+        padding: 0.1rem !important;
+    }
+}
+
+/* Обеспечиваем квадратную форму для круговой диаграммы */
+#dailyChartContainer canvas {
+  aspect-ratio: 1/1;
+  max-height: 250px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  #dailyChartContainer canvas {
+    max-height: none;
+  }
+}

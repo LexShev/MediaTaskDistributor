@@ -519,7 +519,8 @@ def material_card(request, program_id):
 def file_copy_to_sftp(request):
     try:
         file_info = json.loads(request.body)
-
+        username = str(request.user) or 'anonymous'
+        print('request.user', request.user)
         if not file_info:
             return JsonResponse({'status': 'error', 'message': 'FileInfo was lost'}, status=400)
 
@@ -530,7 +531,7 @@ def file_copy_to_sftp(request):
             return JsonResponse({'status': 'error', 'message': 'Отсутствуют обязательные поля'}, status=400)
 
         source = normalize_path(file_path)
-        destination = os.path.join(SFTP_FOLDER, get_filename_only(file_path))
+        destination = os.path.join(SFTP_FOLDER, username, get_filename_only(file_path))
 
         task = copy_large_file.apply_async(
             args=(source, destination),

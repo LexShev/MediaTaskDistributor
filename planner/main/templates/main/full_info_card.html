@@ -30,6 +30,15 @@
       </div>
     </div>
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="sftpToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body"></div>
+          <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
   {% if full_info.Progs_program_kind != 1 and full_info.Progs_program_kind != 4 %}
     <div class="accordion shadow mx-0 mb-2 mt-0 p-0" id="accordion_sum_info">
       <div class="accordion-item">

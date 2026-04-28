@@ -39,7 +39,7 @@ def process_r128_scan(self, file_id, file_path):
     name='copy_large_file'
 )
 def copy_large_file(self, source: str, destination: str,
-                    priority: str = 'normal', verify_only: bool = False) -> Dict:
+                    priority: str = 'normal', verify_only: bool = False,) -> Dict:
     """
     Задача копирования большого файла через rclone.
     """

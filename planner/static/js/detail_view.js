@@ -445,6 +445,7 @@ function copyToSFTP(fileInfo) {
 
     if (!fileId && !filePath) {
         console.error('No FileInfo')
+        showToast('Ошибка: отсутствует информация о файле', 'error')
         return
     }
     fetch('/file_copy_to_sftp/', {
@@ -464,12 +465,39 @@ function copyToSFTP(fileInfo) {
     .then(data => {
         if (data.status === 'success') {
             console.log('copy success')
+                showToast('Начинается загрузка на SFTP...', 'info')
         }
         else {
             console.log('error', data.message)
+            showToast(`Ошибка: ${data.message || 'Не удалось загрузить файл'}`, 'error')
         }
     })
     .catch(error => {
         console.error('Error checking poster:', error);
     });
+}
+
+function showToast(message, type = 'success') {
+    const toastEl = document.getElementById('sftpToast');
+    const toast = new bootstrap.Toast(toastEl, {
+        delay: 5000,  // автоматически скроется через 3 секунды
+        animation: true
+    });
+
+    // Устанавливаем цвет фона в зависимости от типа
+    const colors = {
+        success: 'bg-success-subtle text-success-subtle border-success-subtle',
+        error: 'bg-danger-subtle text-danger-subtle border danger-subtle',
+        warning: 'bg-warning-subtle text-warning-emphasis border-warning-subtle',
+        info: 'bg-info-subtle text-info-subtle border-info-subtle'
+    };
+
+    // Очищаем предыдущие классы и добавляем новые
+    toastEl.className = `toast align-items-center border ${colors[type] || colors.success}`;
+
+    // Устанавливаем сообщение
+    toastEl.querySelector('.toast-body').textContent = message;
+
+    // Показываем toast
+    toast.show();
 }

@@ -1,34 +1,36 @@
+{% load custom_filters %}
+
 <div class="col text-center">
-  <h5>{{ service_dict.cal_month|month_name }}</h5>
+  <h5 class="mb-1 mb-md-2">{{ service_dict.cal_month|month_name }}</h5>
 </div>
-<table cellpadding="4" class="month">
-  <thead class="text-center text-secondary mb-2">
+<table class="month"> <!-- Убираем cellpadding, будем управлять через CSS -->
+  <thead class="text-center text-secondary">
     <tr>
-      <th class="p-2 week-number"></th>
-      <th class="mon p-2">Пн</th>
-      <th class="tue p-2">Вт</th>
-      <th class="wed p-2">Ср</th>
-      <th class="thu p-2">Чт</th>
-      <th class="fri p-2">Пт</th>
-      <th class="sat p-2">Сб</th>
-      <th class="sun p-2">Вс</th>
+      <th class="p-1 p-md-2 week-number"></th>
+      <th class="mon p-1 p-md-2">Пн</th>
+      <th class="tue p-1 p-md-2">Вт</th>
+      <th class="wed p-1 p-md-2">Ср</th>
+      <th class="thu p-1 p-md-2">Чт</th>
+      <th class="fri p-1 p-md-2">Пт</th>
+      <th class="sat p-1 p-md-2">Сб</th>
+      <th class="sun p-1 p-md-2">Вс</th>
     </tr>
   </thead>
 
   <tbody class="table-group-divider">
     {% for week in home_calendar %}
       <tr>
-        <th class="text-secondary">{{ week.number }}</th>
+        <th class="text-secondary p-1 p-md-2">{{ week.number }}</th>
         {% for day in week.days %}
           {% if day.is_current_month %}
-            <td>
-              <button class="btn cal-btn w-100 p-1 loading-day {% if day.is_today %}active{% endif %}"
+            <td class="p-1 p-md-2">
+              <button class="btn cal-btn w-100 loading-day {% if day.is_today %}active{% endif %}"
                       name="cal_day" value="{{ day.date|date:'Y-m-d' }}" type="button">
                 {{ day.day }}
               </button></td>
           {% else %}
-            <td>
-              <button class="btn cal-btn w-100 p-1" type="button" disabled>
+            <td class="p-1 p-md-2">
+              <button class="btn cal-btn w-100" type="button" disabled>
                 {{ day.day }}</button></td>
           {% endif %}
         {% endfor %}

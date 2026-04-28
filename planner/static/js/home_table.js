@@ -1,8 +1,12 @@
 document.addEventListener('DOMContentLoaded', sortTable);
 
 function sortTable() {
-    const tbody = document.getElementById('deadlineTableBody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const tbodies = document.querySelectorAll('.deadline-table-body');
+    let rows = [];
+
+    tbodies.forEach(tbody => {
+        rows = rows.concat(Array.from(tbody.querySelectorAll('tr')));
+    });
     const noMaterialFilter = document.getElementById('no_material_filter');
     const myTasksFilter = document.getElementById('my_tasks_filter');
 
