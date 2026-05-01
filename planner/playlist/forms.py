@@ -1,6 +1,6 @@
 from django import forms
 
-from main.form_choices import choice
+from main.form_choices import get_choice
 from playlist.models import PlaylistModel, EditorsNotificationFilter, EditorsNotificationTaskSearch
 
 
@@ -32,13 +32,13 @@ class EditorsNotificationFilterForm(forms.ModelForm):
             'notification_time': forms.DateInput(
                 attrs={'class': 'form-control editors_notification_filter', 'type': 'date', 'id': "notification_time"}, format='%Y-%m-%d'),
             'worker_id': forms.Select(
-                attrs={'class': "form-select editors_notification_filter", 'id': "worker_id"}, choices=choice.editors),
+                attrs={'class': "form-select editors_notification_filter", 'id': "worker_id"}, choices=get_choice().editors()),
             'notification_type': forms.Select(
-                attrs={'class': "form-select editors_notification_filter", 'id': "notification_type"}, choices=choice.notification_type),
+                attrs={'class': "form-select editors_notification_filter", 'id': "notification_type"}, choices=get_choice().notification_type()),
             'sched_id': forms.Select(
-                attrs={'class': "form-select editors_notification_filter", 'id': "sched_id"}, choices=choice.schedules),
+                attrs={'class': "form-select editors_notification_filter", 'id': "sched_id"}, choices=get_choice().schedules()),
             'is_read': forms.Select(
-                attrs={'class': "form-select editors_notification_filter", 'id': "is_read"}, choices=choice.read_status),
+                attrs={'class': "form-select editors_notification_filter", 'id': "is_read"}, choices=get_choice().read_status()),
         }
 
 class EditorsNotificationTaskSearchForm(forms.ModelForm):

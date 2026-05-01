@@ -12,7 +12,7 @@ from django.contrib import messages
 
 from main.logs_and_history import get_task_status, change_task_status_final, insert_history_status, update_comment
 from main.permission_pannel import ask_db_permissions
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 from messenger_static.messenger_utils import create_notification
 from .forms import TaskSearchForm, OnAirReportFilter, OnAirCalendar
 from .models import OnAirModel, TaskSearch
@@ -67,7 +67,7 @@ def month_report(request):
         'calendar_form': calendar_form,
         'summary_table': summary_table,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'on_air_report/on_air_calendar.html', data)
 
@@ -101,7 +101,7 @@ def date_report(request, cal_year, cal_month, cal_day, schedule_id=None):
         'schedule_id_list': schedule_id_list,
         'service_dict': prepare_service_dict(cal_year, cal_month, cal_day, cal_date),
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'on_air_report/on_air_report.html', data)
 
@@ -115,7 +115,7 @@ def get_schedule_table(request, sched_date, schedule_id):
                 'task_list': task_list_for_channel(sched_date, schedule_id),
                 # 'service_dict': prepare_service_dict(cal_year, cal_month, cal_day),
                 'permissions': ask_db_permissions(worker_id),
-                'tabs': main_settings.get_header_panels(user_group)
+                'tabs': get_main_settings().get_header_panels(user_group)
             },
             request=request
         )
@@ -161,7 +161,7 @@ def on_air_search(request):
         'search_filter': search_filter,
         'service_dict': {'order': order, 'order_type': order_type},
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'on_air_report/on_air_search.html', data)
 
@@ -184,7 +184,7 @@ def load_on_air_task_table(request):
         {
             'task_list': task_list,
             'permissions': ask_db_permissions(user_id),
-            'tabs': main_settings.get_header_panels(user_group)
+            'tabs': get_main_settings().get_header_panels(user_group)
         },
         request=request
     )

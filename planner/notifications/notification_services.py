@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from .models import Notification, NotificationRecipient
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from main.form_choices import get_choice
 
 
 def create_notification(sender, recipients, message, comment='', notification_type='info', schedule_id=None):
@@ -15,6 +16,11 @@ def create_notification(sender, recipients, message, comment='', notification_ty
         comment: str (optional)
         notification_type: str (info, success, warning, error)
     """
+    # Валидация типа уведомления
+    valid_types = dict(get_choice().notification_type())
+    if notification_type not in valid_types:
+        notification_type = 'info'
+
     # Создаем само уведомление
     notification = Notification.objects.create(
         sender=sender if isinstance(sender, User) else None,

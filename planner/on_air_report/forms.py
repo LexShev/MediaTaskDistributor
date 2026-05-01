@@ -1,6 +1,6 @@
 from django import forms
 
-from main.form_choices import choice
+from main.form_choices import get_choice
 from on_air_report.models import OnAirModel, TaskSearch
 
 
@@ -19,16 +19,16 @@ class OnAirReportFilter(forms.ModelForm):
                        'autocomplete': "off", 'autocorrect': "off", 'spellcheck': "false"}),
             'workers': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown w-100', 'id': 'workers'},
-                choices=choice.workers('Выполняет')),
+                choices=get_choice().workers('Выполняет')),
             'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown w-100', 'id': 'material_type'},
-                choices=choice.material_type('Тип материала')),
+                choices=get_choice().material_type('Тип материала')),
             'schedules': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown w-100', 'id': 'schedules'},
-                choices=choice.schedules('Канал')),
+                choices=get_choice().schedules('Канал')),
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown w-100', 'id': 'task_status'},
-                choices=choice.task_status(label='Статус',
+                choices=get_choice().task_status(label='Статус',
                                            extra=[('oplan_ready', 'Отсмотрен в Oplan3')])),
             'order_type': forms.TextInput(
                 attrs={
@@ -60,18 +60,18 @@ class TaskSearchForm(forms.ModelForm):
             ),
             'sql_set': forms.Select(
                 attrs={'class': 'form-select', 'id': 'sql_set', 'style': 'max-width: 11rem;'},
-                choices=choice.sql_set()),
+                choices=get_choice().sql_set()),
         }
 
 class OnAirCalendar(forms.Form):
     month_dropdown = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "month_dropdown", 'onchange': "this.form.submit()"}),
-        label='месяц', choices=choice.months, required=True)
+        label='месяц', choices=get_choice().months, required=True)
 
     year_dropdown = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "year_dropdown", 'onchange': "this.form.submit()"}),
-        label='год', choices=choice.years, required=True)
+        label='год', choices=get_choice().years, required=True)
 
     channel_dropdown = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "channel_dropdown", 'onchange': "this.form.submit()"}),
-        label='каналы', choices=choice.channels, required=False)
+        label='каналы', choices=get_choice().channels, required=False)

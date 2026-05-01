@@ -13,7 +13,7 @@ from django.template.loader import render_to_string
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from main.permission_pannel import ask_db_permissions
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 from main.settings.schedule_manager import schedule_manager
 from notifications.models import NotificationRecipient
 from notifications.notification_services import create_notification
@@ -45,7 +45,7 @@ def playlist(request):
         'service_dict': service_dict,
         'form': form,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'playlist/index.html', data)
 
@@ -87,7 +87,7 @@ def update_playlist_status(request):
             message = f'Статус плейлиста {schedule_name} на {schedule_date} изменён'
             create_notification(request.user, (16, 17),
                                 message=message,
-                                comment=f'Статус изменён на "{main_settings.get_oplan_channels_dict(status)}"',
+                                comment=f'Статус изменён на "{get_main_settings().get_oplan_channels_dict(status)}"',
                                 notification_type='status',
                                 schedule_id=schedule_id)
         except Exception as error:
@@ -267,7 +267,7 @@ def editors_notifications(request):
         'filter_form': filter_form,
         'search_form': search_form,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'playlist/editors_notifications.html', data)
 

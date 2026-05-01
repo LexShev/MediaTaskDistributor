@@ -1,7 +1,7 @@
 from django import forms
 
 from .models import OtkModel, TaskSearch
-from main.form_choices import choice
+from main.form_choices import get_choice
 
 
 class OtkForm(forms.ModelForm):
@@ -24,13 +24,13 @@ class OtkForm(forms.ModelForm):
             'deadline': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date', 'id': "deadline"}, format='%Y-%m-%d'),
             'worker_id': forms.Select(
-                attrs={'class': "form-select", 'id': "worker_id"}, choices=choice.workers()),
+                attrs={'class': "form-select", 'id': "worker_id"}, choices=get_choice().workers()),
             'material_type': forms.Select(
-                attrs={'class': "form-select", 'id': "material_type"}, choices=choice.material_type),
+                attrs={'class': "form-select", 'id': "material_type"}, choices=get_choice().material_type),
             'sched_id': forms.Select(
-                attrs={'class': "form-select", 'id': "sched_id"}, choices=choice.schedules),
+                attrs={'class': "form-select", 'id': "sched_id"}, choices=get_choice().schedules),
             'task_status': forms.Select(
-                attrs={'class': "form-select", 'id': "task_status"}, choices=choice.task_status),
+                attrs={'class': "form-select", 'id': "task_status"}, choices=get_choice().task_status),
         }
 
 class TaskSearchForm(forms.ModelForm):
@@ -49,5 +49,5 @@ class TaskSearchForm(forms.ModelForm):
             ),
             'sql_set': forms.Select(
                 attrs={'class': 'form-select', 'id': 'sql_set', 'style': 'max-width: 11rem;'},
-                choices=choice.sql_set()),
+                choices=get_choice().sql_set()),
         }

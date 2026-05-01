@@ -4,34 +4,54 @@ from django.db import connections
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 
-def program_custom_fields():
-    with connections[OPLAN_DB].cursor() as cursor:
-        query = f'''
-        SELECT [CustomFieldID], [ItemsString]
-        FROM [{OPLAN_DB}].[dbo].[ProgramCustomFields]
-        WHERE [CustomFieldID] IN (15, 18, 19)
-        '''
-        cursor.execute(query)
-        fields_list = cursor.fetchall()
-        fields_dict = {}
-        if fields_list:
-            for field_id, items_string in fields_list:
-                fields_dict[field_id] = items_string
-        return fields_dict
-
-def db_workers_list():
-    with connections[PLANNER_DB].cursor() as cursor:
-        query = 'SELECT [worker_id], [full_name] FROM [planner].[dbo].[engineers_list]'
-        cursor.execute(query)
-        return cursor.fetchall() or ()
-
 class Choices:
-    def __init__(self):
-        self.custom_fields = program_custom_fields()
-        self.workers_list = None
+    _instance = None
 
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+
+        # Загружаем ОДИН РАЗ из БД
+        self._custom_fields = self._load_custom_fields()
+        self._workers_raw = self._load_workers()
+        self._editors_raw = self._load_editors()
+        self._planner_workers_raw = self._load_planner_workers()
+
+    # Приватные методы загрузки (вызываются только в __init__)
+    def _load_custom_fields(self):
+        with connections[OPLAN_DB].cursor() as cursor:
+            cursor.execute(f'''
+                SELECT [CustomFieldID], [ItemsString]
+                FROM [{OPLAN_DB}].[dbo].[ProgramCustomFields]
+                WHERE [CustomFieldID] IN (15, 18, 19)
+            ''')
+            fields = cursor.fetchall()
+        return {field_id: items_string for field_id, items_string in fields} if fields else {}
+
+    def _load_workers(self):
+        with connections[PLANNER_DB].cursor() as cursor:
+            cursor.execute('SELECT [worker_id], [full_name] FROM [planner].[dbo].[engineers_list]')
+            return cursor.fetchall() or ()
+
+    def _load_editors(self):
+        with connections[PLANNER_DB].cursor() as cursor:
+            cursor.execute('SELECT [planner_editor_id], [full_name] FROM [planner].[dbo].[editors_list]')
+            return cursor.fetchall() or ()
+
+    def _load_planner_workers(self):
+        with connections[PLANNER_DB].cursor() as cursor:
+            cursor.execute(f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user]')
+            return cursor.fetchall() or ()
+
+    # Методы отдачи — только форматируют данные из словарей
     def tags(self, label='-'):
-        tags = self.custom_fields.get(18)
+        tags = self._custom_fields.get(18)
         tags_list = [('', label)]
         if tags:
             for tag in enumerate(tags.split('\r\n')):
@@ -40,22 +60,17 @@ class Choices:
         return tags_list
 
     def inoagents(self, label='-', exclude_init=False):
-        inoagents = self.custom_fields.get(19)
-        inoagents_list = [('', label)]
-        if exclude_init:
-            inoagents_list = []
+        inoagents = self._custom_fields.get(19)
+        inoagents_list = [] if exclude_init else [('', label)]
         if inoagents:
             for inoagent in inoagents.split('\r\n'):
                 if inoagent:
-                    point = (inoagent, inoagent)
-                    inoagents_list.append(point)
+                    inoagents_list.append((inoagent, inoagent))
         return sorted(inoagents_list)
 
     def engineers(self, label='-', exclude_init=False):
-        engineers = self.custom_fields.get(15)
-        engineers_list = [('', label)]
-        if exclude_init:
-            engineers_list = []
+        engineers = self._custom_fields.get(15)
+        engineers_list = [] if exclude_init else [('', label)]
         if engineers:
             for engineer in enumerate(engineers.split('\r\n')):
                 if engineer[1]:
@@ -63,23 +78,22 @@ class Choices:
         return engineers_list
 
     def workers(self, label='-', exclude_init=False):
-        self.workers_list = [('', label)]
-        if exclude_init:
-            self.workers_list = []
-        with connections[PLANNER_DB].cursor() as cursor:
-            cursor.execute('SELECT [worker_id], [full_name] FROM [planner].[dbo].[engineers_list]')
-            self.workers_list.extend(cursor.fetchall() or ())
-        return self.workers_list or []
+        workers_list = [] if exclude_init else [('', label)]
+        workers_list.extend(self._workers_raw)
+        return workers_list
 
     def editors(self, label='-', exclude_init=False):
-        self.editors_list = [('', label)]
-        if exclude_init:
-            self.editors_list = []
-        with connections[PLANNER_DB].cursor() as cursor:
-            cursor.execute('SELECT [planner_editor_id], [full_name] FROM [planner].[dbo].[editors_list]')
-            self.editors_list.extend(cursor.fetchall() or ())
-        return self.editors_list or []
+        editors_list = [] if exclude_init else [('', label)]
+        editors_list.extend(self._editors_raw)
+        return editors_list
 
+    def planner_workers(self, label='-', exclude_init=False):
+        planner_workers_list = [] if exclude_init else [('', label)]
+        for username, first_name, last_name in self._planner_workers_raw:
+            planner_workers_list.append((username, f'{first_name} {last_name}'))
+        return planner_workers_list
+
+    # Статические методы (не зависят от БД)
     def sorting(self):
         return (
             ('sched_date', 'дате эфира'),
@@ -87,20 +101,6 @@ class Choices:
             ('name', 'названию'),
             ('duration', 'хронометражу')
         )
-
-    def planner_workers(self, label='-', exclude_init=False):
-        with connections[PLANNER_DB].cursor() as cursor:
-            query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user]'
-            cursor.execute(query)
-            planner_workers = cursor.fetchall()
-
-            planner_workers_list = [('', label)]
-            if exclude_init:
-                planner_workers_list = []
-            if planner_workers:
-                for username, first_name, last_name in planner_workers:
-                    planner_workers_list.append((username, f'{first_name} {last_name}'))
-            return planner_workers_list
 
     def rate(self, label='-'):
         return (('', label), (0, '0+'), (1, '6+'), (2, '12+'), (3, '16+'), (4, '18+'))
@@ -138,7 +138,6 @@ class Choices:
             (20, 'Кино +'),
             (36, 'Кино Индии'),
         ]
-
 
     def task_status(self, label='-', extra=None):
         status_list = [
@@ -228,7 +227,7 @@ class Choices:
 
     def years(self):
         current_year = datetime.now().year
-        return [(year, str(year)) for year in range(current_year-3, current_year+4)]
+        return [(year, str(year)) for year in range(current_year - 3, current_year + 4)]
 
-
-choice = Choices()
+def get_choice():
+    return Choices()

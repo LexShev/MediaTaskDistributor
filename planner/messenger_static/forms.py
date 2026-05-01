@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 
 from .models import Message
-from main.form_choices import choice
+from main.form_choices import get_choice
 
 
 def validate_file_type(value):
@@ -50,7 +50,7 @@ class MessageForm(forms.ModelForm):
     engineers_mention = forms.ChoiceField(
         required=False,
         widget=DropdownMenuWidget(attrs={}),
-        choices=choice.planner_workers(exclude_init=True)
+        choices=get_choice().planner_workers(exclude_init=True)
     )
 
     class Meta:

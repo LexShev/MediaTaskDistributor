@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 from messenger_static.models import Message, Notification
 from home.home_calendar import calendar_skeleton, update_info
 from home.home_kpi import common_kpi, daily_kpi
@@ -26,7 +26,7 @@ def home(request):
         'home_table': home_deadline_table(user_id),
         'service_dict': service_dict,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'home/home.html', data)
 

@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from main.permission_pannel import ask_db_permissions
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 from tools.helpers import CustomJSONEncoder
 from tools.update_no_material import get_no_material_list
 
@@ -40,5 +40,5 @@ def service_report(request):
         {
             'service_report_data': service_report_data,
             'permissions': ask_db_permissions(user_id),
-            'tabs': main_settings.get_header_panels(user_group)
+            'tabs': get_main_settings().get_header_panels(user_group)
         })

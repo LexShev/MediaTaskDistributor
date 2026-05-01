@@ -5,7 +5,7 @@ from typing import Dict
 from django.db import connections
 
 from .db_connection import parent_name, parent_adult_name
-from .settings.main_settings import MainSettings
+from .settings.main_settings import get_main_settings
 from planner.settings import OPLAN_DB, PLANNER_DB
 
 def check_data_type(value):
@@ -17,11 +17,11 @@ def check_data_type(value):
         return value
 
 def check_planner_status(planner_status):
-    status_dict = MainSettings.status_dict
+    status_dict = get_main_settings().status_dict
     return status_dict.get(planner_status)
 
 def check_color_status(planner_status):
-    color_dict = MainSettings.color_dict
+    color_dict = get_main_settings().color_dict
     return color_dict.get(planner_status)
 
 def full_info(program_id):

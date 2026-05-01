@@ -225,5 +225,11 @@ class MainSettings:
             print(e)
             return []
 
-main_settings = MainSettings()
+_main_settings = None
+
+def get_main_settings():
+    global _main_settings
+    if _main_settings is None:
+        _main_settings = MainSettings()
+    return _main_settings
 

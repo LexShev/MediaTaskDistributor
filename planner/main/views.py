@@ -36,7 +36,7 @@ from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
 from .detail_view import full_info, cenz_info, schedule_info, calc_otk_deadline, \
     comments_history, select_filepath_history, change_oplan_cenz_info, insert_filepath_history
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 
 
 def handle_error(request, status_code, exception=None):
@@ -151,7 +151,7 @@ def week_date(request, work_year, work_week):
         'week_material_list': material_list,
         'service_dict': service_dict,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group),
+        'tabs': get_main_settings().get_header_panels(user_group),
         'form': filter_form,
         'sorting_form': sorting_form
     }
@@ -272,7 +272,7 @@ def full_list(request):
         'form': filter_form,
         'sorting_form': sorting_form,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'main/list.html', data)
 
@@ -510,7 +510,7 @@ def material_card(request, program_id):
         'form_attached_files': form_attached_files,
         # 'lock_material': lock_material,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group),
+        'tabs': get_main_settings().get_header_panels(user_group),
         'service_type': SERVICE_TYPE
     }
 
@@ -689,7 +689,7 @@ def user_settings(request):
     user_group = request.user.groups.first().id
     data = {
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'main/user_settings.html', data)
 
@@ -725,7 +725,7 @@ def kpi_info(request):
         'today': datetime.today().date(),
         'form': form,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'main/kpi_admin_panel.html', data)
 
@@ -757,7 +757,7 @@ def engineer_profile(request, worker_id):
             'summary_dict': summary_dict,
             'today': datetime.today().date(),
             'permissions': ask_db_permissions(user_id),
-            'tabs': main_settings.get_header_panels(user_group),
+            'tabs': get_main_settings().get_header_panels(user_group),
             'form': form}
     return render(request, 'main/kpi_engineer.html', data)
 
@@ -793,7 +793,7 @@ def work_year_calendar(request, cal_year):
             'next_year': cal_year+1,
             'vacation_list': vacation_info(cal_year),
             'permissions': ask_db_permissions(user_id),
-            'tabs': main_settings.get_header_panels(user_group),
+            'tabs': get_main_settings().get_header_panels(user_group),
             'form': form}
     return render(request, 'main/work_calendar.html', data)
 

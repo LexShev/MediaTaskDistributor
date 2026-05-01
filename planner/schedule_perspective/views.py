@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 from schedule_perspective.program_info import get_program_info, update_schedule_info
 from schedule_perspective.search import fast_search
 
@@ -22,7 +22,7 @@ def schedule_perspective(request):
     data = {
         'schedules': get_program_info(start_date, schedule_id),
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'schedule_perspective/index.html', data)
 

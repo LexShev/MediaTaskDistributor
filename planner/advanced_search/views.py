@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 from main.permission_pannel import ask_db_permissions
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 
 from .models import AdvancedSearch
 from .forms import AdvancedSearchForm
@@ -20,7 +20,7 @@ def main_search(request):
     data = {
         'search_list': fast_search(search_query),
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'advanced_search/fast_search.html', data)
 
@@ -66,7 +66,7 @@ def dop_search(request):
         'search_id': int(search_id),
         'search_query': search_query,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group),
+        'tabs': get_main_settings().get_header_panels(user_group),
         'form': form,
     }
     return render(request, 'advanced_search/advanced_search.html', data)

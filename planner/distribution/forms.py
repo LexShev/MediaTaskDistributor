@@ -1,7 +1,7 @@
 from distribution.models import Distribution
 from django import forms
 
-from main.form_choices import choice
+from main.form_choices import get_choice
 
 
 class DistributionForm(forms.ModelForm):
@@ -15,5 +15,5 @@ class DistributionForm(forms.ModelForm):
             'distr_sched_end_date': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date', 'id': "distr_sched_end_date"}, format='%Y-%m-%d'),
             'distr_sched_id': forms.Select(
-                attrs={'class': "form-select", 'id': "distr_sched_id"}, choices=choice.channels),
+                attrs={'class': "form-select", 'id': "distr_sched_id"}, choices=get_choice().channels),
         }

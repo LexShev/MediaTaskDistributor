@@ -12,7 +12,7 @@ from desktop.desktop_list import task_info, cards_container
 from desktop.forms import DeskTopFilter
 from desktop.models import ModelDeskTopFilter, ModelCardsContainer, ModelListNames
 from main.permission_pannel import ask_db_permissions
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 
 
 @login_required()
@@ -76,7 +76,7 @@ def show_desktop(request):
     dict_names = ModelListNames.objects.filter(owner=user_id).values('list_id', 'name')
     data = {
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group),
+        'tabs': get_main_settings().get_header_panels(user_group),
         'full_list': task_info(user_id, schedules, material_type, task_status, work_dates, exclusion_list),
         'list_names': dict(map(lambda items: (items['list_id'], items['name']), dict_names)),
         'cards_container_1': cards_container(user_id, cards_list_01),

@@ -1,6 +1,6 @@
 from django import forms
 
-from main.form_choices import choice
+from main.form_choices import get_choice
 from .models import AdvancedSearch
 
 
@@ -25,9 +25,9 @@ class AdvancedSearchForm(forms.ModelForm):
             ),
             'engineers': forms.Select(
                 attrs={'class': 'form-select', 'id': 'engineers', 'style': 'width: 80rem;'},
-                choices=choice.engineers()),
+                choices=get_choice().engineers()),
             'sql_set': forms.Select(
                 attrs={'class': 'form-select', 'id': 'sql_set', 'style': 'width: 6rem;'},
-                choices=choice.sql_set()),
+                choices=get_choice().sql_set()),
         }
 

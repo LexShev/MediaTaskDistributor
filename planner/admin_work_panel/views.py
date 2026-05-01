@@ -9,9 +9,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
-from main.form_choices import choice
+from main.form_choices import get_choice
 from main.permission_pannel import ask_db_permissions
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 from .models import AdminModel, TaskSearch
 from .admin_materials_list import task_info, update_task_list, add_in_task_list, del_task, archive_task, reset_progress
 from .forms import AdminForm, DynamicSelector, TaskSearchForm
@@ -93,7 +93,7 @@ def task_manager(request):
         'filter_form': filter_form,
         'search_form': search_form,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'admin_work_panel/task_manager.html', data)
 
@@ -106,8 +106,8 @@ def load_admin_task_table(request):
 
     task_list, service_dict = task_info(field_dict, search_init_dict)
     dynamic_selector_list = []
-    workers_list = choice.workers()
-    task_status_list = choice.task_status
+    workers_list = get_choice().workers()
+    task_status_list = get_choice().task_status
 
     for task in task_list:
         file_path = task.get('Task_file_path', '')
@@ -128,7 +128,7 @@ def load_admin_task_table(request):
             'task_list_zip': zip(task_list, dynamic_selector_list),
             'service_dict': service_dict,
             'permissions': ask_db_permissions(user_id),
-            'tabs': main_settings.get_header_panels(user_group)
+            'tabs': get_main_settings().get_header_panels(user_group)
         },
         request=request
     )

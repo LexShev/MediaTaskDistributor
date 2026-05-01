@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from .models import ModelFilter, AttachedFiles, ModelSorting
-from .form_choices import choice
+from .form_choices import get_choice
 
 
 def validate_file_type(value):
@@ -33,21 +33,21 @@ class ListFilter(forms.ModelForm):
         widgets = {
             'schedules': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'schedules'},
-                choices=choice.schedules('Канал')),
+                choices=get_choice().schedules('Канал')),
             'workers': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'workers'},
-                choices=choice.workers('Выполняет')),
+                choices=get_choice().workers('Выполняет')),
             'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'},
-                choices=choice.material_type('Тип материала')),
+                choices=get_choice().material_type('Тип материала')),
             'work_dates': forms.DateInput(
                 attrs={'class': 'form-control', 'data-bs-theme': 'light', 'type': 'text'}),
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status'},
-                choices=choice.task_status('Статус')),
+                choices=get_choice().task_status('Статус')),
             'mark': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'mark'},
-                choices=choice.mark('Метки')),
+                choices=get_choice().mark('Метки')),
         }
 
 class WeekFilter(forms.ModelForm):
@@ -61,16 +61,16 @@ class WeekFilter(forms.ModelForm):
         widgets = {
             'schedules': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'schedules'},
-                choices=choice.schedules('Канал')),
+                choices=get_choice().schedules('Канал')),
             'workers': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'workers'},
-                choices=choice.workers('Выполняет')),
+                choices=get_choice().workers('Выполняет')),
             'material_type': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'material_type'},
-                choices=choice.material_type('Тип материала')),
+                choices=get_choice().material_type('Тип материала')),
             'task_status': forms.SelectMultiple(
                 attrs={'class': 'ui selection dropdown', 'id': 'task_status'},
-                choices=choice.task_status('Статус')),
+                choices=get_choice().task_status('Статус')),
         }
 
 class CenzFormText(forms.Form):
@@ -119,10 +119,10 @@ class CenzFormDropDown(forms.Form):
         label='Дата отсмотра', required=False)
     cenz_rate_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "cenz_rate_form"}),
-        label='Ценз отсмотра', choices=choice.rate(), required=False)
+        label='Ценз отсмотра', choices=get_choice().rate(), required=False)
     engineers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "engineers_form"}),
-        label='Тайтл проверил', choices=choice.engineers(), required=False)
+        label='Тайтл проверил', choices=get_choice().engineers(), required=False)
     # tags_form = forms.ChoiceField(widget=forms.Select(
     #     attrs={'class': "form-select", 'id': "tags_form"}),
     #     label='Теги', choices=choice.tags(), required=False)
@@ -135,7 +135,7 @@ class CenzFormDropDown(forms.Form):
             'size': '4'
         }),
         label='Иноагент',
-        choices=choice.inoagents(exclude_init=True),
+        choices=get_choice().inoagents(exclude_init=True),
         required=False
     )
     narc_select_form = forms.ChoiceField(widget=forms.Select(
@@ -166,19 +166,19 @@ class KpiForm(forms.Form):
         label='Назначенная дата', required=False)
     workers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "workers_form"}),
-        label='Выполняет', choices=choice.workers(), required=False)
+        label='Выполняет', choices=get_choice().workers(), required=False)
     material_type_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "material_type_form"}),
-        label='Тип материала', choices=choice.material_type(), required=False)
+        label='Тип материала', choices=get_choice().material_type(), required=False)
     task_status_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "task_status_form"}),
-        label='Статус задачи', choices=choice.task_status(), required=False)
+        label='Статус задачи', choices=get_choice().task_status(), required=False)
 
 
 class VacationForm(forms.Form):
     workers_form = forms.ChoiceField(widget=forms.Select(
         attrs={'class': "form-select", 'id': "workers_form"}),
-        label='Сотрудник', choices=choice.workers(), required=True)
+        label='Сотрудник', choices=get_choice().workers(), required=True)
     start_date_form = forms.DateField(widget=forms.DateInput(
         attrs={'class': 'form-control', 'type': 'date', 'id': "start_date_form"}),
         label='Начало отпуска', required=True)
@@ -219,7 +219,7 @@ class SortingForm(forms.ModelForm):
         widgets = {
             'user_order': forms.Select(
                 attrs={'class': 'form-select text-end', 'id': 'user_order'},
-                choices=choice.sorting()
+                choices=get_choice().sorting()
             ),
             'order_type': forms.Select(
                 attrs={'class': 'form-select text-end mb-3', 'id': 'order_type'},

@@ -1,4 +1,4 @@
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 
 
 class ScheduleManager:
@@ -26,7 +26,7 @@ class ScheduleManager:
     def __init__(self):
         self._by_editor = {}
         self._build_indexes()
-        self.main_settings = main_settings
+        self.main_settings = get_main_settings()
 
     def _build_indexes(self):
         """Строит индексы для быстрого поиска"""
@@ -57,7 +57,7 @@ class ScheduleManager:
         return self._by_editor.get(editor_id, [])
 
     def get_editor_name_by_id(self, editor_id: int):
-        return self.main_settings.get_oplan_workers_dict.get(editor_id, '')
+        return self.get_main_settings().get_oplan_workers_dict.get(editor_id, '')
 
     def get_schedule_info(self, schedule_id: int):
         """Получить полную информацию о канале"""

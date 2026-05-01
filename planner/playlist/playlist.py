@@ -5,7 +5,7 @@ from datetime import date, datetime
 from django.db import connections
 
 from planner.settings import OPLAN_DB, PLANNER_DB
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 
 def check_schedule(schedule_id_str):
     try:
@@ -207,7 +207,7 @@ def data_transformation(columns, results):
         sched_prog_duration = temp_dict.get('SchedProg_duration')
         slot_type = temp_dict.get('SlotType')
 
-        temp_dict['CreatedByName'] = main_settings.get_oplan_workers_dict.get(temp_dict['CreatedBy'], '')
+        temp_dict['CreatedByName'] = get_main_settings().get_oplan_workers_dict.get(temp_dict['CreatedBy'], '')
 
         if sched_prog_duration is not None:
             temp_dict['duration'] = sched_prog_duration

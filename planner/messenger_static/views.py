@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
 from main.permission_pannel import ask_db_permissions
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 from messenger_static.forms import MessageForm
 from .messenger_utils import all_messages, show_viewed_messages, create_notification, find_worker_id
 from .models import Message, Program, Notification, MessageViews
@@ -27,7 +27,7 @@ def index(request):
         'all_notifications': all_notifications,
         'unread_notifications': unread_notifications,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group)
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'messenger_static/messenger_empty.html', data)
 
@@ -92,7 +92,7 @@ def messenger(request, program_id):
         'program_info': program_info,
         'form': form,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group),
+        'tabs': get_main_settings().get_header_panels(user_group),
         'page_obj': page_obj,
         'has_next': page_obj.has_next(),
         'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
@@ -123,7 +123,7 @@ def notificator(request):
         'all_notifications': all_notifications,
         'unread_notifications': unread_notifications,
         'permissions': ask_db_permissions(user_id),
-        'tabs': main_settings.get_header_panels(user_group),
+        'tabs': get_main_settings().get_header_panels(user_group),
         'page_obj': page_obj,
         'has_next': page_obj.has_next(),
         'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,

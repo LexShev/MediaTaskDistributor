@@ -5,7 +5,7 @@ from django.template.defaulttags import register
 from django.db import connections
 import os
 
-from main.settings.main_settings import main_settings
+from main.settings.main_settings import get_main_settings
 from planner.settings import OPLAN_DB, PLANNER_DB, MEDIA_WAVEFORMS
 
 
@@ -86,7 +86,7 @@ def planner_worker_username(worker_id):
 def planner_worker_name(worker_id):
     try:
         if worker_id:
-            return main_settings.get_planner_workers_dict.get(worker_id, 'Аноним')
+            return get_main_settings().get_planner_workers_dict.get(worker_id, 'Аноним')
             # with connections[PLANNER_DB].cursor() as cursor:
             #     query = f'SELECT [username], [first_name], [last_name] FROM [{PLANNER_DB}].[dbo].[auth_user] WHERE [id] = %s'
             #     cursor.execute(query, (worker_id,))
@@ -361,22 +361,22 @@ def day_name(cal_date):
 
 @register.filter
 def status_name(status):
-    status_dict = main_settings.status_dict
+    status_dict = get_main_settings().status_dict
     return status_dict.get(status, '')
 
 @register.filter
 def status_color(status):
-    color_dict = main_settings.color_dict
+    color_dict = get_main_settings().color_dict
     return color_dict.get(status, '')
 
 @register.filter
 def on_air_status_color(status):
-    color_dict = main_settings.on_air_color_dict
+    color_dict = get_main_settings().on_air_color_dict
     return color_dict.get(status, '')
 
 @register.filter
 def channel_color(schedule_id, frmt='name'):
-    color_dict = main_settings.channel_color_dict
+    color_dict = get_main_settings().channel_color_dict
     color_data = color_dict.get(schedule_id, {})
 
     if frmt == 'rgb':
