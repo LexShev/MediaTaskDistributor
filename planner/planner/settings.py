@@ -34,7 +34,14 @@ ALLOWED_HOSTS.extend(['tvfab.local', 'localhost', '192.168.33.3'])
 
 # Для работы HTTPS
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-CSRF_TRUSTED_ORIGINS.extend(['www.tvfab.local', 'localhost', '192.168.33.3'])
+CSRF_TRUSTED_ORIGINS.extend([
+    'http://192.168.33.3',
+    'http://localhost',
+    'http://www.tvfab.local',
+    'https://192.168.33.3',
+    'https://localhost',
+    'https://www.tvfab.local',
+])
 
 # Безопасные куки
 SESSION_COOKIE_SECURE = True      # Только по HTTPS
@@ -97,6 +104,7 @@ INSTALLED_APPS = [
     "tools",
     "notifications",
     "schedule_perspective",
+    "file_manager",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

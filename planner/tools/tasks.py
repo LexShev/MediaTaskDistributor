@@ -1,19 +1,86 @@
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List
-
+import os
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from dataclasses import asdict
+from django.utils import timezone
 
+from file_manager.models import FileCopyTask
 from tools.ffmpeg_scan import R128Scanner
 from tools.ffprobe_scan import FfprobeScanner
-from tools.rclone_copy import CopyTaskResult, rclone
+from tools.rclone_copy import rclone
+
+from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional
+
 
 logger = get_task_logger(__name__)
 
 # from tools.update_no_material import get_no_material_list
 
+
+def update_task_progress(task_id, **kwargs):
+    """Обновляет прогресс задачи в БД. НИКОГДА не бросает исключений."""
+    try:
+        task = FileCopyTask.objects.get(celery_task_id=task_id)
+
+        # Обновляем поля
+        updated_fields = []
+        for key, value in kwargs.items():
+            if hasattr(task, key):
+                setattr(task, key, value)
+                updated_fields.append(key)
+
+        if updated_fields:
+            task.save(update_fields=updated_fields)
+            logger.info(f"[{task_id}] DB updated: {', '.join(updated_fields)}")
+
+        # WebSocket - опционально
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                async_to_sync(channel_layer.group_send)(
+                    "file_manager_updates",
+                    {
+                        "type": "file_progress_update",
+                        "task_id": task.id,
+                        "celery_task_id": task_id,
+                        "status": task.status,
+                        "progress": task.progress or 0,
+                        "speed_mbps": task.speed_mbps or 0,
+                        "transferred_gb": task.transferred_gb or 0,
+                        "file_size_gb": task.file_size_gb or 0,
+                        "error_message": task.error_message,
+                    }
+                )
+            else:
+                logger.warning(f"[{task_id}] No channel layer!")
+        except ImportError as e:
+            logger.warning(f"[{task_id}] Channels not installed: {e}")
+        except Exception as ws_error:
+            logger.error(f"WebSocket skipped: {ws_error}")
+
+    except FileCopyTask.DoesNotExist:
+        logger.error(f"[{task_id}] FileCopyTask not found in DB!")
+    except Exception as e:
+        logger.error(f"[{task_id}] CRITICAL: Cannot update DB: {e}", exc_info=True)
+
+@dataclass
+class CopyTaskResult:
+    """Результат задачи копирования"""
+    task_id: str
+    source: str
+    destination: str
+    file_size_gb: float
+    status: str  # 'pending', 'copying', 'verifying', 'success', 'failed'
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    speed_mbps: Optional[float] = None
+    source_hash: Optional[str] = None
+    dest_hash: Optional[str] = None
+    retry_count: int = 0
+    error: Optional[str] = None
 
 @shared_task(bind=True, max_retries=3, name='ffprobe_scan')
 def process_ffprobe_scan(self, file_id, file_path):
@@ -35,98 +102,137 @@ def process_r128_scan(self, file_id, file_path):
     bind=True,
     max_retries=5,
     default_retry_delay=300,
-    queue='file_copy',
     name='copy_large_file'
 )
-def copy_large_file(self, source: str, destination: str,
-                    priority: str = 'normal', verify_only: bool = False,) -> Dict:
-    """
-    Задача копирования большого файла через rclone.
-    """
+def copy_large_file(
+        self,
+        source: str,
+        destination: str,
+        file_id: Optional[str] = None,
+        priority: str = 'normal',
+        verify_only: bool = False,
+        user_id: int = None,
+) -> Dict:
     task_id = self.request.id
-    start_time = datetime.now()
+    file_name = os.path.basename(source)
 
-    source_path = Path(source)
-    if not source_path.exists():
-        raise FileNotFoundError(f"Source file not found: {source}")
+    # Получаем размер файла заранее
+    try:
+        file_size_bytes = os.path.getsize(source)
+        file_size_gb = file_size_bytes / (1024 ** 3)
+        logger.info(f"[{task_id}] File size: {file_size_gb:.2f} GB")
+    except:
+        file_size_bytes = 0
+        file_size_gb = 0
+        logger.warning(f"[{task_id}] Cannot determine file size")
 
-    file_size_gb = source_path.stat().st_size / (1024 ** 3)
+    # Создаем запись в БД
+    try:
+        db_task, created = FileCopyTask.objects.update_or_create(
+            celery_task_id=task_id,
+            defaults={
+                'status': 'pending',
+                'file_path': source,
+                'file_name': file_name,
+                'destination_path': destination,
+                'file_id': file_id,
+                'priority': priority,
+                'file_size_gb': file_size_gb,
+                'started_at': timezone.now(),
+            }
+        )
+        if user_id and created:
+            try:
+                db_task.owner_id = user_id
+                db_task.save(update_fields=['owner'])
+            except Exception:
+                pass
+    except Exception as e:
+        logger.error(f"[{task_id}] Failed to create DB record: {e}")
 
-    logger.info(
-        f"[{task_id}] Starting copy task:\n"
-        f"  Source: {source}\n"
-        f"  Destination: {destination}\n"
-        f"  Size: {file_size_gb:.2f} GB\n"
-        f"  Priority: {priority}"
-    )
-
-    result = CopyTaskResult(
-        task_id=task_id,
-        source=source,
-        destination=destination,
-        file_size_gb=round(file_size_gb, 2),
-        status='copying',
-        started_at=start_time.isoformat()
-    )
+    logger.info(f"[{task_id}] Starting copy: {file_name}")
 
     try:
-        Path(destination).parent.mkdir(parents=True, exist_ok=True)
+        # Обновляем статус на copying
+        update_task_progress(task_id, status='copying', started_at=timezone.now())
 
-        if not verify_only:
-            success, message, stats = rclone.copy_with_progress(
-                source, destination, task_id, priority
+        # Копирование
+
+        def progress_callback(stats_data):
+            update_task_progress(
+                task_id,
+                progress=stats_data.get('progress_percent', 0),
+                speed_mbps=stats_data.get('speed_mbps', 0),
+                transferred_gb=stats_data.get('transferred_gb', 0),
+                file_size_gb=stats_data.get('total_size_gb', 0),
             )
 
-            if not success:
-                logger.error(f"[{task_id}] Copy failed: {message}")
-                raise Exception(f"Copy failed: {message}")
-        else:
-            source_hash = rclone._get_hash(source)
-            dest_hash = rclone._get_hash(destination)
-            success = source_hash == dest_hash
-            stats = {'source_hash': source_hash, 'dest_hash': dest_hash}
-            if success:
-                logger.info(f"[{task_id}] Verification passed")
-            else:
-                logger.error(f"[{task_id}] Verification failed")
-
-        elapsed = (datetime.now() - start_time).total_seconds()
-        result.status = 'success'
-        result.completed_at = datetime.now().isoformat()
-        result.speed_mbps = round(file_size_gb * 1024 / elapsed, 2) if elapsed > 0 else 0
-        result.source_hash = stats.get('source_hash', '')
-        result.dest_hash = stats.get('dest_hash', '')
-
-        logger.info(
-            f"[{task_id}] ✅ Copy successful:\n"
-            f"  Time: {elapsed:.1f}s\n"
-            f"  Speed: {result.speed_mbps:.1f} MB/s\n"
-            f"  Size: {file_size_gb:.2f} GB\n"
-            f"  Hash: {result.source_hash}"
+        success, message, stats = rclone.copy_with_progress_monitoring(
+            source, destination, task_id, progress_callback
         )
 
-        return asdict(result)
+
+        if success:
+            if stats.get('already_exists'):
+                comment = 'Файл уже существует (проверена контрольная сумма)'
+            else:
+                comment = 'Копирование успешно завершено'
+
+            update_task_progress(
+                task_id,
+                status='completed',
+                progress=100.0,
+                completed_at=timezone.now(),
+                file_size_gb=stats.get('total_size_gb'),
+                speed_mbps=0,
+                comment=comment
+            )
+            logger.info(f"[{task_id}] Copy completed")
+            return {'status': 'success', 'task_id': task_id}
+        else:
+            update_task_progress(
+                task_id,
+                status='error',
+                speed_mbps=0,
+                completed_at=timezone.now(),
+                error_message=message,
+                comment=f'Ошибка копирования: {message}'
+            )
+            logger.error(f"[{task_id}] Copy failed: {message}")
+            return {'status': 'error', 'task_id': task_id, 'message': message}
 
     except Exception as exc:
-        elapsed = (datetime.now() - start_time).total_seconds()
-        result.status = 'failed'
-        result.error = str(exc)
-        result.retry_count = self.request.retries
+        # ВАЖНО: сначала обновляем статус в БД, потом ретрай
+        logger.error(f"[{task_id}] Exception: {exc}", exc_info=True)
+        retry_count = self.request.retries
 
-        logger.error(
-            f"[{task_id}] ❌ Copy failed (attempt {self.request.retries}/{self.max_retries}):\n"
-            f"  Error: {exc}\n"
-            f"  Time elapsed: {elapsed:.1f}s"
-        )
+        # Всегда записываем ошибку в БД
+        error_msg = str(exc)[:500]
 
-        if 'connection' in str(exc).lower() or 'timeout' in str(exc).lower():
-            logger.info(f"[{task_id}] Network error, retrying in 10 minutes...")
-            raise self.retry(exc=exc, countdown=600)
+        if retry_count < self.max_retries - 1:
+            # Есть ещё попытки
+            update_task_progress(
+                task_id,
+                retry_count=retry_count + 1,
+                error_message=error_msg,
+                speed_mbps=0,
+                comment=f'Повторная попытка {retry_count + 1}/{self.max_retries}'
+            )
+            # Теперь ретрай
+            raise self.retry(exc=exc, countdown=60 * (retry_count + 1))
         else:
-            raise self.retry(exc=exc)
+            # Попытки кончились
+            update_task_progress(
+                task_id,
+                status='error',
+                completed_at=timezone.now(),
+                error_message=error_msg,
+                comment=f'Ошибка после {self.max_retries} попыток'
+            )
+            return {'status': 'error', 'task_id': task_id, 'message': error_msg}
 
 
-@shared_task(queue='file_copy', name='cleanup_old_files')
+@shared_task(name='cleanup_old_files')
 def cleanup_old_files(directory: str, days_old: int = 30,
                       exclude_patterns: List[str] = None) -> int:
     """Очистка старых файлов"""

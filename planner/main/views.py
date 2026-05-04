@@ -11,7 +11,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.template.loader import render_to_string
 from django.shortcuts import render
+from django.utils import timezone
 
+from file_manager.models import FileCopyTask
 from messenger_static.messenger_utils import create_notification
 from planner.settings import CURRENT_CENZ_DIR, SERVICE_TYPE, SFTP_FOLDER
 from tools.ffmpeg_processing import start_ffmpeg_scanners
@@ -516,11 +518,13 @@ def material_card(request, program_id):
 
     return render(request, 'main/full_info_card.html', data)
 
+
+@login_required
 def file_copy_to_sftp(request):
     try:
         file_info = json.loads(request.body)
         username = str(request.user) or 'anonymous'
-        print('request.user', request.user)
+
         if not file_info:
             return JsonResponse({'status': 'error', 'message': 'FileInfo was lost'}, status=400)
 
@@ -532,21 +536,61 @@ def file_copy_to_sftp(request):
 
         source = normalize_path(file_path)
         destination = os.path.join(SFTP_FOLDER, username, get_filename_only(file_path))
+        # destination = os.path.join('/app', username, get_filename_only(file_path))
 
+        # Проверяем, нет ли уже активной задачи для этого файла
+        active_task = FileCopyTask.objects.filter(
+            file_path=source,
+            destination_path=destination,
+            status__in=['pending', 'copying', 'verifying']
+        ).first()
+
+        if active_task:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Файл уже копируется (задача #{active_task.id})'
+            }, status=409)
+
+        # Отправляем задачу в Celery
         task = copy_large_file.apply_async(
             args=(source, destination),
-            kwargs={'priority': 'high'},
+            kwargs={
+                'file_id': file_id,
+                'priority': 'high',
+                'user_id': request.user.id
+            },
             queue='file_copy'
         )
-        task_info = {
-            'task_id': task.id,  # UUID задачи
-            'status': task.status,  # 'PENDING' сразу после отправки
-        }
-        return JsonResponse({'status': 'success', 'message': f'Задача {task.id} добавлена в очередь', 'task': task_info})
+
+        # Создаем запись в БД
+        file_name = os.path.basename(source)
+        FileCopyTask.objects.create(
+            owner=request.user,
+            celery_task_id=task.id,
+            file_id=file_id,
+            file_path=source,
+            file_name=file_name,
+            destination_path=destination,
+            status='pending',
+            priority='high',
+            created_at=timezone.now()
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Задача {task.id} добавлена в очередь',
+            'task': {
+                'task_id': task.id,
+                'status': 'PENDING'
+            }
+        })
+
     except Exception as error:
-        print(error)
-        return JsonResponse(
-            {'status': 'error', 'message': f'Ошибка! Не удалось скопировать файл: {error}'}, status=500)
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Ошибка! Не удалось скопировать файл: {str(error)}'
+        }, status=500)
+
 
 def status_ready(request):
     user_id = request.user.id

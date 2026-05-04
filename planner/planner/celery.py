@@ -9,18 +9,25 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Определяем очереди
 app.conf.task_queues = (
-    Queue('celery', Exchange('celery'), routing_key='celery', queue_arguments={'x-max-priority': 10}),
+    Queue('service', Exchange('service'), routing_key='service', queue_arguments={'x-max-priority': 10}),
+    Queue('ffmpeg', Exchange('ffmpeg'), routing_key='ffmpeg', queue_arguments={'x-max-priority': 10}),
     Queue('file_copy', Exchange('file_copy'), routing_key='file_copy', queue_arguments={'x-max-priority': 10}),
 )
 
-# Маршрутизация задач по очередям
+# Централизованная маршрутизация
 app.conf.task_routes = {
+    # FFmpeg задачи
+    'ffprobe_scan': {'queue': 'ffmpeg'},
+    'r128_scan': {'queue': 'ffmpeg'},
+
+    # File copy задачи
     'copy_large_file': {'queue': 'file_copy'},
     'cleanup_old_files': {'queue': 'file_copy'},
-    # Все остальные задачи по умолчанию идут в 'celery'
+
+    # Все остальные задачи автоматически пойдут в service
 }
 
-app.conf.task_default_queue = 'celery'
+app.conf.task_default_queue = 'service'
 
 # Дополнительные настройки для больших файлов
 app.conf.task_acks_late = True  # Подтверждение после выполнения

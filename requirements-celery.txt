@@ -16,3 +16,5 @@ mssql-django==1.5
 django-storages
 boto3
 rclone-python
+channels>=4.0.0
+channels_redis>=4.0.0

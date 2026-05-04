@@ -20,6 +20,7 @@ django.setup()
 
 # Импортируем consumer после setup, чтобы избежать циклических импортов
 from notifications.consumers import NotificationConsumer
+from file_manager.consumers import FileManagerConsumer
 
 application = ProtocolTypeRouter({
     'http': get_asgi_application(),
@@ -27,6 +28,7 @@ application = ProtocolTypeRouter({
         AuthMiddlewareStack(
             URLRouter([
                 path('ws/notifications/', NotificationConsumer.as_asgi()),
+                path('ws/file-manager/', FileManagerConsumer.as_asgi()),
             ])
         )
     ),

@@ -10,6 +10,7 @@ MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
 INSTALLED_APPS = [
     "distribution",
     "tools",
+    "file_manager",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -108,4 +109,15 @@ DATABASES = {
         },
     },
 
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [{
+                "address": f"redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/1",
+            }],
+        },
+    },
 }

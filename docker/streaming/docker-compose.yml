@@ -13,11 +13,12 @@ services:
     command: >
       sh -c "
       cd /app/planner &&
-      celery -A planner worker --loglevel=info --concurrency=4
+      celery -A planner worker --loglevel=info --concurrency=4 -Q ffmpeg,service
       "
     volumes:
       - ../../planner/planner:/app/planner:ro
       - ../../planner/tools:/app/tools:ro
+      - ../../planner/file_manager:/app/file_manager:ro
       - ../../planner/media:/app/media
       - /mnt:/mnt
     working_dir: /app
@@ -71,6 +72,7 @@ services:
     volumes:
       - ../../planner/planner:/app/planner:ro
       - ../../planner/tools:/app/tools:ro
+      - ../../planner/file_manager:/app/file_manager:ro
       - ../../planner/media:/app/media
       - /mnt:/mnt
     working_dir: /app

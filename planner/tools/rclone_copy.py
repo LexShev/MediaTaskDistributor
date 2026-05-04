@@ -1,25 +1,12 @@
+# planner/tools/rclone_copy.py
+import os
+import re
 import subprocess
-from typing import Dict, Optional, Tuple
-from dataclasses import dataclass
+import threading
+from typing import Optional, Callable
 from celery.utils.log import get_task_logger
 
 logger = get_task_logger(__name__)
-
-
-@dataclass
-class CopyTaskResult:
-    task_id: str
-    source: str
-    destination: str
-    file_size_gb: float
-    status: str  # 'pending', 'copying', 'verifying', 'success', 'failed'
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
-    speed_mbps: Optional[float] = None
-    source_hash: Optional[str] = None
-    dest_hash: Optional[str] = None
-    retry_count: int = 0
-    error: Optional[str] = None
 
 
 class RcloneCopier:
@@ -31,24 +18,34 @@ class RcloneCopier:
         if config_path:
             self.base_cmd.extend(['--config', config_path])
 
-    def copy_with_progress(self, source: str, destination: str,
-                           task_id: str, priority: str = 'normal') -> Tuple[bool, str, Dict]:
+    def copy_with_progress_monitoring(
+            self,
+            source: str,
+            destination: str,
+            task_id: str,
+            progress_callback: Optional[Callable] = None
+    ) -> tuple:
+        """
+        Копирование с мониторингом прогресса и callback.
+        Rclone с --checksum сам проверяет хэши.
+        """
+
         cmd = self.base_cmd + [
             'copyto',
             source,
             destination,
-            '--checksum',  # Проверка хэша после копирования
-            '--progress',  # Прогресс
-            '--stats', '10s',  # Статистика каждые 10 сек
-            '--stats-one-line',  # Компактный формат для парсинга
+            '--checksum',          # Rclone сам проверит хэши после копирования
+            '--progress',
+            '--stats', '3s',
             '--log-level', 'INFO',
-            '--transfers', '1',  # Однопоточное копирование больших файлов
-            '--buffer-size', '128M',  # Большой буфер для 5-30GB файлов
-            '--multi-thread-streams', '4',  # Многопоточность внутри файла
-            '--retries', '3',  # Внутренние ретраи rclone
+            '--stats-log-level', 'NOTICE',  # ← Выводить прогресс всегда
+            '--transfers', '1',
+            '--buffer-size', '128M',
+            '--multi-thread-streams', '4',
+            '--retries', '3',
             '--low-level-retries', '3',
-            '--timeout', '30m',  # Таймаут операций
-            '--contimeout', '1m',  # Таймаут соединения
+            '--timeout', '30m',
+            '--contimeout', '1m',
         ]
 
         if not any(source.startswith(prefix) for prefix in ['s3:', 'gcs:', 'http']):
@@ -59,72 +56,162 @@ class RcloneCopier:
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1
+            bufsize=1,
+            universal_newlines=True
         )
 
         stats = {
             'transferred_gb': 0,
+            'total_size_gb': 0,
             'speed_mbps': 0,
             'progress_percent': 0,
-            'errors': 0
+            'errors': 0,
+            'checks': 0,  # Количество проверок хэша
+            'transfers': 0,  # Количество реальных передач
+            'already_exists': False  # Файл уже существовал?
         }
 
-        # Читаем прогресс и сразу логируем
-        for line in process.stderr:
-            if 'Transferred:' in line:
-                parts = line.split(',')
-                for part in parts:
-                    if 'GiB' in part and '/' in part:
-                        transferred, total = part.strip().split('/')
-                        stats['transferred_gb'] = float(transferred.strip().split()[0])
-                    elif '%' in part:
-                        stats['progress_percent'] = int(part.strip().replace('%', ''))
-                    elif 'iB/s' in part:
-                        speed = part.strip().split()[0]
-                        stats['speed_mbps'] = float(speed)
+        # Паттерн для парсинга строки прогресса rclone
+        progress_patterns = [
+            # Формат с GiB/MiB
+            re.compile(
+                r'Transferred:\s+([\d.]+)\s*([GMK]i?B?)\s*/\s*([\d.]+)\s*([GMK]i?B?).*?(\d+)%.*?([\d.]+)\s*([GMK]i?B?)/s',
+                re.IGNORECASE
+            ),
+            # Формат с Bytes
+            re.compile(
+                r'Transferred:\s+([\d.]+)\s*(\w+?)\s*/\s*([\d.]+)\s*(\w+?).*?(\d+)%.*?([\d.]+)\s*(\w+?)/s',
+                re.IGNORECASE
+            ),
+        ]
+        checks_pattern = re.compile(r'Checks:\s+(\d+)\s*/\s*(\d+),\s*(\d+)%', re.IGNORECASE)
+        transfers_pattern = re.compile(r'Transferred:\s+(\d+)\s*/\s*(\d+),\s*(\d+)%', re.IGNORECASE)
 
-                # Логируем прогресс — это попадёт в docker logs
-                logger.info(
-                    f"[{task_id}] Progress: {stats['progress_percent']}% | "
-                    f"Speed: {stats['speed_mbps']} MB/s | "
-                    f"Transferred: {stats['transferred_gb']} GB"
-                )
-            elif 'ERROR' in line or 'Failed' in line:
-                logger.error(f"[{task_id}] rclone error: {line.strip()}")
-                stats['errors'] += 1
+        def convert_to_gb(value, unit):
+            """Конвертирует в GB"""
+            unit = unit.upper().replace('I', '').strip()
+            value = float(value)
 
-        process.wait()
+            if unit.startswith('T'):
+                return value * 1024
+            elif unit.startswith('G'):
+                return value
+            elif unit.startswith('M'):
+                return value / 1024
+            elif unit.startswith('K'):
+                return value / (1024 * 1024)
+            elif unit.startswith('B'):
+                return value / (1024 * 1024 * 1024)
+            else:
+                return value
+
+        def convert_speed(value, unit):
+            """Конвертирует в MB/s"""
+            unit = unit.upper().replace('I', '').replace('/S', '').strip()
+            value = float(value)
+
+            if unit.startswith('G'):
+                return value * 1024
+            elif unit.startswith('M'):
+                return value
+            elif unit.startswith('K'):
+                return value / 1024
+            elif unit.startswith('B'):
+                return value / (1024 * 1024)
+            else:
+                return value
+
+        def read_output():
+            logger.info(f"[{task_id}] Started reading rclone output...")
+            line_count = 0
+
+            for line in process.stdout:
+                line = line.strip()
+                line_count += 1
+
+                logger.info(f"[{task_id}] RCLONE[{line_count}]: {line[:200]}")
+
+                # Парсим Checks
+                checks_match = checks_pattern.search(line)
+                if checks_match:
+                    stats['checks'] = int(checks_match.group(1))
+                    # Если есть проверки и нет передач — файл уже существует
+                    if stats['transfers'] == 0:
+                        stats['already_exists'] = True
+                        stats['progress_percent'] = 100
+
+                        logger.info(f"[{task_id}] File already exists, verifying checksum...")
+
+                        if progress_callback:
+                            progress_callback(stats)
+
+                # Парсим Transferred (счетчик файлов)
+                transfers_match = transfers_pattern.search(line)
+                if transfers_match and 'MiB' not in line and 'GiB' not in line:
+                    stats['transfers'] = int(transfers_match.group(1))
+
+                # Парсим прогресс (размер в MiB/GiB)
+                for pattern in progress_patterns:
+                    match = pattern.search(line)
+                    if match:
+                        try:
+                            transferred_val = float(match.group(1))
+                            transferred_unit = match.group(2)
+                            total_val = float(match.group(3))
+                            total_unit = match.group(4)
+                            percent = int(match.group(5))
+                            speed_val = float(match.group(6))
+                            speed_unit = match.group(7)
+
+                            stats['transferred_gb'] = convert_to_gb(transferred_val, transferred_unit)
+                            stats['total_size_gb'] = convert_to_gb(total_val, total_unit)
+                            stats['progress_percent'] = percent
+                            stats['speed_mbps'] = convert_speed(speed_val, speed_unit)
+
+                            logger.info(
+                                f"[{task_id}] {percent}% | "
+                                f"{stats['speed_mbps']:.1f} MB/s | "
+                                f"{stats['transferred_gb']:.2f}/{stats['total_size_gb']:.2f} GB"
+                            )
+
+                            if progress_callback:
+                                progress_callback(stats)
+                            break
+                        except Exception as e:
+                            logger.error(f"[{task_id}] Parse error: {e}")
+
+                if 'ERROR' in line.upper() or 'FAIL' in line.upper():
+                    logger.error(f"[{task_id}] {line}")
+                    stats['errors'] += 1
+
+            logger.info(f"[{task_id}] Finished ({line_count} lines)")
+
+        # Запускаем чтение в потоке
+        output_thread = threading.Thread(target=read_output, daemon=True)
+        output_thread.start()
+
+        # Ждем завершения
+        try:
+            process.wait(timeout=3600)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            logger.error(f"[{task_id}] Timeout!")
+            return False, "Timeout after 1 hour", stats
+
+        output_thread.join(timeout=10)
 
         if process.returncode == 0:
-            logger.info(f"[{task_id}] Copy completed, verifying checksums...")
-            source_hash = self._get_hash(source)
-            dest_hash = self._get_hash(destination)
-            stats['source_hash'] = source_hash
-            stats['dest_hash'] = dest_hash
-
-            if source_hash == dest_hash:
-                logger.info(f"[{task_id}] Verification passed: {source_hash}")
-                return True, "Copy verified", stats
+            if stats['already_exists']:
+                logger.info(f"[{task_id}] File already exists, checksum verified")
+                return True, "File already exists (verified)", stats
             else:
-                logger.error(
-                    f"[{task_id}] Hash mismatch!\n"
-                    f"  Source: {source_hash}\n"
-                    f"  Dest:   {dest_hash}"
-                )
-                return False, "Hash mismatch after rclone", stats
+                logger.info(f"[{task_id}] Copy verified")
+                return True, "Copy verified", stats
         else:
-            logger.error(f"[{task_id}] rclone failed with code {process.returncode}")
-            return False, f"rclone failed with code {process.returncode}", stats
-
-    def _get_hash(self, path: str) -> str:
-        cmd = self.base_cmd + ['hashsum', 'MD5', path]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode == 0:
-            return result.stdout.strip().split()[0]
-        return ""
+            logger.error(f"[{task_id}] Failed with code {process.returncode}")
+            return False, f"Failed with code {process.returncode}", stats
 
 
-# Инициализация — экспортируем для импорта в tasks
 rclone = RcloneCopier()

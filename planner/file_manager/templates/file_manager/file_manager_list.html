@@ -1,0 +1,137 @@
+<!-- planner/file_manager/templates/file_manager/file_manager_list.html -->
+{% load custom_filters %}
+
+{% if tasks|length > 0 %}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="width: 1%;">#</th>
+                <th style="width: 50%;">Файл</th>
+                <th style="width: 5%;">Статус</th>
+                <th style="width: 12%;">Прогресс</th>
+                <th style="width: 7%;">Скорость</th>
+                <th style="width: 7%;">Размер</th>
+                <th style="width: 7%;">Время старта</th>
+                <th style="width: 7%;">Время завершения</th>
+                <th style="width: 4%;">Действия</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider" id="file_manager_table">
+            {% for task in tasks %}
+                <tr data-task-id="{{ task.id }}" class="{% if task.status == 'copying' %}table-active{% endif %}">
+                    <td>{{ task.id }}</td>
+                    <td>
+                        <span title="{{ task.file_path }}">{{ task.file_name }}</span>
+                    </td>
+                    <td>
+                        <span class="badge {% if task.status == 'pending' %}text-secondary-emphasis bg-secondary-subtle
+                                            {% elif task.status == 'copying' %}text-primary-emphasis bg-primary-subtle
+                                            {% elif task.status == 'verifying' %}text-warning-emphasis bg-warning-subtle
+                                            {% elif task.status == 'completed' %}text-success-emphasis bg-success-subtle
+                                            {% elif task.status == 'error' %}text-danger-emphasis bg-danger-subtle
+                                            {% endif %}">
+                            {{ task.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if task.status == 'copying' or task.status == 'verifying' %}
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                     role="progressbar"
+                                     style="width: {{ task.progress|floatformat:0 }}%"
+                                     aria-valuenow="{{ task.progress|floatformat:0 }}"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    {{ task.progress|floatformat:0 }}%
+                                </div>
+                            </div>
+                        {% elif task.status == 'completed' %}
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" style="width: 100%">100%</div>
+                            </div>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="speed-value">
+                        {% if task.speed_mbps %}
+                            {{ task.speed_mbps|floatformat:1 }} MB/s
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="size-value">
+                        {% if task.file_size_gb %}
+                            {{ task.file_size_gb|floatformat:2 }} GB
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ task.started_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                    <td>{{ task.completed_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary retry-btn"
+                                onclick="retryCopyTask({{ task.id }})"
+                                title="Повторить копирование" {% if task.status != 'completed' and task.status != 'error' %}disabled{% endif %}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                                <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                                <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                            </svg>
+                        </button>
+
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="alert alert-info" role="alert">Нет данных</div>
+{% endif %}
+
+<!-- Пагинация -->
+<div class="d-flex mt-3">
+    {% if paginator.num_pages > 1 %}
+        <nav class="ms-auto">
+            <ul class="pagination justify-content-end">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <div class="page-link pagination-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ page_obj.previous_page_number }}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </div>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo;</span>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj|page_range_three %}
+                    {% if num == page_obj.number %}
+                    <li class="page-item active" data-page-number="{{ num }}">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <div class="page-link pagination-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ num }}">{{ num }}</div>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <div class="page-link pagination-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ page_obj.next_page_number }}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </div>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&raquo;</span>
+                </li>
+                {% endif %}
+            </ul>
+            <div class="text-muted text-end small">
+                Всего задач: {{ paginator.count }}
+            </div>
+        </nav>
+    {% endif %}
+</div>
