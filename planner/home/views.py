@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -10,6 +10,7 @@ from home.home_calendar import calendar_skeleton, update_info
 from home.home_kpi import common_kpi, daily_kpi
 from home.home_table import home_common_table, home_deadline_table
 from main.permission_pannel import ask_db_permissions
+from playlist.playlist import get_any_schedule_by_date
 
 
 @login_required()
@@ -21,9 +22,13 @@ def home(request):
         'today': today,
         'cal_month': today.month,
     }
+    schedules = []
+    if user_group == 6:
+        schedules = get_any_schedule_by_date(today+timedelta(weeks=4), today+timedelta(weeks=6))
     data = {
         'home_calendar': calendar_skeleton(),
         'home_table': home_deadline_table(user_id),
+        'schedules': schedules,
         'service_dict': service_dict,
         'permissions': ask_db_permissions(user_id),
         'tabs': get_main_settings().get_header_panels(user_group)

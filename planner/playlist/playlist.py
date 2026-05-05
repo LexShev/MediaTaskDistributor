@@ -60,6 +60,38 @@ def get_schedule_days(field_dict):
             results.append(dict(zip(django_columns, row)))
         return results
 
+def get_any_schedule_by_date(start_date, end_date):
+    columns = (('SchedDay', 'schedule_day_id'), ('SchedDay', 'schedule_id'), ('SchedDay', 'day_date'),
+               ('SchedDay', 'approved_for_broadcasting'), ('SchedDay', 'last_edit_user_id'), ('SchedDay', 'last_edit_time'),
+               ('SchedDay', 'DayStatus'), ('SchedDay', 'DayType'),
+               ('Status', 'status'), ('Status', 'last_edit_user_id'), ('Status', 'last_edit_time'),
+               ('Comment', 'comment'), ('Comment', 'last_edit_user_id'), ('Comment', 'last_edit_time'),)
+    try:
+        sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
+        django_columns = [f'{col}_{val}' for col, val in columns]
+        with connections[OPLAN_DB].cursor() as cursor:
+            query = f"""
+            SELECT 
+                {sql_columns}
+            FROM [{OPLAN_DB}].[dbo].[schedule_day] AS SchedDay
+            LEFT JOIN [{PLANNER_DB}].[dbo].[playlist_status] AS Status
+                ON SchedDay.[schedule_day_id] = Status.[schedule_day_id]
+            LEFT JOIN [{PLANNER_DB}].[dbo].[playlist_comment] AS Comment
+                ON SchedDay.[schedule_day_id] = Comment.[schedule_day_id]
+            WHERE [day_date] BETWEEN CONVERT(DATE, %s) AND CONVERT(DATE, %s)
+            ORDER BY [day_date]
+            """
+
+            cursor.execute(query, (start_date, end_date))
+            results = []
+
+            for row in cursor.fetchall():
+                results.append(dict(zip(django_columns, row)))
+            return results
+    except Exception as error:
+        print(error)
+        return []
+
 def choose_type_query(query):
     schedule_day_id = query.get('schedule_day_id')
     schedule_id = query.get('schedule_id')

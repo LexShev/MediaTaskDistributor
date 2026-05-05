@@ -49,6 +49,7 @@
 
       <!-- Правая колонка - таблица -->
       <div class="col-12 col-md-6 h-100">
+      {% if permissions.auth_group != 'editors' %}
         <div class="card h-100 d-flex flex-column">
           <div class="card-header">
             <div class="row align-items-center">
@@ -141,6 +142,94 @@
             </div>
           </div>
         </div>
+      {% else %}
+          <!-- Сетки вещания для редакторов -->
+          <div class="card h-100 d-flex flex-column">
+          <div class="card-header">
+            <div class="row align-items-center">
+{#              <div class="col d-flex">#}
+{#                <div class="form-check text-nowrap mx-2 my-0">#}
+{#                  <input class="form-check-input" type="checkbox" role="switch" id="no_material_filter"#}
+{#                         onclick="sortTable()" title="Показать задачи без материала">#}
+{#                  <label class="form-check-label" for="no_material_filter" id="no_material_label">Нет материала</label>#}
+{#                </div>#}
+{#                <div class="form-check text-nowrap mx-2 my-0">#}
+{#                  <input class="form-check-input" type="checkbox" role="switch" id="my_tasks_filter" onclick="sortTable()"#}
+{#                         title="Скрыть Мои задачи" checked>#}
+{#                  <label class="form-check-label" for="my_tasks_filter" id="my_tasks_label">Мои задачи</label>#}
+{#                </div>#}
+{#              </div>#}
+              <div class="col d-none d-md-block">
+                <div class="text-start flex-grow-1">Сетки вещания</div>
+              </div>
+              <div class="col text-end">
+                <small class="text-secondary" id="total_schedules">Всего: {{ schedules|length }}</small>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-md-4 p-0 overflow-auto">
+            <!-- Мобильная версия таблицы -->
+            <div class="d-md-none">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th style="width: 1%;">#</th>
+                      <th style="width: 75%;">Дата эфира</th>
+                      <th style="width: 24%;">Канал</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-group-divider" id="mobileScheduleTableBody">
+                    {% for schedule in schedules %}
+                        <tr data-schedule-day-id="{{ schedule.SchedDay_schedule_day_id }}"
+                            data-schedule-id="{{ schedule.SchedDay_schedule_id }}"
+                            data-schedule-day-date="{{ schedule.SchedDay_day_date|date:"Y-m-d" }}"
+                            data-schedule-name="{{ schedule.SchedDay_schedule_id|schedule_name }}"
+                            data-schedule-status="{{ schedule.Status_status }}">
+                        <td class="counter">{{ forloop.counter }}</td>
+                        <td class="">
+                          {{ schedule.SchedDay_day_date|date:'d.m.Y' }}
+                        </td>
+                        <td class="">{{ schedule.SchedDay_schedule_id|schedule_name }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+            </div>
+            <!-- Десктопная версия таблицы -->
+            <div class="d-none d-md-block">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th style="width: 1%;">#</th>
+                      <th style="width: 20%;">Дата эфира</th>
+                      <th style="width: 30%;">Канал</th>
+                      <th style="width: 20%;">Дата изменения</th>
+                      <th style="width: 29%;">Редактор</th>
+
+                    </tr>
+                  </thead>
+                  <tbody class="table-group-divider" id="desktopScheduleTableBody">
+                    {% for schedule in schedules %}
+                        <tr data-schedule-day-id="{{ schedule.SchedDay_schedule_day_id }}"
+                            data-schedule-id="{{ schedule.SchedDay_schedule_id }}"
+                            data-schedule-day-date="{{ schedule.SchedDay_day_date|date:"Y-m-d" }}"
+                            data-schedule-name="{{ schedule.SchedDay_schedule_id|schedule_name }}"
+                            data-schedule-status="{{ schedule.Status_status }}">
+                        <td class="counter">{{ forloop.counter }}</td>
+                        <td class="">
+                          {{ schedule.SchedDay_day_date|date:'d.m.Y' }}
+                        </td>
+                        <td class="">{{ schedule.SchedDay_schedule_id|schedule_name }}</td>
+                        <td class="">{{ schedule.SchedDay_last_edit_time|date:"d.m.Y" }}</td>
+                        <td class="">{{ schedule.SchedDay_last_edit_user_id|oplan_worker_name }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+      {% endif %}
       </div>
     </div>
 </div>
