@@ -175,27 +175,40 @@ def cenz_info(program_id):
 def insert_value(field_id, program_id, new_value):
     if field_id in (17, 22) and new_value == '0':
         return
-    if field_id == 7:
-        columns = '[ProgramCustomFieldId], [ObjectId], [DateValue], [ObjectType]'
-    elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
-        columns = '[ProgramCustomFieldId], [ObjectId], [TextValue], [ObjectType]'
-    elif field_id in (14, 15, 17, 22):
-        columns = '[ProgramCustomFieldId], [ObjectId], [IntValue], [ObjectType]'
-    else:
-        columns = ''
 
-    if columns:
-        with connections[OPLAN_DB].cursor() as cursor:
+    with connections[OPLAN_DB].cursor() as cursor:
+        # Проверяем, существует ли уже запись для этого поля и программы
+        check_query = f'''
+        SELECT [ProgramCustomFieldValuesID] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
+        WHERE [ObjectId] = {program_id} AND [ProgramCustomFieldId] = {field_id}
+        '''
+        cursor.execute(check_query)
+        existing = cursor.fetchone()
+
+        if existing:
+            # Запись уже есть — обновляем её
+            update_value(field_id, program_id, new_value)
+            return
+
+        # Записи нет — вставляем новую
+        if field_id == 7:
+            columns = '[ProgramCustomFieldId], [ObjectId], [DateValue], [ObjectType]'
+        elif field_id in (8, 9, 10, 11, 12, 13, 16, 18, 19):
+            columns = '[ProgramCustomFieldId], [ObjectId], [TextValue], [ObjectType]'
+        elif field_id in (14, 15, 17, 22):
+            columns = '[ProgramCustomFieldId], [ObjectId], [IntValue], [ObjectType]'
+        else:
+            columns = ''
+
+        if columns:
             query = f'''
             INSERT INTO [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
             ({columns})
-            VALUES
-            (%s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s)
             '''
             cursor.execute(query, (field_id, program_id, new_value, 0))
 
 def delete_value(field_id, program_id):
-    print('delete', field_id)
     with connections[OPLAN_DB].cursor() as cursor:
         query = f'''
         DELETE FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
@@ -287,7 +300,6 @@ def change_oplan_cenz_info(program_id, old_values, new_values):
         elif old_value is not None and new_value is None:
             delete_value(num_key, program_id)
         elif old_value is not None and new_value is not None and str(old_value) != str(new_value):
-            print('new_value', new_value)
             update_value(num_key, program_id, new_value)
 
 

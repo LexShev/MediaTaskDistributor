@@ -18,18 +18,20 @@
         </thead>
         <tbody class="table-group-divider" id="file_manager_table">
             {% for task in tasks %}
-                <tr data-task-id="{{ task.id }}" class="{% if task.status == 'copying' %}table-active{% endif %}">
-                    <td>{{ task.id }}</td>
+                <tr data-task-id="{{ task.id }}" class="{% if task.status == 'copying' or task.status == 'verifying' %}table-active{% endif %}">
+                    <!-- Нумерация от последней задачи к первой -->
+                    <td>{{ paginator.count|add:1|add:forloop.counter0|add:page_obj.start_index|add:-1 }}</td>
+                    <!-- ... остальные колонки без изменений ... -->
                     <td>
                         <span title="{{ task.file_path }}">{{ task.file_name }}</span>
                     </td>
                     <td>
-                        <span class="badge {% if task.status == 'pending' %}text-secondary-emphasis bg-secondary-subtle
-                                            {% elif task.status == 'copying' %}text-primary-emphasis bg-primary-subtle
-                                            {% elif task.status == 'verifying' %}text-warning-emphasis bg-warning-subtle
-                                            {% elif task.status == 'completed' %}text-success-emphasis bg-success-subtle
-                                            {% elif task.status == 'error' %}text-danger-emphasis bg-danger-subtle
-                                            {% endif %}">
+                        <span class="badge status-badge {% if task.status == 'pending' %}text-secondary-emphasis bg-secondary-subtle
+                                                {% elif task.status == 'copying' %}text-primary-emphasis bg-primary-subtle
+                                                {% elif task.status == 'verifying' %}text-warning-emphasis bg-warning-subtle
+                                                {% elif task.status == 'completed' %}text-success-emphasis bg-success-subtle
+                                                {% elif task.status == 'error' %}text-danger-emphasis bg-danger-subtle
+                                                {% endif %}">
                             {{ task.get_status_display }}
                         </span>
                     </td>

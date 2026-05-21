@@ -256,6 +256,10 @@ function ValidateFileUpload(task) {
 };
 
 function CenzApprove(task) {
+    // Блокируем кнопки, чтобы избежать двойного отправления
+    const submitBtns = document.querySelectorAll('#cenz_approve_btn, #ask_fix_btn, #save_cenz_btn');
+    submitBtns.forEach(btn => btn.disabled = true);
+
     let noCenz = document.getElementById('no_cenz').checked
     const cenzFormElements = document.getElementById('cenz_form').elements;
     let forms = {'program_id': programId}

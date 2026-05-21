@@ -159,8 +159,12 @@ def copy_large_file(
         # Копирование
 
         def progress_callback(stats_data):
+            # Определяем статус: если проверка хэшей - 'verifying', иначе 'copying'
+            current_status = 'verifying' if stats_data.get('is_verifying') else 'copying'
+
             update_task_progress(
                 task_id,
+                status=current_status,
                 progress=stats_data.get('progress_percent', 0),
                 speed_mbps=stats_data.get('speed_mbps', 0),
                 transferred_gb=stats_data.get('transferred_gb', 0),

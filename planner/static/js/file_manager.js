@@ -102,36 +102,124 @@ class FileManager {
         const taskRow = document.querySelector(`tr[data-task-id="${data.task_id}"]`);
 
         if (!taskRow) {
-            console.warn(`Task row not found for task_id=${data.task_id}, reloading...`);
-            this.loadFileManager();
+            // Если строка не найдена, возможно, она на другой странице.
+            // Можно не перезагружать всё, а просто ждать.
+            // Но если это новая задача на текущей странице - перезагружаем.
+            // В этой версии мы не будем автоматически перезагружать, чтобы не было мерцания.
+            console.warn(`Task row not found for task_id=${data.task_id}`);
             return;
         }
 
-        // Обновляем прогресс-бар
+        // 1. Обновляем статус (badge)
+        const statusBadge = taskRow.querySelector('.status-badge');
+        if (statusBadge && data.status) {
+            // Маппинг статусов на классы Bootstrap
+            const statusClasses = {
+                'pending': 'text-secondary-emphasis bg-secondary-subtle',
+                'copying': 'text-primary-emphasis bg-primary-subtle',
+                'verifying': 'text-warning-emphasis bg-warning-subtle',
+                'completed': 'text-success-emphasis bg-success-subtle',
+                'error': 'text-danger-emphasis bg-danger-subtle'
+            };
+            const statusTexts = {
+                'pending': 'Ожидает',
+                'copying': 'Копирование',
+                'verifying': 'Проверка',
+                'completed': 'Завершено',
+                'error': 'Ошибка'
+            };
+
+            // Очищаем текущие классы статуса и добавляем новые
+            statusBadge.className = `badge status-badge ${statusClasses[data.status] || 'text-secondary-emphasis bg-secondary-subtle'}`;
+            statusBadge.textContent = statusTexts[data.status] || data.status;
+
+            // Обновляем класс строки (подсветку)
+            taskRow.classList.remove('table-active');
+            if (data.status === 'copying' || data.status === 'verifying') {
+                taskRow.classList.add('table-active');
+            }
+        }
+
+        // 2. Обновляем прогресс-бар
         const progressBar = taskRow.querySelector('.progress-bar');
-        if (progressBar && data.progress !== undefined) {
-            progressBar.style.width = data.progress + '%';
-            progressBar.textContent = Math.round(data.progress) + '%';
-            progressBar.setAttribute('aria-valuenow', data.progress);
-            console.log(`Progress updated: ${data.progress}%`);
+        if (progressBar) {
+            if (data.status === 'completed') {
+                // Задача завершена - показываем 100% зелёный
+                progressBar.className = 'progress-bar bg-success';
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+            } else if (data.status === 'copying' || data.status === 'verifying' || data.status === 'pending') {
+                // Активные задачи
+                progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+                const progress = Math.min(data.progress || 0, 100);
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = Math.round(progress) + '%';
+                progressBar.setAttribute('aria-valuenow', progress);
+            } else {
+                // Для completed и error - уже обработано выше
+                if (data.status === 'error') {
+                    // Ошибка - скрываем прогресс-бар
+                    const progressContainer = taskRow.querySelector('.progress');
+                    if (progressContainer) {
+                        progressContainer.innerHTML = '<span class="text-muted">-</span>';
+                    }
+                }
+            }
+        } else if (data.status === 'copying' || data.status === 'verifying') {
+            // Если прогресс-бара не было (статус был 'pending'), добавляем его
+            const td = taskRow.querySelector('td:nth-child(4)'); // 4-я колонка - прогресс
+            if (td) {
+                td.innerHTML = `
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated"
+                             role="progressbar"
+                             style="width: ${Math.round(data.progress || 0)}%"
+                             aria-valuenow="${Math.round(data.progress || 0)}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            ${Math.round(data.progress || 0)}%
+                        </div>
+                    </div>
+                `;
+            }
         }
 
-        // Обновляем скорость
+        // 3. Обновляем скорость
         const speedCell = taskRow.querySelector('.speed-value');
-        if (speedCell && data.speed_mbps !== undefined && data.speed_mbps > 0) {
-            speedCell.textContent = data.speed_mbps.toFixed(1) + ' MB/s';
+        if (speedCell) {
+            if (data.speed_mbps !== undefined && data.speed_mbps > 0) {
+                speedCell.textContent = data.speed_mbps.toFixed(1) + ' MB/s';
+                speedCell.querySelector('.text-muted')?.remove(); // Убираем плейсхолдер
+            } else if (data.status === 'completed' || data.status === 'error') {
+                speedCell.innerHTML = '<span class="text-muted">-</span>';
+            }
         }
 
-        // Обновляем размер файла
+        // 4. Обновляем размер файла
         const sizeCell = taskRow.querySelector('.size-value');
         if (sizeCell && data.transferred_gb !== undefined && data.file_size_gb !== undefined) {
             sizeCell.textContent = data.transferred_gb.toFixed(2) + ' / ' + data.file_size_gb.toFixed(2) + ' GB';
         }
 
-        // Обновляем статус если задача завершилась
+        // 5. Если задача завершилась или ошибка - обновляем дату завершения
         if (data.status === 'completed' || data.status === 'error') {
-            console.log('Task finished, reloading table...');
-            this.loadFileManager();
+            const completedCell = taskRow.querySelector('td:nth-child(8)'); // 8-я колонка - время завершения
+            if (completedCell) {
+                const now = new Date();
+                const formatted = now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0') + ' ' +
+                    String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0') + ':' +
+                    String(now.getSeconds()).padStart(2, '0');
+                completedCell.textContent = formatted;
+            }
+
+            // Активируем кнопку "Повторить"
+            const retryBtn = taskRow.querySelector('.retry-btn');
+            if (retryBtn) {
+                retryBtn.disabled = false;
+            }
         }
     }
 
