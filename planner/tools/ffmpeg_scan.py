@@ -96,7 +96,7 @@ class R128Scanner:
             return r128_scan_result, waveform_result
 
         except Exception as e:
-            self.logger.error("Ошибка при обработке", e)
+            self.logger.error(f"Ошибка при обработке: {e}")
             raise
 
     def extract_loudnorm_data(self):
