@@ -61,6 +61,7 @@ def update_task_progress(task_id, **kwargs):
                     {
                         "type": "file_progress_update",
                         "task_id": task.id,
+                        'user_id': task.owner_id,
                         "celery_task_id": task_id,
                         "status": task.status,
                         "progress": task.progress or 0,
@@ -70,19 +71,20 @@ def update_task_progress(task_id, **kwargs):
                         "error_message": task.error_message,
                     }
                 )
-                # # (считаем активные и ошибочные задачи)
-                # async_to_sync(channel_layer.group_send)(
-                #     "file_manager_updates",
-                #     {
-                #         "type": "file_manager_status_update",
-                #         "active_count": FileCopyTask.objects.filter(
-                #             status__in=['pending', 'copying', 'verifying']
-                #         ).count(),
-                #         "error_count": FileCopyTask.objects.filter(
-                #             status='error'
-                #         ).count(),
-                #     }
-                # )
+                # (считаем активные и ошибочные задачи)
+                async_to_sync(channel_layer.group_send)(
+                    "file_manager_updates",
+                    {
+                        "type": "file_manager_status_update",
+                        'user_id': task.owner_id,
+                        "active_count": FileCopyTask.objects.filter(
+                            status__in=['pending', 'copying', 'verifying']
+                        ).count(),
+                        "error_count": FileCopyTask.objects.filter(
+                            status='error'
+                        ).count(),
+                    }
+                )
             else:
                 logger.warning(f"[{task_id}] No channel layer!")
         except ImportError as e:
@@ -190,6 +192,7 @@ def copy_large_file(
                     {
                         'type': 'new_task_created',
                         'task_id': db_task.id,
+                        'user_id': db_task.owner_id,
                         'celery_task_id': task_id,
                         'file_name': file_name,
                         'status': 'pending',

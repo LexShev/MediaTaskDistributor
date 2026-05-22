@@ -18,6 +18,11 @@ class FileManagerConsumer(AsyncWebsocketConsumer):
                 "file_manager_updates",
                 self.channel_name
             )
+            # Присоединяемся к персональной группе пользователя
+            await self.channel_layer.group_add(
+                f"file_manager_user_{self.user.id}",
+                self.channel_name
+            )
             await self.accept()
 
             # Отправляем подтверждение подключения
@@ -54,39 +59,87 @@ class FileManagerConsumer(AsyncWebsocketConsumer):
 
     async def file_progress_update(self, event):
         """Отправка обновления прогресса клиенту"""
-        await self.send(text_data=json.dumps({
-            "type": "progress_update",
-            "task_id": event.get('task_id'),
-            "celery_task_id": event.get('celery_task_id'),
-            "status": event.get('status'),
-            "progress": event.get('progress'),
-            "speed_mbps": event.get('speed_mbps'),
-            'file_size_gb': event.get('file_size_gb'),
-            "transferred_gb": event.get('transferred_gb'),
-            "error_message": event.get('error_message'),
-        }))
+        # Получаем ID пользователя из события
+        user_id = event.get('user_id')
+
+        # Отправляем только если это событие для текущего пользователя
+        if user_id and self.user and user_id == self.user.id:
+            await self.send(text_data=json.dumps({
+                "type": "progress_update",
+                "task_id": event.get('task_id'),
+                "celery_task_id": event.get('celery_task_id'),
+                "status": event.get('status'),
+                "progress": event.get('progress'),
+                "speed_mbps": event.get('speed_mbps'),
+                'file_size_gb': event.get('file_size_gb'),
+                "transferred_gb": event.get('transferred_gb'),
+                "error_message": event.get('error_message'),
+            }))
+        elif not user_id and self.user and (self.user.is_staff or self.user.groups.filter(name='admin').exists()):
+            # Для админов показываем все обновления
+            await self.send(text_data=json.dumps({
+                "type": "progress_update",
+                "task_id": event.get('task_id'),
+                "celery_task_id": event.get('celery_task_id'),
+                "status": event.get('status'),
+                "progress": event.get('progress'),
+                "speed_mbps": event.get('speed_mbps'),
+                'file_size_gb': event.get('file_size_gb'),
+                "transferred_gb": event.get('transferred_gb'),
+                "error_message": event.get('error_message'),
+            }))
+
     # Отправляем обновление статуса для подсветки кнопки
     async def file_manager_status_update(self, event):
         """Отдельный метод для обновления статуса кнопки в хедере"""
-        await self.send(text_data=json.dumps({
-            "type": "file_manager_status_update",
-            "active_count": event.get('active_count', 0),
-            "error_count": event.get('error_count', 0),
-        }))
+        # Получаем ID пользователя из события
+        user_id = event.get('user_id')
+
+        # Отправляем только если это событие для текущего пользователя
+        if user_id and self.user and user_id == self.user.id:
+            await self.send(text_data=json.dumps({
+                "type": "file_manager_status_update",
+                "active_count": event.get('active_count', 0),
+                "error_count": event.get('error_count', 0),
+            }))
+        elif not user_id and self.user and (self.user.is_staff or self.user.groups.filter(name='admin').exists()):
+            # Для админов показываем все задачи
+            await self.send(text_data=json.dumps({
+                "type": "file_manager_status_update",
+                "active_count": event.get('active_count', 0),
+                "error_count": event.get('error_count', 0),
+            }))
 
     async def new_task_created(self, event):
-        """Отправка события о новой задаче всем подключенным клиентам"""
-        await self.send(text_data=json.dumps({
-            "type": "new_task",
-            "task_id": event.get('task_id'),
-            "celery_task_id": event.get('celery_task_id'),
-            "file_name": event.get('file_name'),
-            "status": event.get('status'),
-            "progress": event.get('progress', 0),
-            "speed_mbps": event.get('speed_mbps', 0),
-            "transferred_gb": event.get('transferred_gb', 0),
-            "file_size_gb": event.get('file_size_gb', 0),
-        }))
+        """Отправка события о новой задаче клиенту с учётом прав доступа"""
+        user_id = event.get('user_id')
+
+        # Отправляем только владельцу задачи
+        if user_id and self.user and user_id == self.user.id:
+            await self.send(text_data=json.dumps({
+                "type": "new_task",
+                "task_id": event.get('task_id'),
+                "celery_task_id": event.get('celery_task_id'),
+                "file_name": event.get('file_name'),
+                "status": event.get('status'),
+                "progress": event.get('progress', 0),
+                "speed_mbps": event.get('speed_mbps', 0),
+                "transferred_gb": event.get('transferred_gb', 0),
+                "file_size_gb": event.get('file_size_gb', 0),
+            }))
+        # Если owner не указан — показываем админам
+        elif not user_id and self.user and (self.user.is_staff or self.user.groups.filter(name='admin').exists()):
+            await self.send(text_data=json.dumps({
+                "type": "new_task",
+                "task_id": event.get('task_id'),
+                "celery_task_id": event.get('celery_task_id'),
+                "file_name": event.get('file_name'),
+                "status": event.get('status'),
+                "progress": event.get('progress', 0),
+                "speed_mbps": event.get('speed_mbps', 0),
+                "transferred_gb": event.get('transferred_gb', 0),
+                "file_size_gb": event.get('file_size_gb', 0),
+            }))
 
     @database_sync_to_async
     def get_active_count(self):
