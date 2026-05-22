@@ -1,5 +1,6 @@
 from django.db import connections
-from planner.settings import PLANNER_DB
+from planner.settings import PLANNER_DB, SERVICE_TYPE
+
 
 def ask_db_permissions(worker_id) -> dict:
     with connections[PLANNER_DB].cursor() as cursor:
@@ -19,7 +20,9 @@ def ask_db_permissions(worker_id) -> dict:
         perm_val = cursor.fetchone()
         if perm_val:
             perm_list.append('auth_group')
-            return dict(zip(perm_list, perm_val))
+            permissions_dict = dict(zip(perm_list, perm_val))
+            permissions_dict['service_type'] = SERVICE_TYPE
+            return permissions_dict
         return {}
 
 

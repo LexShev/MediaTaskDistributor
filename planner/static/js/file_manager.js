@@ -64,6 +64,11 @@ class FileManager {
 
                     if (data.type === 'progress_update') {
                         this.updateTaskProgress(data);
+                    } else if (data.type === 'new_task') {
+                    // Новая задача — перезагружаем таблицу
+                    console.log('New task detected:', data?.file_name);
+                    this.loadFileManager();  // сохраняет текущую страницу
+
                     } else if (data.type === 'connection_established') {
                         console.log('FileManager WebSocket:', data.message);
                     }
@@ -330,6 +335,19 @@ function retryCopyTask(taskId) {
         console.error('Error retrying task:', error);
     });
 }
+
+// function updateFileManagerButtonFromWS(activeCount, errorCount) {
+//     const btn = document.getElementById('file_manager_btn');
+//     if (!btn) return;
+//
+//     btn.classList.remove('active-tasks', 'error-tasks');
+//
+//     if (errorCount > 0) {
+//         btn.classList.add('error-tasks');
+//     } else if (activeCount > 0) {
+//         btn.classList.add('active-tasks');
+//     }
+// }
 
 function switchPageNumber(element) {
     const pageNumber = element.dataset?.pageNumber || 1;

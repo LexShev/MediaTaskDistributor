@@ -9,9 +9,9 @@
 <script type="text/javascript" src="{% static 'HLS/hls.min.js' %}"></script>
 
 <div class="container-xxl pt-4 px-2">
-  <div id="message_container">
-    {% include  'main/messages.html' %}
-  </div>
+    <div id="message_container">
+      {% include  'main/messages.html' %}
+    </div>
 
 
     <div class="modal fade" id="VideoPlayerModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="VideoPlayerTitle" aria-hidden="true">
@@ -39,362 +39,362 @@
       </div>
     </div>
 
-  {% if full_info.Progs_program_kind != 1 and full_info.Progs_program_kind != 4 %}
-    <div class="accordion shadow mx-0 mb-2 mt-0 p-0" id="accordion_sum_info">
-      <div class="accordion-item">
-        <div class="accordion-header">
-          <button class="accordion-button" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;"
-                  data-bs-toggle="collapse" data-bs-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">
-            Описание
-          </button></div>
-        <div id="collapseDescription" class="accordion-collapse collapse show">
-            <div class="accordion-body p-2">
+    {% if full_info.Progs_program_kind != 1 and full_info.Progs_program_kind != 4 %}
+        <div class="accordion shadow mx-0 mb-2 mt-0 p-0" id="accordion_sum_info">
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <button class="accordion-button" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;"
+                      data-bs-toggle="collapse" data-bs-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">
+                Описание
+              </button></div>
+            <div id="collapseDescription" class="accordion-collapse collapse show">
+                <div class="accordion-body p-2">
 
-              <div class="row m-0 mb-2 gx-1 gy-2 align-items-stretch">
-                <div class="col px-1 d-flex align-items-center" style="flex: 0 0 16%; max-width: 16%; height: 95%;">
-                  <div class="position-relative w-100 h-100 poster-container"
-                       {% if full_info.material_status != 'no_material' %}onclick="startVideoPlayer()" style="cursor: pointer;"{% endif %}>
-                    <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
-                         class="img-fluid rounded m-0 w-100 h-100 object-fit-cover"
-                         data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
-                         data-program-id="{{ full_info.Progs_program_id }}" data-parent-id="{{ full_info.Progs_parent_id }}"
-                         data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
-                         data-country="{{ full_info.Progs_production_country }}">
+                  <div class="row m-0 mb-2 gx-1 gy-2 align-items-stretch">
+                    <div class="col px-1 d-flex align-items-center" style="flex: 0 0 16%; max-width: 16%; height: 95%;">
+                      <div class="position-relative w-100 h-100 poster-container"
+                           {% if full_info.material_status != 'no_material' %}onclick="startVideoPlayer()" style="cursor: pointer;"{% endif %}>
+                        <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
+                             class="img-fluid rounded m-0 w-100 h-100 object-fit-cover"
+                             data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
+                             data-program-id="{{ full_info.Progs_program_id }}" data-parent-id="{{ full_info.Progs_parent_id }}"
+                             data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
+                             data-country="{{ full_info.Progs_production_country }}">
 
-                    <!-- Кнопка Play -->
-                    {% if full_info.material_status != 'no_material' %}
-                        <div class="position-absolute top-50 start-50 translate-middle">
-                          <button class="btn p-0 border-0 play-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
-                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
-                            </svg>
-                          </button>
-                        </div>
-                    {% endif %}
-                  </div>
-                </div>
-
-                <div class="cold-flex flex-column mt-auto px-1" style="flex: 0 0 84%; max-width: 84%;">
-                  <div class="row mb-2 mx-1 align-items-center">
-                    <div class="col text-end px-0">
-                      {% if full_info.Task_worker_id %}
-                        <small class="text-secondary text-start">Закреплён за: {{ full_info.Task_worker_id|planner_worker_name }}
-                        {% if full_info.Task_work_date %} на: {{ full_info.Task_work_date|date:'d.m.Y' }}{% endif %}</small>
-                      {% endif %}
-                      <h6 class="text-{{ full_info.material_status|status_color }} text-end">
-                        {{ full_info.material_status|status_name }}
-                        {% if full_info.Task_ready_date and full_info.material_status != 'Не готов' %}
-                          {{ full_info.Task_ready_date|date:'d.m.Y' }}
-                        {% elif not full_info.Task_ready_date and full_info.material_status != 'Не готов' and full_info.oplan3_work_date %}
-                          {{ full_info.oplan3_work_date|date:'d.m.Y' }}
-                        {% endif %}
-                      </h6>
-                    </div>
-                  </div>
-                  <div class="row mb-2 mx-0 align-items-center">
-                    <div class="col-md-6 d-flex mt-auto">
-                      {% if full_info.material_type == 'season' %}
-                        <a class="link-body-emphasis link-offset-3-hover link-underline-opacity-0" href="{% url 'home' %}{{ full_info.Progs_parent_id }}">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
-                          </svg>
-                        </a>
-                      {% endif %}
-                      <h5 class="p-1 m-0" title="{{ full_info.Progs_orig_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
-                        {{ full_info.Progs_name }}
-                      </h5>
-                    </div>
-                    <div class="col p-0">
-                      {% if service_type == 'internal' %}
-                          <div class="row align-items-center justify-content-end m-1 p-0 ps-1">
-                            <div class="input-group p-0">
-                              <span class="input-group-text">Oplan</span>
-                              <input id="file_path" type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle"
-                                     value="{{ full_info.Files_Name }}" readonly>
-
-                              <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText('file_path')">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
-                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
-                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
-                                  </svg>
-                              </button>
-                            </div>
-                          </div>
-
-                          {% if full_info.Task_file_path and full_info.Files_Name != full_info.Task_file_path %}
-                            <div class="row align-items-center justify-content-end m-1 p-0 ps-1">
-                              <div class="input-group p-0">
-                              <span class="input-group-text">Актуальный</span>
-                                <input id="actual_file_path" type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle"
-                                     value="{{ full_info.Task_file_path }}" readonly>
-                                <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText('actual_file_path')">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
-                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
-                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                          {% endif %}
-
-                      {% else %}
-                          <div class="row align-items-center justify-content-end m-1 p-0 ps-1">
-                            <div class="input-group p-0">
-                              <span class="input-group-text" title="Загрузить на SFTP">SFTP</span>
-                              <input id="file_path" type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle"
-                                     value="{{ full_info.Files_Name|file_name }}" title="Загрузить на SFTP" readonly>
-
-                                <button type="button" class="btn btn-outline-secondary text-body-secondary"
-                                        {% if full_info.material_status != 'no_material' %} title="Загрузить на SFTP"
-                                        data-file-id="{{ full_info.Files_FileID }}"
-                                        data-file-path="{{ full_info.Files_Name }}" onclick="copyToSFTP(this)"
-                                        {% else %}disabled{% endif %}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-download" viewBox="0 0 16 16">
-                                  <path d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758 4.804 16 6.137 16 7.773 16 9.569 14.502 11 12.687 11H10a.5.5 0 0 1 0-1h2.688C13.979 10 15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8 1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064 4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366 0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383"/>
-                                  <path d="M7.646 15.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 14.293V5.5a.5.5 0 0 0-1 0v8.793l-2.146-2.147a.5.5 0 0 0-.708.708z"/>
+                        <!-- Кнопка Play -->
+                        {% if full_info.material_status != 'no_material' %}
+                            <div class="position-absolute top-50 start-50 translate-middle">
+                              <button class="btn p-0 border-0 play-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
+                                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
                                 </svg>
                               </button>
                             </div>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="cold-flex flex-column mt-auto px-1" style="flex: 0 0 84%; max-width: 84%;">
+                      <div class="row mb-2 mx-1 align-items-center">
+                        <div class="col text-end px-0">
+                          {% if full_info.Task_worker_id %}
+                            <small class="text-secondary text-start">Закреплён за: {{ full_info.Task_worker_id|planner_worker_name }}
+                            {% if full_info.Task_work_date %} на: {{ full_info.Task_work_date|date:'d.m.Y' }}{% endif %}</small>
+                          {% endif %}
+                          <h6 class="text-{{ full_info.material_status|status_color }} text-end">
+                            {{ full_info.material_status|status_name }}
+                            {% if full_info.Task_ready_date and full_info.material_status != 'Не готов' %}
+                              {{ full_info.Task_ready_date|date:'d.m.Y' }}
+                            {% elif not full_info.Task_ready_date and full_info.material_status != 'Не готов' and full_info.oplan3_work_date %}
+                              {{ full_info.oplan3_work_date|date:'d.m.Y' }}
+                            {% endif %}
+                          </h6>
+                        </div>
+                      </div>
+                      <div class="row mb-2 mx-0 align-items-center">
+                        <div class="col-md-6 d-flex mt-auto">
+                          {% if full_info.material_type == 'season' %}
+                            <a class="link-body-emphasis link-offset-3-hover link-underline-opacity-0" href="{% url 'home' %}{{ full_info.Progs_parent_id }}">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
+                              </svg>
+                            </a>
+                          {% endif %}
+                          <h5 class="p-1 m-0" title="{{ full_info.Progs_orig_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
+                            {{ full_info.Progs_name }}
+                          </h5>
+                        </div>
+                        <div class="col p-0">
+                          {% if service_type == 'internal' %}
+                              <div class="row align-items-center justify-content-end m-1 p-0 ps-1">
+                                <div class="input-group p-0">
+                                  <span class="input-group-text">Oplan</span>
+                                  <input id="file_path" type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle"
+                                         value="{{ full_info.Files_Name }}" readonly>
+
+                                  <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText('file_path')">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                                        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                                      </svg>
+                                  </button>
+                                </div>
+                              </div>
+
+                              {% if full_info.Task_file_path and full_info.Files_Name != full_info.Task_file_path %}
+                                <div class="row align-items-center justify-content-end m-1 p-0 ps-1">
+                                  <div class="input-group p-0">
+                                  <span class="input-group-text">Актуальный</span>
+                                    <input id="actual_file_path" type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle"
+                                         value="{{ full_info.Task_file_path }}" readonly>
+                                    <button type="button" class="btn btn-outline-secondary text-body-secondary" onclick="CopyText('actual_file_path')">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                        <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+                                        <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                              {% endif %}
+
+                          {% else %}
+                              <div class="row align-items-center justify-content-end m-1 p-0 ps-1">
+                                <div class="input-group p-0">
+                                  <span class="input-group-text" title="Загрузить на SFTP">SFTP</span>
+                                  <input id="file_path" type="text" class="form-control text-body-secondary bg-secondary-subtle border border-secondary-subtle"
+                                         value="{{ full_info.Files_Name|file_name }}" title="Загрузить на SFTP" readonly>
+
+                                    <button type="button" class="btn btn-outline-secondary text-body-secondary"
+                                            {% if full_info.material_status != 'no_material' %} title="Загрузить на SFTP"
+                                            data-file-id="{{ full_info.Files_FileID }}"
+                                            data-file-path="{{ full_info.Files_Name }}" onclick="copyToSFTP(this)"
+                                            {% else %}disabled{% endif %}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-download" viewBox="0 0 16 16">
+                                      <path d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758 4.804 16 6.137 16 7.773 16 9.569 14.502 11 12.687 11H10a.5.5 0 0 1 0-1h2.688C13.979 10 15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8 1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064 4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366 0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383"/>
+                                      <path d="M7.646 15.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 14.293V5.5a.5.5 0 0 0-1 0v8.793l-2.146-2.147a.5.5 0 0 0-.708.708z"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                          {% endif %}
+
+                        </div>
+                      </div>
+                      <div class="row g-2 ms-2 mx-0">
+                        <div class="col-md-6">
+                          <div class="form-floating">
+                            <textarea class="form-control" id="year_form" style="height: 50px" disabled>{% if full_info.Progs_production_year %}{{ full_info.Progs_production_year }}{% endif %}</textarea>
+                            <label for="year_form">Год</label>
                           </div>
-                      {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating">
+                            <textarea class="form-control" id="country_form" style="height: 50px" disabled>{% if full_info.Progs_production_country %}{{ full_info.Progs_production_country }}{% endif %}</textarea>
+                            <label for="country_form">Страна</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating">
+                            <textarea class="form-control" id="director_form" style="height: 50px;" disabled>{% if full_info.Progs_Director %}{{ full_info.Progs_Director }}{% endif %}</textarea>
+                            <label for="director_form">Режиссёр</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating">
+                            <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{% if full_info.Progs_Cast %}{{ full_info.Progs_Cast }}{% endif %}</textarea>
+                            <label for="roles_form">В ролях</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating">
+                            <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{% if full_info.Progs_duration %}{{ full_info.Progs_duration|convert_frames_to_time }}{% endif %}</textarea>
+                            <label for="theme_form">Хронометраж</label>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-floating">
+                            <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{% if full_info.Progs_keywords %}{{ full_info.Progs_keywords }}{% endif %}</textarea>
+                            <label for="keywords_form">Ключевые слова</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
+                  </div>
+
+        {#              <div class="form-floating mx-1 my-2">#}
+        {#                <textarea class="form-control" id="short_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>#}
+        {#                <label for="short_descript_form">Краткое описание</label>#}
+        {#              </div>#}
+                  <div class="form-floating mx-1 my-2">
+                    <textarea class="form-control" id="full_descript_form" style="height: 120px">{{ full_info.Progs_annotation }}</textarea>
+                    <label for="full_descript_form">Описание</label>
+                  </div>
+                </div>
+            </div>
+          </div>
+          <!--  </div>-->
+
+          <!--  <div class="accordion shadow-lg ms-2 mb-2 mt-0 p-0" id="accordion_cenz">-->
+          <div class="accordion-item">
+              <div class="accordion-header" id="cenzRate" data-cenz-rate="{{ full_info.Adult_Name }}">
+                <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseCenz" aria-expanded="false" aria-controls="collapseCenz">
+                  Цензура {% if full_info.Adult_Name %}({{ full_info.Adult_Name }}){% endif %}
+                </button></div>
+              <div id="collapseCenz" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  {% include 'main/block_cenz_buttons.html' %}
+                </div>
+              </div>
+          </div>
+
+          <div class="accordion-item">
+              <div class="accordion-header">
+                <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseComments" aria-expanded="false" aria-controls="collapseComments">
+                  Комментарии
+                </button></div>
+              <div id="collapseComments" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  {% include 'main/block_comments.html' %}
+                </div>
+              </div>
+          </div>
+
+          <div class="accordion-item">
+              <div class="accordion-header">
+                <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseAirInfo" aria-expanded="false" aria-controls="collapseCenz">
+                  История эфиров
+                </button></div>
+              <div id="collapseAirInfo" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  {% include 'main/block_airinfo_table.html' %}
+                </div>
+              </div>
+          </div>
+
+          <div class="accordion-item">
+              <div class="accordion-header">
+                <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseHistory" aria-expanded="false" aria-controls="collapseCenz">
+                  История изменений
+                </button></div>
+              <div id="collapseHistory" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  {% include 'main/block_history.html' %}
+                </div>
+              </div>
+          </div>
+
+          <div class="accordion-item">
+              <div class="accordion-header">
+                <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseFiles" aria-expanded="false" aria-controls="collapseCenz">
+                  История медиафайлов
+                </button></div>
+              <div id="collapseFiles" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  {% include 'main/block_filepath_history.html' %}
+                </div>
+              </div>
+          </div>
+
+          <div class="accordion-item">
+              <div class="accordion-header">
+                <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseMediaInfo" aria-expanded="false" aria-controls="collapseCenz">
+                  MediaInfo
+                </button></div>
+              <div id="collapseMediaInfo" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  {% include 'main/block_mediainfo_table.html' %}
+                </div>
+              </div>
+          </div>
+
+            <div class="accordion-item">
+              <h6 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseScans" aria-expanded="false" aria-controls="collapseCenz">
+                  Авто сканеры
+                </button></h6>
+              <div id="collapseScans" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  {% include 'main/block_scanners.html' %}
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <div class="accordion-header">
+                <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseAttachedFiles" aria-expanded="false" aria-controls="collapseCenz">
+                  Прикреплённые файлы
+                </button></div>
+              <div id="collapseAttachedFiles" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  {% include 'main/block_attached_files.html' %}
+                </div>
+              </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="{% static 'js/detail_view.js' %}"></script>
+        <script src="{% static 'video-js/video.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/card_video_player.js' %}"></script>
+
+    {% else %}
+        <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_folder_info">
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <button class="accordion-button" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseFolder" aria-expanded="true" aria-controls="collapseFolder">
+                Описание сезона
+              </button></div>
+          <div id="collapseFolder" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+
+              <div class="row m-0">
+                <div class="col col-2 p-0">
+                  <img src="/static/img/empty_poster.png" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
+                </div>
+                <div class="col p-0">
+                  <div class="row m-0">
+                    <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">
+                      {{ full_info.Progs_name }}{% if full_info.Adult_Name %}. {{ full_info.Adult_Name }}{% endif %}
+                    </h5>
+                  </div>
+
+                  <div class="row m-0">
+                    <div class="col col-5 p-0">
+                    <div class="form-floating mx-1 my-2">
+                      <textarea class="form-control" id="year_folder" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
+                      <label for="year_folder">Год</label>
+                    </div>
+                    <div class="form-floating mx-1 my-2">
+                      <textarea class="form-control" id="country_folder" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
+                      <label for="country_folder">Страна</label>
+                    </div>
+                    <div class="form-floating mx-1 my-2">
+                      <textarea class="form-control" id="director_folder" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
+                      <label for="director_folder">Режиссёр</label>
                     </div>
                   </div>
-                  <div class="row g-2 ms-2 mx-0">
-                    <div class="col-md-6">
-                      <div class="form-floating">
-                        <textarea class="form-control" id="year_form" style="height: 50px" disabled>{% if full_info.Progs_production_year %}{{ full_info.Progs_production_year }}{% endif %}</textarea>
-                        <label for="year_form">Год</label>
-                      </div>
+                  <div class="col col-7 p-0">
+                    <div class="form-floating mx-1 my-2">
+                      <textarea class="form-control" id="roles_folder" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
+                      <label for="roles_folder">В ролях</label>
                     </div>
-                    <div class="col-md-6">
-                      <div class="form-floating">
-                        <textarea class="form-control" id="country_form" style="height: 50px" disabled>{% if full_info.Progs_production_country %}{{ full_info.Progs_production_country }}{% endif %}</textarea>
-                        <label for="country_form">Страна</label>
-                      </div>
+                    <div class="form-floating mx-1 my-2">
+                      <textarea class="form-control" id="theme_folder" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
+                      <label for="theme_folder">Тематика</label>
                     </div>
-                    <div class="col-md-6">
-                      <div class="form-floating">
-                        <textarea class="form-control" id="director_form" style="height: 50px;" disabled>{% if full_info.Progs_Director %}{{ full_info.Progs_Director }}{% endif %}</textarea>
-                        <label for="director_form">Режиссёр</label>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-floating">
-                        <textarea class="form-control" id="roles_form" style="height: 50px" disabled>{% if full_info.Progs_Cast %}{{ full_info.Progs_Cast }}{% endif %}</textarea>
-                        <label for="roles_form">В ролях</label>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-floating">
-                        <textarea class="form-control" id="theme_form" style="height: 50px" disabled>{% if full_info.Progs_duration %}{{ full_info.Progs_duration|convert_frames_to_time }}{% endif %}</textarea>
-                        <label for="theme_form">Хронометраж</label>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-floating">
-                        <textarea class="form-control" id="keywords_form" style="height: 50px" disabled>{% if full_info.Progs_keywords %}{{ full_info.Progs_keywords }}{% endif %}</textarea>
-                        <label for="keywords_form">Ключевые слова</label>
-                      </div>
+                    <div class="form-floating mx-1 my-2">
+                      <textarea class="form-control" id="keywords_folder" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
+                      <label for="keywords_folder">Ключевые слова</label>
                     </div>
                   </div>
                 </div>
-
+                </div>
               </div>
 
-{#              <div class="form-floating mx-1 my-2">#}
-{#                <textarea class="form-control" id="short_descript_form" style="height: 100px">{{ custom_fields.5 }}</textarea>#}
-{#                <label for="short_descript_form">Краткое описание</label>#}
-{#              </div>#}
               <div class="form-floating mx-1 my-2">
-                <textarea class="form-control" id="full_descript_form" style="height: 120px">{{ full_info.Progs_annotation }}</textarea>
-                <label for="full_descript_form">Описание</label>
+                <textarea class="form-control" id="short_descript_folder" style="height: 100px">{{ custom_fields.5 }}</textarea>
+                <label for="short_descript_folder">Краткое описание</label>
+              </div>
+              <div class="form-floating mx-1 my-2">
+                <textarea class="form-control" id="full_descript_folder" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
+                <label for="full_descript_folder">Полное описание</label>
               </div>
             </div>
-        </div>
-      </div>
-      <!--  </div>-->
-
-      <!--  <div class="accordion shadow-lg ms-2 mb-2 mt-0 p-0" id="accordion_cenz">-->
-      <div class="accordion-item">
-      <div class="accordion-header">
-        <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseCenz" aria-expanded="false" aria-controls="collapseCenz">
-          Цензура {% if full_info.Adult_Name %}({{ full_info.Adult_Name }}){% endif %}
-        </button></div>
-      <div id="collapseCenz" class="accordion-collapse collapse">
-        <div class="accordion-body">
-          {% include 'main/block_cenz_buttons.html' %}
-        </div>
-      </div>
-      </div>
-
-      <div class="accordion-item">
-      <div class="accordion-header">
-        <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseComments" aria-expanded="false" aria-controls="collapseComments">
-          Комментарии
-        </button></div>
-      <div id="collapseComments" class="accordion-collapse collapse">
-        <div class="accordion-body">
-          {% include 'main/block_comments.html' %}
-        </div>
-      </div>
-      </div>
-
-      <div class="accordion-item">
-      <div class="accordion-header">
-        <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseAirInfo" aria-expanded="false" aria-controls="collapseCenz">
-          История эфиров
-        </button></div>
-      <div id="collapseAirInfo" class="accordion-collapse collapse">
-        <div class="accordion-body">
-          {% include 'main/block_airinfo_table.html' %}
-        </div>
-      </div>
-      </div>
-
-      <div class="accordion-item">
-      <div class="accordion-header">
-        <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseHistory" aria-expanded="false" aria-controls="collapseCenz">
-          История изменений
-        </button></div>
-      <div id="collapseHistory" class="accordion-collapse collapse">
-        <div class="accordion-body">
-          {% include 'main/block_history.html' %}
-        </div>
-      </div>
-      </div>
-
-      <div class="accordion-item">
-      <div class="accordion-header">
-        <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseFiles" aria-expanded="false" aria-controls="collapseCenz">
-          История медиафайлов
-        </button></div>
-      <div id="collapseFiles" class="accordion-collapse collapse">
-        <div class="accordion-body">
-          {% include 'main/block_filepath_history.html' %}
-        </div>
-      </div>
-      </div>
-
-      <div class="accordion-item">
-      <div class="accordion-header">
-        <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseMediaInfo" aria-expanded="false" aria-controls="collapseCenz">
-          MediaInfo
-        </button></div>
-      <div id="collapseMediaInfo" class="accordion-collapse collapse">
-        <div class="accordion-body">
-          {% include 'main/block_mediainfo_table.html' %}
-        </div>
-      </div>
-      </div>
-
-        <div class="accordion-item">
-          <h6 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseScans" aria-expanded="false" aria-controls="collapseCenz">
-              Авто сканеры
-            </button></h6>
-          <div id="collapseScans" class="accordion-collapse collapse">
-            <div class="accordion-body">
-              {% include 'main/block_scanners.html' %}
-            </div>
           </div>
-        </div>
-
-        <div class="accordion-item">
-          <div class="accordion-header">
-            <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseAttachedFiles" aria-expanded="false" aria-controls="collapseCenz">
-              Прикреплённые файлы
-            </button></div>
-          <div id="collapseAttachedFiles" class="accordion-collapse collapse">
-            <div class="accordion-body">
-              {% include 'main/block_attached_files.html' %}
-            </div>
           </div>
-        </div>
-    </div>
-  <script type="text/javascript" src="{% static 'js/detail_view.js' %}"></script>
-  <script src="{% static 'video-js/video.min.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/card_video_player.js' %}"></script>
-  {% else %}
 
-    <div class="accordion shadow ms-2 mb-2 mt-0 p-0" id="accordion_folder_info">
-      <div class="accordion-item">
-        <div class="accordion-header">
-          <button class="accordion-button" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseFolder" aria-expanded="true" aria-controls="collapseFolder">
-            Описание сезона
-          </button></div>
-      <div id="collapseFolder" class="accordion-collapse collapse show">
-        <div class="accordion-body">
 
-          <div class="row m-0">
-            <div class="col col-2 p-0">
-              <img src="/static/img/empty_poster.png" class="img-fluid rounded mx-1 my-2" style="height: 230px;">
-            </div>
-            <div class="col p-0">
-              <div class="row m-0">
-                <h5 class="p-1 m-0" title="{{ full_info.Progs_name }}">
-                  {{ full_info.Progs_name }}{% if full_info.Adult_Name %}. {{ full_info.Adult_Name }}{% endif %}
-                </h5>
-              </div>
-
-              <div class="row m-0">
-                <div class="col col-5 p-0">
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="year_folder" style="height: 50px" disabled>{{ full_info.Progs_production_year }}</textarea>
-                  <label for="year_folder">Год</label>
-                </div>
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="country_folder" style="height: 50px" disabled>{{ full_info.Progs_production_country }}</textarea>
-                  <label for="country_folder">Страна</label>
-                </div>
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="director_folder" style="height: 50px" disabled>{{ full_info.Progs_Director }}</textarea>
-                  <label for="director_folder">Режиссёр</label>
-                </div>
-              </div>
-              <div class="col col-7 p-0">
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="roles_folder" style="height: 50px" disabled>{{ full_info.Progs_Cast }}</textarea>
-                  <label for="roles_folder">В ролях</label>
-                </div>
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="theme_folder" style="height: 50px" disabled>{{ full_info.Progs_comment }}</textarea>
-                  <label for="theme_folder">Тематика</label>
-                </div>
-                <div class="form-floating mx-1 my-2">
-                  <textarea class="form-control" id="keywords_folder" style="height: 50px" disabled>{{ full_info.Progs_keywords }}</textarea>
-                  <label for="keywords_folder">Ключевые слова</label>
-                </div>
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseEpisodes" aria-expanded="false" aria-controls="collapseEpisodes">
+                Список всех серий
+              </button></div>
+            <div id="collapseEpisodes" class="accordion-collapse collapse">
+              <div class="accordion-body">
+                {% include 'main/episodes_table.html' %}
               </div>
             </div>
-            </div>
-          </div>
-
-          <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="short_descript_folder" style="height: 100px">{{ custom_fields.5 }}</textarea>
-            <label for="short_descript_folder">Краткое описание</label>
-          </div>
-          <div class="form-floating mx-1 my-2">
-            <textarea class="form-control" id="full_descript_folder" style="height: 150px">{{ full_info.Progs_annotation }}</textarea>
-            <label for="full_descript_folder">Полное описание</label>
           </div>
         </div>
-      </div>
-      </div>
-
-
-      <div class="accordion-item">
-        <div class="accordion-header">
-          <button class="accordion-button collapsed" type="button" style="padding: 0.75rem 1rem 0.75rem 1rem;" data-bs-toggle="collapse" data-bs-target="#collapseEpisodes" aria-expanded="false" aria-controls="collapseEpisodes">
-            Список всех серий
-          </button></div>
-        <div id="collapseEpisodes" class="accordion-collapse collapse">
-          <div class="accordion-body">
-            {% include 'main/episodes_table.html' %}
-          </div>
-        </div>
-      </div>
-    </div>
   {% endif %}
 </div>
 <br>

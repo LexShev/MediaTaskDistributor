@@ -9,6 +9,10 @@ from main.settings.main_settings import get_main_settings
 from planner.settings import OPLAN_DB, PLANNER_DB, MEDIA_WAVEFORMS
 
 
+@register.filter
+def subtract(value, arg):
+    return value - arg
+
 @register.simple_tag
 def is_active(request, url):
     if request.path.startswith(url):

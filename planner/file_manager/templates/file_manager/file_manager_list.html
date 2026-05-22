@@ -6,10 +6,15 @@
         <thead>
             <tr>
                 <th style="width: 1%;">#</th>
-                <th style="width: 50%;">Файл</th>
+                {% if is_admin %}
+                    <th style="width: 43%;">Файл</th>
+                    <th style="width: 9%;">Запросил</th>
+                {% else %}
+                    <th style="width: 52%;">Файл</th>
+                {% endif %}
                 <th style="width: 5%;">Статус</th>
                 <th style="width: 12%;">Прогресс</th>
-                <th style="width: 7%;">Скорость</th>
+                <th style="width: 5%;">Скорость</th>
                 <th style="width: 7%;">Размер</th>
                 <th style="width: 7%;">Время старта</th>
                 <th style="width: 7%;">Время завершения</th>
@@ -20,11 +25,11 @@
             {% for task in tasks %}
                 <tr data-task-id="{{ task.id }}" class="{% if task.status == 'copying' or task.status == 'verifying' %}table-active{% endif %}">
                     <!-- Нумерация от последней задачи к первой -->
-                    <td>{{ paginator.count|add:1|add:forloop.counter0|add:page_obj.start_index|add:-1 }}</td>
-                    <!-- ... остальные колонки без изменений ... -->
+                    <td>{{ start_number|subtract:forloop.counter0 }}</td>
                     <td>
                         <span title="{{ task.file_path }}">{{ task.file_name }}</span>
                     </td>
+                    {% if is_admin %}<td>{{ task.owner.first_name }} {{ task.owner.last_name }}</td>{% endif %}
                     <td>
                         <span class="badge status-badge {% if task.status == 'pending' %}text-secondary-emphasis bg-secondary-subtle
                                                 {% elif task.status == 'copying' %}text-primary-emphasis bg-primary-subtle
@@ -131,9 +136,6 @@
                 </li>
                 {% endif %}
             </ul>
-            <div class="text-muted text-end small">
-                Всего задач: {{ paginator.count }}
-            </div>
         </nav>
     {% endif %}
 </div>

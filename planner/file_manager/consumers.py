@@ -65,6 +65,42 @@ class FileManagerConsumer(AsyncWebsocketConsumer):
             "transferred_gb": event.get('transferred_gb'),
             "error_message": event.get('error_message'),
         }))
+    # Отправляем обновление статуса для подсветки кнопки
+    async def file_manager_status_update(self, event):
+        """Отдельный метод для обновления статуса кнопки в хедере"""
+        await self.send(text_data=json.dumps({
+            "type": "file_manager_status_update",
+            "active_count": event.get('active_count', 0),
+            "error_count": event.get('error_count', 0),
+        }))
+
+    async def new_task_created(self, event):
+        """Отправка события о новой задаче всем подключенным клиентам"""
+        await self.send(text_data=json.dumps({
+            "type": "new_task",
+            "task_id": event.get('task_id'),
+            "celery_task_id": event.get('celery_task_id'),
+            "file_name": event.get('file_name'),
+            "status": event.get('status'),
+            "progress": event.get('progress', 0),
+            "speed_mbps": event.get('speed_mbps', 0),
+            "transferred_gb": event.get('transferred_gb', 0),
+            "file_size_gb": event.get('file_size_gb', 0),
+        }))
+
+    @database_sync_to_async
+    def get_active_count(self):
+        """Возвращает количество активных задач"""
+        if self.user.is_staff or self.user.groups.filter(name='admin').exists():
+            return FileCopyTask.objects.filter(status__in=['pending', 'copying', 'verifying']).count()
+        return FileCopyTask.objects.filter(owner=self.user, status__in=['pending', 'copying', 'verifying']).count()
+
+    @database_sync_to_async
+    def get_error_count(self):
+        """Возвращает количество задач с ошибками"""
+        if self.user.is_staff or self.user.groups.filter(name='admin').exists():
+            return FileCopyTask.objects.filter(status='error').count()
+        return FileCopyTask.objects.filter(owner=self.user, status='error').count()
 
     @database_sync_to_async
     def get_active_tasks(self):

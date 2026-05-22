@@ -23,7 +23,8 @@ class RcloneCopier:
             source: str,
             destination: str,
             task_id: str,
-            progress_callback: Optional[Callable] = None
+            progress_callback: Optional[Callable] = None,
+            known_file_size_gb: Optional[float] = None
     ) -> tuple:
         """
         Копирование с мониторингом прогресса и callback.
@@ -34,7 +35,8 @@ class RcloneCopier:
             'copyto',
             source,
             destination,
-            '--checksum',          # Rclone сам проверит хэши после копирования
+            '--checksum',  # Rclone сам проверит хэши после копирования
+            # '--size-only',  # <-- ВМЕСТО --checksum проверяет только размер файлов
             '--progress',
             '--stats', '3s',
             '--log-level', 'INFO',
@@ -46,6 +48,7 @@ class RcloneCopier:
             '--low-level-retries', '3',
             '--timeout', '30m',
             '--contimeout', '1m',
+            '--ignore-times',
         ]
 
         if not any(source.startswith(prefix) for prefix in ['s3:', 'gcs:', 'http']):
@@ -71,7 +74,7 @@ class RcloneCopier:
             'checks': 0,
             'transfers': 0,
             'already_exists': False,
-            'is_verifying': False,  # <-- НОВОЕ: флаг проверки хэшей
+            'is_verifying': False,
         }
 
         # Паттерн для парсинга строки прогресса rclone
@@ -87,15 +90,14 @@ class RcloneCopier:
                 re.IGNORECASE
             ),
         ]
+        # НОВЫЙ паттерн: строка "0 B / 0 B" без данных о скорости (файл уже существует)
+        zero_progress_pattern = re.compile(
+            r'Transferred:\s+0\s*B?\s*/\s*0\s*B?.*?ETA\s*-',
+            re.IGNORECASE
+        )
         checks_pattern = re.compile(r'Checks:\s+(\d+)\s*/\s*(\d+),\s*(\d+)%', re.IGNORECASE)
         transfers_pattern = re.compile(r'Transferred:\s+(\d+)\s*/\s*(\d+),\s*(\d+)%', re.IGNORECASE)
 
-        # НОВОЕ: паттерн для обнаружения перехода к проверке хэшей
-        # Когда копирование завершено (100%) и больше нет прогресса передачи,
-        # rclone выводит снова Checks. Мы также можем ловить строки с "Checks"
-        # после того, как файл достиг 100%.
-        verifying_check_pattern = re.compile(r'Checks:\s+(\d+)\s*/\s*(\d+),\s*(\d+)%', re.IGNORECASE)
-        # Обнаружение фразы "Checking" в выводе или завершающей строки
         checking_phrase = re.compile(r'Checking', re.IGNORECASE)
 
         def convert_to_gb(value, unit):
@@ -135,7 +137,8 @@ class RcloneCopier:
         def read_output():
             logger.info(f"[{task_id}] Started reading rclone output...")
             line_count = 0
-            reached_100_percent = False  # НОВОЕ: флаг достижения 100% копирования
+            reached_100_percent = False
+            zero_progress_reported = False
 
             for line in process.stdout:
                 line = line.strip()
@@ -148,22 +151,18 @@ class RcloneCopier:
                 if checks_match:
                     stats['checks'] = int(checks_match.group(1))
 
-                    # НОВОЕ: если уже достигли 100% копирования, значит началась проверка
                     if reached_100_percent and not stats['is_verifying']:
                         stats['is_verifying'] = True
-                        stats['progress_percent'] = 100  # Показываем 100% во время проверки
+                        stats['progress_percent'] = 100
                         logger.info(f"[{task_id}] Transitioned to verifying checksums...")
                         if progress_callback:
                             progress_callback(stats)
 
-                    # Если есть проверки и нет передач — файл уже существует
                     if stats['transfers'] == 0 and not stats['is_verifying']:
                         stats['already_exists'] = True
                         stats['progress_percent'] = 100
                         stats['is_verifying'] = True
-
                         logger.info(f"[{task_id}] File already exists, verifying checksum...")
-
                         if progress_callback:
                             progress_callback(stats)
 
@@ -171,6 +170,25 @@ class RcloneCopier:
                 transfers_match = transfers_pattern.search(line)
                 if transfers_match and 'MiB' not in line and 'GiB' not in line:
                     stats['transfers'] = int(transfers_match.group(1))
+
+                # проверяем, не является ли строка "0 B / 0 B"
+                if zero_progress_pattern.search(line):
+                    if not zero_progress_reported and not stats['already_exists']:
+                        stats['progress_percent'] = 0
+                        stats['transferred_gb'] = 0
+                        # Используем известный размер файла, если он передан
+                        if known_file_size_gb:
+                            stats['total_size_gb'] = known_file_size_gb
+                        stats['speed_mbps'] = 0
+                        zero_progress_reported = True
+                        logger.info(
+                            f"[{task_id}] File exists (0 B), waiting for checksum verification... "
+                            f"file_size={known_file_size_gb or 0:.2f} GB"
+                        )
+                        if progress_callback:
+                            progress_callback(stats)
+                    # Пропускаем, не пытаемся парсить как обычный прогресс
+                    continue
 
                 # Парсим прогресс (размер в MiB/GiB)
                 for pattern in progress_patterns:
@@ -190,7 +208,6 @@ class RcloneCopier:
                             stats['progress_percent'] = percent
                             stats['speed_mbps'] = convert_speed(speed_val, speed_unit)
 
-                            # НОВОЕ: отслеживаем достижение 100%
                             if percent >= 100:
                                 reached_100_percent = True
 
@@ -206,8 +223,7 @@ class RcloneCopier:
                         except Exception as e:
                             logger.error(f"[{task_id}] Parse error: {e}")
 
-                # НОВОЕ: дополнительное обнаружение проверки (Checking...)
-                if checking_phrase.search(line) and reached_100_percent:
+                if reached_100_percent:
                     if not stats['is_verifying']:
                         stats['is_verifying'] = True
                         logger.info(f"[{task_id}] Detected checksum verification phase")

@@ -67,7 +67,7 @@ services:
     command: >
       sh -c "
       cd /app/planner &&
-      celery -A planner worker --loglevel=info --concurrency=2 -Q file_copy -n file_copy_worker@%h
+      celery -A planner worker --loglevel=info --concurrency=4 -Q file_copy -n file_copy_worker@%h
       "
     volumes:
       - ../../planner/planner:/app/planner:ro

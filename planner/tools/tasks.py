@@ -16,6 +16,22 @@ logger = get_task_logger(__name__)
 
 # from tools.update_no_material import get_no_material_list
 
+def handle_copy_progress(task_id, stats_data: dict):
+    """
+    Обработчик прогресса копирования.
+    Вызывается из RcloneCopier для обновления БД и отправки WebSocket.
+    """
+    # Определяем статус: если проверка хэшей - 'verifying', иначе 'copying'
+    current_status = 'verifying' if stats_data.get('is_verifying') else 'copying'
+
+    update_task_progress(
+        task_id,
+        status=current_status,
+        progress=stats_data.get('progress_percent', 0),
+        speed_mbps=stats_data.get('speed_mbps', 0),
+        transferred_gb=stats_data.get('transferred_gb', 0),
+        file_size_gb=stats_data.get('total_size_gb', 0),
+    )
 
 def update_task_progress(task_id, **kwargs):
     """Обновляет прогресс задачи в БД. НИКОГДА не бросает исключений."""
@@ -54,6 +70,19 @@ def update_task_progress(task_id, **kwargs):
                         "error_message": task.error_message,
                     }
                 )
+                # # (считаем активные и ошибочные задачи)
+                # async_to_sync(channel_layer.group_send)(
+                #     "file_manager_updates",
+                #     {
+                #         "type": "file_manager_status_update",
+                #         "active_count": FileCopyTask.objects.filter(
+                #             status__in=['pending', 'copying', 'verifying']
+                #         ).count(),
+                #         "error_count": FileCopyTask.objects.filter(
+                #             status='error'
+                #         ).count(),
+                #     }
+                # )
             else:
                 logger.warning(f"[{task_id}] No channel layer!")
         except ImportError as e:
@@ -141,12 +170,39 @@ def copy_large_file(
                 'started_at': timezone.now(),
             }
         )
+        logger.warning(f"db_task: {db_task}, created: {created}")
         if user_id and created:
             try:
                 db_task.owner_id = user_id
                 db_task.save(update_fields=['owner'])
             except Exception:
                 pass
+
+        # отправляем WebSocket о новой задаче
+        # if created:
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                async_to_sync(channel_layer.group_send)(
+                    'file_manager_updates',
+                    {
+                        'type': 'new_task_created',
+                        'task_id': db_task.id,
+                        'celery_task_id': task_id,
+                        'file_name': file_name,
+                        'status': 'pending',
+                        'progress': 0,
+                        'speed_mbps': 0,
+                        'transferred_gb': 0,
+                        'file_size_gb': file_size_gb,
+                    }
+                )
+                logger.info(f"[{task_id}] WebSocket: new task notified")
+        except Exception as ws_err:
+            logger.warning(f"[{task_id}] WebSocket new_task error: {ws_err}")
+
     except Exception as e:
         logger.error(f"[{task_id}] Failed to create DB record: {e}")
 
@@ -172,7 +228,11 @@ def copy_large_file(
             )
 
         success, message, stats = rclone.copy_with_progress_monitoring(
-            source, destination, task_id, progress_callback
+            source,
+            destination,
+            task_id,
+            progress_callback,
+            known_file_size_gb=file_size_gb
         )
 
 
@@ -181,6 +241,10 @@ def copy_large_file(
                 comment = 'Файл уже существует (проверена контрольная сумма)'
             else:
                 comment = 'Копирование успешно завершено'
+
+            # Обновляем file_size_gb реальным значением, если rclone не вернул размер
+            if not stats.get('total_size_gb') and file_size_gb:
+                stats['total_size_gb'] = file_size_gb
 
             update_task_progress(
                 task_id,
@@ -191,6 +255,10 @@ def copy_large_file(
                 speed_mbps=0,
                 comment=comment
             )
+
+            # уведомление пользователю ---
+            # TODO:
+
             logger.info(f"[{task_id}] Copy completed")
             return {'status': 'success', 'task_id': task_id}
         else:

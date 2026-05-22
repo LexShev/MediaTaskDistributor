@@ -8,6 +8,9 @@ from django.views.decorators.http import require_http_methods
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
+
+from main.permission_pannel import ask_db_permissions
+from main.settings.main_settings import get_main_settings
 from .models import FileCopyTask
 from tools.tasks import copy_large_file
 
@@ -16,9 +19,12 @@ from tools.tasks import copy_large_file
 def file_manager(request):
     """Главная страница file manager"""
     user = request.user
+    user_id = request.user.id
+    user_group = request.user.groups.first().id
     context = {
         'is_admin': user.is_staff or user.groups.filter(name='admin').exists(),
-        'tabs': []  # Добавьте ваши вкладки
+        'permissions': ask_db_permissions(user_id),
+        'tabs': get_main_settings().get_header_panels(user_group)
     }
     return render(request, 'file_manager/file_manager.html', context)
 
@@ -29,6 +35,7 @@ def load_file_manager(request):
     """Загрузка списка задач с фильтрацией и пагинацией"""
     try:
         user = request.user
+
         is_admin = user.is_staff or user.groups.filter(name='admin').exists()
 
         # Получаем параметры из запроса
@@ -59,7 +66,7 @@ def load_file_manager(request):
         tasks = tasks.order_by('-created_at')
 
         # Пагинация
-        paginator = Paginator(tasks, 10)
+        paginator = Paginator(tasks, 16)
 
         try:
             page_obj = paginator.page(page_number)
@@ -76,6 +83,8 @@ def load_file_manager(request):
                 'page_obj': page_obj,
                 'paginator': paginator,
                 'is_admin': is_admin,
+                'total_count': tasks.count(),
+                'start_number': paginator.count - page_obj.start_index() + 1
             },
             request=request
         )
@@ -183,3 +192,31 @@ def cancel_copy_task(request):
         return JsonResponse({'status': 'error', 'message': 'Task not found'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@login_required
+def active_task_count(request):
+    """Возвращает количество активных задач и задач с ошибками"""
+    user = request.user
+
+    if user.is_staff or user.groups.filter(name='admin').exists():
+        active_tasks = FileCopyTask.objects.filter(
+            status__in=['pending', 'copying', 'verifying']
+        )
+        error_tasks = FileCopyTask.objects.filter(
+            status='error'
+        )
+    else:
+        active_tasks = FileCopyTask.objects.filter(
+            owner=user,
+            status__in=['pending', 'copying', 'verifying']
+        )
+        error_tasks = FileCopyTask.objects.filter(
+            owner=user,
+            status='error'
+        )
+
+    return JsonResponse({
+        'status': 'success',
+        'active_count': active_tasks.count(),
+        'error_count': error_tasks.count()
+    })

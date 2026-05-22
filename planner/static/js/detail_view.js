@@ -1,6 +1,7 @@
 const programId = document.getElementById('program_id').dataset.programId;
 const userId = document.body.dataset.userId || null;
 
+window.addEventListener('load', initCenz);
 window.addEventListener('load', CheckLockCard);
 window.addEventListener('beforeunload', function(e) {
     fetch(`/unblock_card/${programId}/${userId}/`, {
@@ -504,4 +505,25 @@ function showToast(message, type = 'success') {
 
     // Показываем toast
     toast.show();
+}
+
+function initCenz() {
+    const cenzRateForm = document.getElementById('cenz_rate_form')
+    if (cenzRateForm) {
+        cenzRateForm.addEventListener('change', checkCenz)
+    }
+}
+
+function checkCenz() {
+    let cenzRateEl = document.getElementById('cenzRate');
+    let cenzRate = cenzRateEl.dataset?.cenzRate || ''
+    let cenzRateForm = document.getElementById('cenz_rate_form')
+    let cenzRateSelected = cenzRateForm.selectedOptions[0].text
+    if (cenzRate && cenzRate !== cenzRateSelected) {
+        cenzRateForm.classList.add('border-warning')
+        cenzRateForm.title = 'Возрастной рейтинг не совпадает с исходным!'
+    } else {
+        cenzRateForm.classList.remove('border-warning')
+        cenzRateForm.title = ''
+    }
 }
