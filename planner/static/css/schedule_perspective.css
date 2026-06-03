@@ -1,14 +1,32 @@
-#search_results .program {
+#search_results {
+    max-height: 80vh; /* Ограничиваем максимальную высоту */
+    overflow-y: auto;
+}
+    #search_results .program {
     border: 1px solid var(--bs-secondary-border-subtle);
+    cursor: grab;
+    transition: background-color 0.2s ease;
+}
+
+#search_results .program:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+#search_results .program:active {
+    cursor: grabbing;
 }
 
 .custom-ghost {
-  opacity: 1;
+  opacity: 0.5;
 }
+
 .custom-chosen {
   opacity: 1;
   border: 1px dashed var(--bs-secondary-border-subtle);
+}
 
+.custom-drag {
+  opacity: 0.8;
 }
 
 .schedule_day .program .poster-container {
@@ -17,4 +35,33 @@
 
 .schedule_day .program .production-year {
     display: none;
+}
+
+.schedule_day .program {
+    cursor: grab;
+    border: 1px solid var(--bs-secondary-border-subtle) !important;
+}
+
+.schedule_day .program:active {
+    cursor: grabbing;
+}
+
+/* Стиль для карточек из kinopoisk в рабочей зоне */
+.schedule_container .program.kinopoisk-card {
+    background-color: var(--bs-danger-bg-subtle) !important;
+    color: var(--bs-danger-text-emphasis) !important;
+    border: 1px solid var(--bs-danger-border-subtle) !important;
+}
+
+.schedule_container .program.kinopoisk-card:hover {
+    background-color: var(--bs-danger-bg-subtle);
+}
+
+/* Разделитель между результатами поиска */
+#oplan_results,
+#kinopoisk_results {
+    min-height: 200px;
+}
+
+#oplan_results {
 }

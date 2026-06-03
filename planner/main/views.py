@@ -539,17 +539,38 @@ def file_copy_to_sftp(request):
         # destination = os.path.join('/app', username, get_filename_only(file_path))
 
         # Проверяем, нет ли уже активной задачи для этого файла
-        active_task = FileCopyTask.objects.filter(
-            file_path=source,
-            destination_path=destination,
-            status__in=['pending', 'copying', 'verifying']
-        ).first()
+        # active_task = FileCopyTask.objects.filter(
+        #     file_path=source,
+        #     destination_path=destination,
+        #     status__in=['pending', 'copying', 'verifying']
+        # ).first()
+        #
+        # if active_task:
+        #     return JsonResponse({
+        #         'status': 'error',
+        #         'message': f'Файл уже копируется (задача #{active_task.id})'
+        #     }, status=409)
 
-        if active_task:
-            return JsonResponse({
-                'status': 'error',
-                'message': f'Файл уже копируется (задача #{active_task.id})'
-            }, status=409)
+        # --- Один запрос к БД для проверки всех статусов ---
+        existing_task = FileCopyTask.objects.filter(
+            owner=request.user,
+            file_path=source,
+        ).order_by('-created_at').first()
+
+        if existing_task:
+            if existing_task.status in ['pending', 'copying', 'verifying']:
+                # Активная задача — сообщаем об этом
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Файл уже копируется (задача #{existing_task.id})'
+                }, status=409)
+            elif existing_task.status == 'completed':
+                # Уже успешно скопирован
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Этот файл уже был скопирован'
+                }, status=409)
+            # Для статуса 'error' — можно копировать снова
 
         # Отправляем задачу в Celery
         task = copy_large_file.apply_async(

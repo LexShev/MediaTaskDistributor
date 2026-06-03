@@ -16,10 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
           })
       })
 
-    // Создаем кастомное управление dropdown
-    searchQuery.addEventListener('focus', function() {
-    });
-
     // Закрываем при клике вне области
     document.addEventListener('click', function(event) {
       if (!event.target.closest('.dropdown')) {
@@ -44,13 +40,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function searchProgram(query) {
-    let oplanResults = document.getElementById('oplan_results')
-    oplanResults.innerHTML = `
-        <div class="d-flex justify-content-center align-items-center" style="min-height: inherit;">
-            <div class="spinner-border text-primary spinner-border-sm align-items-center" role="status">
+    let oplanResults = document.getElementById('oplan_results');
+    let kinopoiskResults = document.getElementById('kinopoisk_results');
+
+    // Показываем загрузку в обоих контейнерах
+    const spinnerHtml = `
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+            <div class="spinner-border text-primary spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>`;
+    oplanResults.innerHTML = '<small class="text-muted fw-bold">Oplan</small>' + spinnerHtml;
+    kinopoiskResults.innerHTML = '<small class="text-muted fw-bold">Kinopoisk</small>' + spinnerHtml;
 
     // Загружаем данные
     fetch('/schedule-perspective/search_program/', {
@@ -66,64 +67,173 @@ function searchProgram(query) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            oplanResults.innerHTML = '';
+            // Очищаем контейнеры (оставляем только заголовок)
+            oplanResults.innerHTML = '<small class="text-muted fw-bold">Oplan</small>';
+            kinopoiskResults.innerHTML = '<small class="text-muted fw-bold">Kinopoisk</small>';
+
+            // Отображаем результаты OPLAN
             if (data.search_list.length > 0) {
                 data.search_list.forEach(program => {
-                    let listItem = document.createElement("div");
-                    listItem.classList.add('program', 'd-flex', 'rounded', 'my-2');
-                    listItem.dataset.oplanProgramId = program.Progs_program_id;
-                    listItem.dataset.duration = program.Progs_duration;
-
-                    let imageContainer = document.createElement("div");
-                    imageContainer.classList.add('poster-container', 'align-items-center', 'm-2')
-                    imageContainer.style = "flex: 0 0 12%; max-width: 12%; height: 100%;"
-
-                    let image = document.createElement('img');
-                    let imgSrc = `/media/posters/${program.Progs_program_id}.jpg`;
-                    // let imgSrc = `https://www.kinopoisk.ru//images/sm_film/1115407.jpg`;
-                    image.onerror = function() {
-                        this.onerror = null;
-                        this.src = '/static/img/no_poster.jpg';
-                    };
-                    image.src = imgSrc;
-                    image.classList.add('img-fluid', 'rounded', 'm-0', 'w-100', 'h-100', 'object-fit-cover');
-                    imageContainer.appendChild(image);
-
-                    listItem.appendChild(imageContainer);
-
-                    let nameContainer = document.createElement("div");
-                    listItem.appendChild(nameContainer);
-
-                    let header = document.createElement("h6");
-                    header.classList.add('my-1', 'p-1')
-                    header.innerText = program.Progs_name;
-                    nameContainer.appendChild(header);
-
-                    let footer = document.createElement("small");
-                    footer.classList.add('production-year')
-                    footer.innerText = program.Progs_production_year;
-                    nameContainer.appendChild(footer);
-
+                    let listItem = createProgramCard(program, 'oplan');
                     oplanResults.appendChild(listItem);
-                    }
-                )
+                });
+            } else {
+                oplanResults.innerHTML += '<div class="text-muted small mt-2">Ничего не найдено</div>';
             }
-            else {
-                oplanResults.innerHTML = 'По вашему запросу ничего не найдено'
+
+            // Отображаем результаты Kinopoisk
+            if (data.kinopoisk_list.length > 0) {
+                data.kinopoisk_list.forEach(program => {
+                    let listItem = createKinopoiskCard(program);
+                    kinopoiskResults.appendChild(listItem);
+                });
+            } else {
+                kinopoiskResults.innerHTML += '<div class="text-muted small mt-2">Ничего не найдено</div>';
             }
         } else {
             console.log('error', data.message);
+            oplanResults.innerHTML = '<small class="text-muted fw-bold">Oplan</small><div class="text-muted small mt-2">Ошибка поиска</div>';
+            kinopoiskResults.innerHTML = '<small class="text-muted fw-bold">Kinopoisk</small><div class="text-muted small mt-2">Ошибка поиска</div>';
         }
     })
     .catch(error => {
         console.error('Error sending info:', error);
+        oplanResults.innerHTML = '<small class="text-muted fw-bold">Oplan</small><div class="text-muted small mt-2">Ошибка соединения</div>';
+        kinopoiskResults.innerHTML = '<small class="text-muted fw-bold">Kinopoisk</small><div class="text-muted small mt-2">Ошибка соединения</div>';
     });
 }
 
+function createProgramCard(program, source) {
+    let listItem = document.createElement("div");
+    listItem.classList.add('program', 'd-flex', 'rounded', 'my-2', 'align-items-center');
+    listItem.dataset.oplanProgramId = program.Progs_program_id;
+    listItem.dataset.duration = program.Progs_duration;
+    listItem.dataset.source = source;
+
+    let titleText = '';
+    let tooltipText = '';
+
+    if (source === 'oplan') {
+        titleText = program.Progs_name || '';
+        tooltipText = buildTooltip(program);
+    }
+
+    let imageContainer = document.createElement("div");
+    imageContainer.classList.add('poster-container', 'align-items-center', 'm-2');
+    imageContainer.style = "flex: 0 0 50px; max-width: 50px; height: 70px;";
+
+    let image = document.createElement('img');
+    let imgSrc = `/media/posters/${program.Progs_program_id}.jpg`;
+    image.onerror = function() {
+        this.onerror = null;
+        this.src = '/static/img/no_poster.jpg';
+    };
+    image.src = imgSrc;
+    image.classList.add('img-fluid', 'rounded', 'm-0', 'w-100', 'h-100', 'object-fit-cover');
+    imageContainer.appendChild(image);
+    listItem.appendChild(imageContainer);
+
+    let nameContainer = document.createElement("div");
+    // nameContainer.classList.add('flex-grow-1', 'overflow-hidden');
+    listItem.appendChild(nameContainer);
+
+    let header = document.createElement("h6");
+    header.classList.add('my-0', 'p-1', 'text-truncate');
+    header.innerText = titleText;
+    if (tooltipText) {
+        header.title = tooltipText;
+    }
+    nameContainer.appendChild(header);
+
+    let footer = document.createElement("small");
+    footer.classList.add('production-year', 'px-1', 'text-muted');
+    if (program.Progs_production_year) {
+        footer.innerText = program.Progs_production_year;
+    }
+    nameContainer.appendChild(footer);
+
+    return listItem;
+}
+
+function createKinopoiskCard(program) {
+    let listItem = document.createElement("div");
+    listItem.classList.add('program', 'd-flex', 'rounded', 'my-2', 'align-items-center');
+    listItem.dataset.kinopoiskId = program.kinopoisk_id;
+    listItem.dataset.duration = program.duration * 25 || 0; // конвертируем минуты в кадры (25fps)
+    listItem.dataset.source = 'kinopoisk';
+
+    // Собираем tooltip
+    let tooltipLines = [];
+    if (program.year) tooltipLines.push(`- Год: ${program.year}`);
+    if (program.countries && program.countries.length > 0) tooltipLines.push(`- Страна: ${program.countries.join(', ')}`);
+    if (program.director) tooltipLines.push(`- Режиссёр: ${program.director}`);
+    if (program.duration) tooltipLines.push(`- Длительность: ${program.duration} мин.`);
+    if (program.rating) tooltipLines.push(`- Рейтинг: ${program.rating}`);
+    if (program.genres && program.genres.length > 0) tooltipLines.push(`- Жанры: ${program.genres.join(', ')}`);
+    let tooltipText = tooltipLines.join('\n');
+
+    listItem.title = tooltipText;
+
+    let imageContainer = document.createElement("div");
+    imageContainer.classList.add('poster-container', 'align-items-center', 'm-2');
+    imageContainer.style = "flex: 0 0 50px; max-width: 50px; height: 70px;";
+
+    let image = document.createElement('img');
+    // Кидаем запрос на кинопоисковый постер (заглушка)
+    let imgSrc = `https://www.kinopoisk.ru//images/sm_film/${program.kinopoisk_id}.jpg`;
+    image.onerror = function() {
+        this.onerror = null;
+        this.src = '/static/img/no_poster.jpg';
+    };
+    image.src = imgSrc;
+    image.classList.add('img-fluid', 'rounded', 'm-0', 'w-100', 'h-100', 'object-fit-cover');
+    imageContainer.appendChild(image);
+    listItem.appendChild(imageContainer);
+
+    let nameContainer = document.createElement("div");
+    // nameContainer.classList.add('flex-grow-1', 'overflow-hidden');
+    listItem.appendChild(nameContainer);
+
+    let header = document.createElement("h6");
+        header.classList.add('my-0', 'p-1', 'text-truncate');
+
+        // Создаем ссылку на Кинопоиск
+        let link = document.createElement("a");
+        link.href = `https://www.kinopoisk.ru/film/${program.kinopoisk_id}/` || '#';
+        link.target = '_blank';
+        link.rel = 'noreferrer noopener';
+        link.classList.add('link-body-emphasis', 'link-offset-3-hover', 'link-underline', 'link-underline-opacity-0', 'link-underline-opacity-75-hover');
+        link.innerText = program.title || program.original_title || 'Без названия';
+
+        header.appendChild(link);
+        nameContainer.appendChild(header);
+
+    let footer = document.createElement("small");
+    footer.classList.add('production-year', 'px-1', 'text-muted');
+    if (program.year) {
+        footer.innerText = program.year + (program.rating ? ` | ${program.rating}` : '');
+    } else if (program.rating) {
+        footer.innerText = `Рейтинг: ${program.rating}`;
+    }
+    nameContainer.appendChild(footer);
+
+    return listItem;
+}
+
+function buildTooltip(program) {
+    let lines = [];
+    if (program.Progs_production_year) lines.push(`- Год: ${program.Progs_production_year}`);
+    if (program.Progs_production_country) lines.push(`- Страна: ${program.Progs_production_country}`);
+    if (program.Progs_Director) lines.push(`- Режиссёр: ${program.Progs_Director}`);
+    if (program.Progs_duration) lines.push(`- Длительность: ${convertFramesToTime(program.Progs_duration)}`);
+    return lines.join('\n');
+}
+
 function moveData(evt) {
-    console.log(evt.item)
+    console.log(evt.item);
     return {
-        oplanProgramId: evt.item.dataset.oplanProgramId,
+        oplanProgramId: evt.item.dataset.oplanProgramId || null,
+        kinopoiskId: evt.item.dataset.kinopoiskId || null,
         fromContainer: evt.from.id,
         toContainer: evt.to.id,
         oldIndex: evt.oldIndex,
@@ -131,50 +241,54 @@ function moveData(evt) {
         isSameContainer: evt.from === evt.to
     }
 }
-const oplanResultsContainer = document.getElementById('oplan_results');
 
-new Sortable(oplanResultsContainer, {
-    group: {
-            name: 'schedule',
-            pull: true,    // Можно забирать
-            put: false      // Нельзя добавлять
-        },
-	animation: 200,
-	ghostClass: "custom-ghost",
-    chosenClass: "custom-chosen",
-    dragClass: "custom-drag",
-    sort: false,
-    onEnd: function(evt) {
-            // Получаем всю информацию о перемещении
-            const data = moveData(evt);
-
-            saveMoveToServer(data);
-            calculateDuration();
-        }
-});
-
-const containers = document.querySelectorAll('.schedule_container');
-
-containers.forEach(container => {
+function setupSortableForContainer(container, options = {}) {
     new Sortable(container, {
         group: {
             name: 'schedule',
-            pull: true,    // Можно забирать
-            put: true      // Можно добавлять
+            pull: options.pull !== undefined ? options.pull : true,
+            put: options.put !== undefined ? options.put : true
         },
         animation: 200,
         ghostClass: "custom-ghost",
         chosenClass: "custom-chosen",
         dragClass: "custom-drag",
-
+        sort: options.sort !== undefined ? options.sort : true,
         onEnd: function(evt) {
-            // Получаем всю информацию о перемещении
             const data = moveData(evt);
-
             saveMoveToServer(data);
+            applyKinopoiskStyle(evt.item);
             calculateDuration();
         }
     });
+}
+
+function applyKinopoiskStyle(element) {
+    // Если карточка из kinopoisk (нет oplanProgramId, есть kinopoiskId) - красим в красный
+    if (!element.dataset.oplanProgramId && element.dataset.kinopoiskId) {
+        element.classList.add('kinopoisk-card');
+    } else {
+        element.classList.remove('kinopoisk-card');
+    }
+}
+
+const oplanResultsContainer = document.getElementById('oplan_results');
+const kinopoiskResultsContainer = document.getElementById('kinopoisk_results');
+
+// OPLAN - можно только забирать
+if (oplanResultsContainer) {
+    setupSortableForContainer(oplanResultsContainer, { put: false, sort: false });
+}
+
+// Kinopoisk - можно только забирать
+if (kinopoiskResultsContainer) {
+    setupSortableForContainer(kinopoiskResultsContainer, { put: false, sort: false });
+}
+
+const containers = document.querySelectorAll('.schedule_container');
+
+containers.forEach(container => {
+    setupSortableForContainer(container, { pull: true, put: true });
 });
 
 function saveMoveToServer(data) {
@@ -191,6 +305,8 @@ function saveMoveToServer(data) {
     .then(result => {
         if (result.success) {
             console.log('Обновление успешно');
+            // После успешного сохранения пересчитываем стили
+            document.querySelectorAll('.schedule_container .program').forEach(applyKinopoiskStyle);
         }
     })
     .catch(error => {
@@ -209,7 +325,6 @@ function calculateDuration() {
 
         totalDurationCounter.innerText = convertFramesToTime(totalDuration);
     })
-
 }
 
 function convertFramesToTime(frames, fps = 25) {

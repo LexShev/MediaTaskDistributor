@@ -210,7 +210,7 @@ DATABASES = {
         # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
-            "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
+            "extra_params": "Encrypt=yes;TrustServerCertificate=yes;Login Timeout=10"
         },
     },
     OPLAN_DB: {
@@ -222,7 +222,7 @@ DATABASES = {
         # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
-            "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
+            "extra_params": "Encrypt=yes;TrustServerCertificate=yes;Login Timeout=10"
         },
     },
     PLANNER_DB: {
@@ -234,7 +234,7 @@ DATABASES = {
         # "PORT": "1433",
         "OPTIONS": {
             "driver": ODBC_DRIVER,
-            "extra_params": "Encrypt=yes;TrustServerCertificate=yes"
+            "extra_params": "Encrypt=yes;TrustServerCertificate=yes;Login Timeout=10"
         },
     },
     "ffmpeg": {
