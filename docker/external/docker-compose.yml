@@ -82,3 +82,4 @@ services:
 networks:
   web-network:
     driver: bridge
+    name: django_web_network

@@ -81,7 +81,7 @@ class MainSettings:
             ['air_day_report', 'air_month_report', 'common_pool', 'playlist_daily', 'editors_notifications', 'advanced_search']
             },
         4: {'name': 'otk_engineers', 'label': 'ОТК', 'tabs':
-            ['otk', 'common_pool', 'advanced_search']
+            ['otk', 'common_pool', 'advanced_search', 'media-researcher']
             },
         2: {'name': 'preparation_engineers', 'label': 'Инженеры подготовки', 'tabs':
             ['week', 'list', 'common_pool', 'advanced_search', 'desktop']
@@ -99,6 +99,7 @@ class MainSettings:
         'editors_notifications': 'Уведомления',
         'schedule_perspective': 'Перспективные сетки',
         'advanced_search': 'Расширенный поиск',
+        'media-researcher': 'Media Researcher',
         'common_pool': 'Общий пул',
         'otk': 'Технический контроль',
         'week': 'Неделя',
@@ -117,6 +118,7 @@ class MainSettings:
         'editors_notifications': 'playlist/editors_notifications',
         'schedule_perspective': 'schedule-perspective',
         'advanced_search': 'advanced_search',
+        'media-researcher': 'media-researcher',
         'common_pool': 'common_pool',
         'otk': 'otk',
         'week': 'week',
