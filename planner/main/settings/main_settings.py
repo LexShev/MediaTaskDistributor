@@ -1,7 +1,9 @@
 from django.db import connections
-from planner.settings import OPLAN_DB, PLANNER_DB
+from planner.settings import OPLAN_DB, PLANNER_DB, SERVICE_TYPE
 
 class MainSettings:
+    EXTERNAL_ONLY_TABS = {'media_researcher'}
+
     status_dict = {
         'no_material': 'Материал отсутствует',
         'not_ready': 'Не готов',
@@ -80,8 +82,12 @@ class MainSettings:
         6: {'name': 'editors', 'label': 'Редакторы', 'tabs':
             ['air_day_report', 'air_month_report', 'common_pool', 'playlist_daily', 'editors_notifications', 'advanced_search']
             },
+        8: {'name': 'chief_editor', 'label': 'Главный редактор', 'tabs':
+            ['air_day_report', 'air_month_report', 'common_pool', 'playlist_daily', 'editors_notifications',
+             'advanced_search', 'media_researcher']
+            },
         4: {'name': 'otk_engineers', 'label': 'ОТК', 'tabs':
-            ['otk', 'common_pool', 'advanced_search', 'media-researcher']
+            ['otk', 'common_pool', 'advanced_search', 'media_researcher']
             },
         2: {'name': 'preparation_engineers', 'label': 'Инженеры подготовки', 'tabs':
             ['week', 'list', 'common_pool', 'advanced_search', 'desktop']
@@ -99,7 +105,7 @@ class MainSettings:
         'editors_notifications': 'Уведомления',
         'schedule_perspective': 'Перспективные сетки',
         'advanced_search': 'Расширенный поиск',
-        'media-researcher': 'Media Researcher',
+        'media_researcher': 'Media Researcher',
         'common_pool': 'Общий пул',
         'otk': 'Технический контроль',
         'week': 'Неделя',
@@ -118,7 +124,7 @@ class MainSettings:
         'editors_notifications': 'playlist/editors_notifications',
         'schedule_perspective': 'schedule-perspective',
         'advanced_search': 'advanced_search',
-        'media-researcher': 'media-researcher',
+        'media_researcher': 'media-researcher',
         'common_pool': 'common_pool',
         'otk': 'otk',
         'week': 'week',
@@ -218,11 +224,20 @@ class MainSettings:
             # group_id = 2
             panels = self.label_panels
             if group_id == 5:
-                return [panels.get(department, {}) for department in panels.keys()]
+                result = [panels.get(department, {}) for department in panels.keys()]
             elif group_id == 1:
-                return [panels.get(department, {}) for department in panels.keys()]
+                result = [panels.get(department, {}) for department in panels.keys()]
             else:
-                return [panels.get(group_id, {})]
+                result = [panels.get(group_id, {})]
+
+            if SERVICE_TYPE != 'external':
+                for dept in result:
+                    if 'tabs' in dept:
+                        dept['tabs'] = [
+                            tab for tab in dept['tabs']
+                            if tab['key'] not in self.EXTERNAL_ONLY_TABS
+                        ]
+            return result
         except Exception as e:
             print(e)
             return []

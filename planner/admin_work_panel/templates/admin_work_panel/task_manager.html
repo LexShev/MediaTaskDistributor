@@ -8,101 +8,105 @@
 {{ search_form.order_type }}
 <div class="container-flex px-lg-5">
   <br>
-
-  <form method="post" id="admin_form">
-  {% csrf_token %}
-    <div class="d-flex p-0 m-0 mb-3 align-items-center justify-content-start">
-      <div class="row ms-0 m-2 align-items-center">
-        {% for field in filter_form %}
-          <div class="col ps-0">
-            <div class="form-floating" style="width:190px;">
-              {{ field }}
-              {{ field.label_tag }}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="input-group mb-3" style="width: 87%;">
-        <label class="input-group-text" for="search_type">Поиск по</label>
-        {{ search_form.search_type }}
-        {{ search_form.search_input }}
-        {{ search_form.sql_set }}
-        <button type="submit" class="btn btn-outline-secondary" style="width: 7rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-          </svg>
-        </button>
-        <button type="button" onclick="ResetFilter()" class="btn register-button btn-outline-secondary" style="width: 3rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eraser" viewBox="0 0 16 16">
-            <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828l6.879-6.879zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293 4.633-4.633a1 1 0 0 0 0-1.414l-3.879-3.879zM8.746 13.547 3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293l.16-.16z"/>
-          </svg>
-        </button>
-    </div>
-
-    <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title">Ошибка!</h4>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <h5>Ни одна задача не выбрана!</h5>
+    {% if permissions.task_manager %}
+      <form method="post" id="admin_form">
+      {% csrf_token %}
+        <div class="d-flex p-0 m-0 mb-3 align-items-center justify-content-start">
+          <div class="row ms-0 m-2 align-items-center">
+            {% for field in filter_form %}
+              <div class="col ps-0">
+                <div class="form-floating" style="width:190px;">
+                  {{ field }}
+                  {{ field.label_tag }}
+                </div>
+              </div>
+            {% endfor %}
           </div>
         </div>
-      </div>
-    </div>
 
-    <div class="modal fade" id="ApproveTaskChange" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title">Применить изменения к выбранному?</h4>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-footer">
-            <button name="approve_task_change" id="approve_task_change" value="True" type="submit" class="btn btn-success">Применить</button>
-            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="admin_task_table">
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="visually-hidden">Загрузка данных...</span>
-            </div>
-            <p class="mt-3">Идет загрузка таблицы...</p>
-        </div>
-    </div>
-<div style="height: 70px;" id="spacer"></div>
-    <div class="fixed-bottom bg-body">
-      <div class="container-flex px-lg-5">
-        <div class="d-flex border-top py-2">
-          <div class="input-group" style="width: 35rem;">
-            <label class="input-group-text" for="change_type">Выберите действие</label>
-            <select class="form-select" id="change_type" name="change_type">
-              <option value="1" selected>Внести изменения</option>
-              <option value="2">Сбросить прогресс</option>
-              <option value="3">Добавить в Мои задачи</option>
-              <option value="4">Переместить в архив</option>
-              <option value="5">Удалить выбранное</option>
-            </select>
-            <button type="button" class="btn btn-outline-secondary" onclick="showApproveTaskChange()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
-                  <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"></path>
-                </svg>
+        <div class="input-group mb-3" style="width: 87%;">
+            <label class="input-group-text" for="search_type">Поиск по</label>
+            {{ search_form.search_type }}
+            {{ search_form.search_input }}
+            {{ search_form.sql_set }}
+            <button type="submit" class="btn btn-outline-secondary" style="width: 7rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+              </svg>
             </button>
+            <button type="button" onclick="ResetFilter()" class="btn register-button btn-outline-secondary" style="width: 3rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eraser" viewBox="0 0 16 16">
+                <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828l6.879-6.879zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293 4.633-4.633a1 1 0 0 0 0-1.414l-3.879-3.879zM8.746 13.547 3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293l.16-.16z"/>
+              </svg>
+            </button>
+        </div>
+
+        <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title">Ошибка!</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <h5>Ни одна задача не выбрана!</h5>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+
+        <div class="modal fade" id="ApproveTaskChange" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title">Применить изменения к выбранному?</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-footer">
+                <button name="approve_task_change" id="approve_task_change" value="True" type="submit" class="btn btn-success">Применить</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Отмена</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="admin_task_table">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Загрузка данных...</span>
+                </div>
+                <p class="mt-3">Идет загрузка таблицы...</p>
+            </div>
+        </div>
+        <div style="height: 70px;" id="spacer"></div>
+        <div class="fixed-bottom bg-body">
+          <div class="container-flex px-lg-5">
+            <div class="d-flex border-top py-2">
+              <div class="input-group" style="width: 35rem;">
+                <label class="input-group-text" for="change_type">Выберите действие</label>
+                <select class="form-select" id="change_type" name="change_type">
+                  <option value="1" selected>Внести изменения</option>
+                  <option value="2">Сбросить прогресс</option>
+                  <option value="3">Добавить в Мои задачи</option>
+                  <option value="4">Переместить в архив</option>
+                  <option value="5">Удалить выбранное</option>
+                </select>
+                <button type="button" class="btn btn-outline-secondary" onclick="showApproveTaskChange()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+                      <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"></path>
+                    </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
-  </form>
-</div>
-<script type="text/javascript" src="{% static 'js/task_manager.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/task_manager.js' %}"></script>
+
+  {% else %}
+  <h4 class="text-center">forbidden</h4>
+  {% endif %}
 
 {% endblock %}
 </main>

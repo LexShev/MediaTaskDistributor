@@ -4,131 +4,138 @@
 <main>
 {% block body %}
 <link href="{% static '/css/on_air_calendar.css' %}"  rel="stylesheet">
-<script type="text/javascript" src="{% static 'js/on_air_calendar.js' %}"></script>
+{% if permissions.on_air_report %}
 
-<div class="container-fluid px-lg-5 py-2" style="height: calc(100vh - 11rem);">
-  <h4 class="text-center mt-3">Эфирный отчёт</h4>
-  <br>
-  <div class="row">
-    <div class="col-lg-6 col-md-12">
-      <div class="card h-100 p-4">
-        <div id="calendar-container">
-          <form method="post" id="calendarForm">
-          {% csrf_token %}
-            <div class="row align-items-center">
-              <div class="col text-center">
-                <div class="form-floating">
-                  {{ calendar_form.year_dropdown }}
-                  {{ calendar_form.year_dropdown.label_tag }}
-                </div>
-              </div>
-              <div class="col text-center">
-                <div class="form-floating">
-                  {{ calendar_form.month_dropdown }}
-                  {{ calendar_form.month_dropdown.label_tag }}
-                </div>
-              </div>
-              <div class="col text-center">
-                <div class="form-floating">
-                  {{ calendar_form.channel_dropdown }}
-                  {{ calendar_form.channel_dropdown.label_tag }}
-                </div>
-              </div>
-            </div>
-          </form>
-          <br>
-          <table cellpadding="4" class="month">
-            <thead class="text-center text-secondary mb-2">
-              <tr>
-                <th class="p-2 week-number"></th>
-                <th class="mon p-2">Пн</th>
-                <th class="tue p-2">Вт</th>
-                <th class="wed p-2">Ср</th>
-                <th class="thu p-2">Чт</th>
-                <th class="fri p-2">Пт</th>
-                <th class="sat p-2">Сб</th>
-                <th class="sun p-2">Вс</th>
-              </tr>
-            </thead>
+    <script type="text/javascript" src="{% static 'js/on_air_calendar.js' %}"></script>
 
-            <tbody class="table-group-divider">
-              {% for week in on_air_calendar %}
-                <tr>
-                  <th class="text-secondary">{{ week.number }}</th>
-                    {% for day in week.days %}
-                      {% if day.is_current_month %}
-                        <td>
-                          <button class="btn cal-btn w-100 p-1 loading-day {% if day.is_today %}active{% endif %} position-relative"
-                                  name="cal_day" value="{{ day.date|date:'Y-m-d' }}" type="button"
-                                  onclick="selectDay(this);">
-                            {{ day.day }}
-                            <span class="badge total-otk text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle position-absolute m-2"
-                                  style="display: none;"></span>
-                          </button>
-                        </td>
-                      {% else %}
-                        <td>
-                          <button class="btn cal-btn w-100 border-0 p-1" type="button" disabled>
-                            {{ day.day }}
-                          </button>
-                        </td>
-                    {% endif %}
+    <div class="container-fluid px-lg-5 py-2" style="height: calc(100vh - 11rem);">
+      <h4 class="text-center mt-3">Эфирный отчёт</h4>
+      <br>
+      <div class="row">
+        <div class="col-lg-6 col-md-12">
+          <div class="card h-100 p-4">
+            <div id="calendar-container">
+              <form method="post" id="calendarForm">
+              {% csrf_token %}
+                <div class="row align-items-center">
+                  <div class="col text-center">
+                    <div class="form-floating">
+                      {{ calendar_form.year_dropdown }}
+                      {{ calendar_form.year_dropdown.label_tag }}
+                    </div>
+                  </div>
+                  <div class="col text-center">
+                    <div class="form-floating">
+                      {{ calendar_form.month_dropdown }}
+                      {{ calendar_form.month_dropdown.label_tag }}
+                    </div>
+                  </div>
+                  <div class="col text-center">
+                    <div class="form-floating">
+                      {{ calendar_form.channel_dropdown }}
+                      {{ calendar_form.channel_dropdown.label_tag }}
+                    </div>
+                  </div>
+                </div>
+              </form>
+              <br>
+              <table cellpadding="4" class="month">
+                <thead class="text-center text-secondary mb-2">
+                  <tr>
+                    <th class="p-2 week-number"></th>
+                    <th class="mon p-2">Пн</th>
+                    <th class="tue p-2">Вт</th>
+                    <th class="wed p-2">Ср</th>
+                    <th class="thu p-2">Чт</th>
+                    <th class="fri p-2">Пт</th>
+                    <th class="sat p-2">Сб</th>
+                    <th class="sun p-2">Вс</th>
+                  </tr>
+                </thead>
+
+                <tbody class="table-group-divider">
+                  {% for week in on_air_calendar %}
+                    <tr>
+                      <th class="text-secondary">{{ week.number }}</th>
+                        {% for day in week.days %}
+                          {% if day.is_current_month %}
+                            <td>
+                              <button class="btn cal-btn w-100 p-1 loading-day {% if day.is_today %}active{% endif %} position-relative"
+                                      name="cal_day" value="{{ day.date|date:'Y-m-d' }}" type="button"
+                                      onclick="selectDay(this);">
+                                {{ day.day }}
+                                <span class="badge total-otk text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle position-absolute m-2"
+                                      style="display: none;"></span>
+                              </button>
+                            </td>
+                          {% else %}
+                            <td>
+                              <button class="btn cal-btn w-100 border-0 p-1" type="button" disabled>
+                                {{ day.day }}
+                              </button>
+                            </td>
+                        {% endif %}
+                      {% endfor %}
+                    </tr>
                   {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Правая колонка - список действий (занимает 6 колонок на больших экранах) -->
+        <div class="col-lg-6 col-md-12">
+          <div class="card h-100 p-4">
+            <div class="d-flex justify-content-start align-items-center mb-3">
+              <h5 class="mx-2" id="report_date">Выберите день</h5>
+              <h5 class="ms-auto" id="channel_name"></h5>
+            </div>
+
+            <table class="table table-hover">
+              <tbody class="table-group-divider" id="tableBody">
+                {% for id, title in summary_table %}
+                  <tr id="{{ id }}_line">
+                    <td class="col-2">
+                      {{ title }}
+                    </td>
+                    <td class="col-1" id="{{ id }}">
+                      -
+                    </td>
+                  </tr>
+                {% endfor %}
+                <tr class="border-warning-subtle border-2" style="display: none;" id="not_distr_line">
+                  <td class="col-2 text-warning-emphasis bg-warning-subtle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+                      <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                    </svg>
+                    Не распределено
+                  </td>
+                  <td class="col-1 text-warning-emphasis bg-warning-subtle" id="not_distr">-</td>
                 </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </tbody>
+              <tfoot class="table-group-divider">
+                <tr class="table-body">
+                  <td><strong>Всего</strong></td>
+                  <td class="col-1"><strong id="total_programs">-</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <a type="button" class="btn btn-outline-secondary" style="display: none;" id="day_link"
+              href="" target="_blank" rel="noopener noreferrer">
+              Подробнее
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
-
-    <!-- Правая колонка - список действий (занимает 6 колонок на больших экранах) -->
-    <div class="col-lg-6 col-md-12">
-      <div class="card h-100 p-4">
-        <div class="d-flex justify-content-start align-items-center mb-3">
-          <h5 class="mx-2" id="report_date">Выберите день</h5>
-          <h5 class="ms-auto" id="channel_name"></h5>
-        </div>
-
-        <table class="table table-hover">
-          <tbody class="table-group-divider" id="tableBody">
-            {% for id, title in summary_table %}
-              <tr id="{{ id }}_line">
-                <td class="col-2">
-                  {{ title }}
-                </td>
-                <td class="col-1" id="{{ id }}">
-                  -
-                </td>
-              </tr>
-            {% endfor %}
-            <tr class="border-warning-subtle border-2" style="display: none;" id="not_distr_line">
-              <td class="col-2 text-warning-emphasis bg-warning-subtle">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
-                  <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
-                </svg>
-                Не распределено
-              </td>
-              <td class="col-1 text-warning-emphasis bg-warning-subtle" id="not_distr">-</td>
-            </tr>
-          </tbody>
-          <tfoot class="table-group-divider">
-            <tr class="table-body">
-              <td><strong>Всего</strong></td>
-              <td class="col-1"><strong id="total_programs">-</strong></td>
-            </tr>
-          </tfoot>
-        </table>
-
-        <a type="button" class="btn btn-outline-secondary" style="display: none;" id="day_link"
-          href="" target="_blank" rel="noopener noreferrer">
-          Подробнее
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
+{% else %}
+    <br>
+    <h4 class="text-center">forbidden</h4>
+{% endif %}
 
 {% endblock %}
 </main>

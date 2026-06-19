@@ -23,7 +23,7 @@ def home(request):
         'cal_month': today.month,
     }
     schedules = []
-    if user_group == 6:
+    if user_group in (6, 8):
         schedules = get_any_schedule_by_date(today+timedelta(weeks=4), today+timedelta(weeks=6))
     data = {
         'home_calendar': calendar_skeleton(),

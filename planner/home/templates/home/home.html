@@ -49,7 +49,7 @@
 
       <!-- Правая колонка - таблица -->
       <div class="col-12 col-md-6 h-100">
-      {% if permissions.auth_group != 'editors' %}
+      {% if permissions.auth_group != 'editors' and permissions.auth_group != 'chief_editor' %}
         <div class="card h-100 d-flex flex-column">
           <div class="card-header">
             <div class="row align-items-center">

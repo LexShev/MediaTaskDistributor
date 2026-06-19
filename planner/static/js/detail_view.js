@@ -518,8 +518,8 @@ function checkCenz() {
     let cenzRateEl = document.getElementById('cenzRate');
     let cenzRate = cenzRateEl.dataset?.cenzRate || ''
     let cenzRateForm = document.getElementById('cenz_rate_form')
-    let cenzRateSelected = cenzRateForm.selectedOptions[0].text
-    if (cenzRate && cenzRate !== cenzRateSelected) {
+    let cenzRateSelected = cenzRateForm.selectedOptions[0].text || ''
+    if (cenzRate && cenzRateSelected !== '-' && cenzRate !== cenzRateSelected) {
         cenzRateForm.classList.add('border-warning')
         cenzRateForm.title = 'Возрастной рейтинг не совпадает с исходным!'
     } else {
