@@ -80,7 +80,8 @@ class MainSettings:
             ['air_day_report', 'air_month_report', 'air_search', 'advanced_search']
             },
         6: {'name': 'editors', 'label': 'Редакторы', 'tabs':
-            ['air_day_report', 'air_month_report', 'common_pool', 'playlist_daily', 'editors_notifications', 'advanced_search']
+            ['air_day_report', 'air_month_report', 'common_pool', 'playlist_daily', 'editors_notifications',
+             'media_researcher', 'advanced_search']
             },
         8: {'name': 'chief_editor', 'label': 'Главный редактор', 'tabs':
             ['air_day_report', 'air_month_report', 'common_pool', 'playlist_daily', 'editors_notifications',

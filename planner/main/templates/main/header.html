@@ -75,8 +75,8 @@
             {% if permissions.advanced_search %}
               <li class="nav-item"><a href="{% url 'home' %}advanced_search" class="nav-link px-2 {% is_active request '/advanced_search/' %}">Расширенный поиск</a></li>
             {% endif %}
-            {% if permissions.desktop %}
-              <li class="nav-item"><a href="{% url 'desktop' %}" class="nav-link px-2 {% is_active request '/desktop/' %}">Рабочий стол</a></li>
+            {% if permissions.otk %}
+              <li class="nav-item"><a href="{% url 'home' %}media-researcher" class="nav-link px-2 {% is_active request '/desktop/' %}">Media Researcher</a></li>
             {% endif %}
             {% if permissions.task_manager %}
               <li class="nav-item dropdown" style="z-index: 1050;">

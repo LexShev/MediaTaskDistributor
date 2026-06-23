@@ -1,0 +1,24 @@
+# static & media
+**/media/waveforms/
+**/media/posters/
+
+# Игнорируем служебные файлы даже в разрешенных папках
+**/__pycache__
+**/*.pyc
+**/.git
+
+# Игнорируем логи
+**/*.log
+**/*.log.*
+
+# Игнорируем IDE файлы
+**/.idea/
+**/.mediadistr/
+**/.vscode/
+**/*.swp
+**/*.swo
+**/*~
+
+# Игнорируем системные файлы
+**/.DS_Store
+**/Thumbs.db

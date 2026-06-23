@@ -1,0 +1,93 @@
+version: '3.8'
+
+volumes:
+  streaming_cache:
+
+services:
+
+  wsgi:
+    container_name: planner_wsgi
+    build:
+      context: ../..  # Собираем из корня проекта
+      dockerfile: docker/internal/Dockerfile  # Путь к Dockerfile относительно контекста
+    command: >
+      sh -c "
+      cd /app/planner &&
+      gunicorn planner.wsgi:application 
+      --bind 0.0.0.0:8000 
+      --workers 10 
+      --timeout 240 
+      --access-logfile - 
+      --error-logfile -
+      "
+    environment:
+      - TZ=Europe/Moscow
+      - DJANGO_SETTINGS_MODULE=planner.settings
+      - PYTHONPATH=/app
+      - BIND=0.0.0.0:8000
+    volumes:
+      - ../../:/app
+    working_dir: /app
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - planner-network
+
+  asgi:
+    container_name: planner_asgi
+    build:
+      context: ../..  # Собираем из корня проекта
+      dockerfile: docker/internal/Dockerfile  # Путь к Dockerfile относительно контекста
+    command: >
+      sh -c "
+      cd /app/planner &&
+      daphne -b 0.0.0.0 -p 8000 planner.asgi:application
+      "
+    environment:
+      - TZ=Europe/Moscow
+      - DJANGO_SETTINGS_MODULE=planner.settings
+      - PYTHONPATH=/app
+      - BIND=0.0.0.0:8000
+    volumes:
+      - ../../:/app
+    working_dir: /app
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - planner-network
+
+  nginx:
+    container_name: planner_nginx
+    image: nginx:alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ../../planner/static:/app/planner/static:ro
+      - ../../planner/media:/app/planner/media:ro
+    environment:
+      - TZ=Europe/Moscow
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8000:8000"  # Для редиректа со старого порта
+    depends_on:
+      - wsgi
+    restart: unless-stopped
+    networks:
+      - planner-network
+      - media_media-network
+      - watch_network
+
+networks:
+  planner-network:
+    driver: bridge
+  media_media-network:
+    external: true
+  watch_network:
+    external: true
