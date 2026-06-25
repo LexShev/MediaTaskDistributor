@@ -1,0 +1,29 @@
+[req]
+default_bits       = 2048
+distinguished_name = req_distinguished_name
+req_extensions     = req_ext
+x509_extensions    = v3_ca
+prompt             = no
+
+[req_distinguished_name]
+C  = RU
+ST = Moscow
+L  = Moscow
+O  = TVFab
+OU = Development
+CN = tvfab.local
+
+[req_ext]
+subjectAltName = @alt_names
+
+[v3_ca]
+subjectAltName = @alt_names
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+[alt_names]
+DNS.1 = tvfab.local
+DNS.2 = transcoder.tvfab.local
+DNS.3 = ai.tvfab.local
+IP.1  = 192.168.33.33

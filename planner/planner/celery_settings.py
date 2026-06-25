@@ -5,6 +5,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'emergency_secret_key')
 
 MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
 MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
+CHANNELS_REDIS_HOST = os.getenv('CHANNELS_REDIS_HOST', MEDIA_SERVER_IP)
 
 # Application definition
 INSTALLED_APPS = [
@@ -116,7 +117,7 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             "hosts": [{
-                "address": f"redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/1",
+                "address": f"redis://:{REDIS_PASSWORD}@{CHANNELS_REDIS_HOST}:{REDIS_PORT}/1",
             }],
         },
     },

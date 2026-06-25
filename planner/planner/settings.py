@@ -23,12 +23,13 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 MEDIA_SERVER_IP = os.getenv('MEDIA_SERVER_IP')
 MEDIA_SERVER_PORT = os.getenv('MEDIA_SERVER_PORT')
+CHANNELS_REDIS_HOST = os.getenv('CHANNELS_REDIS_HOST', MEDIA_SERVER_IP)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-ALLOWED_HOSTS.extend(['tvfab.local', 'localhost', '192.168.33.3'])
+ALLOWED_HOSTS.extend(['tvfab.local', 'localhost', '192.168.33.3', '192.168.33.33'])
 # if DEBUG:
 #     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '0.0.0.0'])
 
@@ -36,9 +37,11 @@ ALLOWED_HOSTS.extend(['tvfab.local', 'localhost', '192.168.33.3'])
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 CSRF_TRUSTED_ORIGINS.extend([
     'http://192.168.33.3',
+    'http://192.168.33.33',
     'http://localhost',
     'http://www.tvfab.local',
     'https://192.168.33.3',
+    'https://192.168.33.33',
     'https://localhost',
     'https://www.tvfab.local',
 ])
@@ -119,7 +122,7 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             "hosts": [{
-                "address": f"redis://:{REDIS_PASSWORD}@{MEDIA_SERVER_IP}:{REDIS_PORT}/1",
+                "address": f"redis://:{REDIS_PASSWORD}@{CHANNELS_REDIS_HOST}:{REDIS_PORT}/1",
             }],
         },
     },

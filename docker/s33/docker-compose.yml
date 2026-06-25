@@ -35,6 +35,7 @@ services:
     restart: unless-stopped
     networks:
       - planner-network
+      - media_media-network
 
   asgi:
     container_name: planner_asgi
@@ -61,6 +62,7 @@ services:
     restart: unless-stopped
     networks:
       - planner-network
+      - media_media-network
 
   nginx:
     container_name: planner_nginx
