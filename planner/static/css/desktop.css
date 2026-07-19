@@ -8,12 +8,21 @@
 .custom-drag {
 }
 
+.sftp-btn:hover {
+  border-color: var(--bs-secondary-border-subtle);
+  background-color: var(--bs-secondary-bg);
+}
+
 #full_list .card {
   border: none;
   margin-right: 0;
 }
 
 #full_list .card .card-body {
+  display: none;
+}
+
+#full_list .card .sftp-btn {
   display: none;
 }
 

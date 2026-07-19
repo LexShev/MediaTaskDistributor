@@ -63,7 +63,8 @@ def cards_container(worker_id, program_list):
         ('Task', 'program_id'), ('Task', 'worker_id'), ('Task', 'duration'), ('Task', 'work_date'),
         ('Task', 'sched_date'), ('Task', 'sched_id'), ('Task', 'task_status'), ('Task', 'file_path'),
         ('Progs', 'program_type_id'), ('Progs', 'name'), ('Progs', 'orig_name'), ('Progs', 'parent_id'),
-        ('Progs', 'keywords'), ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Adult', 'Name')
+        ('Progs', 'keywords'), ('Progs', 'production_year'), ('Progs', 'episode_num'), ('Adult', 'Name'),
+        ('Files', 'FileID'), ('Files', 'Name'), ('Files', 'Size'), ('Files', 'CreationTime'), ('Files', 'ModificationTime')
     ]
     sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
     django_columns = [f'{col}_{val}' for col, val in columns]
@@ -78,6 +79,13 @@ def cards_container(worker_id, program_list):
             AND Cont.[owner] = {worker_id}
         LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS Adult
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
+        LEFT JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
+            ON Progs.[SuitableMaterialForScheduleID] = Clips.[MaterialID]
+            AND Clips.[Deleted] = 0
+        LEFT JOIN [{OPLAN_DB}].[dbo].[File] AS Files
+            ON Clips.[ClipID] = Files.[ClipID]
+            AND Files.[Deleted] = 0
+            AND Files.[PhysicallyDeleted] = 0
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         AND Task.[program_id] IN {check_tuple(program_list)}

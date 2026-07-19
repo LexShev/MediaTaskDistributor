@@ -156,6 +156,18 @@ def planner_material_list(schedules_id, worker_id, material_type, work_dates, ta
                    ('Remake', 'program_id'), ('Remake', 'ready_date'), ('Remake', 'engineer_id')]
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
         django_columns = [f'{col}_{val}' for col, val in columns]
+        where_clauses = ["Progs.[deleted] = 0"]
+        if schedules_id:
+            where_clauses.append(f"Task.[sched_id] IN {schedules_id}")
+        if worker_id:
+            where_clauses.append(f"Task.[worker_id] IN {worker_id}")
+        if material_type:
+            where_clauses.append(f"Progs.[program_type_id] IN {material_type}")
+        where_clauses.append(f"Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'")
+        if task_status:
+            where_clauses.append(f"Task.[task_status] IN {task_status}")
+        where_str = '\nAND '.join(where_clauses)
+
         query = f'''
         SELECT {sql_columns}
         FROM [{PLANNER_DB}].[dbo].[task_list] AS Task
@@ -169,12 +181,7 @@ def planner_material_list(schedules_id, worker_id, material_type, work_dates, ta
             ON Task.[sched_id] = Sched.[schedule_id]
         LEFT JOIN [{PLANNER_DB}].[dbo].[remake_list] AS Remake
             ON Task.[program_id] = Remake.[program_id]
-        WHERE Progs.[deleted] = 0
-        AND Task.[sched_id] IN {schedules_id}
-        AND Task.[worker_id] IN {worker_id}
-        AND Progs.[program_type_id] IN {material_type}
-        AND Task.[work_date] BETWEEN '{start_date}' AND '{end_date}'
-        AND Task.[task_status] IN {task_status}
+        WHERE {where_str}
         {get_mark(mark)}
         {get_order(user_order, order_type)}
         '''

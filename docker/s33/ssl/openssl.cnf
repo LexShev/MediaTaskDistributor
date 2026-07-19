@@ -2,7 +2,6 @@
 default_bits       = 2048
 distinguished_name = req_distinguished_name
 req_extensions     = req_ext
-x509_extensions    = v3_ca
 prompt             = no
 
 [req_distinguished_name]
@@ -16,11 +15,11 @@ CN = tvfab.local
 [req_ext]
 subjectAltName = @alt_names
 
-[v3_ca]
-subjectAltName = @alt_names
+[v3_server]
 basicConstraints = CA:FALSE
-keyUsage = digitalSignature, keyEncipherment
+keyUsage         = digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+subjectAltName   = @alt_names
 
 [alt_names]
 DNS.1 = tvfab.local

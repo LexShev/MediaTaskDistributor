@@ -7,6 +7,7 @@ new Sortable(fullList, {
 	ghostClass: "custom-ghost",
     chosenClass: "custom-chosen",
     dragClass: "custom-drag",
+    filter: ".sftp-btn, .material_name, .material_link",
     onEnd: WriteOrder
 });
 
@@ -24,6 +25,7 @@ containers.forEach(container => {
 	ghostClass: "custom-ghost",
     chosenClass: "custom-chosen",
     dragClass: "custom-drag",
+    filter: ".sftp-btn, .material_name, .material_link",
     onEnd: WriteOrder
   });
 });
@@ -256,3 +258,82 @@ function convertFramesToTime(frames, fps = 25) {
         }
     }
 };
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};
+
+function copyToSFTP(fileInfo) {
+    console.log('copy queue started')
+    const fileId = fileInfo.dataset?.fileId || null
+    const filePath = fileInfo.dataset?.filePath || null
+
+    if (!fileId && !filePath) {
+        console.error('No FileInfo')
+        showToast('Ошибка: отсутствует информация о файле', 'error')
+        return
+    }
+    fetch('/file_copy_to_sftp/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({
+        'file_id': fileId,
+        'file_path': filePath
+    }),
+    credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            console.log('copy success')
+                showToast('Начинается загрузка на SFTP...', 'info')
+        }
+        else {
+            console.log('error', data.message)
+            showToast(`Ошибка: ${data.message || 'Не удалось загрузить файл'}`, 'error')
+        }
+    })
+    .catch(error => {
+        console.error('Error checking poster:', error);
+    });
+}
+
+function showToast(message, type = 'success') {
+    const toastEl = document.getElementById('sftpToast');
+    const toast = new bootstrap.Toast(toastEl, {
+        delay: 5000,  // автоматически скроется через 3 секунды
+        animation: true
+    });
+
+    // Устанавливаем цвет фона в зависимости от типа
+    const colors = {
+        success: 'bg-success-subtle text-success-subtle border-success-subtle',
+        error: 'bg-danger-subtle text-danger-subtle border danger-subtle',
+        warning: 'bg-warning-subtle text-warning-emphasis border-warning-subtle',
+        info: 'bg-info-subtle text-info-subtle border-info-subtle'
+    };
+
+    // Очищаем предыдущие классы и добавляем новые
+    toastEl.className = `toast align-items-center border ${colors[type] || colors.success}`;
+
+    // Устанавливаем сообщение
+    toastEl.querySelector('.toast-body').textContent = message;
+
+    // Показываем toast
+    toast.show();
+}

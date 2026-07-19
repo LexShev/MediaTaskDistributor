@@ -83,6 +83,13 @@ def week(request):
 def week_date(request, work_year, work_week):
     user_id = request.user.id
     user_group = request.user.groups.first().id
+    def safe_literal_eval(value, default=None):
+        if not value:
+            return default
+        try:
+            return ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            return default
     try:
         inst_dict = ModelFilter.objects.get(owner=user_id)
     except ObjectDoesNotExist:
@@ -117,10 +124,10 @@ def week_date(request, work_year, work_week):
             filter_form.save()
             sorting_form.save()
 
-            schedules = ast.literal_eval(filter_form.cleaned_data.get('schedules'))
-            workers = ast.literal_eval(filter_form.cleaned_data.get('workers'))
-            material_type = ast.literal_eval(filter_form.cleaned_data.get('material_type'))
-            task_status = ast.literal_eval(filter_form.cleaned_data.get('task_status'))
+            schedules = safe_literal_eval(filter_form.cleaned_data.get('schedules'), ())
+            workers = safe_literal_eval(filter_form.cleaned_data.get('workers'), ())
+            material_type = safe_literal_eval(filter_form.cleaned_data.get('material_type'), ())
+            task_status = safe_literal_eval(filter_form.cleaned_data.get('task_status'), ())
 
             user_order = sorting_form.cleaned_data.get('user_order')
             order_type = sorting_form.cleaned_data.get('order_type')
@@ -134,10 +141,10 @@ def week_date(request, work_year, work_week):
             user_order = 'sched_date'
             order_type = 'ASC'
     else:
-        schedules = ast.literal_eval(inst_dict.schedules)
-        workers = ast.literal_eval(inst_dict.workers)
-        material_type = ast.literal_eval(inst_dict.material_type)
-        task_status = ast.literal_eval(inst_dict.task_status)
+        schedules = safe_literal_eval(inst_dict.schedules, ())
+        workers = safe_literal_eval(inst_dict.workers, ())
+        material_type = safe_literal_eval(inst_dict.material_type, ())
+        task_status = safe_literal_eval(inst_dict.task_status, ())
 
         user_order = sorting_inst_dict.user_order
         order_type = sorting_inst_dict.order_type
