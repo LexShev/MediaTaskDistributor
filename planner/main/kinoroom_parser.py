@@ -2,6 +2,8 @@ import datetime
 import re
 from typing import List, Dict
 from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import connections
 import os
 import requests
@@ -24,17 +26,19 @@ def download_poster(program_id, movie_id):
         'https://en-images-s.kinorium.com/movie/400/',
     ]
 
-    os.makedirs(settings.MEDIA_POSTERS, exist_ok=True)
-    image_filename = os.path.join(settings.MEDIA_POSTERS, f'{program_id}.jpg')
+    s3_key = f'posters/{program_id}.jpg'
 
-    if os.path.exists(image_filename):
-        return 'success'
+    try:
+        if default_storage.exists(s3_key):
+            return 'success'
+    except Exception:
+        pass
 
     for base_url in base_urls:
         poster_url = f'{base_url}{movie_id}.jpg'
         try:
             response = requests.get(poster_url, headers=headers, stream=True, timeout=10)
-            print(image_filename, poster_url)
+            print(s3_key, poster_url)
 
             if response.status_code == 200:
                 content_type = response.headers.get('content-type', '')
@@ -45,11 +49,9 @@ def download_poster(program_id, movie_id):
                 if not 1024*2 < file_size < 1024*1024*10:
                     continue
 
-                with open(image_filename, 'wb') as f:
-                    for chunk in response.iter_content(8192):
-                        f.write(chunk)
-                    insert_into_db(program_id)
-                    return 'success'
+                default_storage.save(s3_key, ContentFile(response.content))
+                insert_into_db(program_id)
+                return 'success'
 
         except (requests.RequestException, OSError) as e:
             print(e)
@@ -175,9 +177,12 @@ def calculate_match_score(query: Dict, movie: Dict) -> tuple:
     return title_score, year_score, country_score
 
 def search(query: Dict, threshold: float = 0.7) -> Dict:
-    image_filename = os.path.join(settings.MEDIA_POSTERS, f"{query['program_id']}.jpg")
-    if os.path.exists(image_filename):
-        return {}
+    s3_key = f"posters/{query['program_id']}.jpg"
+    try:
+        if default_storage.exists(s3_key):
+            return {}
+    except Exception:
+        pass
     results = []
     movie_list = poster_parser(query)
     if not movie_list:
@@ -202,11 +207,15 @@ def search(query: Dict, threshold: float = 0.7) -> Dict:
 
 
 def check_db(program_id):
-    image_filename = os.path.join(settings.MEDIA_POSTERS, f'{program_id}.jpg')
+    s3_key = f'posters/{program_id}.jpg'
+    try:
+        storage_exists = default_storage.exists(s3_key)
+    except Exception:
+        storage_exists = False
     with connections[PLANNER_DB].cursor() as cursor:
         query = f'SELECT [exists] FROM [{PLANNER_DB}].[dbo].[poster_list] WHERE [program_id] = {program_id}'
         cursor.execute(query)
-        if cursor.fetchone() and os.path.exists(image_filename):
+        if cursor.fetchone() and storage_exists:
             return True
     return False
 

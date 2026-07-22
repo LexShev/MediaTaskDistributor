@@ -47,5 +47,5 @@ COPY planner/planner/ ./planner/
 COPY planner/distribution/ ./distribution/
 COPY planner/tools/ ./tools/
 
-# Создаём директории для логов, если нужно
-RUN mkdir -p /app/logs && chmod 777 /app/logs
+# Создаём директории для логов и media (временное хранилище перед S3)
+RUN mkdir -p /app/logs /app/media/{waveforms,posters,attached_files,chat_files} && chmod 777 /app/logs /app/media

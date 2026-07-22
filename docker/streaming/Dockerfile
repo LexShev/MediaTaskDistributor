@@ -47,6 +47,8 @@ COPY planner/planner/ ./planner/
 COPY planner/distribution/ ./distribution/
 COPY planner/tools/ ./tools/
 
+RUN mkdir -p /app/media/waveforms /app/media/posters /app/media/attached_files /app/media/chat_files
+
 RUN chown -R celery_worker:celery_worker /app
 
 USER celery_worker

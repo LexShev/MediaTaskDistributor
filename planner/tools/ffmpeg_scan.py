@@ -4,12 +4,11 @@ import os
 import subprocess
 from datetime import datetime
 from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 from django.db import connections
 
-from planner.celery_settings import S3_BUCKET_NAME
 from planner.mongo_settings import mongo_connection
-from planner.s3_manager import s3_client
 from planner.settings import OPLAN_DB, DEFAULT_LOG_DIR, MEDIA_WAVEFORMS
 
 
@@ -111,21 +110,20 @@ class R128Scanner:
                 f"loudnorm=I={self.r128_i}:LRA={self.r128_lra}:TP={self.r128_tp}:print_format=json",
                 "-f", "null", "-",
             ]
-
-            output = subprocess.Popen(
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            env['LC_ALL'] = 'C.UTF-8'
+            result = subprocess.run(
                 command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-                encoding='utf-8',
-                errors='replace',
-                bufsize=1,
+                capture_output=True,
+                env=env,
                 creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
                 shell=False
             )
+            output = result.stderr.decode('utf-8', errors='replace')
 
             loudnorm_stats = []
-            for line in output.stdout:
+            for line in output.splitlines():
                 if any(key in line for key in ['input_i', 'input_tp', 'input_lra', 'input_thresh']):
                     loudnorm_stats.append(line.replace(',', ''))
 
@@ -139,14 +137,14 @@ class R128Scanner:
                     'file_processed': True
                 }, db_status
             else:
+                if result.returncode != 0:
+                    stderr_lines = output.strip()
+                    self.logger.error(f"ffmpeg loudnorm failed for file_id: {self.file_id}, file_path: {self.ffmpeg_file_path}: {stderr_lines}")
                 return {
                     'status': 'error',
                     'file_processed': False
                 }, {}
 
-        except subprocess.CalledProcessError as error:
-            self.logger.error(f"ERROR processing for {self.file_path}: {error.stderr.decode('utf-8')}")
-            raise Exception(f"ERROR processing for {self.file_path}: {error.stderr.decode('utf-8')}")
         except Exception as error:
             self.logger.error(f"ERROR processing for {self.file_path}: {error}")
             raise
@@ -156,37 +154,43 @@ class R128Scanner:
             command = [
                 "ffmpeg",
                 "-hide_banner",
-                "-loglevel", "info",
+                "-loglevel", "error",
                 '-y',
                 "-i", f"{self.ffmpeg_file_path}",
                 "-filter_complex", "showwavespic=s=2000x800:scale=cbrt:draw=full",
                 "-frames:v", '1',
                 self.image_file
             ]
-            subprocess.check_output(
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            env['LC_ALL'] = 'C.UTF-8'
+            result = subprocess.run(
                 command,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-                encoding='utf-8',
-                errors='replace',
+                capture_output=True,
+                env=env,
                 creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
                 shell=False
             )
+            if result.returncode != 0:
+                stderr = result.stderr.decode('utf-8', errors='replace').strip()
+                self.logger.error(f"ffmpeg waveform failed for file_id: {self.file_id}, file_path: {self.ffmpeg_file_path}: {stderr}")
+                return {'status': 'error', 'waveforms_created': False, 'message': stderr}
+
             if os.path.exists(self.image_file):
                 self._insert_or_update_db({'waveforms': True})
                 self._insert_or_update_db({'file_path': self.file_path})
 
-                self.logger.warning("Waveforms S3 saving started")
-                bucket_name = S3_BUCKET_NAME
+                self.logger.warning("Waveforms storage saving started")
                 s3_key = f'waveforms/{self.file_id}.png'
 
                 with open(self.image_file, 'rb') as img:
-                    s3_client.upload_fileobj(img, bucket_name, s3_key)
+                    default_storage.save(s3_key, ContentFile(img.read()))
 
                 self.logger.info('waveforms generated and saved')
 
-                return {'status': 'success', 'waveforms_created': True, 'message': 'file does not exist'}
+                return {'status': 'success', 'waveforms_created': True, 'message': 'waveforms saved'}
             else:
+                self.logger.error(f"waveform image not created for file_id: {self.file_id}, file_path: {self.ffmpeg_file_path}")
                 return {'status': 'error', 'waveforms_created': False}
         except Exception as e:
             self.logger.error(f"Error data writing in MongoDB for file_id: {self.file_id}, file_path: {self.ffmpeg_file_path}: {e}")

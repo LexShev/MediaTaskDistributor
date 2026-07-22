@@ -3,6 +3,7 @@ import re
 
 from django.template.defaulttags import register
 from django.db import connections
+from django.conf import settings
 import os
 
 from main.settings.main_settings import get_main_settings
@@ -237,25 +238,42 @@ def waveform_exists(file_id):
     if not file_id:
         return False
 
-    waveform_path = os.path.join(MEDIA_WAVEFORMS, f'{file_id}.png')
-    return os.path.isfile(waveform_path)
+    from django.core.files.storage import default_storage
+    s3_path = f'waveforms/{file_id}.png'
+    try:
+        return default_storage.exists(s3_path)
+    except Exception:
+        waveform_path = os.path.join(MEDIA_WAVEFORMS, f'{file_id}.png')
+        return os.path.isfile(waveform_path)
 
-# from django.core.files.storage import default_storage
-# @register.filter
-# def waveform_exists(file_id):
-#     """Проверяет существование waveform в S3"""
-#     s3_path = f'waveforms/{file_id}.png'
-#     return default_storage.exists(s3_path)
-#
-# @register.simple_tag
-# def waveform_url(file_id):
-#     """Генерирует URL для waveform из S3"""
-#     if not file_id:
-#         return ''
-#     s3_path = f'waveforms/{file_id}.png'
-#     if default_storage.exists(s3_path):
-#         return default_storage.url(s3_path)
-#     return f'{MEDIA_WAVEFORMS}/no_wave.png'
+
+@register.simple_tag
+def waveform_url(file_id):
+    from django.core.files.storage import default_storage
+
+    if file_id:
+        s3_path = f'waveforms/{file_id}.png'
+        try:
+            if default_storage.exists(s3_path):
+                return default_storage.url(s3_path)
+        except Exception:
+            pass
+
+    try:
+        return default_storage.url('defaults/no_wave.png')
+    except Exception:
+        return f'{settings.MEDIA_URL}waveforms/no_wave.png'
+
+
+@register.filter
+def file_url(file_field):
+    """Безопасно получает URL из FileField"""
+    try:
+        if file_field:
+            return file_field.url
+    except Exception:
+        pass
+    return ''
 
 @register.filter
 def convert_frames_to_time(frames, fps=25):

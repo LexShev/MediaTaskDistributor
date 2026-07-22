@@ -25,4 +25,5 @@ subjectAltName   = @alt_names
 DNS.1 = tvfab.local
 DNS.2 = transcoder.tvfab.local
 DNS.3 = ai.tvfab.local
+DNS.4 = s3.tvfab.local
 IP.1  = 192.168.33.33

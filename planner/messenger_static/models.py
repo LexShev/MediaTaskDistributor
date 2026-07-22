@@ -43,6 +43,15 @@ class Message(models.Model):
                 return 'document'
         return None
 
+    @property
+    def safe_url(self):
+        try:
+            if self.file_path:
+                return self.file_path.url
+        except Exception:
+            pass
+        return ''
+
     class Meta:
         db_table = 'messenger_static_message'
         ordering = ['timestamp']

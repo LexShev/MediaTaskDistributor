@@ -36,6 +36,15 @@ class AttachedFiles(Model):
                 return 'document'
         return None
 
+    @property
+    def safe_url(self):
+        try:
+            if self.file_path:
+                return self.file_path.url
+        except Exception:
+            pass
+        return ''
+
     class Meta:
         ordering = ['timestamp']
 

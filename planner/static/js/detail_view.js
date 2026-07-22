@@ -350,9 +350,9 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                poster.src = src;
-                console.log('success', src)
+            if (data.status === 'success' && data.url) {
+                poster.src = data.url;
+                console.log('success', data.url)
             }
             else {
                 poster.src = fallback;

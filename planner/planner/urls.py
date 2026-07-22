@@ -45,5 +45,7 @@ urlpatterns = ([
     path("file-manager/", include('file_manager.urls')),
     path("authorize/", include('django.contrib.auth.urls')),
     path("authorize/", include('workers.urls'))
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT))
+
+if not getattr(settings, 'USE_S3_STORAGE', False):
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
