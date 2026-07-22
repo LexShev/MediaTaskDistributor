@@ -31,7 +31,7 @@ services:
       - .env
     restart: unless-stopped
     networks:
-      - web-network
+      - django_web_network
 
   asgi:
     container_name: django_asgi
@@ -56,7 +56,7 @@ services:
       - .env
     restart: unless-stopped
     networks:
-      - web-network
+      - django_web_network
 
   nginx:
     container_name: django_nginx
@@ -77,9 +77,9 @@ services:
       - asgi
     restart: unless-stopped
     networks:
-      - web-network
+      - django_web_network
 
 networks:
-  web-network:
+  django_web_network:
     driver: bridge
     name: django_web_network

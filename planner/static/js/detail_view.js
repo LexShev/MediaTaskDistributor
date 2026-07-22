@@ -371,8 +371,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function enlargeImage(file) {
     const modalImage = document.getElementById('modalImage');
     const modalLabel = document.getElementById('imageModalLabel');
-    fileName = file.dataset.fileName
-    filePath = file.dataset.filePath;
+    const fileName = file.dataset.fileName;
+    const filePath = file.dataset.filePath;
     const fileType = file.dataset.fileType;
     if (fileType === 'image') {
             const imageModal = bootstrap.Modal.getInstance(document.getElementById('imageModal')) ||
@@ -384,10 +384,10 @@ function enlargeImage(file) {
         }
     }
     else {
-        const link = document.createElement('a');
-        link.href = filePath;
-        link.download = fileName;
-        link.click();
+        const downloadUrl = file.dataset.downloadUrl;
+        if (downloadUrl) {
+            window.location.href = downloadUrl;
+        }
     }
 };
 

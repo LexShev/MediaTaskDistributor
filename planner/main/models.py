@@ -45,6 +45,22 @@ class AttachedFiles(Model):
             pass
         return ''
 
+    @property
+    def download_url(self):
+        try:
+            if self.file_path:
+                filename = self.file_path.name.split('/')[-1]
+                try:
+                    return self.file_path.storage.url(
+                        self.file_path.name,
+                        parameters={'ResponseContentDisposition': f'attachment; filename="{filename}"'}
+                    )
+                except TypeError:
+                    return self.file_path.url
+        except Exception:
+            pass
+        return ''
+
     class Meta:
         ordering = ['timestamp']
 

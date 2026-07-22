@@ -41,12 +41,12 @@
     </thead>
     <tbody>
       {% for file in attached_files %}
-        {% with furl=file.safe_url %}
+        {% with furl=file.safe_url durl=file.download_url %}
         <tr>
           <th scope="row">
             <div class="d-flex">
-              {% if furl %}
-              <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="{{ furl }}" download>
+              {% if durl %}
+              <a class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="{{ durl }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
                   <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
                 </svg>
@@ -54,7 +54,10 @@
               {% endif %}
               <h6 class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover ms-2"
                      onclick="enlargeImage(this)" style="cursor: pointer;"
-                     data-file-name="{{ file.file_path.name|file_name}}" data-file-path="{{ furl }}"
+                     data-file-name="{{ file.file_path.name|file_name}}"
+                     data-file-path="{{ furl }}"
+                     data-download-url="{{ durl }}"
+                     data-file-id="{{ file.id }}"
                      data-file-type="{{ file.file_type }}">
                 {{ file.file_path.name|file_name }}
               </h6>
