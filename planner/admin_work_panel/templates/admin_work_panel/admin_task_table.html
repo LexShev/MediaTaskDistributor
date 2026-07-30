@@ -23,7 +23,8 @@
     </symbol>
 </svg>
 
-<table class="table table-hover align-middle">
+<div class="table-scroll-container">
+<table class="table table-hover align-middle mb-0">
   <thead>
     <tr>
       <th style="width: 1%;"><input class="form-check-input me-1" type="checkbox" value="" id="full_select" onclick="changeProgramIdCheckbox()"></th>
@@ -151,18 +152,18 @@
       </th>
     </tr>
   </thead>
-  <tbody class="table-group-divider overflow-auto" id="tableBody">
+  <tbody class="table-group-divider" id="tableBody">
     {% for task, dynamic_selector in task_list_zip %}
       <tr class="{% if task.is_deleted %}text-decoration-line-through{% elif task.Task_archived %}fst-italic{% endif %}">
         <td>
           <input class="form-check-input me-1" type="checkbox"
+                 data-program-id="{{ task.Task_program_id }}"
                  value="{{ task.Task_program_id }}"
                  name="program_id_check">
-          <input class="visually-hidden" type="text" value="{{ task.Task_program_id }}" name="program_id">
         </td>
         <td>
         <a href="{% url 'home' %}{{ task.Task_program_id }}" class="link-body-emphasis link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
-        {{ forloop.counter }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a>
+        {{ forloop.counter0|add:page_obj.start_index }}. {{ task.Progs_name }}{% if task.Progs_production_year %} ({{ task.Progs_production_year }}){% endif %}</a>
           {% if task.comments %}
           <div class="btn-group dropend">
             <button type="button" onclick="adjustTextarea(this)" class="btn btn-sm dropdown-toggle align-items-center text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill ms-4" data-bs-toggle="dropdown" aria-expanded="false" data-bs-offset="10,20" id="comment">{{ task.comments|length }} </button>
@@ -205,3 +206,5 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
+

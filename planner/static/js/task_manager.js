@@ -1,238 +1,103 @@
-window.addEventListener('load', function() {
-    let fullSelectCheckbox = document.getElementById('full_select');
-    let program_id_check_list = document.getElementsByName('program_id_check');
-    program_id_check_list.forEach(function(program_id_check) {
-        program_id_check.addEventListener('change', changeFullSelect);
+document.addEventListener('DOMContentLoaded', function() {
+    loadTable();
+    document.getElementById('search_input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            applyFilters();
+        }
     });
-
-    function changeFullSelect() {
-        let checked_list = [];
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            if (program_id_check_list[i].checked) {
-                checked_list.push(program_id_check_list[i]);
-            }
-        };
-        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
-            fullSelectCheckbox.indeterminate = true;
-            fullSelectCheckbox.checked = false;
-        }
-        else if (checked_list.length == program_id_check_list.length) {
-            fullSelectCheckbox.indeterminate = false;
-            fullSelectCheckbox.checked = true;
-        }
-        else if (checked_list.length == 0) {
-            fullSelectCheckbox.indeterminate = false;
-            fullSelectCheckbox.checked = false;
-        }
-    };
 });
 
-function adjustTextarea(dropdown) {
-    let textarea_list = dropdown.parentElement.getElementsByTagName('textarea');
-    Array.from(textarea_list).forEach(function(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = (textarea.scrollHeight+10) + 'px';
-    });
-};
+function loadTable(page) {
+    page = page || 1;
+    document.getElementById('admin_task_table').innerHTML =
+        '<div class="text-center py-5">' +
+            '<div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">' +
+                '<span class="visually-hidden">Загрузка данных...</span>' +
+            '</div>' +
+            '<p class="mt-3">Идет загрузка таблицы...</p>' +
+        '</div>';
 
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('/task_manager/load_admin_task_table/')
+    return fetch('/task_manager/load_admin_task_table/?page=' + page)
         .then(response => response.json())
         .then(data => {
             document.getElementById('admin_task_table').innerHTML = data.html;
+            document.getElementById('pagination_container').innerHTML = data.pagination || '';
+            if (data.order) {
+                document.getElementById('order').value = data.order;
+            }
+            if (data.order_type) {
+                document.getElementById('order_type').value = data.order_type;
+            }
             updateMainProgramId();
-            fastSearch();
-            totalCalc();
         })
         .catch(error => {
             document.getElementById('admin_task_table').innerHTML = `
                 <div class="alert alert-danger">Ошибка загрузки данных</div>
             `;
-    });
-});
-
-function changeProgramIdCheckbox() {
-    let fullSelectCheckbox = document.getElementById('full_select');
-    let tableBody = document.getElementById('tableBody');
-    let visibleCheckboxes = tableBody.querySelectorAll('tr:not([style*="display: none"]) input[name="program_id_check"]');
-    let checkedVisibleList = [];
-        visibleCheckboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            checkedVisibleList.push(checkbox);
-        }
-    });
-
-    if (checkedVisibleList.length > 0) {
-        // Если есть выделенные видимые чекбоксы - снимаем выделение
-        fullSelectCheckbox.indeterminate = false;
-        fullSelectCheckbox.checked = false;
-        visibleCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
         });
-    } else {
-        // Если нет выделенных видимых чекбоксов - выделяем все видимые
-        fullSelectCheckbox.indeterminate = false;
-        fullSelectCheckbox.checked = true;
-        visibleCheckboxes.forEach(checkbox => {
-            checkbox.checked = true;
-        });
-    }
-};
+}
 
-function updateMainProgramId() {
-    let fullSelectCheckbox = document.getElementById('full_select');
-    let program_id_check_list = document.getElementsByName('program_id_check');
-    program_id_check_list.forEach(function(program_id_check) {
-        program_id_check.addEventListener('change', changeFullSelect);
+function applyFilters() {
+    var filters = {};
+    var filterFields = ['ready_date', 'sched_date', 'deadline', 'worker_id',
+                        'material_type', 'sched_id', 'task_status', 'extra_set'];
+    filterFields.forEach(function(id) {
+        var el = document.getElementById(id);
+        filters[id] = el ? el.value : '';
     });
 
-    function changeFullSelect() {
-        let checked_list = [];
-        for (let i = 0; i < program_id_check_list.length; i++) {
-            if (program_id_check_list[i].checked) {
-                checked_list.push(program_id_check_list[i]);
-            }
-        };
-        if (0 < checked_list.length && checked_list.length < program_id_check_list.length) {
-            fullSelectCheckbox.indeterminate = true;
-            fullSelectCheckbox.checked = false;
+    var search = {};
+    var searchFields = ['search_type', 'search_input', 'sql_set'];
+    searchFields.forEach(function(id) {
+        var el = document.getElementById(id);
+        search[id] = el ? el.value : '';
+    });
+
+    fetch('/task_manager/save_filters/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({filters: filters, search: search}),
+        credentials: 'same-origin'
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.status === 'success') {
+            loadTable(1);
         }
-        else if (checked_list.length == program_id_check_list.length) {
-            fullSelectCheckbox.indeterminate = false;
-            fullSelectCheckbox.checked = true;
-        }
-        else if (checked_list.length == 0) {
-            fullSelectCheckbox.indeterminate = false;
-            fullSelectCheckbox.checked = false;
-        }
-    };
-};
+    })
+    .catch(function(error) {
+        console.error('Error saving filters:', error);
+    });
+}
 
-function showApproveTaskChange() {
-    let checked_list = document.getElementsByName('program_id_check');
-    let program_id_check_list = [];
-    for (let i = 0; i < checked_list.length; i++) {
-        if (checked_list[i].checked) {
-            program_id_check_list.push(checked_list[i].value);}
-        }
-    if (program_id_check_list.length > 0) {
-        ApproveTaskChange = new bootstrap.Modal(document.getElementById('ApproveTaskChange'));
-        ApproveTaskChange.toggle();
-    }
-    else {
-        console.log('error');
-        errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-        errorModal.toggle();
-    }
-};
-
-document.getElementById('search_input').addEventListener('keyup', fastSearch);
-document.getElementById('search_type').addEventListener('change', fastSearch);
-
-function fastSearch() {
-    let filter = document.getElementById('search_input').value.toLowerCase();
-    let tableBody = document.getElementById('tableBody');
-    let rows = tableBody.getElementsByTagName('tr');
-    let searchSettings = document.getElementById('search_type').value;
-    if (searchSettings == 0) {
-        for (let i = 0; i < rows.length; i++) {
-            let nameCell = rows[i].getElementsByTagName('td')[0];
-            if (nameCell) {
-                let idValue = nameCell.querySelector('input')?.value
-                rows[i].style.display = idValue.indexOf(filter) > -1 ? '' : 'none';
-            }
-        }
-    }
-    if (searchSettings == 1) {
-        for (let i = 0; i < rows.length; i++) {
-            let nameCell = rows[i].getElementsByTagName('td')[1];
-            if (nameCell) {
-                let textValue = (nameCell.textContent || nameCell.innerText).toLowerCase();
-                rows[i].style.display = textValue.indexOf(filter) > -1 ? '' : 'none';
-            }
-        }
-    }
-};
-
-document.getElementById('search_input').addEventListener('keyup', totalCalc);
-function totalCalc() {
-    let tableBody = document.getElementById('tableBody');
-    let rows = tableBody.getElementsByTagName('tr');
-    let totalNum = document.getElementById('total_num');
-    let totalDuration = document.getElementById('total_dur');
-    let visibleCount = 0;
-    let countDuration = 0;
-    for (let i = 0; i < rows.length; i++) {
-        if (rows[i].style.display !== 'none') {
-            let duration = parseFloat(rows[i].getElementsByTagName('td')[6].querySelector('input')?.value);
-            countDuration+=duration;
-            visibleCount++;
-        }
-    };
-
-    totalNum.textContent = `Всего: ${thousands(visibleCount)}`;
-    totalDuration.textContent = `Продолжительность: ${convertFramesToTime(countDuration)}`;
-    return visibleCount;
-};
-
-
-function ResetFilter() {
-    const [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus, extraSet] =
-    ['ready_date', 'sched_date', 'deadline', 'worker_id', 'material_type', 'sched_id', 'task_status', 'extra_set']
-    .map(id => document.getElementById(id));
-
-    [readyDate, schedDate, deadline, workerId, materialType, schedId, taskStatus, extraSet].forEach(el => {el.value = '';});
-
-    document.getElementById('admin_form').submit();
-
-};
-
-function convertFramesToTime(frames, fps = 25) {
-    const sec = parseInt(frames) / fps;
-    const yy = Math.floor(Math.floor(sec / 3600 / 24) / 365);
-    const dd = Math.floor(Math.floor(sec / 3600 / 24) % 365);
-    const hh = Math.floor((sec / 3600) % 24);
-    const mm = Math.floor((sec % 3600) / 60);
-    const ss = Math.floor((sec % 3600) % 60);
-    const ff = Math.floor((sec % 1) * fps);
-
-    const formatNum = num => num.toString().padStart(2, '0');
-
-    if (yy < 1) {
-        if (dd < 1) {
-            return `${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
-        } else {
-            return `${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
-        }
-    } else {
-        if (0 < yy % 10 && yy % 10 < 5) {
-            return `${formatNum(yy)}г. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
-        } else {
-            return `${formatNum(yy)}л. ${formatNum(dd)}д. ${formatNum(hh)}:${formatNum(mm)}:${formatNum(ss)}`;
-        }
-    }
-};
-
-function thousands(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-};
+function resetFilters() {
+    var filterFields = ['ready_date', 'sched_date', 'deadline', 'worker_id',
+                        'material_type', 'sched_id', 'task_status', 'extra_set'];
+    filterFields.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.value = ''; }
+    });
+    var searchInput = document.getElementById('search_input');
+    if (searchInput) { searchInput.value = ''; }
+    applyFilters();
+}
 
 function sortTable(element) {
-    let order = element.dataset.order;
-
-    let curOrder = document.getElementById('order').value
-    let curOrderType = document.getElementById('order_type').value
+    var order = element.dataset.order;
+    var curOrderEl = document.getElementById('order');
+    var curOrderTypeEl = document.getElementById('order_type');
+    var curOrder = curOrderEl ? curOrderEl.value : '';
+    var curOrderType = curOrderTypeEl ? curOrderTypeEl.value : 'ASC';
 
     if (order === curOrder) {
-        if (curOrderType === 'DESC') {
-            curOrderType = 'ASC';
-        }
-        else {
-            curOrderType = 'DESC'
-        }
-    }
-    else {
-        curOrderType = 'ASC'
+        curOrderType = (curOrderType === 'DESC') ? 'ASC' : 'DESC';
+    } else {
+        curOrderType = 'ASC';
     }
 
     fetch('/task_manager/sort_table/', {
@@ -245,25 +110,244 @@ function sortTable(element) {
         body: JSON.stringify([order, curOrderType]),
         credentials: 'same-origin'
     })
-    .then(response => {
-        if (!response.ok) {
-            console.error('HTTP error! status:', response.status);
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.status === 'success') {
+            if (curOrderEl) { curOrderEl.value = order; }
+            if (curOrderTypeEl) { curOrderTypeEl.value = curOrderType; }
+            loadTable(1);
         }
-        console.log('Success: Table sorted successfully');
-
-        window.location.href = '/task_manager/'
     })
-    .catch(error => {
-        console.error('Error:', error.message);
+    .catch(function(error) {
+        console.error('Error sorting:', error);
     });
-};
+}
+
+function showApproveTaskChange() {
+    var checked = getCheckedCheckboxes();
+    if (checked.length === 0) {
+        var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        errorModal.show();
+        return;
+    }
+    var approveModal = new bootstrap.Modal(document.getElementById('ApproveTaskChange'));
+    approveModal.show();
+}
+
+function batchAction() {
+    var changeType = document.getElementById('change_type').value;
+    var checkboxes = getCheckedCheckboxes();
+    var checkedValues = checkboxes.map(function(cb) { return cb.value; });
+    var allCheckboxes = document.getElementsByName('program_id_check');
+
+    var payload = {
+        change_type: changeType,
+        program_id_check: checkedValues
+    };
+
+    if (changeType === '1') {
+        var programIds = [];
+        var engineers = [];
+        var workDates = [];
+        var statuses = [];
+        var filePaths = [];
+        for (var i = 0; i < allCheckboxes.length; i++) {
+            var cb = allCheckboxes[i];
+            var pid = cb.value;
+            programIds.push(pid);
+
+            var engEl = document.getElementById('workers_selector_' + pid);
+            var wdEl = document.getElementById('work_date_selector_' + pid);
+            var stEl = document.getElementById('status_selector_' + pid);
+            var fpEl = document.getElementById('file_path_' + pid);
+
+            engineers.push(engEl ? engEl.value : '');
+            workDates.push(wdEl ? wdEl.value : '');
+            statuses.push(stEl ? stEl.value : '');
+            filePaths.push(fpEl ? fpEl.value : '');
+        }
+        payload.program_id = programIds;
+        payload.engineers = engineers;
+        payload.work_dates = workDates;
+        payload.new_statuses = statuses;
+        payload.file_paths = filePaths;
+    } else if (changeType === '3') {
+        var programIds = [];
+        var workDates = [];
+        for (var i = 0; i < allCheckboxes.length; i++) {
+            var cb = allCheckboxes[i];
+            var pid = cb.value;
+            programIds.push(pid);
+            var wdEl = document.getElementById('work_date_selector_' + pid);
+            workDates.push(wdEl ? wdEl.value : '');
+        }
+        payload.program_id = programIds;
+        payload.work_dates = workDates;
+    }
+
+    fetch('/task_manager/batch_action/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(payload),
+        credentials: 'same-origin'
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        var approveModal = bootstrap.Modal.getInstance(document.getElementById('ApproveTaskChange'));
+        if (approveModal) { approveModal.hide(); }
+
+        if (data.status === 'success') {
+            loadTable(1).then(function() {
+                showMessage(data.message, 'success');
+            });
+        } else {
+            showMessage(data.message, 'danger');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error in batch action:', error);
+        var approveModal = bootstrap.Modal.getInstance(document.getElementById('ApproveTaskChange'));
+        if (approveModal) { approveModal.hide(); }
+        showMessage('Ошибка при выполнении операции', 'danger');
+    });
+}
+
+function showMessage(message, type) {
+    var container = document.getElementById('message_container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'message_container';
+        var table = document.getElementById('admin_task_table');
+        if (table) { table.parentNode.insertBefore(container, table); }
+    }
+    var alert = document.createElement('div');
+    alert.className = 'alert alert-' + type + ' alert-dismissible fade show';
+    alert.role = 'alert';
+    alert.innerHTML = message +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    container.appendChild(alert);
+    setTimeout(function() {
+        if (alert.parentNode) { alert.remove(); }
+    }, 5000);
+}
+
+function switchPageNumber(element) {
+    var pageNum = element.dataset.pageNumber;
+    if (pageNum) {
+        loadTable(pageNum);
+    }
+}
+
+function getCheckedCheckboxes() {
+    var all = document.getElementsByName('program_id_check');
+    var checked = [];
+    for (var i = 0; i < all.length; i++) {
+        if (all[i].checked) {
+            checked.push(all[i]);
+        }
+    }
+    return checked;
+}
+
+function changeProgramIdCheckbox() {
+    var fullSelectCheckbox = document.getElementById('full_select');
+    var tableBody = document.getElementById('tableBody');
+    if (!tableBody) { return; }
+    var visibleCheckboxes = tableBody.querySelectorAll('tr:not([style*="display: none"]) input[name="program_id_check"]');
+
+    var checkedVisibleList = [];
+    visibleCheckboxes.forEach(function(cb) {
+        if (cb.checked) { checkedVisibleList.push(cb); }
+    });
+
+    if (checkedVisibleList.length > 0) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = false;
+        visibleCheckboxes.forEach(function(cb) { cb.checked = false; });
+    } else {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = true;
+        visibleCheckboxes.forEach(function(cb) { cb.checked = true; });
+    }
+}
+
+function updateMainProgramId() {
+    var fullSelectCheckbox = document.getElementById('full_select');
+    var programIdCheckList = document.getElementsByName('program_id_check');
+
+    function changeFullSelect() {
+        var checkedList = [];
+        for (var i = 0; i < programIdCheckList.length; i++) {
+            if (programIdCheckList[i].checked) { checkedList.push(programIdCheckList[i]); }
+        }
+        if (checkedList.length > 0 && checkedList.length < programIdCheckList.length) {
+            fullSelectCheckbox.indeterminate = true;
+            fullSelectCheckbox.checked = false;
+        } else if (checkedList.length === programIdCheckList.length) {
+            fullSelectCheckbox.indeterminate = false;
+            fullSelectCheckbox.checked = true;
+        } else {
+            fullSelectCheckbox.indeterminate = false;
+            fullSelectCheckbox.checked = false;
+        }
+    }
+
+    for (var i = 0; i < programIdCheckList.length; i++) {
+        programIdCheckList[i].addEventListener('change', changeFullSelect);
+    }
+    if (fullSelectCheckbox) {
+        fullSelectCheckbox.indeterminate = false;
+        fullSelectCheckbox.checked = false;
+    }
+}
+
+function adjustTextarea(dropdown) {
+    var textareaList = dropdown.parentElement.getElementsByTagName('textarea');
+    Array.from(textareaList).forEach(function(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight + 10) + 'px';
+    });
+}
+
+function convertFramesToTime(frames, fps) {
+    fps = fps || 25;
+    if (isNaN(frames) || frames === null || frames === undefined) { frames = 0; }
+    var sec = parseInt(frames) / fps;
+    var yy = Math.floor(Math.floor(sec / 3600 / 24) / 365);
+    var dd = Math.floor(Math.floor(sec / 3600 / 24) % 365);
+    var hh = Math.floor((sec / 3600) % 24);
+    var mm = Math.floor((sec % 3600) / 60);
+    var ss = Math.floor((sec % 3600) % 60);
+    var ff = Math.floor((sec % 1) * fps);
+
+    var formatNum = function(num) { return num.toString().padStart(2, '0'); };
+
+    if (yy < 1) {
+        if (dd < 1) {
+            return formatNum(hh) + ':' + formatNum(mm) + ':' + formatNum(ss);
+        } else {
+            return formatNum(dd) + 'д. ' + formatNum(hh) + ':' + formatNum(mm) + ':' + formatNum(ss);
+        }
+    } else {
+        var yearSuffix = (yy % 10 > 0 && yy % 10 < 5) ? 'г. ' : 'л. ';
+        return formatNum(yy) + yearSuffix + formatNum(dd) + 'д. ' + formatNum(hh) + ':' + formatNum(mm) + ':' + formatNum(ss);
+    }
+}
+
+function thousands(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
 
 function getCookie(name) {
-    let cookieValue = null;
+    var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
@@ -271,4 +355,4 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-};
+}

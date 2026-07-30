@@ -1,0 +1,41 @@
+{% if paginator.num_pages > 1 %}
+<nav>
+    <ul class="pagination mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <div class="page-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ page_obj.previous_page_number }}">
+                <span aria-hidden="true">&laquo;</span>
+            </div>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&laquo;</span>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj|page_range_three %}
+            {% if num == page_obj.number %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <div class="page-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ num }}">{{ num }}</div>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <div class="page-link" onclick="switchPageNumber(this)" style="cursor: pointer;" data-page-number="{{ page_obj.next_page_number }}">
+                <span aria-hidden="true">&raquo;</span>
+            </div>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&raquo;</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
