@@ -328,7 +328,7 @@ def calc_otk_deadline():
 
 def comments_history(program_id):
     with connections[PLANNER_DB].cursor() as cursor:
-        columns = 'task_status', 'worker_id', 'comment', 'deadline', 'time_of_change'
+        columns = 'comment_id', 'task_status', 'worker_id', 'comment', 'deadline', 'time_of_change'
         sql_columns = ', '.join(columns)
         query = f'''
         SELECT {sql_columns}

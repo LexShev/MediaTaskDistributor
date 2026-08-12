@@ -527,3 +527,112 @@ function checkCenz() {
         cenzRateForm.title = ''
     }
 }
+
+let currentEditingComment = null;
+
+function EditComment(clickedButton) {
+    const container = clickedButton.closest('.d-flex.align-items-start');
+    if (currentEditingComment && currentEditingComment !== container) {
+        finishCommentEdit(currentEditingComment, false);
+    }
+    startCommentEdit(container);
+}
+
+function startCommentEdit(container) {
+    currentEditingComment = container;
+    const textarea = container.querySelector('textarea');
+    const btnEdit = container.querySelector('[name="btn-edit"]');
+    const btnApply = container.querySelector('[name="btn-apply"]');
+    const btnCancel = container.querySelector('[name="btn-cancel"]');
+
+    btnEdit.style.display = 'none';
+    btnApply.style.display = '';
+    btnCancel.style.display = '';
+    textarea.disabled = false;
+    textarea.focus();
+
+    const handleApply = () => finishCommentEdit(container, true);
+    const handleCancel = () => finishCommentEdit(container, false);
+    const handleOutsideClick = (e) => {
+        if (!container.contains(e.target)) {
+            finishCommentEdit(container, true);
+        }
+    };
+    const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            finishCommentEdit(container, false);
+        } else if (e.key === 'Enter' && e.ctrlKey) {
+            finishCommentEdit(container, true);
+        }
+    };
+
+    btnApply.addEventListener('click', handleApply);
+    btnCancel.addEventListener('click', handleCancel);
+    document.addEventListener('click', handleOutsideClick);
+    textarea.addEventListener('keydown', handleKeyDown);
+
+    container._editHandlers = { handleApply, handleCancel, handleOutsideClick, handleKeyDown };
+}
+
+function finishCommentEdit(container, save) {
+    if (!container) return;
+
+    const textarea = container.querySelector('textarea');
+    const btnEdit = container.querySelector('[name="btn-edit"]');
+    const btnApply = container.querySelector('[name="btn-apply"]');
+    const btnCancel = container.querySelector('[name="btn-cancel"]');
+
+    if (save) {
+        const commentId = textarea.dataset.commentId;
+        const newText = textarea.value;
+        const originalText = textarea.dataset.originalText;
+        if (newText !== originalText) {
+            saveCommentEdit(commentId, newText, textarea);
+        }
+    } else {
+        textarea.value = textarea.dataset.originalText;
+    }
+
+    btnEdit.style.display = '';
+    btnApply.style.display = 'none';
+    btnCancel.style.display = 'none';
+    textarea.disabled = true;
+
+    if (container._editHandlers) {
+        btnApply.removeEventListener('click', container._editHandlers.handleApply);
+        btnCancel.removeEventListener('click', container._editHandlers.handleCancel);
+        document.removeEventListener('click', container._editHandlers.handleOutsideClick);
+        textarea.removeEventListener('keydown', container._editHandlers.handleKeyDown);
+        delete container._editHandlers;
+    }
+
+    if (currentEditingComment === container) {
+        currentEditingComment = null;
+    }
+}
+
+function saveCommentEdit(commentId, newText, textarea) {
+    fetch('/edit_comment/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ comment_id: commentId, new_comment: newText }),
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            textarea.dataset.originalText = newText;
+        } else {
+            textarea.value = textarea.dataset.originalText;
+            console.error(data.message);
+        }
+    })
+    .catch(error => {
+        textarea.value = textarea.dataset.originalText;
+        console.error('Error:', error);
+    });
+}

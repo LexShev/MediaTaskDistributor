@@ -27,7 +27,7 @@ from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiFo
 
 from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, update_comment, insert_history_new, \
-    change_task_status_new, get_task_status, add_mark_no_cenz, insert_history_status, add_mark_cenz
+    change_task_status_new, get_task_status, add_mark_no_cenz, insert_history_status, add_mark_cenz, edit_comment
 from .models import ModelFilter, AttachedFiles, ModelSorting
 from .list_view import list_material_list
 from .object_block import unblock_object_planner, block_object_planner, check_planner_lock, \
@@ -620,6 +620,20 @@ def file_copy_to_sftp(request):
             'message': f'Ошибка! Не удалось скопировать файл: {str(error)}'
         }, status=500)
 
+
+def edit_comment_view(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+    try:
+        data = json.loads(request.body)
+        comment_id = data.get('comment_id')
+        new_comment = data.get('new_comment')
+        if not comment_id or new_comment is None:
+            return JsonResponse({'status': 'error', 'message': 'Нет данных'}, status=400)
+        result = edit_comment(comment_id, request.user.id, new_comment)
+        return JsonResponse(result)
+    except Exception as error:
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
 
 def status_ready(request):
     user_id = request.user.id

@@ -274,6 +274,30 @@ def update_comment(program_id, user_id, task_status=None, comment=None, deadline
         print(error)
         return str(error)
 
+def edit_comment(comment_id, user_id, new_comment):
+    try:
+        with connections[PLANNER_DB].cursor() as cursor:
+            cursor.execute(f'''
+                SELECT [worker_id]
+                FROM [{PLANNER_DB}].[dbo].[comments_history]
+                WHERE [comment_id] = %s
+            ''', (comment_id,))
+            row = cursor.fetchone()
+            if not row:
+                return {'status': 'error', 'message': 'Комментарий не найден'}
+            if int(row[0]) != int(user_id):
+                return {'status': 'error', 'message': 'Редактировать комментарий может только автор'}
+
+            cursor.execute(f'''
+                UPDATE [{PLANNER_DB}].[dbo].[comments_history]
+                SET [comment] = %s
+                WHERE [comment_id] = %s
+            ''', (new_comment, comment_id))
+        return {'status': 'success', 'message': 'Комментарий обновлён'}
+    except Exception as error:
+        print(error)
+        return {'status': 'error', 'message': str(error)}
+
 def get_task_status(program_id):
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(f'SELECT [task_status] FROM [{PLANNER_DB}].[dbo].[task_list] WHERE [program_id] = %s', (program_id,))
