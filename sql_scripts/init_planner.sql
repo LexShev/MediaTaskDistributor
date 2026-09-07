@@ -69,7 +69,8 @@ CREATE TABLE engineers_list
 (
     engineer_id INT PRIMARY KEY,
 	worker_id INT NOT NULL,
-	full_name NVARCHAR(50)
+	full_name NVARCHAR(50),
+	is_active BIT NOT NULL DEFAULT 1
 );
 
 INSERT INTO [planner].[dbo].[engineers_list]

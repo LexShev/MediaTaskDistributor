@@ -208,6 +208,7 @@ def kpi_min(work_date):
         LEFT JOIN [{PLANNER_DB}].[dbo].[vacation_schedule] AS Vac
             ON Eng.[worker_id] = Vac.[worker_id]
             AND CONVERT(DATE, @target_date) BETWEEN Vac.[start_date] AND Vac.[end_date]
+        WHERE Eng.[is_active] = 1
         GROUP BY
             Eng.[worker_id],
             Days.[day_off],
