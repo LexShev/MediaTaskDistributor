@@ -65,7 +65,7 @@ def get_filename_only(windows_path: str) -> str:
     Извлекает только имя файла из Windows-пути.
 
     Args:
-        windows_path: \\192.168.80.5\ContentA\FILMS\F_Muppet Show_2026_LEP_1080p25_H264_10Mbps.mp4
+        windows_path: \\192.168.80.5\ContentB\FILMS\F_Muppet Show_2026_LEP_1080p25_H264_10Mbps.mp4
 
     Returns:
         F_Muppet Show_2026_LEP_1080p25_H264_10Mbps.mp4

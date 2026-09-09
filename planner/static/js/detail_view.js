@@ -152,7 +152,7 @@ dropZone.addEventListener('drop', handleDrop, false);
     if (paragraphs.length >= 2) {
         paragraphs[0].textContent = 'Перетащите файл сюда...';
         paragraphs[1].textContent = '(или кликните для выбора)';
-        paragraphs[2].textContent = 'Убедитесь, что загружаете из папки "ContentA\\0_INTERNET_VIDEO\\_CENZ"';
+        paragraphs[2].textContent = 'Убедитесь, что загружаете из папки "ContentB\\0_INTERNET_VIDEO\\_CENZ"';
     }
   };
 });
