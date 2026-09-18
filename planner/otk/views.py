@@ -8,6 +8,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 
+from main.decorators import ajax_login_required
 from main.detail_view import insert_filepath_history
 from main.logs_and_history import get_task_status, insert_history_status
 from main.permission_pannel import ask_db_permissions
@@ -64,6 +65,7 @@ def otk(request):
             }
     return render(request, 'otk/otk.html', data)
 
+@ajax_login_required
 def set_status_otk(request):
     success_messages = []
     error_messages = []
@@ -106,6 +108,7 @@ def set_status_otk(request):
         messages.error(request, '\n'.join(error_messages))
     return JsonResponse({'status': 'success', 'message': success_messages})
 
+@ajax_login_required
 def set_status_fix_ready(request):
     success_messages = []
     error_messages = []
@@ -134,6 +137,14 @@ def set_status_fix_ready(request):
                 {'sender': user_id, 'recipient': worker_id, 'program_id': program_id,
                  'message': comment, 'comment': 'Исходник исправлен'}
             )
+            create_notification(
+                {'sender': user_id, 'recipient': 14, 'program_id': program_id,
+                 'message': comment, 'comment': 'Исходник исправлен'}
+            )
+            create_notification(
+                {'sender': user_id, 'recipient': 15, 'program_id': program_id,
+                 'message': comment, 'comment': 'Исходник исправлен'}
+            )
         else:
             error_messages.append(answer.get('message'))
     if success_messages:
@@ -142,6 +153,7 @@ def set_status_fix_ready(request):
         messages.error(request, '\n'.join(error_messages))
     return JsonResponse({'status': 'success', 'message': success_messages})
 
+@ajax_login_required
 def set_status_otk_fail(request):
     success_messages = []
     error_messages = []

@@ -36,6 +36,7 @@ from .permission_pannel import ask_db_permissions
 from .templatetags.custom_filters import planner_worker_name
 from .week_view import week_material_list
 from .kpi_admin_panel import kpi_summary_calc, kpi_personal_calc
+from .decorators import ajax_login_required
 from .detail_view import full_info, cenz_info, schedule_info, calc_otk_deadline, \
     comments_history, select_filepath_history, change_oplan_cenz_info, insert_filepath_history
 from .work_calendar import my_work_calendar, drop_day_off, insert_day_off, vacation_info, insert_vacation, drop_vacation
@@ -350,6 +351,7 @@ def load_cenz_data(request):
         print(e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
+@ajax_login_required
 def task_ready_batch(request):
     success_messages = []
     error_messages = []
@@ -416,6 +418,7 @@ def task_ready_batch(request):
         print(error)
         return JsonResponse({'status': 'error', 'message': str(error)})
 
+@ajax_login_required
 def cenz_info_change_batch(request):
     success_messages = []
     error_messages = []
@@ -635,6 +638,7 @@ def edit_comment_view(request):
     except Exception as error:
         return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
 
+@ajax_login_required
 def status_ready(request):
     user_id = request.user.id
     no_cenz, new_values = json.loads(request.body)
@@ -681,6 +685,7 @@ def status_ready(request):
 
     return JsonResponse({'status': 'success', 'message': message})
 
+@ajax_login_required
 def ask_fix(request):
     user_id = request.user.id
     no_cenz, new_values = json.loads(request.body)
@@ -712,6 +717,7 @@ def ask_fix(request):
 
     return JsonResponse({'status': 'success', 'message': message})
 
+@ajax_login_required
 def cenz_info_change(request):
     user_id = request.user.id
     try:

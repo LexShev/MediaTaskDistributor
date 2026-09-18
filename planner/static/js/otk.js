@@ -459,6 +459,10 @@ function setStatusOTK() {
         })
         .then(response => response.json())
         .then(data => {
+            if (data.status === 'auth_error') {
+                window.location.href = `/authorize/login_worker/?next=${window.location.pathname}${window.location.search}`;
+                return;
+            }
             if (data.status === 'success') {
                 window.location.href = `/otk/`;
             }
@@ -509,6 +513,10 @@ function setStatusFIX() {
         })
         .then(response => response.json())
         .then(data => {
+            if (data.status === 'auth_error') {
+                window.location.href = `/authorize/login_worker/?next=${window.location.pathname}${window.location.search}`;
+                return;
+            }
             if (data.status === 'success') {
                 window.location.href = `/otk/`;
             }
@@ -555,6 +563,10 @@ function setStatusOTKFail() {
         })
         .then(response => response.json())
         .then(data => {
+            if (data.status === 'auth_error') {
+                window.location.href = `/authorize/login_worker/?next=${window.location.pathname}${window.location.search}`;
+                return;
+            }
             if (data.status === 'success') {
                 window.location.href = `/otk/`;
             }
