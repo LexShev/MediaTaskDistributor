@@ -21,6 +21,7 @@ urlpatterns = [
     path("get_worker_name/<int:worker_id>/", get_worker_name, name='get_worker_name'),
 
     path("load_cenz_data/", load_cenz_data, name='load_cenz_data'),
+    path("ffmpeg_info/<int:program_id>/", material_card_ffmpeg, name='material_card_ffmpeg'),
     # path("submit_cenz_data/", submit_cenz_data, name='submit_cenz_data'),
 
     path("get_movie_poster/", get_movie_poster, name='get_movie_poster'),

@@ -1,7 +1,7 @@
 from django.db import connections
-from pymongo import MongoClient
 
-from planner.settings import OPLAN_DB, PLANNER_DB, MONGO_HOST
+from planner.settings import OPLAN_DB, PLANNER_DB
+from planner.mongo_settings import mongo_connection
 
 
 def fast_search(program_name) -> list:
@@ -36,24 +36,11 @@ def fast_search(program_name) -> list:
 def search_kinopoisk(program_name) -> list:
     """Поиск фильмов и сериалов в MongoDB по названию (title или original_title)"""
     try:
-        from contextlib import contextmanager
-
-        @contextmanager
-        def mongo_connection(collection_name):
-            client = None
-            try:
-                client = MongoClient(MONGO_HOST)
-                db = client['kinopoisk']  # имя БД
-                yield db[collection_name]
-            finally:
-                if client:
-                    client.close()
-
         results = []
         regex_pattern = f'.*{program_name}.*'
 
         # Ищем в коллекции film
-        with mongo_connection('film') as collection:
+        with mongo_connection('film', db_name='kinopoisk') as collection:
             cursor = collection.find({
                 '$or': [
                     {'title': {'$regex': regex_pattern, '$options': 'i'}},
@@ -76,7 +63,7 @@ def search_kinopoisk(program_name) -> list:
                 })
 
             # Ищем в коллекции series
-        with mongo_connection('series') as collection:
+        with mongo_connection('series', db_name='kinopoisk') as collection:
             cursor = collection.find({
                 '$or': [
                     {'title': {'$regex': regex_pattern, '$options': 'i'}},

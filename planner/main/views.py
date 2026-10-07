@@ -17,7 +17,7 @@ from django.utils import timezone
 from file_manager.models import FileCopyTask
 from messenger_static.messenger_utils import create_notification
 from planner.settings import CURRENT_CENZ_DIR, SERVICE_TYPE, SFTP_FOLDER
-from tools.ffmpeg_processing import start_ffmpeg_scanners
+from tools.ffmpeg_processing import ensure_ffmpeg_scanners_async
 from tools.helpers import normalize_path, get_filename_only
 from tools.tasks import copy_large_file
 
@@ -506,8 +506,7 @@ def material_card(request, program_id):
     file_id = full_info_dict.get('Files_FileID', '')
     file_path = full_info_dict.get('Files_Name', '')
     actions_list = select_actions(program_id)
-    ffmpeg_info = ffmpeg_dict(file_id)
-    start_ffmpeg_scanners(file_id, file_path, ffmpeg_info)
+    ensure_ffmpeg_scanners_async(file_id, file_path)
     data = {
         'full_info': full_info_dict,
         'custom_fields': custom_fields,
@@ -517,7 +516,6 @@ def material_card(request, program_id):
         'actions_list': sorted(actions_list, key=lambda action: action.get('time_of_change') or datetime.min),
         'filepath_history': select_filepath_history(program_id),
         'attached_files': attached_files,
-        'ffmpeg': ffmpeg_info,
         'form_text': form_text,
         'form_drop': form_drop,
         'form_attached_files': form_attached_files,
@@ -528,6 +526,30 @@ def material_card(request, program_id):
     }
 
     return render(request, 'main/full_info_card.html', data)
+
+
+@ajax_login_required
+def material_card_ffmpeg(request, program_id):
+    """Ленивая загрузка блоков MediaInfo и Авто сканеры.
+
+    Обращается к MongoDB отдельно от рендера карточки, поэтому недоступность
+    Mongo/Redis не влияет на скорость загрузки самой страницы.
+    """
+    try:
+        full_info_dict = full_info(program_id)
+        file_id = full_info_dict.get('Files_FileID', '')
+        ffmpeg_info = ffmpeg_dict(file_id)
+        context = {'ffmpeg': ffmpeg_info, 'full_info': full_info_dict}
+        mediainfo_html = render_to_string('main/block_mediainfo_table.html', context, request=request)
+        scanners_html = render_to_string('main/block_scanners.html', context, request=request)
+        return JsonResponse({
+            'status': 'success',
+            'mediainfo_html': mediainfo_html,
+            'scanners_html': scanners_html,
+        })
+    except Exception as error:
+        print(error)
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=500)
 
 
 @login_required

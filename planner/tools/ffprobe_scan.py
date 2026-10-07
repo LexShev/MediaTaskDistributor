@@ -103,6 +103,10 @@ class FfprobeScanner:
         ffprobe_info['ffmpeg_scanners'] = {}
         try:
             with mongo_connection('ffmpeg') as collection:
+                existing = collection.find_one({'_id': self.file_id}, {'_id': 1})
+                if existing:
+                    self.logger.info(f"Data already exists in DB, skipping insert: {self.ffprobe_file_path}")
+                    return {'status': 'success', 'message': 'Data already exists'}
                 collection.insert_one(ffprobe_info)
                 self.logger.info(f"Data was added in DB successfully: {self.ffprobe_file_path}")
                 return {'status': 'success', 'message': 'Data inserted successfully'}

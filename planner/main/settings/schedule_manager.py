@@ -13,13 +13,13 @@ class ScheduleManager:
         5: (40, 'Планета дети', 'planeta_deti'),
         6: (12, 'Мировой сериал', 'mirovoi_serial'),
         7: (17, 'Мужской сериал', 'muzhskoi_serial'),
-        8: (12, 'Наше детство', 'nashe_detstvo'),
+        8: (39, 'Наше детство', 'nashe_detstvo'),
         9: (40, 'Романтичный сериал', 'romantichnyi_serial'),
         10: (15, 'Наше родное кино', 'nashe_rodnoe_kino'),
         11: (12, 'Семейное кино', 'semeinoe_kino'),
-        12: (17, 'Советское родное кино', 'sovetskoe_rodnoe_kino'),
-        20: (16, 'Кино +', 'kino+'),
-        36: (16, 'Кино Индии', 'kino_indii')
+        12: (39, 'Советское родное кино', 'sovetskoe_rodnoe_kino'),
+        20: (15, 'Кино +', 'kino+'),
+        # 36: (16, 'Кино Индии', 'kino_indii')
 
     }
 

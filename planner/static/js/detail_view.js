@@ -3,6 +3,7 @@ const userId = document.body.dataset.userId || null;
 
 window.addEventListener('load', initCenz);
 window.addEventListener('load', CheckLockCard);
+window.addEventListener('load', loadFfmpegBlocks);
 window.addEventListener('beforeunload', function(e) {
     fetch(`/unblock_card/${programId}/${userId}/`, {
         method: 'GET',
@@ -10,6 +11,36 @@ window.addEventListener('beforeunload', function(e) {
         cache: 'no-store'
     }).catch(() => {}); // Игнорируем ошибки
 });
+
+async function loadFfmpegBlocks() {
+    const mediainfoContainer = document.getElementById('mediainfo_container');
+    const scannersContainer = document.getElementById('scanners_container');
+    if (!mediainfoContainer && !scannersContainer) {
+        return;
+    }
+    const setError = (message) => {
+        if (mediainfoContainer) mediainfoContainer.innerHTML = `<div class="text-body-secondary">${message}</div>`;
+        if (scannersContainer) scannersContainer.innerHTML = `<div class="text-body-secondary">${message}</div>`;
+    };
+    try {
+        const response = await fetch(`/ffmpeg_info/${programId}/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            if (mediainfoContainer) mediainfoContainer.innerHTML = data.mediainfo_html;
+            if (scannersContainer) scannersContainer.innerHTML = data.scanners_html;
+        } else if (data.status === 'auth_error') {
+            setError('Сессия истекла. Обновите страницу.');
+        } else {
+            setError('Не удалось загрузить данные');
+        }
+    } catch (error) {
+        console.error('Error loading ffmpeg blocks:', error);
+        setError('Данные недоступны');
+    }
+}
 
 async function CheckLockCard() {
     try {

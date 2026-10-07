@@ -79,6 +79,12 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Moscow'
 CELERY_ENABLE_UTC = True
+# Быстрый отказ производителя при недоступном Redis, без долгих ретраев
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'socket_connect_timeout': 3,
+    'socket_timeout': 3,
+}
+CELERY_TASK_PUBLISH_RETRY = False
 
 # Опционально: настройки расписания для периодических задач
 CELERY_BEAT_SCHEDULE = {
@@ -213,6 +219,7 @@ DB_MONGO_PORT = os.getenv('DB_MONGO_PORT')
 MONGO_USER = os.getenv('DB_MONGO_USER')
 MONGO_PASSWORD = os.getenv('DB_MONGO_PASSWORD')
 MONGO_HOST =  f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{DB_MONGO_HOST}:{DB_MONGO_PORT}'
+MONGO_TIMEOUT_MS = 5000
 
 DATABASES = {
     "default": {

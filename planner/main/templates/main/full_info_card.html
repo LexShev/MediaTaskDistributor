@@ -283,7 +283,9 @@
                 </button></div>
               <div id="collapseMediaInfo" class="accordion-collapse collapse">
                 <div class="accordion-body">
-                  {% include 'main/block_mediainfo_table.html' %}
+                  <div id="mediainfo_container" style="min-height: 120px;">
+                    <div class="text-body-secondary">Загрузка…</div>
+                  </div>
                 </div>
               </div>
           </div>
@@ -295,7 +297,9 @@
                 </button></h6>
               <div id="collapseScans" class="accordion-collapse collapse">
                 <div class="accordion-body">
-                  {% include 'main/block_scanners.html' %}
+                  <div id="scanners_container" style="min-height: 120px;">
+                    <div class="text-body-secondary">Загрузка…</div>
+                  </div>
                 </div>
               </div>
             </div>
