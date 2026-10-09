@@ -66,8 +66,6 @@ def search_condition(search_type, search_input):
 def task_info(field_dict, search_init_dict):
     sql_set = min(search_init_dict.sql_set or 5000, 5000)
 
-    print(f"DEBUG task_info: field_dict={field_dict}, sql_set={sql_set}, type(field_dict)={type(field_dict)}")
-
     where_clauses = f'''
         Task.[program_id] IS NOT NULL
         {check_extra_set(field_dict.get('extra_set'))}
@@ -80,8 +78,6 @@ def task_info(field_dict, search_init_dict):
         {check_material_type(field_dict.get('material_type'))}
         {search_condition(search_init_dict.search_type, search_init_dict.search_input)}
         '''
-
-    print(f"DEBUG task_info: where_clauses={where_clauses}")
 
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(f'''

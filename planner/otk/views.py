@@ -14,7 +14,7 @@ from main.logs_and_history import get_task_status, insert_history_status
 from main.permission_pannel import ask_db_permissions
 from main.settings.main_settings import get_main_settings
 from messenger_static.messenger_utils import create_notification
-from planner.settings import CURRENT_CENZ_DIR
+from planner.settings import OTK_CENZ_DIR
 from .models import OtkModel, TaskSearch
 from .otk_materials_list import task_info, change_task_status_batch, update_comment_batch, change_task_status, \
     update_comment
@@ -54,7 +54,7 @@ def otk(request):
         filter_form = OtkForm(instance=init_dict)
 
     settings = {
-        'current_cenz_dir': CURRENT_CENZ_DIR
+        'current_cenz_dir': OTK_CENZ_DIR
     }
     data = {
         'settings': settings,
@@ -78,7 +78,7 @@ def set_status_otk(request):
     task_status = 'otk'
     for program_id, comment, old_file_path, program_name, new_file_name, switch_value in program_list:
         if switch_value == 'cenz':
-            new_file_path = str(PureWindowsPath(CURRENT_CENZ_DIR) / new_file_name)
+            new_file_path = str(PureWindowsPath(OTK_CENZ_DIR) / new_file_name)
         else:
             new_file_path = str(PureWindowsPath(old_file_path).parent / new_file_name)
 

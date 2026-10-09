@@ -113,6 +113,7 @@ INSTALLED_APPS = [
     "tools",
     "notifications",
     "schedule_perspective",
+    "film_index",
     "file_manager",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -331,7 +332,8 @@ MEDIA_POSTERS = os.path.join(BASE_DIR, 'media/posters')
 MEDIA_WAVEFORMS = os.path.join(BASE_DIR, 'media/waveforms')
 SFTP_FOLDER = os.getenv('SFTP_FOLDER', '/mnt/sftp/Planner')
 
-CURRENT_CENZ_DIR = r'\\192.168.80.5\ContentB\0_INTERNET_VIDEO\_CENZ'
+READY_CENZ_DIR = r'\\192.168.80.5\ContentB\0_INTERNET_VIDEO\_CENZ'
+OTK_CENZ_DIR = r'\\192.168.80.5\ContentB\0_CENZ'
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000000
 

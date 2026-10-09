@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from file_manager.models import FileCopyTask
 from messenger_static.messenger_utils import create_notification
-from planner.settings import CURRENT_CENZ_DIR, SERVICE_TYPE, SFTP_FOLDER
+from planner.settings import READY_CENZ_DIR, SERVICE_TYPE, SFTP_FOLDER
 from tools.ffmpeg_processing import ensure_ffmpeg_scanners_async
 from tools.helpers import normalize_path, get_filename_only
 from tools.tasks import copy_large_file
@@ -362,7 +362,7 @@ def task_ready_batch(request):
             return JsonResponse({'status': 'error', 'message': 'Нет изменений'})
         new_values, file_info = data
         for no_cenz, program_id, cenz_comment, file_name, new_file_name in file_info:
-            new_file_path = str(PureWindowsPath(CURRENT_CENZ_DIR) / new_file_name)
+            new_file_path = str(PureWindowsPath(READY_CENZ_DIR) / new_file_name)
 
             oplan3_lock = check_oplan3_lock(program_id)
             planner_lock = check_planner_lock(program_id)
@@ -669,7 +669,7 @@ def status_ready(request):
     program_id = new_values.get('program_id')
     cenz_comment = new_values.get('cenz_comment')
     uploaded_ready_file = new_values.get('uploaded_ready_file', '')
-    new_file_path = str(PureWindowsPath(CURRENT_CENZ_DIR) / uploaded_ready_file)
+    new_file_path = str(PureWindowsPath(READY_CENZ_DIR) / uploaded_ready_file)
     old_values = cenz_info(program_id)
 
     db_task_status = get_task_status(program_id)

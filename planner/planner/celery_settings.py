@@ -78,7 +78,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/Moscow'
 CELERY_ENABLE_UTC = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-# Быстрый отказ производителя при недоступном Redis, без долгих ретраев
+# Быстрый отказ при недоступном Redis, без долгих ретраев
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'socket_connect_timeout': 3,
     'socket_timeout': 3,

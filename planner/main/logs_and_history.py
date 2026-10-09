@@ -8,7 +8,7 @@ from datetime import datetime, date
 from main.js_requests import program_name
 from main.templatetags.custom_filters import status_name, engineer_id_to_worker_id, worker_name, engineer_name, \
     cenz_name
-from planner.settings import OPLAN_DB, PLANNER_DB, CURRENT_CENZ_DIR
+from planner.settings import OPLAN_DB, PLANNER_DB
 
 
 def check_data_type(value):
