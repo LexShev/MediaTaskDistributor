@@ -160,6 +160,8 @@ AWS_SECRET_ACCESS_KEY = os.getenv('MINIO_DJANGO_PASSWORD')
 
 S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
 AWS_STORAGE_BUCKET_NAME = S3_BUCKET_NAME
+# Отдельный бакет для постеров Кинопоиска (не смешивать с постерами Oplan).
+KP_POSTERS_BUCKET = os.getenv('S3_KP_POSTERS_BUCKET', 'kinopoisk-posters')
 AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', 'http://minio:9000')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
 AWS_S3_SIGNATURE_VERSION = 's3v4'

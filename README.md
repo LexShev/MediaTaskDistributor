@@ -192,6 +192,7 @@ Copy it to `.env` and fill in the values.
 | `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` | Redis broker for Celery + Channels |
 | `CHANNELS_REDIS_HOST` | Redis host for WebSocket channel layer |
 | `USE_S3_STORAGE` / `MINIO_DJANGO_USER` / `MINIO_DJANGO_PASSWORD` / `S3_BUCKET_NAME` / `AWS_S3_ENDPOINT_URL` | MinIO/S3 storage |
+| `S3_KP_POSTERS_BUCKET` | Separate MinIO bucket for Kinopoisk posters (default `kinopoisk-posters`) |
 | `SFTP_FOLDER` | SFTP drop folder (default `/mnt/sftp/Planner`) |
 
 **Streaming stack** additionally uses:

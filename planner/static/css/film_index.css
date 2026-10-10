@@ -1,0 +1,27 @@
+#film-index .candidate {
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+#film-index .candidate:hover {
+  border-color: var(--bs-primary);
+}
+
+#film-index .candidate-poster {
+  width: 84px;
+  height: 126px;
+  object-fit: cover;
+  border-radius: .25rem;
+  background: var(--bs-secondary-bg);
+  flex: 0 0 auto;
+}
+
+#film-index .search-result {
+  cursor: pointer;
+}
+
+#film-index #queue-list .list-group-item {
+  border-left: 0;
+  border-right: 0;
+  padding: .4rem .6rem;
+}

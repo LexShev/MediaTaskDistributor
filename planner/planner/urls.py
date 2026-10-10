@@ -42,6 +42,7 @@ urlpatterns = ([
     path("playlist/", include('playlist.urls')),
     path("tools/", include('tools.urls')),
     path("schedule-perspective/", include('schedule_perspective.urls')),
+    path("film-index/", include('film_index.urls')),
     path("file-manager/", include('file_manager.urls')),
     path("authorize/", include('django.contrib.auth.urls')),
     path("authorize/", include('workers.urls'))

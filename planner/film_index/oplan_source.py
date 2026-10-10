@@ -126,3 +126,70 @@ def duration_frames(material: dict):
         value = material.get('duration')
         return int(value) if value is not None else None
     return None
+
+
+def fetch_material(program_id) -> dict:
+    """Снимок одного материала Oplan3 (для карточки разбора)."""
+    query = f"""
+    SELECT
+        Progs.[program_id], Progs.[parent_id], Progs.[program_kind],
+        Progs.[program_type_id], Progs.[name], Progs.[orig_name],
+        Progs.[production_year], Progs.[production_country], Progs.[Director],
+        Progs.[episode_num], Progs.[duration],
+        CASE WHEN MatFiles.[program_id] IS NULL THEN 0 ELSE 1 END AS has_file
+    FROM [{OPLAN_DB}].[dbo].[program] AS Progs
+    LEFT JOIN ({_FILE_EXISTS_SUBQUERY}) AS MatFiles
+        ON MatFiles.[program_id] = Progs.[program_id]
+    WHERE Progs.[program_id] = %s
+    """
+    columns = (
+        'program_id', 'parent_id', 'program_kind', 'program_type_id',
+        'name', 'orig_name', 'production_year', 'production_country',
+        'director', 'episode_num', 'duration', 'has_file',
+    )
+    with connections[OPLAN_DB].cursor() as cursor:
+        cursor.execute(query, (program_id,))
+        row = cursor.fetchone()
+    if not row:
+        return None
+    return dict(zip(columns, row))
+
+
+def fetch_description(program_id):
+    """Краткое описание (ProgramCustomFieldId = 5)."""
+    with connections[OPLAN_DB].cursor() as cursor:
+        cursor.execute(
+            f"""
+            SELECT [TextValue] FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
+            WHERE [ObjectId] = %s AND [ProgramCustomFieldId] = 5
+            """,
+            (program_id,),
+        )
+        row = cursor.fetchone()
+    return row[0] if row else None
+
+
+def fetch_descriptions(program_ids) -> dict:
+    """Батч кратких описаний: program_id -> TextValue."""
+    program_ids = list(program_ids)
+    if not program_ids:
+        return {}
+    result = {}
+    chunk = 500
+    with connections[OPLAN_DB].cursor() as cursor:
+        for start in range(0, len(program_ids), chunk):
+            batch = program_ids[start:start + chunk]
+            placeholders = ', '.join(['%s'] * len(batch))
+            cursor.execute(
+                f"""
+                SELECT [ObjectId], [TextValue]
+                FROM [{OPLAN_DB}].[dbo].[ProgramCustomFieldValues]
+                WHERE [ProgramCustomFieldId] = 5
+                  AND [ObjectId] IN ({placeholders})
+                """,
+                batch,
+            )
+            for program_id, text in cursor.fetchall():
+                if text:
+                    result[program_id] = text
+    return result

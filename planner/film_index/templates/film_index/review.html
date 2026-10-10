@@ -1,0 +1,74 @@
+{% extends 'main/index.html' %}
+{% load static %}
+
+{% block body %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/film_index.css' %}">
+
+<div class="container-fluid px-3 py-2" id="film-index"
+     data-queue-url="{% url 'film_index_api_queue' %}"
+     data-item-url="{% url 'film_index_api_item' 0 %}"
+     data-search-url="{% url 'film_index_api_search' %}"
+     data-poster-url="{% url 'film_index_api_poster' %}"
+     data-decide-url="{% url 'film_index_api_decide' %}">
+
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <h5 class="m-0 me-3">Разбор сопоставления</h5>
+
+    <select class="form-select form-select-sm w-auto" id="filter-bucket">
+      <option value="">Все бакеты</option>
+      <option value="band_070_085" selected>band 0.70–0.85</option>
+      <option value="ambiguous">ambiguous</option>
+      <option value="unmatched">unmatched</option>
+    </select>
+
+    <select class="form-select form-select-sm w-auto" id="filter-kind">
+      <option value="">Фильмы и сериалы</option>
+      <option value="film">Фильмы</option>
+      <option value="series">Сериалы</option>
+    </select>
+
+    <select class="form-select form-select-sm w-auto" id="filter-status" title="Видно администраторам и главному редактору">
+      <option value="pending" selected>Нерешённые</option>
+      <option value="resolved">Принятые</option>
+      <option value="rejected">Отклонённые</option>
+      <option value="">Все</option>
+    </select>
+
+    <input class="form-control form-control-sm" style="width: 18rem" id="filter-name"
+           placeholder="Поиск по названию…">
+
+    <button class="btn btn-sm btn-outline-secondary" id="btn-reload">Применить</button>
+
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <span class="text-muted" id="progress">— / —</span>
+      <span class="text-muted" id="stats"></span>
+    </div>
+  </div>
+
+  <div class="row g-2">
+    <div class="col-lg-8">
+      <div id="item-pane" class="card"><div class="card-body text-muted">Загрузка…</div></div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center py-1">
+          <span>Очередь</span>
+          <span class="small text-muted" id="queue-count"></span>
+        </div>
+        <div class="card-body p-0" style="max-height: 78vh; overflow-y: auto;">
+          <div class="list-group list-group-flush" id="queue-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="position-fixed bottom-0 start-50 translate-middle-x mb-3 d-flex gap-2" style="z-index: 1040;">
+    <button class="btn btn-outline-secondary" id="btn-revert" title="Вернуться (Backspace)">← Вернуться</button>
+    <button class="btn btn-outline-danger" id="btn-reject" title="Не найден (R)">Не найден</button>
+  </div>
+</div>
+
+<script type="text/javascript" src="{% static 'js/film_index_review.js' %}"></script>
+
+{% endblock %}

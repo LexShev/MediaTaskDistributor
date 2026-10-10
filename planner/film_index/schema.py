@@ -28,6 +28,10 @@ _TABLES = (
     CREATE INDEX IX_fmi_kp ON dbo.film_material_index (kinopoisk_id)
     """,
     """
+    IF COL_LENGTH('dbo.film_material_index', 'match_source') IS NULL
+    ALTER TABLE dbo.film_material_index ADD match_source VARCHAR(10) NULL
+    """,
+    """
     IF OBJECT_ID('dbo.film_match_staging', 'U') IS NULL
     CREATE TABLE dbo.film_match_staging (
         id               BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_fms PRIMARY KEY,
@@ -62,6 +66,10 @@ _TABLES = (
         resolved_by      INT       NULL,
         updated_at       DATETIME2 NOT NULL CONSTRAINT DF_fmr_updated DEFAULT (SYSDATETIME())
     )
+    """,
+    """
+    IF COL_LENGTH('dbo.film_match_review', 'bucket') IS NULL
+    ALTER TABLE dbo.film_match_review ADD bucket VARCHAR(20) NULL
     """,
     """
     IF NOT EXISTS (
