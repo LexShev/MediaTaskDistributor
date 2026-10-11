@@ -1,67 +1,130 @@
-#search_results {
-    max-height: 80vh; /* Ограничиваем максимальную высоту */
-    overflow-y: auto;
+/* Перспективные сетки. Bootstrap-переменные маппятся на токены CinemaAtlas
+   (features/cinema-atlas/css/base.css), но остаёмся на компонентах Bootstrap. */
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: #111214;
+    --bs-secondary-bg: #1a1b1f;
+    --bs-tertiary-bg: #222429;
+    --bs-border-color: #2e3038;
+    --bs-primary: #6ba1e8;
+    --bs-primary-rgb: 107, 161, 232;
 }
-    #search_results .program {
-    border: 1px solid var(--bs-secondary-border-subtle);
+
+#schedule-perspective {
+    --sp-radius: 12px;
+}
+
+.sp-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+    padding: .5rem .75rem;
+    background: var(--bs-tertiary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.sp-toolbar .sp-channel { width: 14rem; }
+.sp-toolbar .sp-date { width: 9.5rem; }
+.sp-toolbar .sp-days { width: 7.5rem; }
+
+.sp-viewport { overflow-x: auto; padding: .5rem; }
+
+.sp-days {
+    display: flex;
+    gap: .5rem;
+    align-items: flex-start;
+    min-height: 60vh;
+}
+
+.sp-day {
+    flex: 1 0 220px;
+    max-width: 320px;
+    background: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--sp-radius);
+    display: flex;
+    flex-direction: column;
+    min-height: 60vh;
+}
+
+.sp-day-header {
+    padding: .4rem .5rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    border-radius: var(--sp-radius) var(--sp-radius) 0 0;
+    background: var(--bs-tertiary-bg);
+}
+
+.sp-day-date { font-weight: 600; }
+.sp-day-meta { font-size: .75rem; color: var(--bs-secondary-color); }
+
+.sp-status { font-size: .7rem; padding: .1rem .4rem; border-radius: 100px; }
+.sp-status-draft { background: rgba(107,161,232,.15); color: #6ba1e8; }
+.sp-status-chief_approved { background: rgba(240,168,76,.15); color: #f0a84c; }
+.sp-status-final_approved { background: rgba(61,214,140,.15); color: #3dd68c; }
+
+.sp-slots { padding: .35rem; display: flex; flex-direction: column; gap: .3rem; }
+
+.sp-slot {
+    position: relative;
+    border: 1px solid var(--bs-border-color);
+    border-left: 3px solid var(--bs-primary);
+    border-radius: 8px;
+    background: var(--bs-body-bg);
+    padding: .3rem .45rem;
     cursor: grab;
-    transition: background-color 0.2s ease;
+    font-size: .82rem;
 }
+.sp-slot:active { cursor: grabbing; }
+.sp-slot.sp-missing { border-left-color: #f06472; }
+.sp-slot .sp-slot-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-slot .sp-slot-meta { color: var(--bs-secondary-color); font-size: .72rem; }
+.sp-slot .sp-slot-actions { position: absolute; top: .2rem; right: .3rem; display: none; gap: .2rem; }
+.sp-slot:hover .sp-slot-actions { display: flex; }
+.sp-badge-repeat { background: rgba(240,168,76,.2); color: #f0a84c; border-radius: 100px; padding: 0 .35rem; font-size: .65rem; }
 
-#search_results .program:hover {
-    background-color: var(--bs-tertiary-bg);
+.sp-placeholder {
+    border: 1px dashed var(--bs-border-color);
+    border-radius: 8px;
+    color: var(--bs-secondary-color);
+    text-align: center;
+    padding: .35rem;
+    cursor: pointer;
+    font-size: .78rem;
 }
+.sp-placeholder:hover { border-color: var(--bs-primary); color: var(--bs-primary); }
 
-#search_results .program:active {
-    cursor: grabbing;
-}
+.sp-ghost { opacity: .4; }
 
-.custom-ghost {
-  opacity: 0.5;
+/* Поиск */
+#sp-search-results .sp-result {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    cursor: pointer;
 }
+#sp-search-results .sp-result img {
+    width: 42px; height: 60px; object-fit: cover; border-radius: 6px; background: #333;
+}
+#sp-search-results .sp-result .sp-result-title { font-weight: 600; }
+#sp-search-results .sp-result .sp-result-meta { font-size: .78rem; color: var(--bs-secondary-color); }
+.sp-result-badge { font-size: .68rem; border-radius: 100px; padding: .05rem .4rem; }
+.sp-result-badge.base { background: rgba(61,214,140,.15); color: #3dd68c; }
+.sp-result-badge.missing { background: rgba(240,100,114,.15); color: #f06472; }
 
-.custom-chosen {
-  opacity: 1;
-  border: 1px dashed var(--bs-secondary-border-subtle);
+/* Singleton popover */
+.sp-popover {
+    position: fixed;
+    z-index: 1080;
+    width: 320px;
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.5);
+    padding: .6rem;
+    pointer-events: none;
 }
-
-.custom-drag {
-  opacity: 0.8;
-}
-
-.schedule_day .program .poster-container {
-    display: none;
-}
-
-.schedule_day .program .production-year {
-    display: none;
-}
-
-.schedule_day .program {
-    cursor: grab;
-    border: 1px solid var(--bs-secondary-border-subtle) !important;
-}
-
-.schedule_day .program:active {
-    cursor: grabbing;
-}
-
-/* Стиль для карточек из kinopoisk в рабочей зоне */
-.schedule_container .program.kinopoisk-card {
-    background-color: var(--bs-danger-bg-subtle) !important;
-    color: var(--bs-danger-text-emphasis) !important;
-    border: 1px solid var(--bs-danger-border-subtle) !important;
-}
-
-.schedule_container .program.kinopoisk-card:hover {
-    background-color: var(--bs-danger-bg-subtle);
-}
-
-/* Разделитель между результатами поиска */
-#oplan_results,
-#kinopoisk_results {
-    min-height: 200px;
-}
-
-#oplan_results {
-}
+.sp-popover img { width: 70px; height: 100px; object-fit: cover; border-radius: 6px; float: left; margin-right: .6rem; }

@@ -1,69 +1,128 @@
 {% extends 'main/index.html' %}
-{% load custom_filters %}
 {% load static %}
-
 
 {% block body %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'css/schedule_perspective.css' %}">
 <script type="text/javascript" src="{% static 'SortableJS/Sortable.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'SortableJS/jquery-sortable.js' %}"></script>
 
+<div id="schedule-perspective"
+     data-window-url="{% url 'schedule_perspective_window' %}"
+     data-search-url="{% url 'schedule_perspective_search' %}"
+     data-structure-url="{% url 'schedule_perspective_series_structure' 0 %}"
+     data-film-info-url="{% url 'schedule_perspective_film_info' %}"
+     data-poster-url="{% url 'schedule_perspective_poster' %}"
+     data-slot-add-url="{% url 'schedule_perspective_slot_add' %}"
+     data-slot-move-url="{% url 'schedule_perspective_slot_move' %}"
+     data-slot-delete-url="{% url 'schedule_perspective_slot_delete' %}"
+     data-download-url="{% url 'schedule_perspective_generate_downloads' %}"
+     data-day-status-url="{% url 'schedule_perspective_day_status' 'approve' %}"
+     data-can-edit="{{ can_edit|yesno:'1,0' }}"
+     data-default-channel="{{ default_channel }}"
+     data-default-start="{{ default_start }}"
+     data-default-days="{{ default_days }}">
 
-<div class="container-fluid text-start px-lg-5">
-    <div class="d-flex align-items-center justify-content-center">
-        <select name="schedule_dropdown" class="form-select text-center m-2" id="schedule_dropdown" style="max-width: 20rem;">
-          <option value="3" selected>Крепкое</option>
-          <option value="5">Планета дети</option>
-          <option value="6">Мировой сериал</option>
-          <option value="7">Мужской сериал</option>
-          <option value="8">Наше детство</option>
-          <option value="9">Романтичный сериал</option>
-          <option value="10">Наше родное кино</option>
-          <option value="11">Семейное кино</option>
-          <option value="12">Советское родное кино</option>
-          <option value="20">Кино +</option>
-          <option value="36">Кино Индии</option>
-        </select>
+  <div class="sp-toolbar">
+    <select class="form-select form-select-sm sp-channel" id="sp-channel">
+      {% for id, name in channels.items %}
+        <option value="{{ id }}" {% if id == default_channel %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+
+    <div class="btn-group btn-group-sm">
+      <button class="btn btn-outline-secondary" id="sp-prev" title="Предыдущий период">‹</button>
+      <input type="date" class="form-control form-control-sm sp-date" id="sp-start">
+      <button class="btn btn-outline-secondary" id="sp-next" title="Следующий период">›</button>
     </div>
-    <div class="row">
-        <div class="col col-3">
-            <div class="dropdown">
-              <input class='form-control' type="text" name="search_query" id="search_query" value="" placeholder="Начните вводить название фильма...">
-              <div class="dropdown-menu shadow p-2" id="search_results" style="z-index: 1030; min-height: 35rem; width: 31rem; top: 4rem;">
-                  <div class="" id="oplan_results"><small class="text-muted fw-bold">Oplan</small></div>
-                  <div class="" id="kinopoisk_results"><small class="text-muted fw-bold">Kinopoisk</small></div>
+
+    <select class="form-select form-select-sm sp-days" id="sp-days-select">
+      {% for d in allowed_days %}
+        <option value="{{ d }}" {% if d == default_days %}selected{% endif %}>{{ d }} дней</option>
+      {% endfor %}
+    </select>
+
+    <button class="btn btn-sm btn-primary" id="sp-search-open" {% if not can_edit %}disabled{% endif %}>Поиск</button>
+
+    <div class="sp-target">
+      <span class="text-muted">Цель:</span>
+      <span id="sp-target-hours">—</span>
+    </div>
+
+    <div class="ms-auto d-flex gap-2">
+      <button class="btn btn-sm btn-outline-success" id="sp-approve" {% if not can_edit %}disabled{% endif %}>Утвердить период</button>
+      <button class="btn btn-sm btn-outline-primary" id="sp-finalize" {% if not can_edit %}disabled{% endif %}>Финализировать</button>
+      <button class="btn btn-sm btn-outline-warning" id="sp-reopen" {% if not can_edit %}disabled{% endif %}>Переоткрыть</button>
+      <button class="btn btn-sm btn-outline-info" id="sp-downloads" {% if not can_edit %}disabled{% endif %}>Список скачивания</button>
+    </div>
+  </div>
+
+  <div class="sp-viewport">
+    <div id="sp-days" class="sp-days"></div>
+  </div>
+</div>
+
+<!-- Модальное окно поиска и настройки сериала -->
+<div class="modal fade" id="sp-search-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title">Добавить материал — <span id="sp-target-date"></span></h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="sp-search-step">
+          <input type="text" class="form-control mb-2" id="sp-search-input"
+                 placeholder="Начните вводить название…" autocomplete="off">
+          <div class="sp-search-hint text-muted small mb-2">Кинопоиск</div>
+          <div id="sp-search-results" class="list-group"></div>
+        </div>
+
+        <div id="sp-series-step" class="d-none">
+          <button class="btn btn-sm btn-outline-secondary mb-2" id="sp-series-back">← Назад</button>
+          <div id="sp-series-title" class="fw-bold mb-2"></div>
+
+          <div id="sp-series-oplan" class="d-none">
+            <label class="form-label small mb-1">Сезон</label>
+            <select class="form-select form-select-sm mb-2" id="sp-season-select"></select>
+            <div class="row g-2">
+              <div class="col">
+                <label class="form-label small mb-1">Серия с</label>
+                <input type="number" min="1" value="1" class="form-control form-control-sm" id="sp-ep-from">
+              </div>
+              <div class="col">
+                <label class="form-label small mb-1">по</label>
+                <input type="number" min="1" value="1" class="form-control form-control-sm" id="sp-ep-to">
               </div>
             </div>
-        </div>
-        <div class="col col-9">
-            <div class="row" id="schedule_list">
-                {% for date, schedule in schedules.items %}
-                    <div class="schedule_day col px-1">
-                        <div class="schedule_name card bg-primary-subtle">
-                            <div class="schedule_name card-header text-center p-1">
-                                {{ date|date:'d-m-Y' }}
-                            </div>
-                            <div class="schedule_duration card-body text-center p-1">
-                                00:00:00
-                            </div>
-                        </div>
-                        <div class="schedule_container" id="{{ date|date:'Y-m-d'}}">
-                            {% for program in schedule %}
-                                <h6 class="card program my-1 p-1"
-                                     data-oplan-program-id="{{ program.PlannerProg_oplan_program_id }}"
-                                     data-duration="{{ program.OplanProg_duration }}"
-                                title="{% if program.OplanProg_production_year %}- Год: {{ program.OplanProg_production_year }}{% endif %}{% if program.OplanProg_production_country %}&#10;- Страна: {{ program.OplanProg_production_country }}{% endif %}{% if program.OplanProg_Director %}&#10;- Режиссёр: {{ program.OplanProg_Director }}{% endif %}{% if program.OplanProg_duration %}&#10;- Длительность: {{ program.OplanProg_duration|convert_frames_to_time }}{% endif %}">
-                                    {{ program.OplanProg_name }}
-                                </h6>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
+          </div>
+
+          <div id="sp-series-manual">
+            <div class="row g-2">
+              <div class="col">
+                <label class="form-label small mb-1">Сезон</label>
+                <input type="number" min="1" value="1" class="form-control form-control-sm" id="sp-season-num">
+              </div>
+              <div class="col">
+                <label class="form-label small mb-1">Серия с</label>
+                <input type="number" min="1" value="1" class="form-control form-control-sm" id="sp-manual-from">
+              </div>
+              <div class="col">
+                <label class="form-label small mb-1">по</label>
+                <input type="number" min="1" value="1" class="form-control form-control-sm" id="sp-manual-to">
+              </div>
             </div>
+            <div class="form-text">Материала нет в Oplan — серии будут созданы как отсутствующие и попадут в список скачивания.</div>
+          </div>
+
+          <button class="btn btn-primary mt-3" id="sp-series-add">Добавить в сетку</button>
         </div>
+      </div>
     </div>
+  </div>
 </div>
+
+<!-- Popover-тултип (singleton) -->
+<div id="sp-popover" class="sp-popover d-none"></div>
 
 <script type="text/javascript" src="{% static 'js/schedule_perspective.js' %}"></script>
 
