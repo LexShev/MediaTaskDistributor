@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     "schedule_perspective",
     "film_index",
     "file_manager",
+    "planner_api",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

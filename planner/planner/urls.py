@@ -44,6 +44,7 @@ urlpatterns = ([
     path("schedule-perspective/", include('schedule_perspective.urls')),
     path("film-index/", include('film_index.urls')),
     path("file-manager/", include('file_manager.urls')),
+    path("api/", include('planner_api.urls')),
     path("authorize/", include('django.contrib.auth.urls')),
     path("authorize/", include('workers.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT))
