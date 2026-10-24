@@ -12,6 +12,7 @@ from django.views.decorators.http import require_GET
 from .program_info import get_program_payload
 
 API_TOKEN = os.getenv('PUBLIC_API_TOKEN', 'secret_alex_test_oplan_token')
+# API_TOKEN = 'secret_alex_test_oplan_token'
 
 
 def _authorized(request):

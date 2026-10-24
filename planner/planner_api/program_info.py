@@ -52,14 +52,22 @@ def fetch_program(program_id):
             p.[deleted],
             p.[DeletedIncludeParent],
             a.[Name] AS adult_type_name,
+            pa.[Name] AS parent_adult_type_name,
+            ga.[Name] AS grandparent_adult_type_name,
             parent.[name] AS parent_name,
             parent.[Season] AS parent_season,
             parent.[EpisodesTotal] AS parent_episodes_total
         FROM [{OPLAN_DB}].[dbo].[program] AS p
         LEFT JOIN [{OPLAN_DB}].[dbo].[program] AS parent
             ON parent.[program_id] = p.[parent_id]
+        LEFT JOIN [{OPLAN_DB}].[dbo].[program] AS grandparent
+            ON grandparent.[program_id] = parent.[parent_id]
         LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS a
             ON a.[AdultTypeID] = p.[AdultTypeID]
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS pa
+            ON pa.[AdultTypeID] = parent.[AdultTypeID]
+        LEFT JOIN [{OPLAN_DB}].[dbo].[AdultType] AS ga
+            ON ga.[AdultTypeID] = grandparent.[AdultTypeID]
         WHERE p.[program_id] = %s
     '''
     with connections[OPLAN_DB].cursor() as cursor:
@@ -98,6 +106,11 @@ def serialize_program(row):
         episodes_total = row.get('parent_episodes_total')
     else:
         episodes_total = row.get('EpisodesTotal')
+    age_rating = (
+        row.get('adult_type_name')
+        or row.get('parent_adult_type_name')
+        or row.get('grandparent_adult_type_name')
+    )
     return {
         'type': object_type,
         'oplan_program_id': row.get('program_id'),
@@ -107,7 +120,7 @@ def serialize_program(row):
         'country': row.get('production_country'),
         'director': row.get('Director'),
         'cast': row.get('Cast'),
-        'age_rating': row.get('adult_type_name'),
+        'age_rating': age_rating,
         'description': row.get('annotation'),
         'duration_frames': row.get('duration'),
         'episodes_total': episodes_total,
