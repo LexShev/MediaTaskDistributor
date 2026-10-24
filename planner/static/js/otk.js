@@ -127,7 +127,7 @@ function ShowApproveOTK() {
             OTKContainer.id = `otk_container_${program_id}`
             OTKContainer.dataset.programId = program_id;
             OTKContainer.dataset.oldFilePath = old_file_path;
-            OTKContainer.classList.add('otk_container')
+            OTKContainer.classList.add('otk_container', "rounded", "p-2", "mb-3")
 
             let otk_program_id = document.createElement("input");
             otk_program_id.type = 'hidden';
@@ -135,15 +135,11 @@ function ShowApproveOTK() {
             otk_program_id.value = program_id;
             OTKContainer.appendChild(otk_program_id);
 
-            let file_name = document.createElement("h5");
-            file_name.classList.add('my-2');
+            let file_name = document.createElement("h6");
+            file_name.classList.add('mx-2', 'my-1');
             file_name.textContent = old_file_name;
             file_name.name = 'file_name'
             OTKContainer.appendChild(file_name);
-
-            let file_path_header = document.createElement("h6");
-            file_path_header.textContent = 'Новый путь к файлу';
-            OTKContainer.appendChild(file_path_header);
 
             let filePathContainer = document.createElement('div');
             filePathContainer.classList.add('d-flex');
@@ -166,7 +162,7 @@ function ShowApproveOTK() {
             switchContainer.appendChild(cenz_switcher);
 
             let cenzSwitchLabel = document.createElement("label");
-            cenzSwitchLabel.classList.add('btn', 'btn-outline-success');
+            cenzSwitchLabel.classList.add('btn', 'btn-outline-success', 'p-2');
             cenzSwitchLabel.textContent = 'CENZ';
             cenzSwitchLabel.setAttribute('for', `cenz_switcher_${program_id}`);
             switchContainer.appendChild(cenzSwitchLabel);
@@ -191,7 +187,8 @@ function ShowApproveOTK() {
             filePathContainer.appendChild(dropZoneRow);
 
             let drop_zone = document.createElement("div");
-            drop_zone.classList.add('col', 'drop-zone', 'border-secondary', 'text-center', 'text-secondary', 'p-2', 'my-2');
+            drop_zone.classList.add('col', 'drop-zone', 'border-secondary', 'text-center', 'text-secondary',
+                'p-2', 'my-2', 'hover-success');
             dropZoneRow.appendChild(drop_zone);
 
             let drop_zone_text_1 = document.createElement("p");
@@ -204,11 +201,10 @@ function ShowApproveOTK() {
             drop_zone.appendChild(drop_zone_text_2);
 
             let otk_file_path_group = document.createElement("div");
-            otk_file_path_group.classList.add('col', 'input-group', 'my-2');
+            otk_file_path_group.classList.add('visually-hidden');
             dropZoneRow.appendChild(otk_file_path_group);
 
             let otk_file_path = document.createElement("input");
-            otk_file_path.classList.add('form-control');
             otk_file_path.setAttribute('accept', 'video/*');
             otk_file_path.setAttribute('type', 'file');
             otk_file_path.name = 'otk_file_path';
@@ -220,21 +216,10 @@ function ShowApproveOTK() {
             invalid_feedback.textContent = 'Необходимо указать файл'
             otk_file_path_group.appendChild(invalid_feedback);
 
-            let otk_header = document.createElement("h6");
-            otk_header.textContent = 'Комментарий';
-            OTKContainer.appendChild(otk_header);
-
             let otk_comment = document.createElement("textarea");
-            otk_comment.classList.add('form-control');
-            otk_comment.classList.add('m-2');
+            otk_comment.classList.add('visually-hidden');
             otk_comment.name = 'otk_comment';
-            otk_comment.style = 'min-height: 50px';
             OTKContainer.appendChild(otk_comment);
-
-            let divider = document.createElement("hr");
-            divider.style = 'width: 40%; size: 2;';
-            divider.classList.add('mb-4');
-            OTKContainer.appendChild(divider);
 
             OTKList.appendChild(OTKContainer);
         }
@@ -291,12 +276,9 @@ function ShowFixReadyList() {
                 program_name.textContent = old_file_name;
                 FIXContainer.appendChild(program_name);
 
-                let file_path_header = document.createElement("h6");
-                file_path_header.textContent = 'Новый путь к файлу';
-                FIXContainer.appendChild(file_path_header);
-
                 let drop_zone = document.createElement("div");
-                drop_zone.classList.add('drop-zone', 'border-secondary', 'text-center', 'text-secondary', 'p-2', 'my-2');
+                drop_zone.classList.add('drop-zone', 'border-secondary', 'text-center', 'text-secondary',
+                    'hover-success', 'p-2', 'my-2');
                 FIXContainer.appendChild(drop_zone);
 
                 let drop_zone_text_1 = document.createElement("p");
@@ -309,7 +291,7 @@ function ShowFixReadyList() {
                 drop_zone.appendChild(drop_zone_text_2);
 
                 let fix_file_path_group = document.createElement("div");
-                fix_file_path_group.classList.add('input-group', 'file-input-group', 'my-2');
+                fix_file_path_group.classList.add('visually-hidden');
                 FIXContainer.appendChild(fix_file_path_group);
 
                 let fix_file_path = document.createElement("input");

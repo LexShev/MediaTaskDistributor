@@ -25,3 +25,11 @@
   background-color: rgba(var(--bs-primary-rgb), 0.1);
   box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.1);
 }
+
+[data-bs-theme="light"] .otk_container {
+  background-color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .otk_container {
+  background-color: var(--bs-dark-bg-subtle);
+}
