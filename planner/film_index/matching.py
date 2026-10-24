@@ -27,6 +27,7 @@ class Candidate:
     director_score: float
     director_match: bool
     type_match: bool
+    type_known: bool
     year_available: bool
     country_available: bool
 
@@ -40,21 +41,20 @@ class MatchOutcome:
     reason: str = ''
 
 
-def _title_similarity(norm_title: str, norm_original: str, entry: dict) -> float:
-    """Максимум строгого сходства по комбинациям название/original."""
-    query_variants = [value for value in (norm_title, norm_original) if value]
-    entry_variants = [
-        value for value in (entry['norm_title'], entry['norm_original']) if value
-    ]
-    if not query_variants or not entry_variants:
+def _ratio(left: str, right: str) -> float:
+    if not left or not right:
         return 0.0
-    best = 0.0
-    for query in query_variants:
-        for candidate in entry_variants:
-            ratio = fuzz.token_sort_ratio(query, candidate) / 100.0
-            if ratio > best:
-                best = ratio
-    return best
+    return fuzz.token_sort_ratio(left, right) / 100.0
+
+
+def _title_similarity(norm_title: str, norm_original: str, entry: dict) -> float:
+    """Сходство названия: русское название приоритетно, original — вторично."""
+    ru_score = _ratio(norm_title, entry.get('norm_title'))
+    original_score = _ratio(norm_original, entry.get('norm_original'))
+    return max(
+        ru_score,
+        original_score * constants.ORIGINAL_TITLE_WEIGHT,
+    )
 
 
 def _country_similarity(query_countries: set, entry_countries: set) -> float:
@@ -134,6 +134,14 @@ def score_candidate(query: dict, entry: dict) -> Candidate:
     denominator = sum(constants.WEIGHTS[key] for key, _ in components) or 1.0
     total = numerator / denominator
 
+    entry_type = entry.get('type')
+    type_known = entry_type in ('film', 'series')
+    type_match = (
+        type_known
+        and query.get('kind') in ('film', 'series')
+        and entry_type == query['kind']
+    )
+
     return Candidate(
         entry=entry,
         score=total,
@@ -142,7 +150,8 @@ def score_candidate(query: dict, entry: dict) -> Candidate:
         country_score=country_score,
         director_score=director_score,
         director_match=director_match,
-        type_match=query['kind'] == entry['type'],
+        type_match=type_match,
+        type_known=type_known,
         year_available=year_available,
         country_available=country_available,
     )
@@ -169,23 +178,50 @@ def match_material(material: dict, catalog: KinopoiskCatalog) -> MatchOutcome:
         if current is None or _sort_key(candidate) > _sort_key(current):
             best_by_kp[kp_id] = candidate
 
-    candidates = sorted(best_by_kp.values(), key=_sort_key, reverse=True)
-    best = candidates[0]
+    scored = sorted(best_by_kp.values(), key=_sort_key, reverse=True)
+    same_type = [candidate for candidate in scored if candidate.type_match]
+    compatible = [
+        candidate
+        for candidate in scored
+        if candidate.type_match or not candidate.type_known
+    ]
 
-    runner_up = None
-    for candidate in candidates[1:]:
-        if candidate.entry['kp_id'] != best.entry['kp_id']:
-            runner_up = candidate
-            break
+    primary = scored
+    if same_type and same_type[0].score >= constants.TYPE_FALLBACK_THRESHOLD:
+        primary = compatible
 
+    best = primary[0]
+    cross_type_primary = best.type_known and not best.type_match
+    runner_up = next(
+        (
+            candidate
+            for candidate in primary[1:]
+            if candidate.entry['kp_id'] != best.entry['kp_id']
+        ),
+        None,
+    )
     margin = best.score - runner_up.score if runner_up else best.score
 
     missing_strong = not (best.year_available and best.country_available)
-    confident = (
-        best.score >= constants.AUTO_HIGH_THRESHOLD
-        and margin >= constants.MARGIN
-        and (not missing_strong or best.title_score >= constants.TITLE_STRICT_FOR_AUTO)
-    )
+    if cross_type_primary:
+        confident = (
+            constants.CROSS_TYPE_AUTO
+            and best.score >= constants.CROSS_TYPE_AUTO_THRESHOLD
+            and best.title_score >= constants.CROSS_TYPE_AUTO_TITLE
+            and best.year_available
+            and best.year_score >= 1.0
+            and margin >= constants.MARGIN
+        )
+    else:
+        confident = (
+            best.score >= constants.AUTO_HIGH_THRESHOLD
+            and margin >= constants.MARGIN
+            and (
+                not missing_strong
+                or best.title_score >= constants.TITLE_STRICT_FOR_AUTO
+            )
+        )
+
     if confident:
         bucket = constants.BUCKET_AUTO_HIGH
     elif best.score >= constants.REVIEW_BAND_THRESHOLD:
@@ -193,16 +229,39 @@ def match_material(material: dict, catalog: KinopoiskCatalog) -> MatchOutcome:
     else:
         bucket = constants.BUCKET_AMBIGUOUS
 
+    display = list(primary)
+    if not cross_type_primary:
+        display.extend(
+            candidate
+            for candidate in scored
+            if candidate.type_known and not candidate.type_match
+        )
+    display_candidates = []
+    seen_ids = set()
+    for candidate in display:
+        kp_id = candidate.entry['kp_id']
+        if kp_id in seen_ids:
+            continue
+        seen_ids.add(kp_id)
+        display_candidates.append(candidate)
+
+    type_label = (
+        'ok' if best.type_match
+        else 'mismatch' if best.type_known
+        else 'unknown'
+    )
     reason = (
-        f'score={best.score:.3f} margin={margin:.3f} '
+        f'type={type_label} score={best.score:.3f} margin={margin:.3f} '
         f'title={best.title_score:.3f} year={best.year_score:.1f} '
         f'country={best.country_score:.3f} director={best.director_score:.2f}'
     )
+    if cross_type_primary:
+        reason += ' fallback=cross_type'
     return MatchOutcome(
         bucket=bucket,
         best=best,
         runner_up=runner_up,
-        candidates=candidates[:5],
+        candidates=display_candidates[:5],
         reason=reason,
     )
 
@@ -219,6 +278,8 @@ def candidates_to_json(candidates: list) -> list:
             'countries': sorted(entry['countries']),
             'director': ', '.join(entry['director_names']),
             'type': entry['type'],
+            'type_match': candidate.type_match,
+            'type_known': candidate.type_known,
             'score': round(candidate.score, 4),
             'title_score': round(candidate.title_score, 4),
             'year_score': candidate.year_score,

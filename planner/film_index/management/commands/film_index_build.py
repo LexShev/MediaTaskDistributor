@@ -15,6 +15,7 @@ import random
 from collections import Counter
 from uuid import uuid4
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from film_index import constants, matching, oplan_source, repository, schema
@@ -62,7 +63,9 @@ class Command(BaseCommand):
         self.stdout.write(f'  к сопоставлению: {len(targets)} (вручную уже решено: {len(manual_matches)})')
         self.stdout.write(f'  в этом прогоне: {len(match_targets)}')
 
-        self.stdout.write('Загрузка каталога Кинопоиска (Mongo)...')
+        self.stdout.write(
+            f'Загрузка каталога Кинопоиска ({settings.CATALOG_BACKEND})...'
+        )
         try:
             catalog = load_catalog()
         except Exception as error:  # noqa: BLE001
@@ -75,11 +78,16 @@ class Command(BaseCommand):
         source_by_program = {pid: 'manual' for pid in manual_matches}
         staging_rows = []
         review_rows = []
+        cross_type_count = 0
         run_id = uuid4()
 
         for material in match_targets:
             outcome = matching.match_material(material, catalog)
             counts[outcome.bucket] += 1
+            if (outcome.best is not None
+                    and outcome.best.type_known
+                    and not outcome.best.type_match):
+                cross_type_count += 1
             program_id = material['program_id']
             if outcome.bucket == constants.BUCKET_AUTO_HIGH and outcome.best is not None:
                 kp_by_program[program_id] = outcome.best.entry['kp_id']
@@ -134,7 +142,10 @@ class Command(BaseCommand):
             'band': counts.get(constants.BUCKET_BAND, 0),
             'ambiguous': counts.get(constants.BUCKET_AMBIGUOUS, 0),
             'unmatched': counts.get(constants.BUCKET_UNMATCHED, 0),
-        }, notes=f'index_rows={len(index_rows)}, matched={matched_index}, manual={len(manual_matches)}')
+        }, notes=(
+            f'index_rows={len(index_rows)}, matched={matched_index}, '
+            f'manual={len(manual_matches)}, cross_type={cross_type_count}'
+        ))
         self.stdout.write(self.style.SUCCESS(f'Готово. run_id={run_id}'))
 
     def _build_index_rows(self, materials, kp_by_program, source_by_program):

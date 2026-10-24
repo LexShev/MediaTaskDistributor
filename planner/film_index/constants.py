@@ -54,6 +54,19 @@ AUTO_HIGH_THRESHOLD = 0.85
 REVIEW_BAND_THRESHOLD = 0.70
 MARGIN = 0.10
 YEAR_TOLERANCE = 1
+
+# Тип материала: сначала кандидаты того же типа. Если лучший same-type ниже
+# этого порога, разрешаем fallback на другой тип.
+TYPE_FALLBACK_THRESHOLD = 0.70
+
+# Кросс-тип можно auto-принять только при очень сильном совпадении.
+CROSS_TYPE_AUTO = True
+CROSS_TYPE_AUTO_THRESHOLD = 0.92
+CROSS_TYPE_AUTO_TITLE = 0.98
+
+# Oplan хранит русское название, если оно есть. Оригинальное название —
+# вторичный сигнал и не должно перебивать хорошее русское совпадение.
+ORIGINAL_TITLE_WEIGHT = 0.90
 # Если у материала нет страны или года, авто-приём разрешаем только при
 # практически точном совпадении названия.
 TITLE_STRICT_FOR_AUTO = 0.95

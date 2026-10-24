@@ -1,7 +1,8 @@
 """Оценка объёма ручной проверки: сопоставление выборки материалов Oplan3
 с каталогом Кинопоиска и отчёт по бакетам.
 
-Команда НИЧЕГО не пишет в БД (только читает Oplan3/Mongo) и печатает
+Команда НИЧЕГО не пишет в БД (только читает Oplan3 и каталог
+PostgreSQL/Mongo) и печатает
 распределение: сколько материалов сопоставляется уверенно (auto_high),
 сколько попадает в диапазон 0.70-0.85, сколько неоднозначно и сколько не
 найдено вовсе.
@@ -10,6 +11,7 @@
 import random
 from collections import Counter, defaultdict
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from film_index import constants, matching
@@ -57,7 +59,9 @@ class Command(BaseCommand):
         else:
             sample = random.Random(seed).sample(targets, sample_size)
 
-        self.stdout.write('Загрузка каталога Кинопоиска (Mongo)...')
+        self.stdout.write(
+            f'Загрузка каталога Кинопоиска ({settings.CATALOG_BACKEND})...'
+        )
         try:
             catalog = load_catalog()
         except Exception as error:  # noqa: BLE001 - хотим внятный вывод
@@ -69,6 +73,7 @@ class Command(BaseCommand):
         counts = Counter()
         by_type = defaultdict(Counter)
         by_kind = defaultdict(Counter)
+        primary_type = Counter()
         unresolved_by_parent = Counter()
         examples = {bucket: [] for bucket in constants.BUCKETS}
 
@@ -78,12 +83,20 @@ class Command(BaseCommand):
             counts[bucket] += 1
             by_type[material.get('program_type_id')][bucket] += 1
             by_kind[material.get('program_kind')][bucket] += 1
+            if outcome.best is not None:
+                if outcome.best.type_match:
+                    primary_type['same'] += 1
+                elif outcome.best.type_known:
+                    primary_type['cross'] += 1
+                else:
+                    primary_type['unknown'] += 1
             if bucket != constants.BUCKET_AUTO_HIGH:
                 unresolved_by_parent[material.get('parent_id')] += 1
             if len(examples[bucket]) < examples_limit:
                 examples[bucket].append((material, outcome))
 
         self._print_buckets(counts, len(sample), total_targets)
+        self._print_primary_type(primary_type, len(sample))
         self._print_by_type(by_type)
         self._print_by_kind(by_kind)
         self._print_unresolved_by_parent(unresolved_by_parent)
@@ -101,6 +114,19 @@ class Command(BaseCommand):
             self.stdout.write(
                 f'{bucket:<14}{count:>10}{share * 100:>9.1f}%{projected:>14}'
             )
+
+    def _print_primary_type(self, primary_type, sample_count):
+        self.stdout.write('')
+        self.stdout.write('=== Тип лучшего кандидата ===')
+        labels = {
+            'same': 'тот же тип',
+            'cross': 'другой тип',
+            'unknown': 'тип неизвестен',
+        }
+        for key in ('same', 'cross', 'unknown'):
+            count = primary_type.get(key, 0)
+            share = count / sample_count if sample_count else 0
+            self.stdout.write(f'  {labels[key]:<16}{count:>9}{share * 100:>8.1f}%')
 
     def _print_by_type(self, by_type):
         self.stdout.write('')
@@ -171,11 +197,17 @@ class Command(BaseCommand):
                 )
                 for candidate in outcome.candidates[:3]:
                     entry = candidate.entry
-                    flag = 'director+' if candidate.director_match else ''
+                    flags = []
+                    if candidate.director_match:
+                        flags.append('director+')
+                    if candidate.type_known and not candidate.type_match:
+                        flags.append('TYPE!')
+                    elif not candidate.type_known:
+                        flags.append('type?')
                     self.stdout.write(
                         f'    -> [{entry["kp_id"]}] "{entry["title"]}" '
                         f'({entry["year"]}) score={candidate.score:.3f} '
                         f't={candidate.title_score:.2f} y={candidate.year_score:.0f} '
                         f'c={candidate.country_score:.2f} '
-                        f'd={candidate.director_score:.2f} {flag}'
+                        f'd={candidate.director_score:.2f} {" ".join(flags)}'
                     )
