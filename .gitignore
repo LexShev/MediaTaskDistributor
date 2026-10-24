@@ -11,16 +11,35 @@
 /planner/static/banners
 /planner/workers/.users.json
 /ssl
+/features
 .idea
 .env
 **/migrations/
 **/trash/
+**.docx
 export_structure.py
 project_structure.txt
 install_media_task_distributor.sh
 notes
 docker/docker-compose_backup.yml
+/docs
 
 # Backup files
 *.bundle
 backup-*
+
+# DB
+/db
+
+# TLS keys and certificates (local only)
+docker/s33/ssl/*.pem
+docker/s33/ssl/*.crt
+docker/s33/ssl/*.key
+
+# Personal notes (keep only the root README)
+*.md
+!/README.md
+
+# PostgreSQL backups
+/data/postgres/backups/*
+!/data/postgres/backups/.gitkeep
