@@ -43,6 +43,7 @@ ufw --force enable
 |--------|-----------------|-----------------|---------|--------|---------------------------------------------------------------------|
 | **Redis** | 6379            | `6379:6379`     | ✅ 6379  | 🟡 Межсерверный | `192.168.33.3` (Server 3 локально)<br/>`62.181.43.194` (Server 4)   |
 | **MongoDB** | 27017           | `27017:27017`   | ✅ 27017 | 🟡 Межсерверный | `192.168.33.3` (Server 3 локально)<br/>`62.181.43.194` (Server 4)   |
+| **PostgreSQL** | 5432         | `5432:5432`     | ✅ 5432  | 🟡 Межсерверный | `192.168.33.3` (Server 3 локально)<br/>`62.181.43.194` (Server 4)   |
 | **Nginx-Stream** | 8002            | `8002:8002`     | ✅ 8002  | 🟡 Межсерверный | `192.168.33.3` (Server 3 локально)<br/>`62.181.43.194` (Server 4)<br/>`192.168.0.0/16` |
 | **Flower** | 5555            | `5555:5555`     | ✅ 5555  | 🟡 Межсерверный | `62.181.43.194` (Админ)                                             |
 | **SSH** | 9000            | `9000:9000`     | ✅ 9000  | 🔴 Публичный | Админские IP                                                        |
@@ -52,9 +53,10 @@ ufw --force enable
 
 | Сервис | Внутренний порт | Проброс на localhost | Потребители | Примечание |
 |--------|------------------|----------------------|-------------|------------|
-| **Celery Worker** | — | — | Redis, MongoDB, MSSQL | Фоновые задачи, GPU |
+| **Celery Worker** | — | — | Redis, MongoDB, PostgreSQL, MSSQL | Фоновые задачи, GPU |
 | **Redis** | 6379 | `127.0.0.1:6379:6379` | Worker, Flower | Брокер Celery |
-| **MongoDB** | 27017 | `127.0.0.1:27017:27017` | Worker | Хранение задач |
+| **MongoDB** | 27017 | `127.0.0.1:27017:27017` | Worker | Хранение задач, fallback каталога |
+| **PostgreSQL** | 5432 | `5432:5432` | Worker, s11, s33 | Каталог Кинопоиска |
 | **Nginx-Stream** | 8002 | — | Worker | Раздача видео |
 
 ### UFW скрипт
@@ -71,6 +73,10 @@ ufw allow from 62.181.43.194 to any port 6379 proto tcp comment 'Redis - Server4
 # MongoDB
 ufw allow from 192.168.33.3 to any port 27017 proto tcp comment 'MongoDB - Server3 локально'
 ufw allow from 62.181.43.194 to any port 27017 proto tcp comment 'MongoDB - Server4'
+
+# PostgreSQL (s33 workers + s11 Django/CinemaAtlas)
+ufw allow from 192.168.33.3 to any port 5432 proto tcp comment 'PostgreSQL - Server3 локально'
+ufw allow from 62.181.43.194 to any port 5432 proto tcp comment 'PostgreSQL - Server4 Django/CinemaAtlas'
 
 # Nginx-Stream
 ufw allow from 192.168.33.3 to any port 8002 proto tcp comment 'Streaming - Server3 локально'
@@ -167,6 +173,7 @@ ufw --force enable
 | **ST42 (MSSQL)**      | 1433  | MSSQL     | 🟡 Межсерверный | `192.168.33.3`, `62.181.43.194`, `<ALLOWED IPs>` |
 | **ST33 (Streaming)** | 6379  | Redis     | 🟡 Межсерверный | `192.168.33.3`, `62.181.43.194`                  |
 | **ST33 (Streaming)** | 27017 | MongoDB   | 🟡 Межсерверный | `192.168.33.3`, `62.181.43.194`                  |
+| **ST33 (Streaming)** | 5432  | PostgreSQL | 🟡 Межсерверный | `192.168.33.3`, `62.181.43.194` (Django/CinemaAtlas) |
 | **ST33 (Streaming)** | 8002  | Streaming | 🟡 Межсерверный | `192.168.33.3`, `62.181.43.194`                  |
 | **ST33 (Streaming)** | 5555  | Flower    | 🟡 Межсерверный | `192.168.33.3`, `62.181.43.194`                  |
 | **ST33 (Streaming)** | 9000  | MinIO     | 🟡 Межсерверный | `192.168.33.3`, `62.181.43.194`                  |
@@ -199,8 +206,8 @@ ufw allow from <ALLOWED IPs> to any port 1433 proto tcp
 
 ### Сервер 2 st33 (Streaming)
 ```bash
-ufw allow from 192.168.33.3 to any port 6379,27017,8002 proto tcp
-ufw allow from <ALLOWED IPs> to any port 6379,27017,8002,5555 proto tcp
+ufw allow from 192.168.33.3 to any port 6379,27017,5432,8002 proto tcp
+ufw allow from <ALLOWED IPs> to any port 6379,27017,5432,8002,5555 proto tcp
 ```
 
 ### Сервер 3 st33 (Internal)

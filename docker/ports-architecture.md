@@ -45,6 +45,7 @@ graph TB
                 S2_FW_5555["Port 5555"]
                 S2_FW_8002["Port 8002"]
                 S2_FW_27017["Port 27017"]
+                S2_FW_5432["Port 5432"]
             end
 
             subgraph S2_Services["Сервисы"]
@@ -52,6 +53,7 @@ graph TB
                 Flower["Flower<br/>:5555"]
                 Redis["Redis<br/>:6379"]
                 MongoDB["MongoDB<br/>:27017"]
+                PostgreSQL["PostgreSQL<br/>:5432"]
                 NginxStream["Nginx-Stream<br/>:8002"]
             end
             
@@ -60,10 +62,12 @@ graph TB
             S2_FW_5555 --> Flower
             S2_FW_8002 --> NginxStream
             S2_FW_27017 --> MongoDB
+            S2_FW_5432 --> PostgreSQL
             
             %% Внутренние связи Server 2
             Worker --> Redis
             Worker --> MongoDB
+            Worker --> PostgreSQL
             Flower --> Redis
         end
     
@@ -145,6 +149,7 @@ graph TB
     %% Server 3 (Internal) → Server 2 (Streaming) локально
     WSGI_Int -.->|Redis :6379<br/>через 192.168.33.3| S2_FW_6379
     WSGI_Int -.->|MongoDB :27017<br/>через 192.168.33.3| S2_FW_27017
+    WSGI_Int -.->|PostgreSQL :5432<br/>через 192.168.33.3| S2_FW_5432
     NginxInt -.->|Stream :8002<br/>через 192.168.33.3| S2_FW_8002
 
     %% Server 3 (Internal) → Server 1 (MSSQL) локально
@@ -158,6 +163,7 @@ graph TB
     %% Server 4 (External) → Server 2 (Streaming) публично
     WSGI_Ext -.->|Redis :6379<br/>через 81.24.120.58| S2_FW_6379
     WSGI_Ext -.->|MongoDB :27017<br/>через 81.24.120.58| S2_FW_27017
+    WSGI_Ext -.->|PostgreSQL :5432<br/>через 81.24.120.58| S2_FW_5432
     NginxExt -.->|Stream :8002<br/>через 81.24.120.58| S2_FW_8002
     Admin -->|Flower :5555<br/>через 81.24.120.58| S2_FW_5555
 
@@ -190,11 +196,11 @@ graph TB
     classDef storage fill:#6c5b7b,stroke:#c06c84,color:#fff
 
     class Server1,Server2,Server3,Server4 server
-    class MSSQL,MongoDB,Redis database
+    class MSSQL,MongoDB,Redis,PostgreSQL database
     class Worker,Flower,NginxStream streaming
     class WSGI_Int,ASGI_Int,WSGI_Ext,ASGI_Ext app
     class NginxInt,NginxExt web
-    class S1_FW_1433,S2_FW_6379,S2_FW_5555,S2_FW_8002,S2_FW_27017,S3_FW_80,S3_FW_443,S4_FW_80,S4_FW_443 firewall
+    class S1_FW_1433,S2_FW_6379,S2_FW_5555,S2_FW_8002,S2_FW_27017,S2_FW_5432,S3_FW_80,S3_FW_443,S4_FW_80,S4_FW_443 firewall
     class User,Admin,LocalUser external
     class Storage storage
 ```

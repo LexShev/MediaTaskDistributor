@@ -1,6 +1,7 @@
 volumes:
   redis_data:
   mongo_data:
+  postgres_data:
 
 services:
   celery_worker:
@@ -129,6 +130,63 @@ services:
       timeout: 5s
       retries: 3
 
+  postgres:
+    image: postgres:17-alpine
+    container_name: media_postgres
+    hostname: postgres
+    ports:
+      - "${DB_PG_PORT:-5432}:5432"
+    environment:
+      - TZ=Europe/Moscow
+      - POSTGRES_DB=${DB_PG_NAME:-media}
+      - POSTGRES_USER=${DB_PG_ADMIN_USER:-sa}
+      - "POSTGRES_PASSWORD=${DB_PG_ADMIN_PASSWORD:?DB_PG_ADMIN_PASSWORD is required}"
+      - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
+      - DB_PG_DJANGO_USER=${DB_PG_USER:-django_listener}
+      - "DB_PG_DJANGO_PASSWORD=${DB_PG_PASSWORD:?DB_PG_PASSWORD is required}"
+      - DB_PG_CINEMA_USER=${DB_PG_CINEMA_USER:-cinema_atlas}
+      - "DB_PG_CINEMA_PASSWORD=${DB_PG_CINEMA_PASSWORD:?DB_PG_CINEMA_PASSWORD is required}"
+      - DB_PG_PARSER_USER=${DB_PG_PARSER_USER:-kinopoisk_parser_bot}
+      - "DB_PG_PARSER_PASSWORD=${DB_PG_PARSER_PASSWORD:?DB_PG_PARSER_PASSWORD is required}"
+      - "POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../sql_scripts/postgres/001_kinopoisk.sql:/docker-entrypoint-initdb.d/001_kinopoisk.sql:ro
+      - ../postgres-init/010_roles.sh:/docker-entrypoint-initdb.d/010_roles.sh:ro
+      - ../../sql_scripts/postgres/002_access_roles.sql:/docker-entrypoint-initdb.d/020_grants.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_PG_ADMIN_USER:-sa} -d ${DB_PG_NAME:-media}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - media-network
+      - media_media-network
+
+  postgres-backup:
+    build:
+      context: ../postgres-backup
+      dockerfile: Dockerfile
+    image: media-postgres-backup:latest
+    container_name: media_postgres_backup
+    environment:
+      - TZ=Europe/Moscow
+      - DB_HOST=${DB_PG_HOST:-postgres}
+      - DB_PORT=5432
+      - DB_NAME=${DB_PG_NAME:-media}
+      - DB_USER=${DB_PG_ADMIN_USER:-sa}
+      - "DB_PASSWORD=${DB_PG_ADMIN_PASSWORD:?DB_PG_ADMIN_PASSWORD is required}"
+      - BACKUP_RETENTION_DAYS=${DB_PG_BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - ../../data/postgres/backups:/backups:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - media-network
+
   flower:
     image: mher/flower:2.0
     container_name: media_flower
@@ -222,6 +280,7 @@ services:
   # ========== СЕРВИС АВТО-СОЗДАНИЯ БАКЕТА ==========
   minio-create-bucket:
     image: minio/mc:latest
+    profiles: ["minio-init"]
     container_name: media_minio_create_bucket
     restart: "no"
     depends_on:
@@ -245,3 +304,5 @@ services:
 networks:
   media-network:
     driver: bridge
+  media_media-network:
+    external: true
