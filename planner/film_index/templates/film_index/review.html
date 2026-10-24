@@ -5,67 +5,114 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'css/film_index.css' %}">
 
-<div class="container-fluid px-3 py-2" id="film-index"
+<div id="film-index"
      data-queue-url="{% url 'film_index_api_queue' %}"
      data-item-url="{% url 'film_index_api_item' 0 %}"
      data-search-url="{% url 'film_index_api_search' %}"
      data-poster-url="{% url 'film_index_api_poster' %}"
-     data-decide-url="{% url 'film_index_api_decide' %}">
+     data-decide-url="{% url 'film_index_api_decide' %}"
+     data-fps="{{ fps|default:25 }}">
 
-  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-    <h5 class="m-0 me-3">Разбор сопоставления</h5>
-
-    <select class="form-select form-select-sm w-auto" id="filter-bucket">
-      <option value="">Все бакеты</option>
-      <option value="band_070_085" selected>band 0.70–0.85</option>
-      <option value="ambiguous">ambiguous</option>
-      <option value="unmatched">unmatched</option>
-    </select>
-
-    <select class="form-select form-select-sm w-auto" id="filter-kind">
-      <option value="">Фильмы и сериалы</option>
-      <option value="film">Фильмы</option>
-      <option value="series">Сериалы</option>
-    </select>
-
-    <select class="form-select form-select-sm w-auto" id="filter-status" title="Видно администраторам и главному редактору">
-      <option value="pending" selected>Нерешённые</option>
-      <option value="resolved">Принятые</option>
-      <option value="rejected">Отклонённые</option>
-      <option value="">Все</option>
-    </select>
-
-    <input class="form-control form-control-sm" style="width: 18rem" id="filter-name"
-           placeholder="Поиск по названию…">
-
-    <button class="btn btn-sm btn-outline-secondary" id="btn-reload">Применить</button>
-
-    <div class="ms-auto d-flex align-items-center gap-3">
-      <span class="text-muted" id="progress">— / —</span>
-      <span class="text-muted" id="stats"></span>
+  {# ── Тулбар ─────────────────────────────────────────────── #}
+  <div class="fi-toolbar">
+    <div class="d-flex align-items-center gap-2">
+      <h5 class="m-0">
+        Синхронизация с Кинопоиском
+        <span class="badge text-bg-secondary js-queue-total">0</span>
+      </h5>
+      <div class="ms-auto text-muted" id="progress">— / —</div>
     </div>
   </div>
 
-  <div class="row g-2">
-    <div class="col-lg-8">
-      <div id="item-pane" class="card"><div class="card-body text-muted">Загрузка…</div></div>
-    </div>
-    <div class="col-lg-4">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center py-1">
-          <span>Очередь</span>
-          <span class="small text-muted" id="queue-count"></span>
+  {# ── Основная область: карточка материала + кандидаты + очередь ───── #}
+  <div class="fi-main">
+    <div class="fi-work">
+      <div id="material-pane"></div>
+
+      <div class="card fi-candidates">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Кандидаты Кинопоиска</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+                  data-bs-toggle="modal" data-bs-target="#search-modal">
+            <i class="bi bi-search"></i> Ручной поиск
+          </button>
         </div>
-        <div class="card-body p-0" style="max-height: 78vh; overflow-y: auto;">
-          <div class="list-group list-group-flush" id="queue-list"></div>
+        <div class="card-body fi-candidates-body" id="candidates"></div>
+        <div class="card-footer fi-actions">
+          <button class="btn btn-outline-secondary" id="btn-revert" title="Вернуться (Backspace)">← Вернуться</button>
+          <button class="btn btn-outline-danger" id="btn-reject" title="Не найден (R)">Не найден</button>
+          <span class="ms-auto fi-hints">
+            <b>↑↓</b> кандидат · <b>←→</b> позиция · <b>Enter</b> принять · <b>R</b> не найден · <b>Backspace</b> вернуться
+          </span>
         </div>
       </div>
     </div>
+
+    {# ── Очередь (постоянная панель) ─────────────────────── #}
+    <aside class="fi-queue-panel">
+      <div class="fi-queue-header">
+        Очередь <span class="badge text-bg-secondary js-queue-count">0</span>
+      </div>
+      <div class="fi-queue-body">
+        <div class="fi-filters">
+          <label class="fi-filter-label" for="filter-bucket">Категория</label>
+          <select class="form-select form-select-sm" id="filter-bucket">
+            <option value="">Все категории</option>
+            <option value="band_070_085" selected>Пограничные (0.70–0.85)</option>
+            <option value="ambiguous">Неоднозначные</option>
+            <option value="unmatched">Не найдены</option>
+          </select>
+
+          <label class="fi-filter-label" for="filter-kind">Тип</label>
+          <select class="form-select form-select-sm" id="filter-kind">
+            <option value="">Фильмы и сериалы</option>
+            <option value="film">Фильмы</option>
+            <option value="series">Сериалы</option>
+          </select>
+
+          <label class="fi-filter-label" for="filter-status">Статус</label>
+          <select class="form-select form-select-sm" id="filter-status">
+            <option value="pending" selected>Нерешённые</option>
+            <option value="resolved">Принятые</option>
+            <option value="rejected">Отклонённые</option>
+            <option value="">Все</option>
+          </select>
+
+          <label class="fi-filter-label" for="filter-name">Название</label>
+          <input class="form-control form-control-sm" id="filter-name" placeholder="Поиск по названию…">
+
+          <button class="btn btn-sm btn-primary w-100 mt-2" id="btn-reload">Применить</button>
+        </div>
+        <div class="list-group list-group-flush fi-queue-list" id="queue-list">
+          <div class="p-3 text-muted">Загрузка…</div>
+        </div>
+      </div>
+      <div class="fi-queue-pager">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="queue-prev"
+                title="Предыдущая страница" disabled>←</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="queue-next"
+                title="Следующая страница" disabled>→</button>
+      </div>
+    </aside>
   </div>
 
-  <div class="position-fixed bottom-0 start-50 translate-middle-x mb-3 d-flex gap-2" style="z-index: 1040;">
-    <button class="btn btn-outline-secondary" id="btn-revert" title="Вернуться (Backspace)">← Вернуться</button>
-    <button class="btn btn-outline-danger" id="btn-reject" title="Не найден (R)">Не найден</button>
+  {# ── Ручной поиск (modal) ───────────────────────────────── #}
+  <div class="modal fade" id="search-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Ручной поиск по Кинопоиску</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <div class="input-group mb-3">
+            <input class="form-control" id="kp-search" placeholder="Название фильма или сериала…">
+            <button class="btn btn-outline-secondary" id="kp-search-btn">Найти</button>
+          </div>
+          <div id="search-results"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

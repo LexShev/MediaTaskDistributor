@@ -201,8 +201,9 @@ _FILM_TYPE_SQL = 'p.[program_type_id] IN (5, 6, 10, 11)'
 _SERIES_TYPE_SQL = 'p.[program_type_id] IN (4, 12, 16)'
 
 
-def fetch_review_queue(status='pending', bucket=None, kind=None,
-                       parent_id=None, name=None, limit=500, offset=0) -> list:
+def _review_queue_filter(status='pending', bucket=None, kind=None,
+                         parent_id=None, name=None):
+    """WHERE-условия очереди разбора, общие для выборки и счётчика."""
     conditions = ['p.[deleted] = 0', 'p.[DeletedIncludeParent] = 0']
     params = []
     if status:
@@ -221,7 +222,14 @@ def fetch_review_queue(status='pending', bucket=None, kind=None,
     if name:
         conditions.append('p.[name] LIKE %s')
         params.append(f'%{name}%')
+    return conditions, params
 
+
+def fetch_review_queue(status='pending', bucket=None, kind=None,
+                       parent_id=None, name=None, limit=500, offset=0) -> list:
+    conditions, params = _review_queue_filter(
+        status=status, bucket=bucket, kind=kind, parent_id=parent_id, name=name,
+    )
     query = f"""
     SELECT r.[oplan_program_id], r.[bucket], r.[status], r.[resolved_kp_id],
            p.[name], p.[orig_name], p.[program_type_id], p.[program_kind],
@@ -243,6 +251,23 @@ def fetch_review_queue(status='pending', bucket=None, kind=None,
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(query, params)
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+def count_review_queue(status='pending', bucket=None, kind=None,
+                       parent_id=None, name=None) -> int:
+    """Полное число задач по тем же фильтрам, без ограничения страницей."""
+    conditions, params = _review_queue_filter(
+        status=status, bucket=bucket, kind=kind, parent_id=parent_id, name=name,
+    )
+    query = f"""
+    SELECT COUNT(*)
+    FROM dbo.[film_match_review] AS r
+    JOIN [{OPLAN_DB}].[dbo].[program] AS p ON p.[program_id] = r.[oplan_program_id]
+    WHERE {' AND '.join(conditions)}
+    """
+    with connections[PLANNER_DB].cursor() as cursor:
+        cursor.execute(query, params)
+        return int(cursor.fetchone()[0])
 
 
 def review_stats() -> list:

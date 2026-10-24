@@ -1,3 +1,79 @@
+/* Раскладка страницы «Синхронизация с Кинопоиском»: без скролла страницы,
+   прокручиваются только внутренние списки. */
+#film-index {
+  display: flex;
+  flex-direction: column;
+  height: var(--fi-height, calc(100vh - 80px));
+  padding: .5rem 1rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.fi-toolbar {
+  flex: 0 0 auto;
+  margin-bottom: .5rem;
+}
+
+.fi-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  gap: .5rem;
+}
+
+/* Рабочая область: карточка материала + кандидаты */
+.fi-work {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+/* Карточка материала — статичная, компактная */
+.fi-material {
+  flex: 0 0 auto;
+}
+
+.fi-file {
+  font-family: var(--bs-font-monospace);
+  font-size: .8rem;
+  word-break: break-all;
+}
+
+.fi-description {
+  max-height: 4.25rem;
+  overflow-y: auto;
+}
+
+/* Кандидаты — карточка на всю оставшуюся высоту, список скроллится */
+.fi-candidates {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fi-candidates-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.fi-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.fi-hints {
+  font-size: .75rem;
+  color: var(--bs-secondary-color);
+}
+
+/* Кандидат */
 #film-index .candidate {
   cursor: pointer;
   transition: border-color .15s ease, box-shadow .15s ease;
@@ -16,12 +92,129 @@
   flex: 0 0 auto;
 }
 
+.fi-overall {
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.fi-score {
+  flex: 0 0 auto;
+  min-width: 11rem;
+}
+
+.fi-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.fi-metric {
+  font-size: .78rem;
+  background: var(--bs-tertiary-bg);
+  border-radius: var(--bs-border-radius-sm);
+  padding: .05rem .4rem;
+}
+
 #film-index .search-result {
   cursor: pointer;
 }
 
-#film-index #queue-list .list-group-item {
+#film-index .kp-link {
+  text-decoration: none;
+}
+
+#film-index .kp-logo {
+  width: 16px;
+  height: 16px;
+  vertical-align: -2px;
+}
+
+#film-index .search-title {
+  text-decoration: none;
+  color: inherit;
+}
+
+#film-index .search-title:hover {
+  color: var(--bs-primary);
+  text-decoration: underline;
+}
+
+#film-index .search-poster {
+  width: 44px;
+  height: 66px;
+  object-fit: cover;
+  border-radius: .25rem;
+  background: var(--bs-secondary-bg);
+  flex: 0 0 auto;
+}
+
+/* Постоянная панель «Очередь» */
+.fi-queue-panel {
+  flex: 0 0 auto;
+  width: clamp(300px, 26vw, 420px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  background: var(--bs-body-bg);
+  overflow: hidden;
+}
+
+.fi-queue-header {
+  flex: 0 0 auto;
+  padding: .55rem .75rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--bs-border-color);
+  background: var(--bs-tertiary-bg);
+}
+
+.fi-queue-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.fi-filters {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: .75rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.fi-filter-label {
+  font-size: .75rem;
+  color: var(--bs-secondary-color);
+  margin: .5rem 0 .15rem;
+}
+
+.fi-queue-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.fi-queue-list .list-group-item {
   border-left: 0;
   border-right: 0;
-  padding: .4rem .6rem;
+  padding: .4rem .75rem;
+}
+
+.fi-queue-pager {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .5rem .75rem;
+  border-top: 1px solid var(--bs-border-color);
+  background: var(--bs-tertiary-bg);
+}
+
+.fi-queue-pager .btn {
+  min-width: 4rem;
+  font-size: 1rem;
 }

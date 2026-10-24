@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 from main.decorators import ajax_login_required
 from main.permission_pannel import ask_db_permissions
 from main.settings.main_settings import get_main_settings
-from film_index import repository, review
+from film_index import constants, repository, review
 from film_index.oplan_source import fetch_description, fetch_material
 from film_index.posters import get_poster
 from film_index.search import search_catalog
@@ -24,6 +24,7 @@ def review_page(request):
         'stats': repository.review_stats(),
         'permissions': ask_db_permissions(user_id),
         'tabs': get_main_settings().get_header_panels(user_group),
+        'fps': constants.FPS,
     }
     return render(request, 'film_index/review.html', data)
 
@@ -36,16 +37,39 @@ def api_queue(request):
         parent_id = int(parent_id) if parent_id not in (None, '') else None
     except ValueError:
         parent_id = None
+    status = request.GET.get('status') or 'pending'
+    bucket = request.GET.get('bucket') or None
+    name = request.GET.get('name') or None
+    try:
+        limit = int(request.GET.get('limit') or 500)
+    except ValueError:
+        limit = 500
+    limit = max(1, min(limit, 500))
+    try:
+        offset = int(request.GET.get('offset') or 0)
+    except ValueError:
+        offset = 0
+    offset = max(0, offset)
     items = repository.fetch_review_queue(
-        status=request.GET.get('status') or 'pending',
-        bucket=request.GET.get('bucket') or None,
+        status=status,
+        bucket=bucket,
         kind=kind,
         parent_id=parent_id,
-        name=request.GET.get('name') or None,
-        limit=int(request.GET.get('limit') or 500),
-        offset=int(request.GET.get('offset') or 0),
+        name=name,
+        limit=limit,
+        offset=offset,
     )
-    return JsonResponse({'status': 'success', 'items': items, 'count': len(items)})
+    total = repository.count_review_queue(
+        status=status,
+        bucket=bucket,
+        kind=kind,
+        parent_id=parent_id,
+        name=name,
+    )
+    return JsonResponse({
+        'status': 'success', 'items': items, 'count': len(items),
+        'total': total, 'offset': offset, 'limit': limit,
+    })
 
 
 @ajax_login_required
@@ -60,10 +84,13 @@ def api_item(request, program_id):
             candidates = json.loads(review_item['candidates_json'])
         except (TypeError, ValueError):
             candidates = []
+    description = (fetch_description(program_id)
+                   or material.get('short_annotation')
+                   or material.get('annotation'))
     return JsonResponse({
         'status': 'success',
         'material': material,
-        'description': fetch_description(program_id),
+        'description': description,
         'review': {
             'status': review_item.get('status') if review_item else None,
             'bucket': review_item.get('bucket') if review_item else None,

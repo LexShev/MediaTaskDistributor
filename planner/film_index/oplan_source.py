@@ -135,6 +135,7 @@ def fetch_material(program_id) -> dict:
         Progs.[program_id], Progs.[parent_id], Progs.[program_kind],
         Progs.[program_type_id], Progs.[name], Progs.[orig_name],
         Progs.[production_year], Progs.[production_country], Progs.[Director],
+        Progs.[Cast], Progs.[annotation], Progs.[ShortAnnotation],
         Progs.[episode_num], Progs.[duration],
         CASE WHEN MatFiles.[program_id] IS NULL THEN 0 ELSE 1 END AS has_file
     FROM [{OPLAN_DB}].[dbo].[program] AS Progs
@@ -145,14 +146,40 @@ def fetch_material(program_id) -> dict:
     columns = (
         'program_id', 'parent_id', 'program_kind', 'program_type_id',
         'name', 'orig_name', 'production_year', 'production_country',
-        'director', 'episode_num', 'duration', 'has_file',
+        'director', 'cast', 'annotation', 'short_annotation',
+        'episode_num', 'duration', 'has_file',
     )
     with connections[OPLAN_DB].cursor() as cursor:
         cursor.execute(query, (program_id,))
         row = cursor.fetchone()
     if not row:
         return None
-    return dict(zip(columns, row))
+    material = dict(zip(columns, row))
+    material['file_name'] = _fetch_file_name(program_id) if material.get('has_file') else None
+    return material
+
+
+def _fetch_file_name(program_id):
+    """Полный сетевой путь файла материала (Oplan3 File.Name)."""
+    query = f"""
+    SELECT TOP (1) Files.[Name]
+    FROM [{OPLAN_DB}].[dbo].[File] AS Files
+    JOIN [{OPLAN_DB}].[dbo].[Clip] AS Clips
+        ON Files.[ClipID] = Clips.[ClipID]
+    JOIN [{OPLAN_DB}].[dbo].[program] AS Progs
+        ON Clips.[MaterialID] = Progs.[SuitableMaterialForScheduleID]
+    WHERE Files.[Deleted] = 0
+      AND Files.[PhysicallyDeleted] = 0
+      AND Clips.[Deleted] = 0
+      AND Progs.[deleted] = 0
+      AND Progs.[DeletedIncludeParent] = 0
+      AND Progs.[program_id] = %s
+      AND Files.[Name] IS NOT NULL
+    """
+    with connections[OPLAN_DB].cursor() as cursor:
+        cursor.execute(query, (program_id,))
+        row = cursor.fetchone()
+    return row[0] if row else None
 
 
 def fetch_description(program_id):
