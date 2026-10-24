@@ -1,4 +1,7 @@
-"""Источник данных Кинопоиска (MongoDB, db `kinopoisk`, коллекции film/series).
+"""Источник данных Кинопоиска (MongoDB или PostgreSQL).
+
+При `CATALOG_BACKEND=postgres` каталог читается из `kinopoisk.titles`; иначе —
+из Mongo (db `kinopoisk`, коллекции film/series).
 
 Каталог грузится в память один раз и индексируется:
 * точный индекс по нормализованному названию/original_title;
@@ -12,8 +15,10 @@
 
 from collections import defaultdict
 
+from django.conf import settings
+
 from planner.mongo_settings import mongo_connection
-from film_index import normalization
+from film_index import normalization, pg_catalog
 
 _PROJECTION = {
     'kinopoisk_id': 1,
@@ -105,7 +110,10 @@ def _build_entry(doc: dict) -> dict:
 
 
 def load_catalog() -> KinopoiskCatalog:
-    """Загружает каталог film+series из Mongo в память."""
+    """Загружает каталог film+series из выбранного backend."""
+    if settings.CATALOG_BACKEND == 'postgres':
+        return KinopoiskCatalog(pg_catalog.load_catalog())
+
     entries = []
     seen = set()
     for collection_name in ('film', 'series'):

@@ -180,3 +180,10 @@ def years_match(query_year, candidate_year) -> bool:
     if query_year is None or candidate_year is None:
         return False
     return abs(query_year - candidate_year) <= 1
+
+
+def normalize_search_text(value) -> str:
+    """Normalize title text for trigram search without dropping season numbers."""
+    text = _to_text(value).lower().replace('\u0451', '\u0435')
+    text = _PUNCT_RE.sub(' ', text)
+    return _WS_RE.sub(' ', text).strip()

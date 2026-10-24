@@ -1,13 +1,16 @@
-"""Ручной поиск по каталогу Кинопоиска (MongoDB) для UI разбора.
+"""Ручной поиск по каталогу Кинопоиска для UI разбора.
 
-Поиск идёт по обеим коллекциям (film/series), ввод экранируется через
+При `CATALOG_BACKEND=postgres` поиск идёт через `pg_trgm`; иначе — по
+коллекциям Mongo (film/series). В Mongo-ветке ввод экранируется через
 re.escape (защита от ReDoS/полного скана), `type` возвращается как подсказка.
 """
 
 import re
 
+from django.conf import settings
+
 from planner.mongo_settings import mongo_connection
-from film_index import normalization
+from film_index import normalization, pg_catalog
 
 _PROJECTION = {
     'kinopoisk_id': 1,
@@ -23,6 +26,9 @@ _PROJECTION = {
 
 
 def search_catalog(query: str, limit: int = 15) -> list:
+    if settings.CATALOG_BACKEND == 'postgres':
+        return pg_catalog.search_catalog(query, limit=limit)
+
     text = (query or '').strip()
     if not text:
         return []

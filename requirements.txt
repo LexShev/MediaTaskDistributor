@@ -8,9 +8,11 @@ dnspython==2.7.0
 gunicorn==23.0.0
 idna==3.10
 mssql-django==1.5
+openpyxl==3.1.5
 packaging==25.0
 pymongo==4.11.3
 pyodbc==5.2.0
+psycopg[binary]>=3.2,<4.0
 python-dotenv==1.1.0
 pytz==2025.2
 RapidFuzz==3.13.0

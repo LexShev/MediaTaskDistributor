@@ -225,6 +225,18 @@ MONGO_PASSWORD = os.getenv('DB_MONGO_PASSWORD')
 MONGO_HOST =  f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{DB_MONGO_HOST}:{DB_MONGO_PORT}'
 MONGO_TIMEOUT_MS = 5000
 
+CATALOG_DB = 'catalog'
+CATALOG_ADMIN_DB = 'catalog_admin'
+DB_PG_HOST = os.getenv('DB_PG_HOST')
+DB_PG_PORT = os.getenv('DB_PG_PORT', '5432')
+DB_PG_NAME = os.getenv('DB_PG_NAME', 'media')
+DB_PG_USER = os.getenv('DB_PG_USER')
+DB_PG_PASSWORD = os.getenv('DB_PG_PASSWORD')
+DB_PG_ADMIN_USER = os.getenv('DB_PG_ADMIN_USER', 'sa')
+DB_PG_ADMIN_PASSWORD = os.getenv('DB_PG_ADMIN_PASSWORD')
+CATALOG_BACKEND = os.getenv('CATALOG_BACKEND', 'mongo')
+CATALOG_PG_TIMEOUT_MS = int(os.getenv('CATALOG_PG_TIMEOUT_MS', '500'))
+
 DATABASES = {
     "default": {
         "ENGINE": "mssql",
@@ -269,7 +281,29 @@ DATABASES = {
         "OPTIONS": {
             "authSource": "admin",
         },
-    }
+    },
+    CATALOG_DB: {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": DB_PG_NAME,
+        "USER": DB_PG_USER,
+        "PASSWORD": DB_PG_PASSWORD,
+        "HOST": DB_PG_HOST,
+        "PORT": DB_PG_PORT,
+        "OPTIONS": {
+            "connect_timeout": 5,
+        },
+    },
+    CATALOG_ADMIN_DB: {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": DB_PG_NAME,
+        "USER": DB_PG_ADMIN_USER,
+        "PASSWORD": DB_PG_ADMIN_PASSWORD,
+        "HOST": DB_PG_HOST,
+        "PORT": DB_PG_PORT,
+        "OPTIONS": {
+            "connect_timeout": 5,
+        },
+    },
 }
 
 LOGGING = {
