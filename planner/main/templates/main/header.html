@@ -52,12 +52,9 @@
 {#                       {% if permissions.auth_group == 'admin' and request.user.id == 1 %}#}
                        {% if permissions.auth_group == 'admin' %}
                           <li><a href="{% url 'home' %}playlist/daily" class="dropdown-item">Сетки вещания</a></li>
-                      {% endif %}
-                        {% if permissions.auth_group == 'admin' %}
                           <li><a href="{% url 'home' %}playlist/editors_notifications/" class="dropdown-item">Уведомления</a></li>
-                      {% endif %}
-                      {% if permissions.auth_group == 'admin' %}
                           <li><a href="{% url 'home' %}schedule-perspective/" class="dropdown-item">Перспективные сетки</a></li>
+                          <li><a href="{% url 'home' %}film-index/review/" class="dropdown-item">Синхронизация с Кинопоиском</a></li>
                       {% endif %}
                   </ul>
               </li>

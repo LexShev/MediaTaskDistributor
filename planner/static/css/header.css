@@ -40,3 +40,10 @@
     color: var(--bs-warning-text-emphasis) !important;
     opacity: 0.9;
 }
+
+.hover-success:hover {
+    background-color: var(--bs-success-bg-subtle) !important;
+    border-color: var(--bs-success-border-subtle) !important;
+    color: var(--bs-success-text-emphasis) !important;
+    opacity: 0.9;
+}

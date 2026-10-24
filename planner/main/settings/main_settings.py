@@ -85,7 +85,7 @@ class MainSettings:
             },
         8: {'name': 'chief_editor', 'label': 'Главный редактор', 'tabs':
             ['air_day_report', 'air_month_report', 'common_pool', 'playlist_daily', 'editors_notifications',
-             'advanced_search', 'cinema_atlas', 'film_index_review']
+             'advanced_search', 'cinema_atlas', 'schedule_perspective', 'film_index_review']
             },
         4: {'name': 'otk_engineers', 'label': 'ОТК', 'tabs':
             ['otk', 'common_pool', 'advanced_search', 'cinema_atlas']
@@ -96,6 +96,9 @@ class MainSettings:
         7: {'name': 'preparation_engineers__editors', 'label': 'Арина', 'tabs':
             ['week', 'list', 'common_pool', 'air_day_report', 'air_month_report', 'desktop', 'playlist_daily', 'editors_notifications', 'advanced_search']
             },
+        9: {'name': 'senior_editor', 'label': 'Старший редактор', 'tabs':
+            ['schedule_perspective', 'cinema_atlas']
+            },
     }
 
     label_dict = {
@@ -105,7 +108,7 @@ class MainSettings:
         'playlist_daily': 'Сетки вещания',
         'editors_notifications': 'Уведомления',
         'schedule_perspective': 'Перспективные сетки',
-        'film_index_review': 'Разбор сопоставления',
+        'film_index_review': 'Синхронизация с Кинопоиском',
         'advanced_search': 'Расширенный поиск',
         'cinema_atlas': 'Cinema Atlas',
         'common_pool': 'Общий пул',

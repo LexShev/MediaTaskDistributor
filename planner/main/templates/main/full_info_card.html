@@ -51,8 +51,8 @@
                 <div class="accordion-body p-2">
 
                   <div class="row m-0 mb-2 gx-1 gy-2 align-items-stretch">
-                    <div class="col px-1 d-flex align-items-center" style="flex: 0 0 16%; max-width: 16%; height: 95%;">
-                      <div class="position-relative w-100 h-100 poster-container"
+                    <div class="col d-flex flex-column px-1" style="flex: 0 0 16%; max-width: 16%;">
+                      <div class="position-relative flex-grow-1 poster-container"
                            {% if full_info.material_status != 'no_material' %}onclick="startVideoPlayer()" style="cursor: pointer;"{% endif %}>
                         <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
                              class="img-fluid rounded m-0 w-100 h-100 object-fit-cover"
@@ -92,7 +92,7 @@
                         </div>
                       </div>
                       <div class="row mb-2 mx-0 align-items-center">
-                        <div class="col-md-6 d-flex mt-auto">
+                        <div class="col-md-6 d-flex p-0 mt-auto">
                           {% if full_info.material_type == 'season' %}
                             <a class="link-body-emphasis link-offset-3-hover link-underline-opacity-0" href="{% url 'home' %}{{ full_info.Progs_parent_id }}">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16">
@@ -100,6 +100,7 @@
                               </svg>
                             </a>
                           {% endif %}
+
                           <h5 class="p-1 m-0" title="{{ full_info.Progs_orig_name }}" id="program_id" data-program-id="{{ full_info.Progs_program_id }}">
                             {{ full_info.Progs_name }}
                           </h5>
@@ -160,7 +161,7 @@
 
                         </div>
                       </div>
-                      <div class="row g-2 ms-2 mx-0">
+                      <div class="row g-2 mx-0">
                         <div class="col-md-6">
                           <div class="form-floating">
                             <textarea class="form-control" id="year_form" style="height: 50px" disabled>{% if full_info.Progs_production_year %}{{ full_info.Progs_production_year }}{% endif %}</textarea>
