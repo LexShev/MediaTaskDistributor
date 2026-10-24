@@ -5,9 +5,7 @@
 изменения вызывающего кода.
 """
 
-from django.db import connections
-
-from planner.settings import PLANNER_DB
+from django.db import connection
 
 from schedule_perspective import constants
 
@@ -25,7 +23,7 @@ ORDER BY S.position
 
 def build_download_items(schedule_id, day_date):
     """Список kinopoisk_id материалов дня, которых нет в базе."""
-    with connections[PLANNER_DB].cursor() as cursor:
+    with connection.cursor() as cursor:
         cursor.execute(_SQL, (schedule_id, day_date))
         rows = cursor.fetchall()
     items = []

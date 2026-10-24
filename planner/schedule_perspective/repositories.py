@@ -4,20 +4,32 @@
 кросс-БД join'ом (`planner` + `oplan3`), чтобы не плодить N+1 на каждый слот.
 """
 
-from django.db import connections, transaction
+from django.db import connection, transaction
 from django.utils import timezone
-
-from planner.settings import PLANNER_DB
 
 from schedule_perspective import constants
 from schedule_perspective.models import (
     PerspectiveDay, PerspectiveNoMaterial, PerspectiveSlot,
 )
 
+# Все обращения к БД Planner идут через ОДИН alias (`default` == БД planner),
+# чтобы ORM и raw-SQL работали в одной транзакции. Иначе raw-UPDATE по
+# `connections['planner']` (отдельная сессия к той же БД) блокируется на
+# локах ORM-транзакции и запрос повисает (WORKER TIMEOUT).
+DB = 'default'
+
 # Смещение для безопасного пересчёта уникальных позиций одним шагом
 # (в MSSQL UPDATE ... = position+1 по уникальному индексу может ловить
 # транзиентный конфликт; двухшаговый сдвиг это исключает).
 _OFFSET = 1_000_000
+
+
+class DayNotEditable(Exception):
+    """День утверждён (не draft) — редактирование слотов запрещено."""
+
+
+class PositionTaken(Exception):
+    """В указанной позиции дня уже стоит другой слот."""
 
 
 # --- Дни --------------------------------------------------------------------
@@ -28,6 +40,22 @@ def get_or_create_day(schedule_id, day_date):
         defaults={'status': constants.STATUS_DRAFT},
     )
     return day
+
+
+def day_status(schedule_id, day_date):
+    """Статус дня; отсутствующий день считается черновиком."""
+    value = PerspectiveDay.objects.filter(
+        schedule_id=schedule_id, day_date=day_date,
+    ).values_list('status', flat=True).first()
+    return value or constants.STATUS_DRAFT
+
+
+def assert_editable(schedule_id, day_date):
+    """Разрешает правку только черновика."""
+    status = day_status(schedule_id, day_date)
+    if status != constants.STATUS_DRAFT:
+        raise DayNotEditable(
+            f'День {day_date:%d.%m.%Y} недоступен для редактирования: статус «{status}»')
 
 
 def fetch_days(schedule_id, start, end):
@@ -47,17 +75,29 @@ def fetch_days(schedule_id, start, end):
 
 
 def set_status(schedule_id, dates, status, user_id):
-    """Переводит перечисленные дни в новый статус (одной транзакцией)."""
+    """Переводит перечисленные дни в новый статус (одной транзакцией).
+
+    Дни без строки (пустые, без слотов) создаются — иначе статус не
+    применится и период останется черновиком.
+    """
     now = timezone.now()
+    values = {'status': status, 'updated_at': now}
+    if status == constants.STATUS_CHIEF_APPROVED:
+        values.update(approved_by=user_id, approved_at=now)
+    elif status == constants.STATUS_FINAL_APPROVED:
+        values.update(final_by=user_id, final_at=now)
+    fields = list(values.keys())
     updated = 0
     with transaction.atomic():
-        qs = PerspectiveDay.objects.filter(schedule_id=schedule_id, day_date__in=dates)
-        values = {'status': status, 'updated_at': now}
-        if status == constants.STATUS_CHIEF_APPROVED:
-            values.update(approved_by=user_id, approved_at=now)
-        elif status == constants.STATUS_FINAL_APPROVED:
-            values.update(final_by=user_id, final_at=now)
-        updated = qs.update(**values)
+        for day_date in dates:
+            day, _ = PerspectiveDay.objects.get_or_create(
+                schedule_id=schedule_id, day_date=day_date,
+                defaults={'status': constants.STATUS_DRAFT},
+            )
+            for field, value in values.items():
+                setattr(day, field, value)
+            day.save(update_fields=fields)
+            updated += 1
     return updated
 
 
@@ -71,25 +111,11 @@ def _day_max_position(schedule_id, day_date):
     return value if value is not None else -1
 
 
-def _shift_range(schedule_id, day_date, lo, hi, delta):
-    """Сдвигает позиции в [lo, hi] на delta безопасно (двухшаговый offset)."""
-    if hi < lo or delta == 0:
-        return
-    with connections[PLANNER_DB].cursor() as cursor:
-        cursor.execute(
-            """
-            UPDATE dbo.perspective_slot SET position = position + %s
-            WHERE schedule_id = %s AND day_date = %s AND position BETWEEN %s AND %s
-            """,
-            (_OFFSET, schedule_id, day_date, lo, hi),
-        )
-        cursor.execute(
-            """
-            UPDATE dbo.perspective_slot SET position = position - %s + %s
-            WHERE schedule_id = %s AND day_date = %s AND position BETWEEN %s AND %s
-            """,
-            (_OFFSET, delta, schedule_id, day_date, lo + _OFFSET, hi + _OFFSET),
-        )
+def occupied_positions(schedule_id, day_date):
+    """Множество занятых позиций дня (для поиска свободного места)."""
+    return set(PerspectiveSlot.objects.filter(
+        schedule_id=schedule_id, day_date=day_date,
+    ).values_list('position', flat=True))
 
 
 def count_slots(schedule_id, day_date):
@@ -100,20 +126,21 @@ def count_slots(schedule_id, day_date):
 
 def insert_slot(schedule_id, day_date, position, oplan_program_id=None,
                 no_material_id=None, duration_frames=None):
-    """Вставляет слот в позицию `position`, сдвигая последующие."""
+    """Ставит слот в указанную позицию. Позиции явные, соседей не сдвигаем."""
+    assert_editable(schedule_id, day_date)
     get_or_create_day(schedule_id, day_date)
-    with transaction.atomic():
-        _shift_range(schedule_id, day_date, position,
-                     _day_max_position(schedule_id, day_date), 1)
-        slot = PerspectiveSlot.objects.create(
-            schedule_id=schedule_id,
-            day_date=day_date,
-            position=position,
-            oplan_program_id=oplan_program_id,
-            no_material_id=no_material_id,
-            duration_frames=duration_frames,
-        )
-    return slot
+    if PerspectiveSlot.objects.filter(
+        schedule_id=schedule_id, day_date=day_date, position=position,
+    ).exists():
+        raise PositionTaken(f'Позиция {position} уже занята')
+    return PerspectiveSlot.objects.create(
+        schedule_id=schedule_id,
+        day_date=day_date,
+        position=position,
+        oplan_program_id=oplan_program_id,
+        no_material_id=no_material_id,
+        duration_frames=duration_frames,
+    )
 
 
 def append_slot(schedule_id, day_date, oplan_program_id=None,
@@ -128,47 +155,49 @@ def append_slot(schedule_id, day_date, oplan_program_id=None,
 
 
 def delete_slot(slot_id):
+    """Удаляет слот, оставляя на его позиции пустое место."""
     slot = PerspectiveSlot.objects.filter(id=slot_id).first()
     if not slot:
         return False
-    with transaction.atomic():
-        schedule_id, day_date, position = slot.schedule_id, slot.day_date, slot.position
-        max_pos = _day_max_position(schedule_id, day_date)
-        slot.delete()
-        _shift_range(schedule_id, day_date, position + 1, max_pos, -1)
+    assert_editable(slot.schedule_id, slot.day_date)
+    slot.delete()
     return True
 
 
 def move_slot(slot_id, to_day, to_position):
-    """Перемещение без пересоздания строки (MSSQL IDENTITY не даёт явный PK)."""
+    """Перемещение в явную позицию. Если позиция занята — обмен местами.
+
+    Соседи не сдвигаются: исходная позиция становится пустой (если обмена нет).
+    """
     slot = PerspectiveSlot.objects.filter(id=slot_id).first()
     if not slot:
         return False
     src_day, src_position = slot.day_date, slot.position
-    if src_day == to_day and src_position == to_position:
-        return True
     schedule_id = slot.schedule_id
     to_position = max(0, to_position)
+    if src_day == to_day and src_position == to_position:
+        return True
+    assert_editable(schedule_id, src_day)
+    assert_editable(schedule_id, to_day)
+
+    occupant = PerspectiveSlot.objects.filter(
+        schedule_id=schedule_id, day_date=to_day, position=to_position,
+    ).exclude(id=slot_id).first()
+
     sentinel = 2 * _OFFSET
     with transaction.atomic():
-        src_max = _day_max_position(schedule_id, src_day)
-        to_max = _day_max_position(schedule_id, to_day)
-        # Выводим слот из пространства уникального индекса.
+        # Уводим перемещаемый слот из пространства уникального индекса.
         slot.day_date = to_day
         slot.position = sentinel
         slot.save(update_fields=['day_date', 'position', 'updated_at'])
-
-        if src_day != to_day:
-            _shift_range(schedule_id, src_day, src_position + 1, src_max, -1)
-            _shift_range(schedule_id, to_day, to_position, to_max, 1)
-        elif to_position < src_position:
-            _shift_range(schedule_id, src_day, to_position, src_position - 1, 1)
-        else:  # to_position > src_position
-            _shift_range(schedule_id, src_day, src_position + 1, to_position, -1)
-
-        get_or_create_day(schedule_id, to_day)
+        if occupant is not None:
+            # Обмен: вытесненный слот встаёт на исходное место (сохраняя позицию).
+            occupant.day_date = src_day
+            occupant.position = src_position
+            occupant.save(update_fields=['day_date', 'position', 'updated_at'])
         slot.position = to_position
         slot.save(update_fields=['position', 'updated_at'])
+        get_or_create_day(schedule_id, to_day)
     return True
 
 
@@ -198,7 +227,7 @@ ORDER BY S.day_date, S.position
 
 def fetch_window(schedule_id, start, end):
     """Слоты окна с разрешёнными для отображения полями."""
-    with connections[PLANNER_DB].cursor() as cursor:
+    with connection.cursor() as cursor:
         cursor.execute(_WINDOW_SQL, (schedule_id, start, end))
         rows = cursor.fetchall()
     columns = (
@@ -298,7 +327,7 @@ def get_oplan_duration_frames(program_id):
     if not program_id:
         return None
     try:
-        with connections[PLANNER_DB].cursor() as cursor:
+        with connection.cursor() as cursor:
             cursor.execute(
                 "SELECT duration FROM [oplan3].dbo.program WHERE program_id = %s",
                 (program_id,),

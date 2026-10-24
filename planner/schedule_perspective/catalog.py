@@ -1,16 +1,17 @@
-"""Каталог материалов: поиск только в MongoDB (Кинопоиск) + линковка с Oplan3.
+"""Каталог материалов Кинопоиска + линковка с Oplan3.
 
-Кинопоиск — самый полный каталог. Поэтому комбинированного поиска нет: ищем в
-Mongo (`kinopoisk.film` / `kinopoisk.series`), а по `kinopoisk_id` смотрим в
-`film_material_index`, есть ли материал в нашей базе и какой у него
+Источник выбирается через `CATALOG_BACKEND`: PostgreSQL (`kinopoisk.titles`)
+или MongoDB (`kinopoisk.film` / `kinopoisk.series`). По `kinopoisk_id` затем
+смотрим в `film_material_index`, есть ли материал в нашей базе и какой у него
 `oplan_program_id`.
 """
 
 import re
 
-from django.db import connections
+from django.conf import settings
+from django.db import connection
 
-from planner.settings import PLANNER_DB
+from film_index import pg_catalog
 from planner.mongo_settings import mongo_connection
 
 from schedule_perspective import constants
@@ -50,10 +51,32 @@ def _clean_year(value):
 
 
 def search(query, limit=_PAGE_LIMIT):
-    """Единый список фильмов и сериалов из Mongo с признаком «в базе»."""
+    """Единый список фильмов и сериалов с признаком «в базе»."""
     text = (query or '').strip()
     if not text:
         return []
+
+    if settings.CATALOG_BACKEND == 'postgres':
+        cards = {}
+        for item in pg_catalog.search_catalog(text, limit=limit):
+            kp_id = item['kp_id']
+            cards[kp_id] = {
+                'kinopoisk_id': kp_id,
+                'title': item['title'],
+                'original_title': item['original_title'],
+                'year': item['year'],
+                'countries': item['countries'],
+                'genres': [],
+                'director': item['director'],
+                'duration': item['duration'],
+                'rating': item['rating'],
+                'kind': item['type'],
+                'in_base': False,
+                'oplan_program_id': None,
+            }
+        _apply_base_status(cards)
+        return list(cards.values())
+
     regex = {'$regex': re.escape(text), '$options': 'i'}
     condition = {'$or': [{'title': regex}, {'original_title': regex}]}
 
@@ -99,7 +122,7 @@ def _apply_base_status(cards):
     """
     rows = []
     try:
-        with connections[PLANNER_DB].cursor() as cursor:
+        with connection.cursor() as cursor:
             cursor.execute(sql, kp_ids)
             rows = cursor.fetchall()
     except Exception as error:
@@ -133,7 +156,7 @@ def get_series_structure(kinopoisk_id):
     """
     rows = []
     try:
-        with connections[PLANNER_DB].cursor() as cursor:
+        with connection.cursor() as cursor:
             cursor.execute(sql, (kinopoisk_id,))
             rows = cursor.fetchall()
     except Exception as error:
@@ -173,7 +196,16 @@ def get_series_structure(kinopoisk_id):
 
 
 def get_duration_frames(kinopoisk_id):
-    """Хронометраж из Mongo (минуты) -> кадры; дефолт при отсутствии."""
+    """Хронометраж из выбранного каталога (минуты) -> кадры."""
+    if settings.CATALOG_BACKEND == 'postgres':
+        try:
+            duration = pg_catalog.get_duration_minutes(kinopoisk_id)
+            if duration:
+                return int(float(duration) * 60 * constants.FPS)
+        except Exception as error:
+            print('schedule_perspective duration error:', error)
+        return constants.DEFAULT_DURATION_FRAMES
+
     condition = {'kinopoisk_id': {'$in': [str(kinopoisk_id), int(kinopoisk_id)]}}
     try:
         with mongo_connection('film', db_name='kinopoisk') as collection:

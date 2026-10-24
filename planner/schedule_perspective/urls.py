@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('', views.schedule_perspective, name='schedule_perspective'),
     path('window/', views.api_window, name='schedule_perspective_window'),
+    path('export/', views.schedule_perspective_export, name='schedule_perspective_export'),
     path('search/', views.api_search, name='schedule_perspective_search'),
     path('series/<int:kinopoisk_id>/structure/',
          views.api_series_structure, name='schedule_perspective_series_structure'),

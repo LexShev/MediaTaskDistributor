@@ -1,38 +1,33 @@
 """Роли модуля перспективных сеток.
 
-Навигация в хэдер не добавляется; доступ проверяется внутри вьюх по id групп.
-- senior_editor (9) — правит сетку;
-- chief_editor (8)  — просмотр + утверждение;
-- editors (6)       — только просмотр.
+Навигация в хэдер не добавляется; доступ проверяется внутри вью по именам групп.
+- senior_editor — правит сетку;
+- chief_editor  — просмотр + утверждение;
+- editors       — только просмотр;
+- admin         — просмотр + правка.
 """
-
-from schedule_perspective import constants
 
 ROLE_SENIOR = 'senior_editor'
 ROLE_CHIEF = 'chief_editor'
 ROLE_EDITOR = 'editors'
+ROLE_ADMIN = 'admin'
+
+EDIT_ROLES = {ROLE_ADMIN, ROLE_SENIOR, ROLE_CHIEF}
 
 
-def get_role(user):
+def get_roles(user):
     if not user or not user.is_authenticated:
-        return None
-    ids = set(user.groups.values_list('id', flat=True))
-    if constants.SENIOR_EDITOR_GROUP_ID in ids:
-        return ROLE_SENIOR
-    if constants.CHIEF_EDITOR_GROUP_ID in ids:
-        return ROLE_CHIEF
-    if constants.EDITORS_GROUP_ID in ids:
-        return ROLE_EDITOR
-    return None
+        return set()
+    return set(user.groups.values_list('name', flat=True))
 
 
 def can_view(user):
-    return get_role(user) is not None
+    return bool(get_roles(user))
 
 
 def can_edit(user):
-    return get_role(user) == ROLE_SENIOR
+    return bool(get_roles(user) & EDIT_ROLES)
 
 
 def can_approve(user):
-    return get_role(user) == ROLE_SENIOR
+    return bool(get_roles(user) & EDIT_ROLES)

@@ -2,7 +2,10 @@
 
 import json
 from datetime import date, timedelta
+from urllib.parse import quote
 
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
@@ -12,7 +15,7 @@ from main.permission_pannel import ask_db_permissions
 from main.settings.main_settings import get_main_settings
 
 from schedule_perspective import (
-    catalog, cinemaatlas, constants, metadata, repositories, roles, statuses,
+    catalog, cinemaatlas, constants, export, metadata, repositories, roles, statuses,
 )
 
 
@@ -180,7 +183,7 @@ def _payload(request):
 
 def _edit_guard(request):
     if not roles.can_edit(request.user):
-        return JsonResponse({'status': 'error', 'message': 'Только senior_editor может править сетку'},
+        return JsonResponse({'status': 'error', 'message': 'Правка доступна только редактору или администратору'},
                             status=403)
     return None
 
@@ -229,27 +232,33 @@ def _build_episodes(payload):
 
 
 def _distribute(episodes, channel, start_day, start_position):
-    """Раскладка серий: с целевой позиции дня, при переполнении — в след. дни."""
+    """Раскладка серий: с явной позиции дня, при переполнении — в конец след. дней.
+
+    Позиции не сдвигаются: для каждой серии берём ближайшую свободную позицию.
+    """
     target_frames = constants.DAY_TARGET_HOURS.get(channel, 8) * 3600 * constants.FPS
     day = start_day
-    position = start_position
+    next_position = start_position  # None -> ставить в конец дня
     current_frames = repositories.day_total_frames(channel, day)
     created = 0
     for episode in episodes:
         frames = episode['duration_frames'] or constants.DEFAULT_DURATION_FRAMES
         if current_frames > 0 and current_frames + frames > target_frames:
             day = day + timedelta(days=1)
-            position = None
+            next_position = None
             current_frames = repositories.day_total_frames(channel, day)
-        if position is None:
-            repositories.append_slot(
-                channel, day, oplan_program_id=episode['oplan_program_id'],
-                no_material_id=episode['no_material_id'], duration_frames=frames)
+        occupied = repositories.occupied_positions(channel, day)
+        if next_position is None:
+            position = (max(occupied) + 1) if occupied else 0
         else:
-            repositories.insert_slot(
-                channel, day, position, oplan_program_id=episode['oplan_program_id'],
-                no_material_id=episode['no_material_id'], duration_frames=frames)
-            position += 1
+            position = next_position
+            while position in occupied:
+                position += 1
+        repositories.insert_slot(
+            channel, day, position,
+            oplan_program_id=episode['oplan_program_id'],
+            no_material_id=episode['no_material_id'], duration_frames=frames)
+        next_position = position + 1
         current_frames += frames
         created += 1
     return created
@@ -274,37 +283,45 @@ def api_slot_add(request):
         position = int(payload['position'])
 
     kind = payload.get('kind') or 'film'
-    if kind == 'film':
-        oplan_program_id = payload.get('oplan_program_id')
-        kp_id = payload.get('kinopoisk_id')
-        frames = (repositories.get_oplan_duration_frames(oplan_program_id)
-                  if oplan_program_id else catalog.get_duration_frames(kp_id))
-        frames = frames or constants.DEFAULT_DURATION_FRAMES
-        if oplan_program_id:
-            if position is None:
-                repositories.append_slot(channel, day, oplan_program_id=oplan_program_id,
-                                         duration_frames=frames)
+    try:
+        if kind == 'film':
+            oplan_program_id = payload.get('oplan_program_id')
+            kp_id = payload.get('kinopoisk_id')
+            frames = (repositories.get_oplan_duration_frames(oplan_program_id)
+                      if oplan_program_id else catalog.get_duration_frames(kp_id))
+            frames = frames or constants.DEFAULT_DURATION_FRAMES
+            if oplan_program_id:
+                if position is None:
+                    repositories.append_slot(channel, day, oplan_program_id=oplan_program_id,
+                                             duration_frames=frames)
+                else:
+                    repositories.insert_slot(channel, day, position,
+                                             oplan_program_id=oplan_program_id,
+                                             duration_frames=frames)
             else:
-                repositories.insert_slot(channel, day, position,
-                                         oplan_program_id=oplan_program_id,
-                                         duration_frames=frames)
-        else:
-            node = repositories.get_or_create_film_node(kp_id, payload.get('title') or '')
-            if position is None:
-                repositories.append_slot(channel, day, no_material_id=node.id,
-                                         duration_frames=frames)
-            else:
-                repositories.insert_slot(channel, day, position, no_material_id=node.id,
-                                         duration_frames=frames)
-        return JsonResponse({'status': 'success', 'created': 1})
+                node = repositories.get_or_create_film_node(kp_id, payload.get('title') or '')
+                if position is None:
+                    repositories.append_slot(channel, day, no_material_id=node.id,
+                                             duration_frames=frames)
+                else:
+                    repositories.insert_slot(channel, day, position, no_material_id=node.id,
+                                             duration_frames=frames)
+            return JsonResponse({'status': 'success', 'created': 1})
 
-    if kind == 'series':
-        episodes = _build_episodes(payload)
-        if not episodes:
-            return JsonResponse({'status': 'error', 'message': 'Не найдено серий для вставки'},
-                                status=400)
-        created = _distribute(episodes, channel, day, position)
-        return JsonResponse({'status': 'success', 'created': created})
+        if kind == 'series':
+            episodes = _build_episodes(payload)
+            if not episodes:
+                return JsonResponse({'status': 'error', 'message': 'Не найдено серий для вставки'},
+                                    status=400)
+            # Вся раскладка — одной транзакцией, чтобы блокировка одного из
+            # последующих дней не оставила частично вставленный диапазон.
+            with transaction.atomic():
+                created = _distribute(episodes, channel, day, position)
+            return JsonResponse({'status': 'success', 'created': created})
+    except repositories.DayNotEditable as error:
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=403)
+    except repositories.PositionTaken as error:
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=409)
 
     return JsonResponse({'status': 'error', 'message': 'Неизвестный вид материала'}, status=400)
 
@@ -322,7 +339,10 @@ def api_slot_move(request):
         to_position = int(payload['position'])
     except (KeyError, TypeError, ValueError):
         return JsonResponse({'status': 'error', 'message': 'Некорректные параметры'}, status=400)
-    ok = repositories.move_slot(slot_id, to_day, to_position)
+    try:
+        ok = repositories.move_slot(slot_id, to_day, to_position)
+    except repositories.DayNotEditable as error:
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=403)
     return JsonResponse({'status': 'success' if ok else 'error'})
 
 
@@ -337,7 +357,10 @@ def api_slot_delete(request):
         slot_id = int(payload['slot_id'])
     except (KeyError, TypeError, ValueError):
         return JsonResponse({'status': 'error', 'message': 'Некорректный слот'}, status=400)
-    ok = repositories.delete_slot(slot_id)
+    try:
+        ok = repositories.delete_slot(slot_id)
+    except repositories.DayNotEditable as error:
+        return JsonResponse({'status': 'error', 'message': str(error)}, status=403)
     return JsonResponse({'status': 'success' if ok else 'error'})
 
 
@@ -391,3 +414,31 @@ def api_generate_downloads(request):
     except (KeyError, TypeError, ValueError):
         return JsonResponse({'status': 'error', 'message': 'Некорректные параметры'}, status=400)
     return JsonResponse(cinemaatlas.create_download_task(channel, day))
+
+
+# --- Экспорт в Excel ----------------------------------------------------------
+
+@login_required()
+def schedule_perspective_export(request):
+    """Выгрузка текущего окна в .xlsx (данные читаются напрямую из БД)."""
+    if not roles.can_view(request.user):
+        return HttpResponseForbidden('Недостаточно прав для экспорта')
+    channel = _get_channel(request)
+    days = _get_days(request)
+    start = _parse_start(request.GET.get('start'))
+    end = start + timedelta(days=days - 1)
+
+    slots = repositories.fetch_window(channel, start, end)
+    content = export.build_schedule_workbook(channel, start, days, slots)
+
+    response = HttpResponse(
+        content,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    channel_name = constants.CHANNELS.get(channel, str(channel))
+    filename = f'Сетка_{channel_name}_{start:%Y-%m-%d}_{days}дн.xlsx'
+    response['Content-Disposition'] = (
+        'attachment; filename="schedule.xlsx"; '
+        f"filename*=UTF-8''{quote(filename)}"
+    )
+    return response

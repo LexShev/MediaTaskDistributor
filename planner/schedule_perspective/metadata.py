@@ -1,12 +1,14 @@
 """Батч метаданных для тултипов и хронометража.
 
-Источник — Mongo (Кинопоиск). Кэш — `django.core.cache` (без Redis).
-Падение Mongo не должно ломать рендер: при ошибке возвращаем то, что есть.
+Источник — PostgreSQL или Mongo по `CATALOG_BACKEND`. Кэш —
+`django.core.cache` (Redis). Ошибка каталога не должна ломать рендер.
 """
 
+from django.conf import settings
 from django.core.cache import cache
-from django.db import connections
+from django.db import connection
 
+from film_index import pg_catalog
 from planner.settings import OPLAN_DB, PLANNER_DB
 from planner.mongo_settings import mongo_connection
 
@@ -30,7 +32,7 @@ _PROJECTION = {
 
 
 def _cache_key(kp_id):
-    return f'sp_film_info_{kp_id}'
+    return f'sp_film_info_{settings.CATALOG_BACKEND}_{kp_id}'
 
 
 def get_film_metadata(kp_ids):
@@ -44,7 +46,14 @@ def get_film_metadata(kp_ids):
         else:
             missing.append(kp_id)
     if missing:
-        fetched = _load_mongo(missing)
+        if settings.CATALOG_BACKEND == 'postgres':
+            try:
+                fetched = pg_catalog.get_titles_by_ids(missing)
+            except Exception as error:
+                print('schedule_perspective metadata error:', error)
+                fetched = {}
+        else:
+            fetched = _load_mongo(missing)
         for kp_id, meta in fetched.items():
             cache.set(_cache_key(kp_id), meta, constants.METADATA_CACHE_SECONDS)
             result[kp_id] = meta
@@ -102,7 +111,7 @@ def get_oplan_metadata(program_ids):
     """
     result = {}
     try:
-        with connections[PLANNER_DB].cursor() as cursor:
+        with connection.cursor() as cursor:
             cursor.execute(sql, program_ids)
             columns = ('oplan_program_id', 'title', 'original_title', 'year',
                        'countries', 'director', 'episode_num', 'program_kind',

@@ -39,11 +39,8 @@ FILM_KIND = 0      # одиночный материал
 EPISODE_KIND = 3   # серия
 SEASON_KIND = 4    # родитель сезона
 
-# --- Роли (id групп Django) -------------------------------------------------
-SENIOR_EDITOR_GROUP_ID = 9   # правит сетку
-CHIEF_EDITOR_GROUP_ID = 8    # просмотр + утверждение (read-only слоты)
-EDITORS_GROUP_ID = 6         # просмотр (read-only)
-VIEW_GROUP_IDS = (SENIOR_EDITOR_GROUP_ID, CHIEF_EDITOR_GROUP_ID, EDITORS_GROUP_ID)
+# --- Роли -------------------------------------------------------------------
+# Роли определяются по именам групп Django (см. roles.py).
 
 # --- Статусы дня ------------------------------------------------------------
 STATUS_DRAFT = 'draft'
