@@ -1,8 +1,6 @@
 (function () {
   'use strict';
 
-  document.documentElement.setAttribute('data-bs-theme', 'dark');
-
   const root = document.getElementById('schedule-perspective');
   if (!root) return;
 
@@ -17,6 +15,7 @@
     slotDelete: root.dataset.slotDeleteUrl,
     downloads: root.dataset.downloadUrl,
     dayStatus: root.dataset.dayStatusUrl,
+    export: root.dataset.exportUrl,
   };
 
   const state = {
@@ -28,7 +27,8 @@
     defaultFrames: 90 * 60 * 25,
     targetHours: 8,
     current: null,
-    pending: null, // {day, position, card}
+    pending: null, // {day, position}
+    selectedCard: null,
   };
 
   const els = {
@@ -37,15 +37,16 @@
     days: document.getElementById('sp-days-select'),
     prev: document.getElementById('sp-prev'),
     next: document.getElementById('sp-next'),
-    searchOpen: document.getElementById('sp-search-open'),
     approve: document.getElementById('sp-approve'),
     finalize: document.getElementById('sp-finalize'),
     reopen: document.getElementById('sp-reopen'),
-    downloads: document.getElementById('sp-downloads'),
+    export: document.getElementById('sp-export'),
     targetHours: document.getElementById('sp-target-hours'),
     daysBox: document.getElementById('sp-days'),
-    modalEl: document.getElementById('sp-search-modal'),
-    modal: null,
+    searchInput: document.getElementById('sp-search-input'),
+    searchPanel: document.getElementById('sp-search-panel'),
+    searchWrap: document.querySelector('.sp-search-wrap'),
+    searchHint: document.getElementById('sp-search-hint'),
   };
 
   function getCookie(name) {
@@ -73,6 +74,26 @@
     }).then((r) => r.json());
   }
 
+  // --- Подтверждение через Bootstrap-модалку (вместо window.confirm) ---------
+
+  let confirmModal = null;
+  let confirmCallback = null;
+
+  function askConfirm(text, callback) {
+    document.getElementById('sp-confirm-text').textContent = text;
+    confirmCallback = callback;
+    if (!confirmModal) {
+      confirmModal = new bootstrap.Modal(document.getElementById('sp-confirm-modal'));
+      document.getElementById('sp-confirm-ok').addEventListener('click', () => {
+        const cb = confirmCallback;
+        confirmCallback = null;
+        confirmModal.hide();
+        if (cb) cb();
+      });
+    }
+    confirmModal.show();
+  }
+
   // --- Форматирование -------------------------------------------------------
 
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -91,6 +112,29 @@
     return `${d}.${m}.${y}`;
   }
 
+  // Счётчик дня: пока пусто — отрицательный остаток, при переполнении — плюс.
+  function dayCounter(totalFrames, targetHours) {
+    const target = (targetHours || 0) * 3600 * state.fps;
+    const diff = (parseInt(totalFrames, 10) || 0) - target;
+    const sign = diff > 0 ? '+' : (diff < 0 ? '-' : '');
+    return {
+      text: sign + framesToTime(Math.abs(diff)),
+      cls: diff > 0 ? 'over' : (diff < 0 ? 'left' : 'done'),
+    };
+  }
+
+  function kpUrl(kpId, kind) {
+    if (!kpId) return null;
+    const section = kind === 'series' ? 'series' : 'film';
+    return `https://www.kinopoisk.ru/${section}/${kpId}/`;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text == null ? '' : text;
+    return div.innerHTML;
+  }
+
   const STATUS_LABEL = {
     draft: 'Черновик',
     chief_approved: 'Утв. главным',
@@ -100,6 +144,7 @@
   // --- Рендер окна ----------------------------------------------------------
 
   function loadWindow() {
+    hideTooltip();
     const url = `${URLs.window}?channel=${state.channel}&start=${state.start}&days=${state.days}`;
     apiGet(url).then((data) => {
       if (data.status !== 'success') { console.error(data); return; }
@@ -114,82 +159,129 @@
   }
 
   function render() {
-    const data = state.current;
     els.daysBox.innerHTML = '';
-    data.day_list.forEach((day) => {
-      els.daysBox.appendChild(renderDay(day, data));
-    });
+    state.current.day_list.forEach((day) => els.daysBox.appendChild(renderDay(day)));
     bindSortable();
+    fitHeight();
   }
 
-  function renderDay(day, data) {
+  // Подгоняем высоту так, чтобы страница не скроллилась: модуль занимает
+  // ровно оставшееся место под шапкой сайта.
+  function fitHeight() {
+    const top = root.getBoundingClientRect().top;
+    root.style.height = Math.max(320, window.innerHeight - top) + 'px';
+  }
+
+  function renderDay(day) {
     const col = document.createElement('div');
     col.className = 'sp-day';
     col.dataset.day = day.date;
 
+    // Правка разрешена только в черновике (и только senior_editor).
+    const editable = state.canEdit && day.status === 'draft';
+    const counter = dayCounter(day.total_frames, state.targetHours);
     const header = document.createElement('div');
     header.className = 'sp-day-header';
-    const statusClass = 'sp-status sp-status-' + day.status;
     header.innerHTML = `
       <div class="d-flex justify-content-between align-items-center">
         <span class="sp-day-date">${humanDate(day.date)}</span>
-        <span class="${statusClass}">${STATUS_LABEL[day.status] || day.status}</span>
+        <span class="sp-status sp-status-${day.status}">${STATUS_LABEL[day.status] || day.status}</span>
       </div>
-      <div class="sp-day-meta">
+      <div class="sp-day-meta d-flex justify-content-between">
         <span>${framesToTime(day.total_frames)}</span>
-        <span class="float-end">цель ${state.targetHours}:00:00</span>
+        <span class="sp-day-counter ${counter.cls}">${counter.text}</span>
       </div>`;
     col.appendChild(header);
 
     const slots = document.createElement('div');
     slots.className = 'sp-slots';
     slots.dataset.day = day.date;
-    day.slots.forEach((slot) => slots.appendChild(renderSlot(slot)));
-    col.appendChild(slots);
+    slots.dataset.editable = editable ? '1' : '0';
 
-    if (state.canEdit) {
-      const placeholders = document.createElement('div');
-      placeholders.className = 'sp-placeholders';
-      placeholders.dataset.day = day.date;
-      const nextPos = day.slots.reduce((m, s) => Math.max(m, s.position), -1) + 1;
-      for (let i = 0; i < 4; i++) {
-        const pos = nextPos + i;
-        const ph = document.createElement('div');
-        ph.className = 'sp-placeholder my-1';
-        ph.textContent = '+ слот';
-        ph.addEventListener('click', () => openSearch(day.date, pos));
-        placeholders.appendChild(ph);
+    // Позиции явные: рисуем каждый индекс как слот или пустую ячейку,
+    // чтобы можно было бросить/добавить материал в любую из них.
+    const byPosition = new Map();
+    let maxPos = -1;
+    day.slots.forEach((s) => {
+      byPosition.set(s.position, s);
+      if (s.position > maxPos) maxPos = s.position;
+    });
+    // Защитный потолок: не рисуем больше 100 ячеек на день, чтобы мусорная
+    // (слишком большая) позиция не подвесила браузер. Пустых «хвостовых»
+    // ячеек добавляем ровно одну.
+    const MAX_CELLS = 100;
+    const lastPos = Math.min(editable ? maxPos + 1 : maxPos, MAX_CELLS - 1);
+    for (let p = 0; p <= lastPos; p++) {
+      if (byPosition.has(p)) {
+        slots.appendChild(renderSlot(byPosition.get(p), editable));
+      } else {
+        slots.appendChild(renderCell(day.date, p, editable));
       }
-      col.appendChild(placeholders);
     }
+    col.appendChild(slots);
     return col;
   }
 
-  function renderSlot(slot) {
+  function renderCell(dayId, position, editable) {
+    const cell = document.createElement('div');
+    cell.className = 'sp-cell';
+    cell.dataset.position = position;
+    if (editable) {
+      cell.textContent = '+';
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openForSlot(dayId, position);
+      });
+    }
+    return cell;
+  }
+
+  function renderSlot(slot, editable) {
     const el = document.createElement('div');
     el.className = 'sp-slot' + (slot.in_base ? '' : ' sp-missing');
     el.dataset.slotId = slot.id;
     el.dataset.day = slot.day_date;
 
+    // Высота пропорциональна хронометражу (1 минута ≈ 1px, в разумных пределах).
+    const frames = parseInt(slot.duration_frames, 10) || state.defaultFrames;
+    const minutes = frames / state.fps / 60;
+    el.style.height = Math.max(55, Math.min(240, Math.round(minutes))) + 'px';
+
     const episode = slot.kind === 3
       ? `S${pad(slot.season_num || 1)}E${pad(slot.episode_num || 1)} `
       : '';
     const repeat = slot.is_repeat ? '<span class="sp-badge-repeat ms-1">повтор</span>' : '';
-    const status = slot.in_base ? '' : ' <span class="text-danger">скачать</span>';
+    const warn = slot.in_base ? '' : ' <span class="sp-slot-warn">скачать</span>';
+    const link = kpUrl(slot.kinopoisk_id, slot.kind === 3 ? 'series' : 'film');
+
+    const actions = [];
+    if (link) {
+      actions.push(`<a class="sp-kp-link" href="${link}" target="_blank" rel="noopener"
+                      title="Открыть на Кинопоиске">
+                      <img class="kp-logo" src="/static/img/kinopoisk.png" alt="Кинопоиск">
+                    </a>`);
+    }
+    if (editable) {
+      actions.push('<button class="btn btn-sm btn-outline-danger" data-action="delete" title="Удалить">×</button>');
+    }
 
     el.innerHTML = `
-      <span class="sp-slot-title">${episode}${escapeHtml(slot.title)}${repeat}</span>
-      <span class="sp-slot-meta">${framesToTime(slot.duration_frames)}${status}</span>
-      <span class="sp-slot-actions">
-        <button class="btn btn-sm btn-outline-danger py-0 px-1" data-action="delete" title="Удалить">×</button>
-      </span>`;
+      <div class="sp-slot-head">
+        <span class="sp-slot-title">${episode}${escapeHtml(slot.title)}${repeat}</span>
+        <span class="sp-slot-actions">${actions.join('')}</span>
+      </div>
+      <span class="sp-slot-meta">${framesToTime(slot.duration_frames)}${warn}</span>`;
 
-    if (state.canEdit) {
-      el.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+    const del = el.querySelector('[data-action="delete"]');
+    if (del) {
+      del.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (confirm('Удалить слот?')) {
-          apiPost(URLs.slotDelete, { slot_id: slot.id }).then(loadWindow);
-        }
+        askConfirm('Удалить слот из сетки?', () => {
+          apiPost(URLs.slotDelete, { slot_id: slot.id }).then((res) => {
+            if (res.status === 'success') { loadWindow(); }
+            else { alert(res.message || 'Ошибка'); }
+          });
+        });
       });
     }
     el.addEventListener('mouseenter', (e) => showTooltip(slot, e));
@@ -197,50 +289,64 @@
     return el;
   }
 
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text == null ? '' : text;
-    return div.innerHTML;
-  }
-
-  // --- Sortable -------------------------------------------------------------
-
   function bindSortable() {
     document.querySelectorAll('.sp-slots').forEach((container) => {
       if (container._sortable) container._sortable.destroy();
-      if (!state.canEdit) return;
+      if (container.dataset.editable !== '1') return;
       container._sortable = new Sortable(container, {
         group: 'sp',
         animation: 150,
         ghostClass: 'sp-ghost',
+        // Пустые ячейки — якоря для вставки (не перетаскиваются, но участвуют
+        // в определении позиции). Слоты перетаскиваются.
+        filter: '.sp-cell',
+        preventOnFilter: false,
         onEnd(evt) {
-          const toDay = evt.to.dataset.day;
-          const newIndex = evt.newIndex;
+          // Позиция = индекс слота среди ячеек целевого дня.
+          const position = Array.from(evt.to.children).indexOf(evt.item);
           apiPost(URLs.slotMove, {
             slot_id: evt.item.dataset.slotId,
-            day: toDay,
-            position: newIndex,
+            day: evt.to.dataset.day,
+            position: position,
           }).then(loadWindow);
         },
       });
     });
   }
 
-  // --- Поиск ----------------------------------------------------------------
+  // --- Поиск (панель прямо под строкой) -------------------------------------
 
-  function openSearch(day, position, card) {
+  function defaultTarget() {
+    const first = state.current.day_list[0];
+    const nextPos = first.slots.reduce((m, s) => Math.max(m, s.position), -1) + 1;
+    return { day: first.date, position: nextPos };
+  }
+
+  function updateHint() {
+    if (state.pending) {
+      els.searchHint.textContent = `Добавить в: ${humanDate(state.pending.day)}`;
+    } else {
+      els.searchHint.textContent = '';
+    }
+  }
+
+  function openForSlot(day, position) {
     if (!state.canEdit) return;
-    state.pending = { day, position, card: card || null };
-    document.getElementById('sp-target-date').textContent = humanDate(day);
-    showStep('search');
-    const input = document.getElementById('sp-search-input');
-    input.value = '';
-    document.getElementById('sp-search-results').innerHTML = '';
-    if (!els.modal) els.modal = new bootstrap.Modal(els.modalEl);
-    els.modal.show();
-    setTimeout(() => input.focus(), 200);
+    state.pending = { day, position };
+    updateHint();
+    els.searchInput.focus();
+    els.searchPanel.classList.remove('d-none');
+  }
 
-    if (card) selectResult(card);
+  function openPanel() {
+    if (!state.pending) state.pending = defaultTarget();
+    updateHint();
+    els.searchPanel.classList.remove('d-none');
+  }
+
+  function closePanel() {
+    els.searchPanel.classList.add('d-none');
+    showStep('search');
   }
 
   function showStep(step) {
@@ -250,8 +356,9 @@
 
   let searchTimer = null;
   function onSearchInput() {
+    openPanel();
     clearTimeout(searchTimer);
-    const q = this.value.trim();
+    const q = els.searchInput.value.trim();
     if (q.length < 2) { document.getElementById('sp-search-results').innerHTML = ''; return; }
     searchTimer = setTimeout(() => {
       apiGet(`${URLs.search}?q=${encodeURIComponent(q)}`).then((data) => {
@@ -269,25 +376,32 @@
     }
     items.forEach((card) => {
       const el = document.createElement('div');
-      el.className = 'list-group-item sp-result';
+      el.className = 'sp-result';
       const badge = card.in_base
         ? '<span class="sp-result-badge base">в базе</span>'
-        : '<span class="sp-result-badge missing">нужно скачать</span>';
+        : '<span class="sp-result-badge missing">нет в базе</span>';
       const kind = card.kind === 'series' ? 'сериал' : 'фильм';
+      const link = kpUrl(card.kinopoisk_id, card.kind);
       el.innerHTML = `
         <img src="${URLs.poster}?kp_id=${card.kinopoisk_id}" onerror="this.src='/static/img/no_poster.jpg'">
         <div class="flex-grow-1">
           <div class="sp-result-title">${escapeHtml(card.title)}</div>
           <div class="sp-result-meta">${card.year || ''} · ${kind} · ${escapeHtml(card.director || '')}</div>
         </div>
-        ${badge}`;
-      el.addEventListener('click', () => selectResult(card));
+        <div class="d-flex flex-column align-items-end gap-1">
+          ${badge}
+          <a class="sp-kp-link" href="${link}" target="_blank" rel="noopener">Кинопоиск ↗</a>
+        </div>`;
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('a')) return;
+        selectResult(card);
+      });
       box.appendChild(el);
     });
   }
 
   function selectResult(card) {
-    state.pending.card = card;
+    state.selectedCard = card;
     if (card.kind === 'series') {
       openSeriesStep(card);
     } else {
@@ -296,18 +410,14 @@
   }
 
   function addFilm(card) {
-    const p = state.pending;
-    const payload = {
-      channel: state.channel,
-      day: p.day,
-      position: p.position,
-      kind: 'film',
+    const p = state.pending || defaultTarget();
+    apiPost(URLs.slotAdd, {
+      channel: state.channel, day: p.day, position: p.position, kind: 'film',
       kinopoisk_id: card.kinopoisk_id,
       oplan_program_id: card.oplan_program_id || null,
       title: card.title,
-    };
-    apiPost(URLs.slotAdd, payload).then((res) => {
-      if (res.status === 'success') { els.modal.hide(); loadWindow(); }
+    }).then((res) => {
+      if (res.status === 'success') { finishAdd(); }
       else alert(res.message || 'Ошибка');
     });
   }
@@ -315,7 +425,6 @@
   function openSeriesStep(card) {
     showStep('series');
     document.getElementById('sp-series-title').textContent = card.title;
-    const structure = card._structure;
     const oplanBox = document.getElementById('sp-series-oplan');
     const manualBox = document.getElementById('sp-series-manual');
 
@@ -344,7 +453,7 @@
       }
     };
 
-    if (structure) { applyStructure(structure); }
+    if (card._structure) { applyStructure(card._structure); }
     else {
       apiGet(URLs.structure.replace('/0/', `/${card.kinopoisk_id}/`)).then((data) => {
         applyStructure(data.structure);
@@ -353,15 +462,11 @@
   }
 
   function addSeries() {
-    const card = state.pending.card;
-    const seasonNum = parseInt(document.getElementById('sp-season-num').value, 10);
+    const card = state.selectedCard;
+    const p = state.pending || defaultTarget();
     const payload = {
-      channel: state.channel,
-      day: state.pending.day,
-      position: state.pending.position,
-      kind: 'series',
-      kinopoisk_id: card.kinopoisk_id,
-      title: card.title,
+      channel: state.channel, day: p.day, position: p.position, kind: 'series',
+      kinopoisk_id: card.kinopoisk_id, title: card.title,
     };
     const struct = card._structure;
     if (struct && struct.seasons && struct.seasons.length) {
@@ -370,32 +475,46 @@
       payload.episode_from = parseInt(document.getElementById('sp-ep-from').value, 10) || 1;
       payload.episode_to = parseInt(document.getElementById('sp-ep-to').value, 10) || payload.episode_from;
     } else {
-      payload.season_num = seasonNum || 1;
+      payload.season_num = parseInt(document.getElementById('sp-season-num').value, 10) || 1;
       payload.episode_from = parseInt(document.getElementById('sp-manual-from').value, 10) || 1;
       payload.episode_to = parseInt(document.getElementById('sp-manual-to').value, 10) || payload.episode_from;
     }
     apiPost(URLs.slotAdd, payload).then((res) => {
-      if (res.status === 'success') { els.modal.hide(); loadWindow(); }
+      if (res.status === 'success') { finishAdd(); }
       else alert(res.message || 'Ошибка');
     });
+  }
+
+  function finishAdd() {
+    els.searchInput.value = '';
+    document.getElementById('sp-search-results').innerHTML = '';
+    state.pending = null;
+    state.selectedCard = null;
+    closePanel();
+    loadWindow();
   }
 
   // --- Тултип ---------------------------------------------------------------
 
   let tooltipCache = {};
+  let tooltipSeq = 0;
   function showTooltip(slot, evt) {
     const pop = document.getElementById('sp-popover');
-    const info = slot.oplan_program_id
-      ? (tooltipCache['o' + slot.oplan_program_id] || null)
-      : (tooltipCache['k' + slot.kinopoisk_id] || null);
-    if (info) { renderTooltip(pop, slot, info); positionTooltip(pop, evt); return; }
+    const seq = ++tooltipSeq;
+    const key = slot.oplan_program_id ? 'o' + slot.oplan_program_id : 'k' + slot.kinopoisk_id;
+    const cached = tooltipCache[key];
+    if (cached) {
+      renderTooltip(pop, slot, cached);
+      positionTooltip(pop, evt);
+      return;
+    }
 
     const params = slot.oplan_program_id
       ? `oplan_ids=${slot.oplan_program_id}`
       : `kp_ids=${slot.kinopoisk_id}`;
     apiGet(`${URLs.filmInfo}?${params}`).then((data) => {
+      if (seq !== tooltipSeq) return;  // курсор уже ушёл или окно перестроено
       const map = slot.oplan_program_id ? data.oplan : data.kinopoisk;
-      const key = slot.oplan_program_id ? 'o' + slot.oplan_program_id : 'k' + slot.kinopoisk_id;
       const info = map ? Object.values(map)[0] : null;
       if (info) tooltipCache[key] = info;
       renderTooltip(pop, slot, info || {});
@@ -409,31 +528,58 @@
     const poster = slot.kinopoisk_id
       ? `<img src="${URLs.poster}?kp_id=${slot.kinopoisk_id}" onerror="this.style.display='none'">`
       : '';
+    // Имя файла (Oplan orig_name) здесь не показываем — только данные Кинопоиска.
     pop.innerHTML = `
-      ${poster}
-      <div class="fw-bold">${escapeHtml(info.title || slot.title)}</div>
-      ${info.original_title ? `<div class="text-muted small">${escapeHtml(info.original_title)}</div>` : ''}
-      <div class="small mt-1">
-        ${info.year ? `Год: ${info.year}<br>` : ''}
-        ${countries ? `Страна: ${escapeHtml(countries)}<br>` : ''}
-        ${genres ? `Жанры: ${escapeHtml(genres)}<br>` : ''}
-        ${info.director ? `Режиссёр: ${escapeHtml(info.director)}<br>` : ''}
-        ${info.rating ? `Рейтинг: ${info.rating}<br>` : ''}
-        ${slot.in_base ? '<span class="text-success">В базе</span>' : '<span class="text-danger">Нужно скачать</span>'}
+      <div class="sp-popover-inner">
+        ${poster}
+        <div class="sp-popover-text">
+          ${info.title ? `<div class="fw-bold">${escapeHtml(info.title)}</div>` : ''}
+          <div class="small mt-1">
+            ${info.year ? `Год: ${info.year}<br>` : ''}
+            ${countries ? `Страна: ${escapeHtml(countries)}<br>` : ''}
+            ${genres ? `Жанры: ${escapeHtml(genres)}<br>` : ''}
+            ${info.director ? `Режиссёр: ${escapeHtml(info.director)}<br>` : ''}
+            ${info.rating ? `Рейтинг: ${info.rating}<br>` : ''}
+            ${slot.in_base ? '<span class="text-success">В базе</span>' : '<span class="text-danger">Нужно скачать</span>'}
+          </div>
+        </div>
       </div>`;
     pop.classList.remove('d-none');
   }
 
   function positionTooltip(pop, evt) {
     pop.style.left = Math.min(evt.clientX + 14, window.innerWidth - 340) + 'px';
-    pop.style.top = Math.min(evt.clientY + 14, window.innerHeight - 220) + 'px';
+    pop.style.top = Math.min(evt.clientY + 14, window.innerHeight - 240) + 'px';
   }
 
   function hideTooltip() {
+    tooltipSeq++;
     document.getElementById('sp-popover').classList.add('d-none');
   }
 
-  // --- Тулбар ---------------------------------------------------------------
+  // Глобальные страховки: тултип не должен «зависать» при уходе курсора
+  // на модалку/пустое место, прокрутке, смене окна, Esc, alt-tab.
+  function bindTooltipSafety() {
+    const pop = document.getElementById('sp-popover');
+    const isOpen = () => !pop.classList.contains('d-none');
+
+    document.addEventListener('scroll', hideTooltip, true);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hideTooltip();
+    });
+    window.addEventListener('blur', hideTooltip);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) hideTooltip();
+    });
+    document.addEventListener('show.bs.modal', hideTooltip, true);
+    const confirmModal = document.getElementById('sp-confirm-modal');
+    if (confirmModal) confirmModal.addEventListener('show.bs.modal', hideTooltip);
+    document.addEventListener('pointermove', (e) => {
+      if (isOpen() && !e.target.closest('.sp-slot')) hideTooltip();
+    });
+  }
+
+  // --- Тулбар / статусы -----------------------------------------------------
 
   function shiftPeriod(deltaDays) {
     const [y, m, d] = state.start.split('-').map(Number);
@@ -458,33 +604,18 @@
 
   function approvePeriod() {
     const dates = state.current.day_list.map((d) => d.date);
-    apiPost(URLs.dayStatus, {
-      channel: state.channel, dates,
-    }).then((res) => {
+    apiPost(URLs.dayStatus, { channel: state.channel, dates }).then((res) => {
       if (res.status !== 'success') { alert(res.message || 'Ошибка'); return; }
       // Список скачивания формируется утверждением дня.
       let pending = 0;
-      const tasks = dates.map((day) =>
+      Promise.all(dates.map((day) =>
         apiPost(URLs.downloads, { channel: state.channel, day }).then((r) => {
           pending += (r.items || []).length;
           return r;
-        }));
-      Promise.all(tasks).then(() => {
+        }))).then(() => {
         alert(`Утверждено дней: ${dates.length}. Позиций в списке скачивания: ${pending}.`);
         loadWindow();
       });
-    });
-  }
-
-  function generateDownloads() {
-    const dates = state.current.day_list.map((d) => d.date);
-    let pending = 0;
-    Promise.all(dates.map((day) =>
-      apiPost(URLs.downloads, { channel: state.channel, day }).then((r) => {
-        pending += (r.items || []).length;
-        return r;
-      }))).then(() => {
-      alert(`Список скачивания (имитация). Позиций: ${pending}.`);
     });
   }
 
@@ -503,25 +634,32 @@
     });
     els.prev.addEventListener('click', () => shiftPeriod(-state.days));
     els.next.addEventListener('click', () => shiftPeriod(state.days));
-    els.searchOpen.addEventListener('click', () => {
-      const first = state.current.day_list[0];
-      const nextPos = first.slots.reduce((m, s) => Math.max(m, s.position), -1) + 1;
-      openSearch(first.date, nextPos);
-    });
+    if (els.export) {
+      els.export.addEventListener('click', () => {
+        window.location.href =
+          `${URLs.export}?channel=${state.channel}&start=${state.start}&days=${state.days}`;
+      });
+    }
     if (els.approve) els.approve.addEventListener('click', approvePeriod);
     if (els.finalize) els.finalize.addEventListener('click', () => changeStatus('finalize'));
     if (els.reopen) els.reopen.addEventListener('click', () => changeStatus('reopen'));
-    if (els.downloads) els.downloads.addEventListener('click', generateDownloads);
 
-    document.getElementById('sp-search-input').addEventListener('input', onSearchInput);
+    els.searchInput.addEventListener('focus', openPanel);
+    els.searchInput.addEventListener('input', onSearchInput);
     document.getElementById('sp-series-back').addEventListener('click', () => showStep('search'));
     document.getElementById('sp-series-add').addEventListener('click', addSeries);
-    document.getElementById('sp-season-select').addEventListener('change', () => {});
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.sp-search-wrap')) closePanel();
+    });
   }
 
   // --- Инициализация --------------------------------------------------------
 
   els.start.value = state.start;
   bindToolbar();
+  bindTooltipSafety();
+  fitHeight();
+  window.addEventListener('resize', fitHeight);
   loadWindow();
 })();

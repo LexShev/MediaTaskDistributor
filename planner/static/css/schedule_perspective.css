@@ -1,20 +1,15 @@
-/* Перспективные сетки. Bootstrap-переменные маппятся на токены CinemaAtlas
-   (features/cinema-atlas/css/base.css), но остаёмся на компонентах Bootstrap. */
-
-[data-bs-theme="dark"] {
-    --bs-body-bg: #111214;
-    --bs-secondary-bg: #1a1b1f;
-    --bs-tertiary-bg: #222429;
-    --bs-border-color: #2e3038;
-    --bs-primary: #6ba1e8;
-    --bs-primary-rgb: 107, 161, 232;
-}
+/* Перспективные сетки. Используем штатные Bootstrap-переменные темы сайта
+   (без навязывания собственного тёмного фона). */
 
 #schedule-perspective {
     --sp-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 80px);
 }
 
 .sp-toolbar {
+    flex: 0 0 auto;
     position: sticky;
     top: 0;
     z-index: 1020;
@@ -23,21 +18,71 @@
     gap: .5rem;
     flex-wrap: wrap;
     padding: .5rem .75rem;
-    background: var(--bs-tertiary-bg);
+    background: var(--bs-body-bg);
     border-bottom: 1px solid var(--bs-border-color);
 }
 
-.sp-toolbar .sp-channel { width: 14rem; }
+.sp-toolbar .sp-channel { width: 13rem; }
 .sp-toolbar .sp-date { width: 9.5rem; }
-.sp-toolbar .sp-days { width: 7.5rem; }
+.sp-days-select { width: 7.5rem; }
 
-.sp-viewport { overflow-x: auto; padding: .5rem; }
+/* Поисковая строка с выпадающей панелью результатов прямо под ней. */
+#schedule-perspective .sp-search-wrap {
+    position: relative;
+    flex: 1 1 30rem;
+    max-width: 46rem;
+    margin: 0 auto;
+}
+.sp-search-input { width: 100%; }
+
+#schedule-perspective .sp-search-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
+    max-height: 60vh;
+    overflow: auto;
+    padding: .4rem;
+}
+
+.sp-search-results .sp-result {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    padding: .35rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.sp-search-results .sp-result:hover { background: var(--bs-tertiary-bg); }
+.sp-search-results .sp-result img {
+    width: 42px; height: 60px; object-fit: cover; border-radius: 6px;
+    background: var(--bs-secondary-bg);
+}
+.sp-search-results .sp-result-title { font-weight: 600; }
+.sp-search-results .sp-result-meta { font-size: .78rem; color: var(--bs-secondary-color); }
+.sp-result-badge { font-size: .68rem; border-radius: 100px; padding: .05rem .4rem; }
+.sp-result-badge.base { background: rgba(25, 135, 84, .15); color: #198754; }
+.sp-result-badge.missing { background: rgba(220, 53, 69, .15); color: #dc3545; }
+
+/* Прокрутка общая для всей сетки: вертикальная — вся сетка разом,
+   горизонтальная — по низу окна. */
+.sp-viewport {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: .5rem;
+}
 
 .sp-days {
     display: flex;
     gap: .5rem;
-    align-items: flex-start;
-    min-height: 60vh;
+    align-items: stretch;
+    min-height: 100%;
 }
 
 .sp-day {
@@ -48,10 +93,10 @@
     border-radius: var(--sp-radius);
     display: flex;
     flex-direction: column;
-    min-height: 60vh;
 }
 
 .sp-day-header {
+    flex: 0 0 auto;
     padding: .4rem .5rem;
     border-bottom: 1px solid var(--bs-border-color);
     border-radius: var(--sp-radius) var(--sp-radius) 0 0;
@@ -60,71 +105,115 @@
 
 .sp-day-date { font-weight: 600; }
 .sp-day-meta { font-size: .75rem; color: var(--bs-secondary-color); }
+.sp-day-counter { font-weight: 600; font-size: .78rem; }
+.sp-day-counter.over { color: #dc3545; }
+.sp-day-counter.left { color: #b8860b; }
+.sp-day-counter.done { color: #198754; }
 
 .sp-status { font-size: .7rem; padding: .1rem .4rem; border-radius: 100px; }
-.sp-status-draft { background: rgba(107,161,232,.15); color: #6ba1e8; }
-.sp-status-chief_approved { background: rgba(240,168,76,.15); color: #f0a84c; }
-.sp-status-final_approved { background: rgba(61,214,140,.15); color: #3dd68c; }
+.sp-status-draft { background: var(--bs-secondary-bg); color: var(--bs-secondary-color); }
+.sp-status-chief_approved { background: rgba(255, 193, 7, .18); color: #b8860b; }
+.sp-status-final_approved { background: rgba(25, 135, 84, .15); color: #198754; }
 
-.sp-slots { padding: .35rem; display: flex; flex-direction: column; gap: .3rem; }
+.sp-slots {
+    flex: 1 1 auto;
+    padding: .35rem;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
 
 .sp-slot {
-    position: relative;
+    flex: 0 0 auto;
     border: 1px solid var(--bs-border-color);
-    border-left: 3px solid var(--bs-primary);
+    border-left: 3px solid var(--bs-success);
     border-radius: 8px;
     background: var(--bs-body-bg);
     padding: .3rem .45rem;
     cursor: grab;
     font-size: .82rem;
+    overflow: hidden;
 }
 .sp-slot:active { cursor: grabbing; }
-.sp-slot.sp-missing { border-left-color: #f06472; }
-.sp-slot .sp-slot-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sp-slot .sp-slot-meta { color: var(--bs-secondary-color); font-size: .72rem; }
-.sp-slot .sp-slot-actions { position: absolute; top: .2rem; right: .3rem; display: none; gap: .2rem; }
-.sp-slot:hover .sp-slot-actions { display: flex; }
-.sp-badge-repeat { background: rgba(240,168,76,.2); color: #f0a84c; border-radius: 100px; padding: 0 .35rem; font-size: .65rem; }
+.sp-slot.sp-missing { border-left-color: #dc3545; }
 
-.sp-placeholder {
+/* В утверждённых днях правки нет — обычный курсор. */
+.sp-slots[data-editable="0"] .sp-slot,
+.sp-slots[data-editable="0"] .sp-slot:active { cursor: default; }
+
+.sp-slot-head { display: flex; align-items: center; gap: .25rem; }
+.sp-slot-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sp-slot-actions { flex: 0 0 auto; display: flex; gap: .2rem; align-items: center; }
+.sp-slot-actions .btn,
+.sp-slot-actions .sp-kp-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    line-height: 1;
+}
+.sp-kp-link { text-decoration: none; cursor: pointer; }
+.sp-kp-link .kp-logo { width: 16px; height: 16px; object-fit: contain; display: block; }
+
+.sp-slot-meta { color: var(--bs-secondary-color); font-size: .72rem; }
+.sp-badge-repeat {
+    background: rgba(255, 193, 7, .25); color: #b8860b;
+    border-radius: 100px; padding: 0 .35rem; font-size: .65rem;
+}
+.sp-slot-warn { color: #dc3545; }
+
+.sp-cell {
+    flex: 0 0 auto;
     border: 1px dashed var(--bs-border-color);
     border-radius: 8px;
     color: var(--bs-secondary-color);
-    text-align: center;
-    padding: .35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
     cursor: pointer;
-    font-size: .78rem;
+    font-size: .8rem;
 }
-.sp-placeholder:hover { border-color: var(--bs-primary); color: var(--bs-primary); }
+.sp-cell:hover { border-color: var(--bs-primary); color: var(--bs-primary); }
+.sp-slots[data-editable="0"] .sp-cell { cursor: default; }
 
 .sp-ghost { opacity: .4; }
 
-/* Поиск */
-#sp-search-results .sp-result {
-    display: flex;
-    gap: .6rem;
+/* Компактная кнопка-иконка экспорта: крупный значок, минимальные отступы. */
+.sp-export-btn {
+    display: inline-flex;
     align-items: center;
-    cursor: pointer;
+    justify-content: center;
+    padding: .15rem .3rem;
+    line-height: 1;
 }
-#sp-search-results .sp-result img {
-    width: 42px; height: 60px; object-fit: cover; border-radius: 6px; background: #333;
-}
-#sp-search-results .sp-result .sp-result-title { font-weight: 600; }
-#sp-search-results .sp-result .sp-result-meta { font-size: .78rem; color: var(--bs-secondary-color); }
-.sp-result-badge { font-size: .68rem; border-radius: 100px; padding: .05rem .4rem; }
-.sp-result-badge.base { background: rgba(61,214,140,.15); color: #3dd68c; }
-.sp-result-badge.missing { background: rgba(240,100,114,.15); color: #f06472; }
+.sp-export-btn svg { width: 22px; height: 22px; display: block; }
 
-/* Singleton popover */
+.sp-target { white-space: nowrap; }
+
+/* Singleton popover (тултип карточки) */
 .sp-popover {
     position: fixed;
     z-index: 1080;
     width: 320px;
-    background: var(--bs-tertiary-bg);
+    background: var(--bs-body-bg);
     border: 1px solid var(--bs-border-color);
     border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(0,0,0,.5);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .5);
     padding: .6rem;
     pointer-events: none;
 }
-.sp-popover img { width: 70px; height: 100px; object-fit: cover; border-radius: 6px; float: left; margin-right: .6rem; }
+.sp-popover-inner { display: flex; gap: .6rem; align-items: flex-start; }
+.sp-popover-text { min-width: 0; flex: 1 1 auto; }
+.sp-popover img {
+    width: 70px; height: 100px; object-fit: cover; border-radius: 6px;
+    flex: 0 0 auto; background: var(--bs-secondary-bg);
+}
