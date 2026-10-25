@@ -24,8 +24,6 @@ urlpatterns = [
     path("ffmpeg_info/<int:program_id>/", material_card_ffmpeg, name='material_card_ffmpeg'),
     # path("submit_cenz_data/", submit_cenz_data, name='submit_cenz_data'),
 
-    path("get_movie_poster/", get_movie_poster, name='get_movie_poster'),
-
     path("status_ready/", status_ready, name='status_ready'),
     path("ask_fix/", ask_fix, name='ask_fix'),
     path("cenz_info_change/", cenz_info_change, name='cenz_info_change'),

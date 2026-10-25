@@ -3,7 +3,7 @@
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
@@ -12,7 +12,6 @@ from main.permission_pannel import ask_db_permissions
 from main.settings.main_settings import get_main_settings
 from film_index import constants, repository, review
 from film_index.oplan_source import fetch_description, fetch_material
-from film_index.posters import get_poster
 from film_index.search import search_catalog
 
 
@@ -104,19 +103,6 @@ def api_item(request, program_id):
 def api_search(request):
     query = request.GET.get('q') or ''
     return JsonResponse({'status': 'success', 'items': search_catalog(query)})
-
-
-@ajax_login_required
-def api_poster(request):
-    kp_id = (request.GET.get('kp_id') or '').strip()
-    if not kp_id.isdigit():
-        return HttpResponse(status=404)
-    content, content_type = get_poster(int(kp_id))
-    if content is None:
-        return HttpResponse(status=404)
-    response = HttpResponse(content, content_type=content_type)
-    response['Cache-Control'] = 'public, max-age=2592000'
-    return response
 
 
 @ajax_login_required

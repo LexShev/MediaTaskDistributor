@@ -1,16 +1,11 @@
-import datetime
 import re
-from typing import List, Dict
-from django.conf import settings
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-from django.db import connections
-import os
+from typing import Dict
+
 import requests
 from bs4 import BeautifulSoup
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from rapidfuzz import fuzz
-
-from planner.settings import PLANNER_DB
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
@@ -50,12 +45,11 @@ def download_poster(program_id, movie_id):
                     continue
 
                 default_storage.save(s3_key, ContentFile(response.content))
-                insert_into_db(program_id)
                 return 'success'
 
         except (requests.RequestException, OSError) as e:
             print(e)
-            return 'error'
+            continue
     return 'error'
 
 
@@ -72,7 +66,7 @@ def poster_parser(query: Dict):
 
     search_url = f'https://ru.kinorium.com/search/?q={program_name}%20{program_year}'
     print('search_url', search_url)
-    response = requests.get(search_url, headers=headers)
+    response = requests.get(search_url, headers=headers, timeout=10)
     if response.status_code == 200:
         work_url = response.url
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -204,29 +198,3 @@ def search(query: Dict, threshold: float = 0.7) -> Dict:
     results.sort(key=lambda x: x['score'], reverse=True)
     if results: return results[0]
     return {}
-
-
-def check_db(program_id):
-    s3_key = f'posters/{program_id}.jpg'
-    try:
-        storage_exists = default_storage.exists(s3_key)
-    except Exception:
-        storage_exists = False
-    with connections[PLANNER_DB].cursor() as cursor:
-        query = f'SELECT [exists] FROM [{PLANNER_DB}].[dbo].[poster_list] WHERE [program_id] = {program_id}'
-        cursor.execute(query)
-        if cursor.fetchone() and storage_exists:
-            return True
-    return False
-
-def insert_into_db(program_id):
-    try:
-        with connections[PLANNER_DB].cursor() as cursor:
-            query = f'''
-            INSERT INTO [{PLANNER_DB}].[dbo].[poster_list]
-            ([program_id], [date_of_addition], [exists]) VALUES 
-            (%s, GETDATE(), %s)
-            '''
-            cursor.execute(query, (program_id, True))
-    except Exception as e:
-        print('not added', e)

@@ -4,7 +4,6 @@ from datetime import datetime
 import ast
 from pathlib import PureWindowsPath
 
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -25,7 +24,6 @@ from .ffmpeg_info import ffmpeg_dict
 from .forms import ListFilter, WeekFilter, CenzFormText, CenzFormDropDown, KpiForm, VacationForm, AttachedFilesForm, \
     SortingForm
 
-from .kinoroom_parser import download_poster, search, check_db
 from .logs_and_history import insert_history, select_actions, update_comment, insert_history_new, \
     change_task_status_new, get_task_status, add_mark_no_cenz, insert_history_status, add_mark_cenz, edit_comment
 from .models import ModelFilter, AttachedFiles, ModelSorting
@@ -788,34 +786,6 @@ def unblock_card(request, program_id, user_id):
 
 def get_worker_name(request, user_id):
     return JsonResponse({'worker_name': planner_worker_name(user_id)})
-
-def get_movie_poster(request):
-    program_id, program_name, year, country = json.loads(request.body)
-    from django.core.files.storage import default_storage
-    s3_key = f'posters/{program_id}.jpg'
-    try:
-        if default_storage.exists(s3_key):
-            return JsonResponse({'status': 'success', 'url': default_storage.url(s3_key)})
-    except Exception:
-        if check_db(program_id):
-            return JsonResponse({'status': 'success', 'url': f'{settings.MEDIA_URL}posters/{program_id}.jpg'})
-
-    if check_db(program_id):
-        try:
-            return JsonResponse({'status': 'success', 'url': default_storage.url(s3_key)})
-        except Exception:
-            return JsonResponse({'status': 'success', 'url': f'{settings.MEDIA_URL}posters/{program_id}.jpg'})
-
-    movie_dict = search({'program_id': program_id, 'title': program_name, 'year': year, 'country': country})
-    if not movie_dict:
-        return JsonResponse({'status': 'error'})
-    result = download_poster(movie_dict['movie']['program_id'], movie_dict['movie']['data-id'])
-    if result == 'success':
-        try:
-            return JsonResponse({'status': 'success', 'url': default_storage.url(s3_key)})
-        except Exception:
-            return JsonResponse({'status': 'success', 'url': f'{settings.MEDIA_URL}posters/{program_id}.jpg'})
-    return JsonResponse({'status': 'error'})
 
 @login_required()
 def user_settings(request):

@@ -525,8 +525,11 @@
   function renderTooltip(pop, slot, info) {
     const countries = Array.isArray(info.countries) ? info.countries.join(', ') : (info.countries || '');
     const genres = Array.isArray(info.genres) ? info.genres.join(', ') : (info.genres || '');
-    const poster = slot.kinopoisk_id
-      ? `<img src="${URLs.poster}?kp_id=${slot.kinopoisk_id}" onerror="this.style.display='none'">`
+    const posterParams = new URLSearchParams();
+    if (slot.oplan_program_id) posterParams.set('program_id', slot.oplan_program_id);
+    if (slot.kinopoisk_id) posterParams.set('kp_id', slot.kinopoisk_id);
+    const poster = posterParams.toString()
+      ? `<img src="${URLs.poster}?${posterParams.toString()}" onerror="this.style.display='none'">`
       : '';
     // Имя файла (Oplan orig_name) здесь не показываем — только данные Кинопоиска.
     pop.innerHTML = `

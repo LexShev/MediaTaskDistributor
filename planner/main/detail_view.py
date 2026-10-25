@@ -38,7 +38,8 @@ def full_info(program_id):
             ('Progs', 'AnonsCaptionInherit'), ('Progs', 'CreationDate'), ('Progs', 'Subtitled'), ('Progs', 'Season'),
             ('Progs', 'Director'), ('Progs', 'Cast'), ('Progs', 'MusicComposer'), ('Progs', 'ShortAnnotation'),
             ('Adult', 'Name'), ('Task', 'work_date'), ('Task', 'ready_date'),
-            ('Task', 'worker_id'), ('Task', 'task_status'), ('Task', 'file_path')
+            ('Task', 'worker_id'), ('Task', 'task_status'), ('Task', 'file_path'),
+            ('FMI', 'kinopoisk_id'), ('FMIP', 'kinopoisk_id')
         ]
 
         sql_columns = ', '.join([f'{col}.[{val}]' for col, val in columns])
@@ -50,6 +51,10 @@ def full_info(program_id):
             ON Progs.[AdultTypeID] = Adult.[AdultTypeID]
         LEFT JOIN [{PLANNER_DB}].[dbo].[task_list] AS Task
             ON Progs.[program_id] = Task.[program_id]
+        LEFT JOIN [{PLANNER_DB}].[dbo].[film_material_index] AS FMI
+            ON FMI.[oplan_program_id] = Progs.[program_id]
+        LEFT JOIN [{PLANNER_DB}].[dbo].[film_material_index] AS FMIP
+            ON FMIP.[oplan_program_id] = Progs.[parent_id]
         WHERE Progs.[deleted] = 0
         AND Progs.[DeletedIncludeParent] = 0
         AND Progs.[program_id] = {program_id}
@@ -74,6 +79,14 @@ def full_info(program_id):
             full_info_dict['material_type'] = 'season'
         else:
             full_info_dict['material_type'] = 'film'
+
+        poster_program_id = full_info_dict.get('Progs_program_id')
+        poster_kp_id = full_info_dict.get('FMI_kinopoisk_id')
+        if full_info_dict['material_type'] == 'season' and full_info_dict.get('Progs_parent_id'):
+            poster_program_id = full_info_dict['Progs_parent_id']
+            poster_kp_id = full_info_dict.get('FMIP_kinopoisk_id') or poster_kp_id
+        full_info_dict['poster_program_id'] = poster_program_id
+        full_info_dict['poster_kinopoisk_id'] = poster_kp_id
         # print(full_info_dict)
         return full_info_dict
     return {}

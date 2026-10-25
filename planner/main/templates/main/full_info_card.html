@@ -54,12 +54,12 @@
                     <div class="col d-flex flex-column px-1" style="flex: 0 0 16%; max-width: 16%;">
                       <div class="position-relative flex-grow-1 poster-container"
                            {% if full_info.material_status != 'no_material' %}onclick="startVideoPlayer()" style="cursor: pointer;"{% endif %}>
-                        <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster"
+                        <img src="{% static 'img/no_poster.jpg' %}" id="movie_poster" loading="lazy"
                              class="img-fluid rounded m-0 w-100 h-100 object-fit-cover"
-                             data-fallback="{% static 'img/no_poster.jpg' %}" data-material-type="{{ full_info.material_type }}"
-                             data-program-id="{{ full_info.Progs_program_id }}" data-parent-id="{{ full_info.Progs_parent_id }}"
-                             data-name="{{ full_info.Progs_name }}" data-year="{{ full_info.Progs_production_year }}"
-                             data-country="{{ full_info.Progs_production_country }}">
+                             data-fallback="{% static 'img/no_poster.jpg' %}"
+                             data-poster-url="{% url 'tools_poster' %}"
+                             data-poster-program-id="{{ full_info.poster_program_id|default_if_none:'' }}"
+                             data-poster-kp-id="{{ full_info.poster_kinopoisk_id|default_if_none:'' }}">
 
                         <!-- Кнопка Play -->
                         {% if full_info.material_status != 'no_material' %}

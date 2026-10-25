@@ -158,20 +158,6 @@ def api_film_info(request):
     })
 
 
-@ajax_login_required
-def api_poster(request):
-    kp_id = (request.GET.get('kp_id') or '').strip()
-    if not kp_id.isdigit():
-        return HttpResponse(status=404)
-    from film_index.posters import get_poster
-    content, content_type = get_poster(int(kp_id))
-    if content is None:
-        return HttpResponse(status=404)
-    response = HttpResponse(content, content_type=content_type)
-    response['Cache-Control'] = 'public, max-age=2592000'
-    return response
-
-
 # --- Слоты --------------------------------------------------------------------
 
 def _payload(request):

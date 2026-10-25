@@ -351,56 +351,25 @@ function CenzApprove(task) {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    let poster = document.getElementById('movie_poster');
+    const poster = document.getElementById('movie_poster');
+    if (!poster) return;
 
-    let materialType = poster.dataset.materialType;
-    let programId = poster.dataset.programId;
-    let parentId = poster.dataset.parentId;
-    let fallback = poster.dataset.fallback;
-    let name = poster.dataset.name;
-    let year = poster.dataset.year;
-    let country = poster.dataset.country;
-    let query;
-    let src;
+    const posterUrl = poster.dataset.posterUrl;
+    const programId = poster.dataset.posterProgramId;
+    const kpId = poster.dataset.posterKpId;
+    const fallback = poster.dataset.fallback;
 
-    if (materialType === 'film') {
-        query = [programId, name, year, country]
-        src = `/media/posters/${programId}.jpg`
-    }
-    else {
-        query = [parentId, name, year, country]
-        src = `/media/posters/${parentId}.jpg`
-    };
-
-    function checkPoster() {
-        fetch('/get_movie_poster/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify(query),
-        credentials: 'same-origin'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success' && data.url) {
-                poster.src = data.url;
-                console.log('success', data.url)
-            }
-            else {
-                poster.src = fallback;
-                console.log('error', fallback)
-            }
-        })
-        .catch(error => {
-            console.error('Error checking poster:', error);
-            poster.src = fallback;
-        });
+    if (!posterUrl || !programId) {
+        poster.src = fallback;
+        return;
     }
 
-    checkPoster();
+    const params = new URLSearchParams({program_id: programId});
+    if (kpId) params.set('kp_id', kpId);
+    poster.addEventListener('error', () => {
+        poster.src = fallback;
+    }, {once: true});
+    poster.src = `${posterUrl}?${params.toString()}`;
 });
 
 function enlargeImage(file) {

@@ -1,11 +1,13 @@
 import json
 
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
+from main.decorators import ajax_login_required
 from main.permission_pannel import ask_db_permissions
 from main.settings.main_settings import get_main_settings
 from tools.helpers import CustomJSONEncoder
+from tools.posters import get_poster
 from tools.update_no_material import get_no_material_list
 
 
@@ -42,3 +44,25 @@ def service_report(request):
             'permissions': ask_db_permissions(user_id),
             'tabs': get_main_settings().get_header_panels(user_group)
         })
+
+
+@ajax_login_required
+def poster(request):
+    program_id = (request.GET.get('program_id') or '').strip()
+    kp_id = (request.GET.get('kp_id') or '').strip()
+    if program_id and not program_id.isdigit():
+        return HttpResponse(status=404)
+    if kp_id and not kp_id.isdigit():
+        return HttpResponse(status=404)
+    if not program_id and not kp_id:
+        return HttpResponse(status=404)
+
+    content, content_type = get_poster(program_id or None, kp_id or None)
+    if content is None:
+        response = HttpResponse(status=404)
+        response['Cache-Control'] = 'public, max-age=300'
+        return response
+
+    response = HttpResponse(content, content_type=content_type)
+    response['Cache-Control'] = 'public, max-age=28800'
+    return response
