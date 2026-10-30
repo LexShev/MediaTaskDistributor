@@ -10,13 +10,19 @@
     search: root.dataset.searchUrl,
     poster: root.dataset.posterUrl,
     decide: root.dataset.decideUrl,
+    lock: root.dataset.lockUrl,
+    unlock: root.dataset.unlockUrl,
   };
   const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
   const SERIES_TYPES = [4, 12, 16];
   const FPS = Number(root.dataset.fps) || 25;
+  const ME = Number(root.dataset.userId) || null;
+  const IS_CHIEF = root.dataset.isChief === '1';
+  const HEARTBEAT_MS = Number(root.dataset.heartbeat) || 4 * 60 * 1000;
 
   const el = {
     bucket: document.getElementById('filter-bucket'),
+    channel: document.getElementById('filter-channel'),
     kind: document.getElementById('filter-kind'),
     status: document.getElementById('filter-status'),
     name: document.getElementById('filter-name'),
@@ -34,10 +40,15 @@
     searchInput: document.getElementById('kp-search'),
     searchBtn: document.getElementById('kp-search-btn'),
     searchResults: document.getElementById('search-results'),
+    errorModal: document.getElementById('errorModal'),
+    errorTitle: document.getElementById('error_modal_title'),
+    errorMessage: document.getElementById('error_message'),
+    errorTake: document.getElementById('error-modal-take'),
   };
 
   const searchModalEl = document.getElementById('search-modal');
   const getSearchModal = () => bootstrap.Modal.getOrCreateInstance(searchModalEl);
+  const getErrorModal = () => bootstrap.Modal.getOrCreateInstance(el.errorModal);
 
   const PAGE_SIZE = 500;
 
@@ -52,6 +63,11 @@
     material: null,
     decided: [],
     busy: false,
+    lockedId: null,
+    heartbeatTimer: null,
+    lockedProgramId: null,
+    lockedAutoSkip: false,
+    loadToken: 0,
   };
 
   function esc(value) {
@@ -74,6 +90,12 @@
     return SERIES_TYPES.includes(material.program_type_id) ? 'Сериал' : 'Фильм';
   }
 
+  function typeName(value) {
+    if (value === 'film') return 'фильм';
+    if (value === 'series') return 'сериал';
+    return value || '';
+  }
+
   function durationLabel(frames) {
     const total = Math.round((Number(frames) || 0) / FPS);
     if (total <= 0) return '';
@@ -84,8 +106,31 @@
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   }
 
+  function withProgramId(template, programId) {
+    return template.replace(/\/0\/$/, `/${programId}/`);
+  }
+
   function itemUrl(programId) {
-    return URLS.item.replace(/\/0\/$/, `/${programId}/`);
+    return withProgramId(URLS.item, programId);
+  }
+
+  function lockUrl(programId) {
+    return withProgramId(URLS.lock, programId);
+  }
+
+  function unlockUrl(programId) {
+    return withProgramId(URLS.unlock, programId);
+  }
+
+  function isBusy(item) {
+    return Boolean(item && item.locked_by && Number(item.locked_by) !== ME);
+  }
+
+  function findAvailableIndex(items, start, direction) {
+    for (let i = start; i >= 0 && i < items.length; i += direction) {
+      if (!isBusy(items[i])) return i;
+    }
+    return -1;
   }
 
   async function getJson(url) {
@@ -102,7 +147,7 @@
         'Content-Type': 'application/json',
         'X-CSRFToken': CSRF,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload || {}),
     });
     return response.json();
   }
@@ -110,6 +155,7 @@
   function filters() {
     const params = new URLSearchParams();
     if (el.bucket.value) params.set('bucket', el.bucket.value);
+    if (el.channel?.value) params.set('channel', el.channel.value);
     if (el.kind.value) params.set('kind', el.kind.value);
     if (el.status.value) params.set('status', el.status.value);
     if (el.name.value.trim()) params.set('name', el.name.value.trim());
@@ -131,15 +177,149 @@
     }
   }
 
+  // --- Модальное окно (стандартное для Планера) ---------------------------
+
+  function showError(message, title = 'Ошибка!') {
+    if (!el.errorModal) { alert(message); return; }
+    state.lockedProgramId = null;
+    state.lockedAutoSkip = false;
+    el.errorTitle.textContent = title;
+    el.errorMessage.textContent = message;
+    if (el.errorTake) el.errorTake.classList.add('d-none');
+    getErrorModal().show();
+  }
+
+  function showLockedWarning(programId, editorName, autoSkip = false) {
+    const message = editorName
+      ? `Материал занят ${editorName}`
+      : 'Материал занят другим редактором';
+    if (!el.errorModal) {
+      alert(message);
+      if (autoSkip) openAvailable(state.index + 1, 1);
+      return;
+    }
+    state.lockedProgramId = programId;
+    state.lockedAutoSkip = autoSkip;
+    el.errorTitle.textContent = 'Материал занят';
+    el.errorMessage.textContent = message;
+    if (el.errorTake) el.errorTake.classList.toggle('d-none', !IS_CHIEF);
+    getErrorModal().show();
+  }
+
+  function onErrorModalHidden() {
+    const programId = state.lockedProgramId;
+    state.lockedProgramId = null;
+    if (!state.lockedAutoSkip || !programId) return;
+    state.lockedAutoSkip = false;
+    openAvailable(state.index + 1, 1);
+  }
+
+  async function takeLockedCard() {
+    const programId = state.lockedProgramId;
+    if (!programId) return;
+    state.lockedProgramId = null;
+    state.lockedAutoSkip = false;
+    getErrorModal().hide();
+    const result = await postJson(lockUrl(programId), { force: true });
+    if (result.status !== 'success') {
+      showError(result.message || 'Не удалось забрать карточку');
+      return;
+    }
+    const index = state.items.findIndex(
+      (item) => Number(item.oplan_program_id) === Number(programId));
+    if (index >= 0) {
+      state.items[index].locked_by = null;
+      state.items[index].locked_by_name = null;
+    }
+    await loadItem(index >= 0 ? index : state.index, { manual: true, hops: 0 });
+  }
+
+  // --- Аренда карточки -----------------------------------------------------
+
+  async function claimCard(programId, force = false) {
+    return postJson(lockUrl(programId), force ? { force: true } : {});
+  }
+
+  function stopHeartbeat() {
+    if (state.heartbeatTimer) {
+      clearInterval(state.heartbeatTimer);
+      state.heartbeatTimer = null;
+    }
+  }
+
+  function startHeartbeat() {
+    stopHeartbeat();
+    state.heartbeatTimer = setInterval(renewLock, HEARTBEAT_MS);
+  }
+
+  function releaseLock(programId) {
+    if (!programId) return;
+    try {
+      fetch(unlockUrl(programId), {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': CSRF,
+        },
+        keepalive: true,
+      }).catch(() => {});
+    } catch (error) {
+      // ignore
+    }
+    if (Number(state.lockedId) === Number(programId)) {
+      state.lockedId = null;
+      stopHeartbeat();
+    }
+  }
+
+  function markBusy(programId, lockData) {
+    const item = state.items.find(
+      (candidate) => Number(candidate.oplan_program_id) === Number(programId));
+    if (!item) return;
+    item.locked_by = lockData.editor_id ?? ME;
+    item.locked_by_name = lockData.editor_name || '';
+    renderQueue();
+  }
+
+  async function renewLock() {
+    if (!state.lockedId || document.hidden) return;
+    const programId = state.lockedId;
+    try {
+      const result = await claimCard(programId);
+      if (result.status === 'locked') {
+        markBusy(programId, result);
+        if (Number(state.lockedId) === Number(programId)) {
+          state.lockedId = null;
+          stopHeartbeat();
+        }
+        showLockedWarning(programId, result.editor_name, true);
+      } else if (result.status !== 'success') {
+        stopHeartbeat();
+      }
+    } catch (error) {
+      // сеть моргнула — попробуем на следующем тике
+    }
+  }
+
   // --- Очередь -------------------------------------------------------------
 
-  async function loadQueue(offset = 0, selectIndex = 0, keepDecided = false) {
+  async function loadQueue(offset = 0, selectIndex = 0, keepDecided = false,
+                           preferLast = false, hops = 0) {
+    state.loadToken += 1;
     const decided = state.decided;
     el.queueList.innerHTML = '<div class="p-3 text-muted">Загрузка…</div>';
     const params = filters();
     params.set('limit', String(state.limit));
     params.set('offset', String(Math.max(0, offset)));
-    const data = await getJson(`${URLS.queue}?${params.toString()}`);
+    let data;
+    try {
+      data = await getJson(`${URLS.queue}?${params.toString()}`);
+    } catch (error) {
+      el.queueList.innerHTML =
+        `<div class="p-3 text-danger">Ошибка загрузки очереди: ${esc(error.message)}</div>`;
+      showError(`Не удалось загрузить очередь: ${error.message}`);
+      return;
+    }
     state.items = data.items || [];
     state.total = Number(data.total) || 0;
     state.offset = Number(data.offset) || 0;
@@ -147,16 +327,36 @@
     state.decided = keepDecided ? decided : [];
     renderQueue();
     updateProgress();
-    if (!state.items.length && state.offset > 0 && state.total > 0) {
-      await loadQueue(Math.max(0, Math.min(state.offset - state.limit, state.total - 1)),
-                      selectIndex, keepDecided);
+
+    if (!state.items.length) {
+      if (state.total > 0 && state.offset > 0 && hops < 3) {
+        await loadQueue(0, 0, keepDecided, false, hops + 1);
+        return;
+      }
+      showEmptyState();
       return;
     }
-    if (state.items.length) {
-      await loadItem(Math.min(Math.max(0, selectIndex), state.items.length - 1));
-    } else {
-      showEmptyState();
+
+    const start = preferLast
+      ? state.items.length - 1
+      : Math.min(Math.max(0, selectIndex), state.items.length - 1);
+    const direction = preferLast ? -1 : 1;
+    const index = findAvailableIndex(state.items, start, direction);
+    if (index >= 0) {
+      await loadItem(index, { hops });
+      return;
     }
+
+    if (!preferLast && hops < 10
+        && state.offset + state.limit < state.total) {
+      await loadQueue(state.offset + state.limit, 0, keepDecided, false, hops + 1);
+      return;
+    }
+    if (preferLast && hops < 10 && state.offset > 0) {
+      await loadQueue(Math.max(0, state.offset - state.limit), 0, keepDecided, true, hops + 1);
+      return;
+    }
+    showEmptyState('Все материалы на этой странице заняты другими редакторами.');
   }
 
   function renderQueue() {
@@ -167,18 +367,28 @@
       el.queueList.innerHTML = '<div class="p-3 text-muted">Нет материалов по фильтру.</div>';
       return;
     }
-    el.queueList.innerHTML = state.items.map((item, i) => `
-      <button type="button" class="list-group-item list-group-item-action ${i === state.index ? 'active' : ''}"
-              data-index="${i}">
+    el.queueList.innerHTML = state.items.map((item, i) => {
+      const busy = isBusy(item);
+      const classes = [
+        'list-group-item', 'list-group-item-action',
+        i === state.index ? 'active' : '',
+        busy ? 'fi-busy' : '',
+      ].filter(Boolean).join(' ');
+      const lockLine = busy
+        ? `<small class="d-block text-warning">🔒 ${esc(item.locked_by_name || 'занято')}</small>`
+        : '';
+      return `
+      <button type="button" class="${classes}" data-index="${i}">
         <div class="d-flex justify-content-between">
           <span class="text-truncate me-2">${esc(item.name)}</span>
           <small class="text-nowrap">${esc(item.production_year || '')}</small>
         </div>
-        <small class="text-truncate d-block opacity-75">${esc(item.bucket)}</small>
-      </button>`).join('');
+        ${lockLine}
+      </button>`;
+    }).join('');
     el.queueList.querySelectorAll('[data-index]').forEach((node) => {
       node.addEventListener('click', () => {
-        loadItem(Number(node.dataset.index));
+        loadItem(Number(node.dataset.index), { manual: true, hops: 0 });
       });
     });
     const active = el.queueList.querySelector('.active');
@@ -188,36 +398,112 @@
   async function changePage(delta, atEnd = false) {
     const offset = state.offset + delta * state.limit;
     if (offset < 0 || offset >= state.total) return;
-    await loadQueue(offset);
-    if (atEnd && state.items.length) await loadItem(state.items.length - 1);
+    await loadQueue(offset, 0, false, atEnd, 0);
   }
 
-  async function loadItem(i) {
+  async function openAvailable(startIndex, direction = 1, hops = 0) {
+    if (hops > 20) {
+      showEmptyState('Не удалось найти свободный материал.');
+      return;
+    }
+    const index = findAvailableIndex(state.items, startIndex, direction);
+    if (index >= 0) {
+      await loadItem(index, { hops });
+      return;
+    }
+    if (direction > 0) {
+      if (state.offset + state.limit < state.total) {
+        await loadQueue(state.offset + state.limit, 0, true, false, hops + 1);
+        return;
+      }
+      showEmptyState('Все материалы на этой странице заняты другими редакторами.');
+      return;
+    }
+    if (state.offset > 0) {
+      await loadQueue(Math.max(0, state.offset - state.limit), 0, true, true, hops + 1);
+      return;
+    }
+    // Начало очереди — просто остаёмся на текущей карточке.
+  }
+
+  async function loadItem(i, options = {}) {
     if (i < 0 || i >= state.items.length) return;
+    const token = ++state.loadToken;
+    const hops = options.hops || 0;
+    const item = state.items[i];
+    const programId = Number(item.oplan_program_id);
+
+    let claim;
+    try {
+      claim = await claimCard(programId);
+    } catch (error) {
+      showError(`Не удалось заблокировать карточку: ${error.message}`);
+      return;
+    }
+    if (token !== state.loadToken) {
+      if (claim.status === 'success' && claim.locked !== false) {
+        releaseLock(programId);
+      }
+      return;
+    }
+    if (claim.status === 'locked') {
+      markBusy(programId, claim);
+      if (options.manual) {
+        showLockedWarning(programId, claim.editor_name, false);
+      } else {
+        openAvailable(i + 1, 1, hops + 1);
+      }
+      return;
+    }
+    if (claim.status !== 'success') {
+      showError(claim.message || 'Не удалось заблокировать карточку');
+      return;
+    }
+
+    if (state.lockedId && Number(state.lockedId) !== programId) {
+      releaseLock(state.lockedId);
+    }
+    if (claim.locked === false) {
+      // История (resolved/rejected) не блокируется.
+      state.lockedId = null;
+      stopHeartbeat();
+    } else {
+      state.lockedId = programId;
+      startHeartbeat();
+    }
+
     state.index = i;
     state.selected = 0;
     renderQueue();
     updateProgress();
 
-    const programId = state.items[i].oplan_program_id;
     el.materialPane.innerHTML = '<div class="card"><div class="card-body text-muted">Загрузка…</div></div>';
     el.candidates.innerHTML = '';
     try {
       const data = await getJson(itemUrl(programId));
+      if (token !== state.loadToken) {
+        releaseLock(programId);
+        return;
+      }
       state.material = data.material;
       state.candidates = data.candidates || [];
       renderMaterial(data);
       renderCandidates();
     } catch (error) {
+      if (token !== state.loadToken) {
+        releaseLock(programId);
+        return;
+      }
       el.materialPane.innerHTML = `<div class="card"><div class="card-body text-danger">Ошибка загрузки: ${esc(error.message)}</div></div>`;
     }
   }
 
-  function showEmptyState() {
+  function showEmptyState(message) {
+    if (state.lockedId) releaseLock(state.lockedId);
     state.material = null;
     state.candidates = [];
     el.materialPane.innerHTML =
-      '<div class="card"><div class="card-body text-muted">Очередь пуста. Настройте фильтры в правой панели.</div></div>';
+      `<div class="card"><div class="card-body text-muted">${esc(message || 'Очередь пуста. Настройте фильтры в правой панели.')}</div></div>`;
     el.candidates.innerHTML = '<div class="text-muted">Выберите материал в очереди.</div>';
   }
 
@@ -276,9 +562,7 @@
     const selected = index === state.selected ? ' border-primary shadow-sm' : '';
     const dirFlag = candidate.director_match
       ? '<span class="badge text-bg-info text-dark">Режиссёр совпал</span>' : '';
-    const typeLabel = candidate.type === 'series'
-      ? 'сериал'
-      : candidate.type === 'film' ? 'фильм' : (candidate.type || '');
+    const typeLabel = typeName(candidate.type);
     const typeFlag = candidate.type_known && candidate.type_match === false
       ? '<span class="badge text-bg-warning text-dark">Тип не совпадает</span>' : '';
     const metrics = [
@@ -358,6 +642,10 @@
   async function doSearch() {
     const query = el.searchInput.value.trim();
     if (!query) return;
+    if (query.length < 3) {
+      el.searchResults.innerHTML = '<div class="text-muted">Введите минимум 3 символа.</div>';
+      return;
+    }
     el.searchResults.innerHTML = '<div class="text-muted">Поиск…</div>';
     try {
       const data = await getJson(`${URLS.search}?q=${encodeURIComponent(query)}`);
@@ -378,7 +666,7 @@
                    href="https://www.kinopoisk.ru/film/${item.kp_id}/">${esc(item.title)}</a>
                 <span class="text-muted small">${esc(item.original_title || '')}</span>
               </div>
-              <div class="small">${esc(item.year || '—')} · ${esc((item.countries || []).join(', '))} · ${esc(item.type || '')}</div>
+              <div class="small">${esc(item.year || '—')} · ${esc((item.countries || []).join(', '))} · ${esc(typeName(item.type))}</div>
             </div>
             <button class="btn btn-sm btn-success" data-accept="${item.kp_id}">Принять</button>
           </div>
@@ -417,29 +705,43 @@
     state.busy = true;
     try {
       const result = await postJson(URLS.decide, payload);
+      if (result.status === 'locked') {
+        markBusy(payload.program_id, result);
+        showLockedWarning(payload.program_id, result.editor_name, true);
+        return;
+      }
       if (result.status !== 'success') {
-        alert(result.message || 'Ошибка');
+        showError(result.message || 'Ошибка');
         return;
       }
       state.decided.push({ program_id: payload.program_id, action: payload.action });
+      // Сервер снимает аренду при решении.
+      if (Number(state.lockedId) === Number(payload.program_id)) {
+        state.lockedId = null;
+        stopHeartbeat();
+      }
       if (!leavesFilter(payload.action)) {
-        await loadItem(Math.min(state.index + 1, state.items.length - 1));
+        await openAvailable(state.index + 1, 1);
         return;
       }
       state.items.splice(state.index, 1);
       state.total = Math.max(0, state.total - 1);
-      if (state.index >= state.items.length) state.index = Math.max(0, state.items.length - 1);
+      if (state.index >= state.items.length) {
+        state.index = Math.max(0, state.items.length - 1);
+      }
       renderQueue();
       updateProgress();
       if (state.items.length) {
-        await loadItem(state.index);
+        await openAvailable(state.index, 1);
       } else if (state.total > state.offset) {
         await loadQueue(state.offset, 0, true);
       } else if (state.offset > 0) {
-        await loadQueue(Math.max(0, state.offset - state.limit), 0, true);
+        await loadQueue(Math.max(0, state.offset - state.limit), 0, true, true);
       } else {
         showEmptyState();
       }
+    } catch (error) {
+      showError(`Ошибка сохранения решения: ${error.message}`);
     } finally {
       state.busy = false;
     }
@@ -452,7 +754,11 @@
     state.busy = true;
     try {
       const result = await postJson(URLS.decide, { action: 'revert', program_id: last.program_id });
-      if (result.status !== 'success') { alert(result.message || 'Ошибка'); return; }
+      if (result.status === 'locked') {
+        showLockedWarning(last.program_id, result.editor_name, false);
+        return;
+      }
+      if (result.status !== 'success') { showError(result.message || 'Ошибка'); return; }
       await loadQueue(state.offset);
       let position = state.items.findIndex((item) => item.oplan_program_id === last.program_id);
       if (position < 0 && state.offset > 0) {
@@ -460,7 +766,9 @@
         position = state.items.findIndex((item) => item.oplan_program_id === last.program_id);
       }
       state.decided = [];
-      if (position >= 0) await loadItem(position);
+      if (position >= 0) await loadItem(position, { manual: false, hops: 0 });
+    } catch (error) {
+      showError(`Ошибка отмены решения: ${error.message}`);
     } finally {
       state.busy = false;
     }
@@ -475,16 +783,7 @@
   }
 
   async function step(delta) {
-    const next = state.index + delta;
-    if (next >= 0 && next < state.items.length) {
-      await loadItem(next);
-      return;
-    }
-    if (delta > 0) {
-      await changePage(1);
-    } else {
-      await changePage(-1, true);
-    }
+    await openAvailable(state.index + delta, delta > 0 ? 1 : -1);
   }
 
   // --- Полноэкранная раскладка (без скролла страницы) ----------------------
@@ -505,6 +804,7 @@
   document.addEventListener('keydown', (event) => {
     if (isTyping()) return;
     if (searchModalEl.classList.contains('show')) return;
+    if (el.errorModal && el.errorModal.classList.contains('show')) return;
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -551,9 +851,17 @@
   el.searchInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') { event.preventDefault(); doSearch(); }
   });
+  if (el.errorTake) el.errorTake.addEventListener('click', takeLockedCard);
+  if (el.errorModal) el.errorModal.addEventListener('hidden.bs.modal', onErrorModalHidden);
 
   window.addEventListener('resize', fitHeight);
   window.addEventListener('load', fitHeight);
+  window.addEventListener('pagehide', () => {
+    if (state.lockedId) releaseLock(state.lockedId);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && state.lockedId) renewLock();
+  });
   fitHeight();
   loadQueue();
 })();

@@ -11,6 +11,11 @@
      data-search-url="{% url 'film_index_api_search' %}"
      data-poster-url="{% url 'tools_poster' %}"
      data-decide-url="{% url 'film_index_api_decide' %}"
+     data-lock-url="{% url 'film_index_api_lock' 0 %}"
+     data-unlock-url="{% url 'film_index_api_unlock' 0 %}"
+     data-user-id="{{ request.user.id }}"
+     data-is-chief="{% if is_chief_editor %}1{% else %}0{% endif %}"
+     data-heartbeat="{{ lock_heartbeat_ms }}"
      data-fps="{{ fps|default:25 }}">
 
   {# ── Тулбар ─────────────────────────────────────────────── #}
@@ -58,9 +63,18 @@
           <label class="fi-filter-label" for="filter-bucket">Категория</label>
           <select class="form-select form-select-sm" id="filter-bucket">
             <option value="">Все категории</option>
-            <option value="band_070_085" selected>Пограничные (0.70–0.85)</option>
+            <option value="band_070_085" selected>Пограничные (70–85%)</option>
             <option value="ambiguous">Неоднозначные</option>
             <option value="unmatched">Не найдены</option>
+          </select>
+
+          <label class="fi-filter-label" for="filter-channel">Канал</label>
+          <select class="form-select form-select-sm" id="filter-channel">
+            <option value="">Все каналы</option>
+            {% for channel_id, channel_name in channels %}
+              <option value="{{ channel_id }}">{{ channel_name }}</option>
+            {% endfor %}
+            <option value="none">Без категории</option>
           </select>
 
           <label class="fi-filter-label" for="filter-kind">Тип</label>
@@ -94,6 +108,29 @@
                 title="Следующая страница" disabled>→</button>
       </div>
     </aside>
+  </div>
+
+  {# ── Стандартное модальное окно Планера ─────────────────── #}
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="error_modal_title">Ошибка!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <h6 id="error_message"></h6>
+        </div>
+        <div class="modal-footer">
+          {% if is_chief_editor %}
+            <button type="button" class="btn btn-warning d-none" id="error-modal-take">
+              Забрать себе
+            </button>
+          {% endif %}
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">ОК</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   {# ── Ручной поиск (modal) ───────────────────────────────── #}

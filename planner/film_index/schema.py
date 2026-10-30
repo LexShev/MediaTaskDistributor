@@ -94,7 +94,35 @@ _TABLES = (
         notes         NVARCHAR(MAX) NULL
     )
     """,
+    """
+    IF OBJECT_ID('dbo.film_review_lock', 'U') IS NULL
+    CREATE TABLE dbo.film_review_lock (
+        program_id INT NOT NULL CONSTRAINT PK_frl PRIMARY KEY,
+        editor_id  INT NOT NULL,
+        locked_at  DATETIME2 NOT NULL CONSTRAINT DF_frl_locked DEFAULT (SYSDATETIME()),
+        expires_at DATETIME2 NOT NULL
+    )
+    """,
+    """
+    IF NOT EXISTS (
+        SELECT 1 FROM sys.indexes
+        WHERE name = 'IX_frl_expires' AND object_id = OBJECT_ID('dbo.film_review_lock')
+    )
+    CREATE INDEX IX_frl_expires ON dbo.film_review_lock (expires_at)
+    """,
 )
+
+
+_schema_ready = False
+
+
+def ensure_schema_once() -> None:
+    """Создаёт схему один раз на процесс (для страницы ручного разбора)."""
+    global _schema_ready
+    if _schema_ready:
+        return
+    ensure_schema()
+    _schema_ready = True
 
 
 def ensure_schema() -> None:

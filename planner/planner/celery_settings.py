@@ -117,7 +117,7 @@ DB_PG_PASSWORD = os.getenv('DB_PG_PASSWORD')
 DB_PG_ADMIN_USER = os.getenv('DB_PG_ADMIN_USER', 'sa')
 DB_PG_ADMIN_PASSWORD = os.getenv('DB_PG_ADMIN_PASSWORD')
 CATALOG_BACKEND = os.getenv('CATALOG_BACKEND', 'mongo')
-CATALOG_PG_TIMEOUT_MS = int(os.getenv('CATALOG_PG_TIMEOUT_MS', '500'))
+CATALOG_PG_TIMEOUT_MS = int(os.getenv('CATALOG_PG_TIMEOUT_MS', '2000'))
 
 DATABASES = {
     "default": {
@@ -163,6 +163,8 @@ DATABASES = {
         "PASSWORD": DB_PG_PASSWORD,
         "HOST": DB_PG_HOST,
         "PORT": DB_PG_PORT,
+        "CONN_MAX_AGE": 60,
+        "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "connect_timeout": 5,
         },

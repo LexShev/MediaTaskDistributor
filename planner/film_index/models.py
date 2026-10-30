@@ -87,6 +87,24 @@ class FilmMatchReview(models.Model):
         return f'{self.oplan_program_id} [{self.status}]'
 
 
+class FilmReviewLock(models.Model):
+    """Аренда карточки ручного разбора (TTL — constants.LOCK_TTL_MINUTES)."""
+
+    program_id = models.IntegerField(primary_key=True)
+    editor_id = models.IntegerField()
+    locked_at = models.DateTimeField()
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'film_review_lock'
+        verbose_name = 'film review lock'
+        verbose_name_plural = 'film review locks'
+
+    def __str__(self):
+        return f'{self.program_id} -> editor {self.editor_id}'
+
+
 class FilmMatchRun(models.Model):
     """Метаданные прогона сопоставления."""
 

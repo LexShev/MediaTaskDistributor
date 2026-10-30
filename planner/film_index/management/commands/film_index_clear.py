@@ -9,6 +9,7 @@ from planner.settings import PLANNER_DB
 TABLES = (
     'film_match_staging',
     'film_match_review',
+    'film_review_lock',
     'film_match_run',
     'film_material_index',
 )
@@ -30,7 +31,10 @@ class Command(BaseCommand):
 
         with connections[PLANNER_DB].cursor() as cursor:
             for table in TABLES:
-                cursor.execute(f'TRUNCATE TABLE dbo.{table}')
+                cursor.execute(
+                    f"IF OBJECT_ID('dbo.{table}', 'U') IS NOT NULL "
+                    f"EXEC('TRUNCATE TABLE dbo.{table}')"
+                )
                 self.stdout.write(f'Очищена таблица dbo.{table}')
 
         self.stdout.write(self.style.SUCCESS('Таблицы film_index очищены'))

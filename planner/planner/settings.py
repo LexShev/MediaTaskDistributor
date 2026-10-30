@@ -235,7 +235,7 @@ DB_PG_PASSWORD = os.getenv('DB_PG_PASSWORD')
 DB_PG_ADMIN_USER = os.getenv('DB_PG_ADMIN_USER', 'sa')
 DB_PG_ADMIN_PASSWORD = os.getenv('DB_PG_ADMIN_PASSWORD')
 CATALOG_BACKEND = os.getenv('CATALOG_BACKEND', 'mongo')
-CATALOG_PG_TIMEOUT_MS = int(os.getenv('CATALOG_PG_TIMEOUT_MS', '500'))
+CATALOG_PG_TIMEOUT_MS = int(os.getenv('CATALOG_PG_TIMEOUT_MS', '2000'))
 
 DATABASES = {
     "default": {
@@ -289,6 +289,8 @@ DATABASES = {
         "PASSWORD": DB_PG_PASSWORD,
         "HOST": DB_PG_HOST,
         "PORT": DB_PG_PORT,
+        "CONN_MAX_AGE": 60,
+        "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "connect_timeout": 5,
         },
@@ -309,16 +311,33 @@ DATABASES = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django.db.backends': {
             'handlers': ['console'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'film_index': {
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': False,
         },
     },

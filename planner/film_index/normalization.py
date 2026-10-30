@@ -168,6 +168,42 @@ def director_names(value) -> list:
     return names
 
 
+# Форматирование ФИО для UI (Title Case): каждое слово с заглавной буквы.
+_WORD_PART_RE = re.compile(r'[^\W\d_]+', re.UNICODE)
+
+
+def _capitalize_person_word(word: str) -> str:
+    """Заглавная буква в каждом буквенном фрагменте: жан-клод -> Жан-Клод."""
+    return _WORD_PART_RE.sub(
+        lambda match: match.group(0)[:1].upper() + match.group(0)[1:].lower(),
+        word,
+    )
+
+
+def format_person_names(value) -> str:
+    """ФИО для отображения в UI (Title Case). Для matching не использовать.
+
+    ФИО приходят из каталога в нижнем регистре, потому что ``director_names``
+    нормализует их для сравнения. Эта функция возвращает читаемый вид:
+    ``иван петров, жан-клод ван дамм`` -> ``Иван Петров, Жан-Клод Ван Дамм``.
+    """
+    if isinstance(value, (list, tuple, set)):
+        value = ', '.join(str(item) for item in value)
+    text = _WS_RE.sub(' ', _to_text(value)).strip()
+    if not text:
+        return ''
+    names = []
+    for part in re.split(r'[,;]', text):
+        words = [
+            _capitalize_person_word(word)
+            for word in part.split()
+            if word
+        ]
+        if words:
+            names.append(' '.join(words))
+    return ', '.join(names)
+
+
 def parse_kinopoisk_id(value):
     """kinopoisk_id приходит из Mongo строкой; нечисловые отбрасываем."""
     text = _to_text(value).strip()

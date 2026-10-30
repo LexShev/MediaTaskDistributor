@@ -86,3 +86,21 @@ CREATE TABLE dbo.film_match_run (
     notes         NVARCHAR(MAX) NULL
 );
 GO
+
+-- Аренда карточки при ручном разборе: одна строка на program_id.
+-- Просроченная аренда считается свободной (expires_at <= SYSDATETIME()).
+IF OBJECT_ID('dbo.film_review_lock', 'U') IS NULL
+CREATE TABLE dbo.film_review_lock (
+    program_id INT NOT NULL CONSTRAINT PK_frl PRIMARY KEY,
+    editor_id  INT NOT NULL,
+    locked_at  DATETIME2 NOT NULL CONSTRAINT DF_frl_locked DEFAULT (SYSDATETIME()),
+    expires_at DATETIME2 NOT NULL
+);
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_frl_expires' AND object_id = OBJECT_ID('dbo.film_review_lock')
+)
+CREATE INDEX IX_frl_expires ON dbo.film_review_lock (expires_at);
+GO

@@ -359,7 +359,7 @@
     openPanel();
     clearTimeout(searchTimer);
     const q = els.searchInput.value.trim();
-    if (q.length < 2) { document.getElementById('sp-search-results').innerHTML = ''; return; }
+    if (q.length < 3) { document.getElementById('sp-search-results').innerHTML = ''; return; }
     searchTimer = setTimeout(() => {
       apiGet(`${URLs.search}?q=${encodeURIComponent(q)}`).then((data) => {
         renderResults(data.items || []);

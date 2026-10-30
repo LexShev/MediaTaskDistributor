@@ -204,6 +204,15 @@
   padding: .4rem .75rem;
 }
 
+/* Карточка занята другим редактором: автопереход её пропускает. */
+.fi-queue-list .list-group-item.fi-busy {
+  opacity: .6;
+}
+
+.fi-queue-list .list-group-item.fi-busy.active {
+  opacity: .85;
+}
+
 .fi-queue-pager {
   flex: 0 0 auto;
   display: flex;

@@ -2,9 +2,14 @@
 
 import json
 
-from django.db import connections
+from django.db import IntegrityError, connections, transaction
 
 from planner.settings import OPLAN_DB, PLANNER_DB
+from film_index import constants
+
+
+def _int_list(values) -> str:
+    return ', '.join(str(int(value)) for value in values)
 
 
 # --- Прогоны ---------------------------------------------------------------
@@ -89,6 +94,7 @@ def reset_pending_review() -> None:
     """Очищает очередь pending перед новым прогоном (resolved/rejected остаются)."""
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute("DELETE FROM dbo.film_match_review WHERE status = 'pending'")
+        cursor.execute("DELETE FROM dbo.film_review_lock")
 
 
 def load_excluded_review_ids() -> set:
@@ -200,9 +206,82 @@ def fetch_review_item(program_id):
 _FILM_TYPE_SQL = 'p.[program_type_id] IN (5, 6, 10, 11)'
 _SERIES_TYPE_SQL = 'p.[program_type_id] IN (4, 12, 16)'
 
+# Поднимаемся по parent_id до корня дерева program. Корень — строка с
+# parent_id IS NULL; для материалов это всегда папка канала (или папка
+# верхнего уровня, которой нет в constants.CHANNELS → «Без категории»).
+#
+# ВАЖНО: не добавлять сюда GROUP BY. mssql-django при наличии подстроки
+# 'GROUP BY' переписывает запрос и добавляет перед ним DECLARE без ';',
+# из-за чего SQL Server отвергает WITH (ошибка 319). Корень выбираем через
+# ROW_NUMBER(), а перед WITH оставляем ';' как защиту.
+_CHANNEL_CTE = f"""
+;WITH ancestor AS (
+    SELECT r.[oplan_program_id] AS start_id,
+           p.[program_id]       AS node_id,
+           p.[parent_id],
+           0                    AS depth
+    FROM dbo.[film_match_review] AS r
+    JOIN [{OPLAN_DB}].[dbo].[program] AS p
+      ON p.[program_id] = r.[oplan_program_id]
+    UNION ALL
+    SELECT a.[start_id], p.[program_id], p.[parent_id], a.[depth] + 1
+    FROM ancestor AS a
+    JOIN [{OPLAN_DB}].[dbo].[program] AS p
+      ON p.[program_id] = a.[parent_id]
+    WHERE a.[depth] < 20
+),
+channel_root AS (
+    SELECT roots.[start_id], roots.[node_id] AS [root_id]
+    FROM (
+        SELECT [start_id], [node_id],
+               ROW_NUMBER() OVER (
+                   PARTITION BY [start_id]
+                   ORDER BY [node_id] DESC
+               ) AS [rn]
+        FROM ancestor
+        WHERE [parent_id] IS NULL OR [parent_id] = 0
+    ) AS roots
+    WHERE roots.[rn] = 1
+)
+"""
+
+_LOCK_EDITOR_NAME_SQL = (
+    "COALESCE("
+    "NULLIF(LTRIM(RTRIM(ed.[full_name])), ''), "
+    "NULLIF(LTRIM(RTRIM("
+    "ISNULL(au.[first_name], '') + ' ' + ISNULL(au.[last_name], '')"
+    ")), ''), "
+    "au.[username])"
+)
+
+_QUEUE_FROM = f"""
+FROM dbo.[film_match_review] AS r
+JOIN [{OPLAN_DB}].[dbo].[program] AS p
+  ON p.[program_id] = r.[oplan_program_id]
+LEFT JOIN channel_root AS ch
+  ON ch.[start_id] = r.[oplan_program_id]
+LEFT JOIN dbo.[film_review_lock] AS lk
+  ON lk.[program_id] = r.[oplan_program_id]
+ AND lk.[expires_at] > SYSDATETIME()
+LEFT JOIN dbo.[editors_list] AS ed
+  ON ed.[planner_editor_id] = lk.[editor_id]
+LEFT JOIN dbo.[auth_user] AS au
+  ON au.[id] = lk.[editor_id]
+"""
+
+_QUEUE_OPTIONS = 'OPTION (MAXRECURSION 32)'
+
+_QUEUE_COUNT_FROM = f"""
+FROM dbo.[film_match_review] AS r
+JOIN [{OPLAN_DB}].[dbo].[program] AS p
+  ON p.[program_id] = r.[oplan_program_id]
+LEFT JOIN channel_root AS ch
+  ON ch.[start_id] = r.[oplan_program_id]
+"""
+
 
 def _review_queue_filter(status='pending', bucket=None, kind=None,
-                         parent_id=None, name=None):
+                         parent_id=None, name=None, channel=None):
     """WHERE-условия очереди разбора, общие для выборки и счётчика."""
     conditions = ['p.[deleted] = 0', 'p.[DeletedIncludeParent] = 0']
     params = []
@@ -222,20 +301,33 @@ def _review_queue_filter(status='pending', bucket=None, kind=None,
     if name:
         conditions.append('p.[name] LIKE %s')
         params.append(f'%{name}%')
+    if channel == 'none':
+        conditions.append(
+            f'(ch.[root_id] IS NULL OR ch.[root_id] NOT IN '
+            f'({_int_list(constants.CHANNEL_IDS)}))'
+        )
+    elif channel:
+        conditions.append('ch.[root_id] = %s')
+        params.append(int(channel))
     return conditions, params
 
 
 def fetch_review_queue(status='pending', bucket=None, kind=None,
-                       parent_id=None, name=None, limit=500, offset=0) -> list:
+                       parent_id=None, name=None, channel=None,
+                       limit=500, offset=0) -> list:
     conditions, params = _review_queue_filter(
-        status=status, bucket=bucket, kind=kind, parent_id=parent_id, name=name,
+        status=status, bucket=bucket, kind=kind, parent_id=parent_id,
+        name=name, channel=channel,
     )
     query = f"""
+    {_CHANNEL_CTE}
     SELECT r.[oplan_program_id], r.[bucket], r.[status], r.[resolved_kp_id],
            p.[name], p.[orig_name], p.[program_type_id], p.[program_kind],
-           p.[production_year], p.[production_country], p.[parent_id]
-    FROM dbo.[film_match_review] AS r
-    JOIN [{OPLAN_DB}].[dbo].[program] AS p ON p.[program_id] = r.[oplan_program_id]
+           p.[production_year], p.[production_country], p.[parent_id],
+           ch.[root_id] AS [channel_id],
+           lk.[editor_id] AS [locked_by],
+           {_LOCK_EDITOR_NAME_SQL} AS [locked_by_name]
+    {_QUEUE_FROM}
     WHERE {' AND '.join(conditions)}
     ORDER BY CASE r.[bucket]
                  WHEN 'band_070_085' THEN 0
@@ -243,31 +335,171 @@ def fetch_review_queue(status='pending', bucket=None, kind=None,
                  ELSE 2 END,
              p.[name], r.[oplan_program_id]
     OFFSET %s ROWS FETCH NEXT %s ROWS ONLY
+    {_QUEUE_OPTIONS}
     """
     params.extend([offset, limit])
     columns = ('oplan_program_id', 'bucket', 'status', 'resolved_kp_id',
                'name', 'orig_name', 'program_type_id', 'program_kind',
-               'production_year', 'production_country', 'parent_id')
+               'production_year', 'production_country', 'parent_id',
+               'channel_id', 'locked_by', 'locked_by_name')
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(query, params)
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
 def count_review_queue(status='pending', bucket=None, kind=None,
-                       parent_id=None, name=None) -> int:
+                       parent_id=None, name=None, channel=None) -> int:
     """Полное число задач по тем же фильтрам, без ограничения страницей."""
     conditions, params = _review_queue_filter(
-        status=status, bucket=bucket, kind=kind, parent_id=parent_id, name=name,
+        status=status, bucket=bucket, kind=kind, parent_id=parent_id,
+        name=name, channel=channel,
     )
     query = f"""
+    {_CHANNEL_CTE}
     SELECT COUNT(*)
-    FROM dbo.[film_match_review] AS r
-    JOIN [{OPLAN_DB}].[dbo].[program] AS p ON p.[program_id] = r.[oplan_program_id]
+    {_QUEUE_COUNT_FROM}
     WHERE {' AND '.join(conditions)}
+    {_QUEUE_OPTIONS}
     """
     with connections[PLANNER_DB].cursor() as cursor:
         cursor.execute(query, params)
         return int(cursor.fetchone()[0])
+
+
+# --- Аренда карточки при ручном разборе -------------------------------------
+
+def _normalize_editor_name(value) -> str:
+    return ' '.join(str(value).split()) if value else ''
+
+
+def get_review_lock(program_id):
+    """Активная аренда карточки или None (просроченные считаются свободными)."""
+    with connections[PLANNER_DB].cursor() as cursor:
+        cursor.execute(
+            f"""
+            SELECT lk.[editor_id], lk.[locked_at], lk.[expires_at],
+                   {_LOCK_EDITOR_NAME_SQL}
+            FROM dbo.[film_review_lock] AS lk
+            LEFT JOIN dbo.[editors_list] AS ed
+              ON ed.[planner_editor_id] = lk.[editor_id]
+            LEFT JOIN dbo.[auth_user] AS au
+              ON au.[id] = lk.[editor_id]
+            WHERE lk.[program_id] = %s
+              AND lk.[expires_at] > SYSDATETIME()
+            """,
+            (program_id,),
+        )
+        row = cursor.fetchone()
+    if not row:
+        return None
+    return {
+        'program_id': program_id,
+        'editor_id': row[0],
+        'locked_at': row[1],
+        'expires_at': row[2],
+        'editor_name': _normalize_editor_name(row[3]) or 'Неизвестный редактор',
+    }
+
+
+def claim_review_lock(program_id, user_id, force=False) -> dict:
+    """Захватывает/продлевает аренду карточки.
+
+    force=True (только для главного редактора) забирает карточку у другого
+    редактора. Возвращает {'status': 'success'|'locked'|'error', ...}.
+    """
+    ttl = constants.LOCK_TTL_MINUTES
+    with connections[PLANNER_DB].cursor() as cursor:
+        cursor.execute(
+            'DELETE FROM dbo.[film_review_lock] WHERE [expires_at] <= SYSDATETIME()'
+        )
+
+    acquired = False
+    try:
+        with transaction.atomic(using=PLANNER_DB):
+            with connections[PLANNER_DB].cursor() as cursor:
+                if force:
+                    cursor.execute(
+                        'DELETE FROM dbo.[film_review_lock] WHERE [program_id] = %s',
+                        (program_id,),
+                    )
+                    cursor.execute(
+                        """
+                        INSERT INTO dbo.[film_review_lock]
+                            ([program_id], [editor_id], [expires_at])
+                        VALUES (%s, %s, DATEADD(MINUTE, %s, SYSDATETIME()))
+                        """,
+                        (program_id, user_id, ttl),
+                    )
+                    acquired = True
+                else:
+                    cursor.execute(
+                        """
+                        UPDATE dbo.[film_review_lock]
+                        SET [editor_id] = %s,
+                            [locked_at] = SYSDATETIME(),
+                            [expires_at] = DATEADD(MINUTE, %s, SYSDATETIME())
+                        WHERE [program_id] = %s
+                          AND ([editor_id] = %s OR [expires_at] <= SYSDATETIME())
+                        """,
+                        (user_id, ttl, program_id, user_id),
+                    )
+                    acquired = cursor.rowcount > 0
+
+                    if not acquired:
+                        # UPDLOCK/HOLDLOCK не даёт двум редакторам одновременно
+                        # вставить аренду для одной и той же карточки.
+                        cursor.execute(
+                            """
+                            SELECT [editor_id]
+                            FROM dbo.[film_review_lock] WITH (UPDLOCK, HOLDLOCK)
+                            WHERE [program_id] = %s
+                            """,
+                            (program_id,),
+                        )
+                        if not cursor.fetchall():
+                            cursor.execute(
+                                """
+                                INSERT INTO dbo.[film_review_lock]
+                                    ([program_id], [editor_id], [expires_at])
+                                VALUES (%s, %s, DATEADD(MINUTE, %s, SYSDATETIME()))
+                                """,
+                                (program_id, user_id, ttl),
+                            )
+                            acquired = True
+    except IntegrityError:
+        # Кто-то успел вставить аренду между UPDATE и INSERT.
+        acquired = False
+
+    lock = get_review_lock(program_id)
+    if acquired and lock and lock['editor_id'] == user_id:
+        return {
+            'status': 'success',
+            'expires_at': lock['expires_at'].isoformat(),
+            'ttl_seconds': ttl * 60,
+        }
+    if lock:
+        return {
+            'status': 'locked',
+            'program_id': program_id,
+            'editor_id': lock['editor_id'],
+            'editor_name': lock['editor_name'],
+        }
+    return {'status': 'error', 'message': 'Не удалось заблокировать карточку'}
+
+
+def release_review_lock(program_id, user_id=None) -> None:
+    sql = 'DELETE FROM dbo.[film_review_lock] WHERE [program_id] = %s'
+    params = [program_id]
+    if user_id is not None:
+        sql += ' AND [editor_id] = %s'
+        params.append(user_id)
+    with connections[PLANNER_DB].cursor() as cursor:
+        cursor.execute(sql, params)
+
+
+def is_locked_by_other(program_id, user_id) -> bool:
+    lock = get_review_lock(program_id)
+    return bool(lock and lock['editor_id'] != user_id)
 
 
 def review_stats() -> list:

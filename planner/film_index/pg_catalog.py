@@ -135,13 +135,57 @@ def get_duration_minutes(kp_id):
     return row[0] if row else None
 
 
+_MIN_SEARCH_LEN = 3
+
+# Кандидаты отбираются и ограничиваются на узкой title_search, а широкая
+# titles джойнится только для финальной страницы. Иначе ORDER BY с рейтингом
+# заставляет планировщик сканировать/хэшировать всю titles до LIMIT.
+_SEARCH_SELECT = """
+        SELECT t.kp_id, t.ru_name, t.eng_name, t.original_name, t.year,
+               t.country, t.director_names, t.type, t.duration_min, t.kp_rating
+        FROM candidates c
+        JOIN kinopoisk.titles t ON t.kp_id = c.kp_id
+        ORDER BY c.sim DESC, t.kp_rating DESC NULLS LAST
+"""
+
+_EXACT_SEARCH_SQL = """
+        WITH candidates AS MATERIALIZED (
+            SELECT s.kp_id, similarity(s.search_text, %(text)s) AS sim
+            FROM kinopoisk.title_search s
+            WHERE s.search_text LIKE %(pattern)s
+            ORDER BY sim DESC, s.kp_rating DESC NULLS LAST
+            LIMIT %(limit)s
+        )
+""" + _SEARCH_SELECT
+
+_FUZZY_SEARCH_SQL = """
+        WITH candidates AS MATERIALIZED (
+            SELECT s.kp_id, similarity(s.search_text, %(text)s) AS sim
+            FROM kinopoisk.title_search s
+            WHERE s.search_text %% %(text)s
+            {exclude}
+            ORDER BY sim DESC, s.kp_rating DESC NULLS LAST
+            LIMIT %(limit)s
+        )
+""" + _SEARCH_SELECT
+
+
+def _escape_like(text: str) -> str:
+    return text.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+
+
 def search_catalog(query: str, limit: int = 20) -> list:
-    """Search titles through the pg_trgm index."""
+    """Search titles through the pg_trgm index.
+
+    Сначала ищем точное вхождение подстроки, затем (если результатов мало)
+    добиваем триграммным сходством. Обе ветки используют GIN-индекс
+    title_search_trgm_idx и применяют LIMIT до JOIN с kinopoisk.titles.
+    """
     text = normalization.normalize_search_text(query)
-    if not text:
+    if len(text) < _MIN_SEARCH_LEN:
         return []
 
-    like_text = text.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+    limit = max(1, int(limit))
 
     with transaction.atomic(using=settings.CATALOG_DB):
         with connections[settings.CATALOG_DB].cursor() as cursor:
@@ -150,20 +194,27 @@ def search_catalog(query: str, limit: int = 20) -> list:
                 [str(settings.CATALOG_PG_TIMEOUT_MS)],
             )
             cursor.execute(
-                """
-                SELECT t.kp_id, t.ru_name, t.eng_name, t.original_name, t.year,
-                       t.country, t.director_names, t.type, t.duration_min, t.kp_rating
-                FROM kinopoisk.title_search s
-                JOIN kinopoisk.titles t USING (kp_id)
-                WHERE s.search_text LIKE %s OR s.search_text %% %s
-                ORDER BY
-                    similarity(s.search_text, %s) DESC,
-                    t.kp_rating DESC NULLS LAST
-                LIMIT %s
-                """,
-                [f'%{like_text}%', text, text, limit],
+                _EXACT_SEARCH_SQL,
+                {
+                    'text': text,
+                    'pattern': f'%{_escape_like(text)}%',
+                    'limit': limit,
+                },
             )
             rows = cursor.fetchall()
+
+            if len(rows) < limit:
+                params = {'text': text, 'limit': limit - len(rows)}
+                exclude = [row[0] for row in rows]
+                exclude_clause = ''
+                if exclude:
+                    exclude_clause = 'AND s.kp_id <> ALL(%(exclude)s::int[])'
+                    params['exclude'] = exclude
+                cursor.execute(
+                    _FUZZY_SEARCH_SQL.format(exclude=exclude_clause),
+                    params,
+                )
+                rows += cursor.fetchall()
 
     return [
         {
