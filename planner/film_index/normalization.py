@@ -6,6 +6,7 @@
 Все сравнения выполняются над нормализованными значениями.
 """
 
+import datetime
 import re
 
 # --- Регулярные выражения --------------------------------------------------
@@ -22,6 +23,28 @@ _TRAILING_NUM_RE = re.compile(r'[№#]\s*\d+\s*$')
 # Порядковые номера сезонов/серий вида "3-й", "2-я", "1-е".
 _ORDINAL_RE = re.compile(r'\b\d+\s*[-–—]\s*[а-яё]{1,2}\b', re.IGNORECASE)
 _YEAR_RE = re.compile(r'(\d{4})')
+
+# Год в конце поисковой строки: "Горизонт 1962", "Горизонт (1962)",
+# "Горизонт, 1962". (?<!\d) не даёт принять последние 4 цифры более
+# длинного числа за год. "г."/"год" допускаются после года.
+_YEAR_SUFFIX_RE = re.compile(
+    r'^(?P<title>.+?)\s*[,\-–—.:]?\s*(?:[\(\[]\s*)?'
+    r'(?<!\d)(?P<year>\d{4})'
+    r'(?:\s*(?:г\.?|год[ау]?))?'
+    r'(?:\s*[\)\]])?\s*$'
+)
+
+# Ссылка на страницу фильма/сериала Кинопоиска. Параметры вида
+# ?socialAlias=... игнорируются: id всегда есть в пути.
+_KP_URL_ID_RE = re.compile(
+    r'(?:^|/)(?:film|series)/(\d+)(?:[/?#]|$)',
+    re.IGNORECASE,
+)
+_KP_QUERY_ID_RE = re.compile(r'[?&]kp_id=(\d+)', re.IGNORECASE)
+
+# kinopoisk_id хранится в MSSQL как INT.
+MAX_KP_ID = 2_147_483_647
+MIN_FILM_YEAR = 1888
 
 _ROMAN_TO_ARABIC = {
     'i': '1', 'ii': '2', 'iii': '3', 'iv': '4', 'v': '5',
@@ -223,3 +246,66 @@ def normalize_search_text(value) -> str:
     text = _to_text(value).lower().replace('\u0451', '\u0435')
     text = _PUNCT_RE.sub(' ', text)
     return _WS_RE.sub(' ', text).strip()
+
+
+def split_title_year(value):
+    """Отделяет год в конце поисковой строки.
+
+    ``Горизонт 1962`` -> ``('Горизонт', 1962)``. Если года нет, строка
+    возвращается без изменений. Годом считается только 4-значное число в
+    разумном диапазоне (не часть более длинного числа), поэтому
+    ``Бегущий по лезвию 2049`` остаётся названием.
+    """
+    text = _WS_RE.sub(' ', _to_text(value)).strip()
+    if not text:
+        return '', None
+
+    match = _YEAR_SUFFIX_RE.match(text)
+    if not match:
+        return text, None
+
+    year = int(match.group('year'))
+    if not (MIN_FILM_YEAR <= year <= datetime.date.today().year + 1):
+        return text, None
+
+    title = match.group('title').strip(' ,.-–—')
+    if not title or title.isdigit():
+        return text, None
+    return title, year
+
+
+def _valid_kinopoisk_id(value):
+    if value is None:
+        return None
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return None
+    if 1 <= value <= MAX_KP_ID:
+        return value
+    return None
+
+
+def extract_kinopoisk_id(value):
+    """Извлекает kinopoisk_id из числа, ссылки Кинопоиска или ``kp_id=...``.
+
+    Ссылку не скачиваем: id всегда присутствует в пути. ``?socialAlias=...``
+    и прочие параметры игнорируются.
+    """
+    text = _to_text(value).strip()
+    if not text:
+        return None
+
+    if text.isdigit():
+        return _valid_kinopoisk_id(text)
+
+    lowered = text.lower()
+    if 'kinopoisk' not in lowered:
+        # Разрешаем короткий вид "film/44564/" и "series/44564".
+        if not re.match(r'^/?(?:film|series)/\d+', lowered):
+            return None
+
+    match = _KP_URL_ID_RE.search(text) or _KP_QUERY_ID_RE.search(text)
+    if not match:
+        return None
+    return _valid_kinopoisk_id(match.group(1))

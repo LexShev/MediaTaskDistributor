@@ -4,6 +4,7 @@ import json
 import logging
 from functools import wraps
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError
@@ -15,9 +16,13 @@ from pymongo.errors import PyMongoError
 from main.decorators import ajax_login_required
 from main.permission_pannel import ask_db_permissions
 from main.settings.main_settings import get_main_settings
-from film_index import constants, normalization, repository, review, schema
+from film_index import (
+    constants, matching, normalization, pg_catalog, repository, review, schema,
+)
 from film_index.oplan_source import fetch_description, fetch_material
-from film_index.search import search_catalog
+from film_index.search import (
+    lookup_by_kp_id, resolve_kinopoisk_reference, search_catalog,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +124,52 @@ def api_queue(request):
     })
 
 
+def _stored_candidates(review_item) -> list:
+    if not review_item or not review_item.get('candidates_json'):
+        return []
+    try:
+        return json.loads(review_item['candidates_json'])
+    except (TypeError, ValueError):
+        return []
+
+
+def _live_candidates(material: dict):
+    """Живой подбор кандидатов по текущим данным Oplan3.
+
+    Возвращает None, если каталог недоступен или ничего не нашлось: тогда
+    вызывающий код использует сохранённый снимок candidates_json.
+    """
+    try:
+        # Порядок важен: сначала batch-подобная нормализация (отрезает
+        # сезон/серию), затем исходное название (римские цифры и т.п.),
+        # затем полная строка (год может быть частью названия).
+        queries = []
+        for value in (material.get('name'), material.get('orig_name')):
+            if not value:
+                continue
+            title, _ = normalization.split_title_year(value)
+            for candidate in (normalization.normalize_title(title), title, value):
+                if candidate and candidate not in queries:
+                    queries.append(candidate)
+        entries = []
+        for query in queries:
+            entries = pg_catalog.find_candidate_entries(query)
+            if entries:
+                break
+        if not entries:
+            return None
+        outcome = matching.match_material_live(material, entries)
+        if not outcome.candidates:
+            return None
+        return matching.candidates_to_json(outcome.candidates)
+    except Exception:  # noqa: BLE001 - карточка должна открыться и без live
+        logger.exception(
+            'Живой подбор кандидатов не удался (program_id=%s)',
+            material.get('program_id'),
+        )
+        return None
+
+
 @ajax_login_required
 @review_api_access_required
 def api_item(request, program_id):
@@ -126,12 +177,26 @@ def api_item(request, program_id):
     material = fetch_material(program_id)
     if material is None:
         return JsonResponse({'status': 'error', 'message': 'Материал не найден'}, status=404)
-    candidates = []
-    if review_item and review_item.get('candidates_json'):
+
+    candidates = None
+    candidates_source = 'stored'
+    if settings.CATALOG_BACKEND == 'postgres':
+        candidates = _live_candidates(material)
+        if candidates is not None:
+            candidates_source = 'live'
+    if candidates is None:
+        candidates = _stored_candidates(review_item)
+
+    resolved_item = None
+    if review_item and review_item.get('resolved_kp_id'):
         try:
-            candidates = json.loads(review_item['candidates_json'])
-        except (TypeError, ValueError):
-            candidates = []
+            resolved_item = lookup_by_kp_id(review_item['resolved_kp_id'])
+        except (DatabaseError, PyMongoError):
+            logger.exception(
+                'Не удалось получить карточку Кинопоиска для resolved_kp_id=%s',
+                review_item.get('resolved_kp_id'),
+            )
+
     description = (fetch_description(program_id)
                    or material.get('short_annotation')
                    or material.get('annotation'))
@@ -152,6 +217,8 @@ def api_item(request, program_id):
             'resolved_kp_id': review_item.get('resolved_kp_id') if review_item else None,
         },
         'candidates': candidates,
+        'candidates_source': candidates_source,
+        'resolved_item': resolved_item,
     })
 
 
@@ -160,7 +227,7 @@ def api_item(request, program_id):
 def api_search(request):
     query = request.GET.get('q') or ''
     try:
-        items = search_catalog(query)
+        result = search_catalog(query)
     except (DatabaseError, PyMongoError):
         logger.exception('Поиск по каталогу Кинопоиска не удался (q=%r)', query)
         return JsonResponse(
@@ -170,7 +237,28 @@ def api_search(request):
             },
             status=503,
         )
-    return JsonResponse({'status': 'success', 'items': items})
+    return JsonResponse({'status': 'success', **result})
+
+
+@ajax_login_required
+@review_api_access_required
+def api_resolve(request):
+    """Разбирает ссылку/ID Кинопоиска и отдаёт карточку каталога."""
+    query = request.GET.get('q') or ''
+    try:
+        result = resolve_kinopoisk_reference(query)
+    except (DatabaseError, PyMongoError):
+        logger.exception('Не удалось разрешить ссылку Кинопоиска (q=%r)', query)
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': 'Каталог временно недоступен, попробуйте ещё раз',
+            },
+            status=503,
+        )
+    if result.get('status') != 'success':
+        return JsonResponse(result, status=400)
+    return JsonResponse(result)
 
 
 @ajax_login_required

@@ -161,18 +161,16 @@ def _sort_key(candidate: Candidate):
     return (candidate.score, candidate.director_match, candidate.type_match)
 
 
-def match_material(material: dict, catalog: KinopoiskCatalog) -> MatchOutcome:
-    query = build_query(material)
+def rank_entries(query: dict, entries: list) -> MatchOutcome:
+    """Скоринг готового набора записей каталога (batch и live-режим)."""
     if not query['norm_title'] and not query['norm_original']:
         return MatchOutcome(constants.BUCKET_UNMATCHED, reason='пустое название')
-
-    indices = catalog.candidate_indices(query['norm_title'], query['norm_original'])
-    if not indices:
-        return MatchOutcome(constants.BUCKET_UNMATCHED, reason='нет кандидатов по токенам')
+    if not entries:
+        return MatchOutcome(constants.BUCKET_UNMATCHED, reason='нет кандидатов')
 
     best_by_kp = {}
-    for index in indices:
-        candidate = score_candidate(query, catalog.entries[index])
+    for entry in entries:
+        candidate = score_candidate(query, entry)
         kp_id = candidate.entry['kp_id']
         current = best_by_kp.get(kp_id)
         if current is None or _sort_key(candidate) > _sort_key(current):
@@ -264,6 +262,24 @@ def match_material(material: dict, catalog: KinopoiskCatalog) -> MatchOutcome:
         candidates=display_candidates[:5],
         reason=reason,
     )
+
+
+def match_material(material: dict, catalog: KinopoiskCatalog) -> MatchOutcome:
+    """Batch-сопоставление: кандидаты ищутся по in-memory индексу каталога."""
+    query = build_query(material)
+    if not query['norm_title'] and not query['norm_original']:
+        return MatchOutcome(constants.BUCKET_UNMATCHED, reason='пустое название')
+
+    indices = catalog.candidate_indices(query['norm_title'], query['norm_original'])
+    if not indices:
+        return MatchOutcome(constants.BUCKET_UNMATCHED, reason='нет кандидатов по токенам')
+
+    return rank_entries(query, catalog.entries_for(indices))
+
+
+def match_material_live(material: dict, entries: list) -> MatchOutcome:
+    """Live-сопоставление карточки: кандидаты уже подняты из PostgreSQL."""
+    return rank_entries(build_query(material), entries)
 
 
 def candidates_to_json(candidates: list) -> list:

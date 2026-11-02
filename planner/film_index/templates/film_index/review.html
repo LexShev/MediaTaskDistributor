@@ -9,6 +9,7 @@
      data-queue-url="{% url 'film_index_api_queue' %}"
      data-item-url="{% url 'film_index_api_item' 0 %}"
      data-search-url="{% url 'film_index_api_search' %}"
+     data-resolve-url="{% url 'film_index_api_resolve' %}"
      data-poster-url="{% url 'tools_poster' %}"
      data-decide-url="{% url 'film_index_api_decide' %}"
      data-lock-url="{% url 'film_index_api_lock' 0 %}"
@@ -142,9 +143,22 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
         </div>
         <div class="modal-body">
-          <div class="input-group mb-3">
-            <input class="form-control" id="kp-search" placeholder="Название фильма или сериала…">
-            <button class="btn btn-outline-secondary" id="kp-search-btn">Найти</button>
+          <div class="mb-2">
+            <div class="input-group">
+              <input class="form-control" id="kp-search" placeholder="Название фильма или сериала…">
+              <button class="btn btn-outline-secondary" id="kp-search-btn">Найти</button>
+            </div>
+            <div class="form-text">Можно указать год: «Горизонт 1962».</div>
+          </div>
+          <div class="mb-3">
+            <div class="input-group">
+              <input class="form-control" id="kp-link" placeholder="Ссылка или ID Кинопоиска…">
+              <button class="btn btn-outline-secondary" id="kp-link-btn">Найти по ID</button>
+            </div>
+            <div class="form-text">
+              Вставьте ссылку со страницы фильма, например
+              https://www.kinopoisk.ru/film/44564/ ID определится автоматически.
+            </div>
           </div>
           <div id="search-results"></div>
         </div>

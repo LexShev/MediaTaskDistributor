@@ -8,6 +8,7 @@
     queue: root.dataset.queueUrl,
     item: root.dataset.itemUrl,
     search: root.dataset.searchUrl,
+    resolve: root.dataset.resolveUrl,
     poster: root.dataset.posterUrl,
     decide: root.dataset.decideUrl,
     lock: root.dataset.lockUrl,
@@ -39,6 +40,8 @@
     reject: document.getElementById('btn-reject'),
     searchInput: document.getElementById('kp-search'),
     searchBtn: document.getElementById('kp-search-btn'),
+    linkInput: document.getElementById('kp-link'),
+    linkBtn: document.getElementById('kp-link-btn'),
     searchResults: document.getElementById('search-results'),
     errorModal: document.getElementById('errorModal'),
     errorTitle: document.getElementById('error_modal_title'),
@@ -96,6 +99,11 @@
     return value || '';
   }
 
+  function kpUrl(kpId, type) {
+    const section = type === 'series' ? 'series' : 'film';
+    return `https://www.kinopoisk.ru/${section}/${kpId}/`;
+  }
+
   function durationLabel(frames) {
     const total = Math.round((Number(frames) || 0) / FPS);
     if (total <= 0) return '';
@@ -135,8 +143,17 @@
 
   async function getJson(url) {
     const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
+    let data = null;
+    try {
+      data = await response.json();
+    } catch (error) {
+      data = null;
+    }
+    if (!response.ok) {
+      const message = (data && data.message) || `HTTP ${response.status}`;
+      throw new Error(message);
+    }
+    return data;
   }
 
   async function postJson(url, payload) {
@@ -525,6 +542,19 @@
     const castLine = m.cast
       ? `<div class="mt-1 small"><b>В ролях:</b> ${esc(m.cast)}</div>`
       : '';
+    const resolvedItem = data.resolved_item || null;
+    const resolvedType = resolvedItem
+      ? resolvedItem.type
+      : (SERIES_TYPES.includes(m.program_type_id) ? 'series' : 'film');
+    const linkedLine = review.resolved_kp_id
+      ? `<div class="mt-1 small"><b>Связано с Кинопоиском:</b>
+           <a class="kp-link" target="_blank" rel="noopener"
+              href="${kpUrl(review.resolved_kp_id, resolvedType)}">
+             ${esc((resolvedItem && resolvedItem.title) || `ID ${review.resolved_kp_id}`)}
+           </a>
+           <span class="text-muted">(ID ${esc(review.resolved_kp_id)})</span>
+         </div>`
+      : '';
 
     el.materialPane.innerHTML = `
       <div class="card fi-material">
@@ -545,6 +575,7 @@
               </div>
               <div class="mt-1 small"><b>Режиссёр:</b> ${esc(m.director || '—')}</div>
               ${castLine}
+              ${linkedLine}
             </div>
             <div class="text-end small text-muted text-nowrap">oplan id: ${m.program_id}<br>kind: ${m.program_kind}</div>
           </div>
@@ -639,6 +670,47 @@
 
   // --- Ручной поиск --------------------------------------------------------
 
+  function searchResultCard(item) {
+    return `
+      <div class="search-result card mb-1" data-kp="${item.kp_id}">
+        <div class="card-body py-2 d-flex gap-2 align-items-center">
+          <img class="search-poster" loading="lazy"
+               src="${URLS.poster}?kp_id=${item.kp_id}"
+               onerror="this.style.visibility='hidden'">
+          <div class="flex-grow-1">
+            <div class="fw-bold">
+              <a class="search-title" target="_blank" rel="noopener"
+                 href="${kpUrl(item.kp_id, item.type)}">${esc(item.title)}</a>
+              <span class="text-muted small">${esc(item.original_title || '')}</span>
+            </div>
+            <div class="small">${esc(item.year || '—')} · ${esc((item.countries || []).join(', '))} · ${esc(typeName(item.type))}</div>
+          </div>
+          <button class="btn btn-sm btn-success" data-accept="${item.kp_id}">Принять</button>
+        </div>
+      </div>`;
+  }
+
+  function bindSearchResults() {
+    el.searchResults.querySelectorAll('[data-accept]').forEach((node) => {
+      node.addEventListener('click', () => accept(node.dataset.accept));
+    });
+    el.searchResults.querySelectorAll('[data-apply-id]').forEach((node) => {
+      node.addEventListener('click', () => {
+        const kpId = Number(node.dataset.applyId);
+        if (confirm(`Привязать материал к ID Кинопоиска ${kpId}?`)) accept(kpId);
+      });
+    });
+  }
+
+  function renderSearchItems(items, hint = '') {
+    if (!items.length) {
+      el.searchResults.innerHTML = `${hint}<div class="text-muted">Ничего не найдено.</div>`;
+      return;
+    }
+    el.searchResults.innerHTML = hint + items.map(searchResultCard).join('');
+    bindSearchResults();
+  }
+
   async function doSearch() {
     const query = el.searchInput.value.trim();
     if (!query) return;
@@ -649,31 +721,45 @@
     el.searchResults.innerHTML = '<div class="text-muted">Поиск…</div>';
     try {
       const data = await getJson(`${URLS.search}?q=${encodeURIComponent(query)}`);
-      const items = data.items || [];
-      if (!items.length) {
-        el.searchResults.innerHTML = '<div class="text-muted">Ничего не найдено.</div>';
+      const hint = data.year
+        ? `<div class="small text-muted mb-2">Поиск по названию «${esc(data.title)}», год ${data.year} (±1)</div>`
+        : '';
+      renderSearchItems(data.items || [], hint);
+    } catch (error) {
+      el.searchResults.innerHTML = `<div class="text-danger">Ошибка поиска: ${esc(error.message)}</div>`;
+    }
+  }
+
+  async function doResolve() {
+    if (!el.linkInput) return;
+    const query = el.linkInput.value.trim();
+    if (!query) return;
+    el.searchResults.innerHTML = '<div class="text-muted">Поиск…</div>';
+    try {
+      const data = await getJson(`${URLS.resolve}?q=${encodeURIComponent(query)}`);
+      if (data.status !== 'success') {
+        el.searchResults.innerHTML =
+          `<div class="text-danger">${esc(data.message || 'Не удалось найти ID')}</div>`;
         return;
       }
-      el.searchResults.innerHTML = items.map((item) => `
-        <div class="search-result card mb-1" data-kp="${item.kp_id}">
-          <div class="card-body py-2 d-flex gap-2 align-items-center">
-            <img class="search-poster" loading="lazy"
-                 src="${URLS.poster}?kp_id=${item.kp_id}"
-                 onerror="this.style.visibility='hidden'">
-            <div class="flex-grow-1">
-              <div class="fw-bold">
-                <a class="search-title" target="_blank" rel="noopener"
-                   href="https://www.kinopoisk.ru/film/${item.kp_id}/">${esc(item.title)}</a>
-                <span class="text-muted small">${esc(item.original_title || '')}</span>
-              </div>
-              <div class="small">${esc(item.year || '—')} · ${esc((item.countries || []).join(', '))} · ${esc(typeName(item.type))}</div>
-            </div>
-            <button class="btn btn-sm btn-success" data-accept="${item.kp_id}">Принять</button>
+      if (data.found && data.item) {
+        renderSearchItems(
+          [data.item],
+          `<div class="small text-muted mb-2">Найдено по ID Кинопоиска: <b>${data.kp_id}</b></div>`,
+        );
+        return;
+      }
+      el.searchResults.innerHTML = `
+        <div class="alert alert-warning mb-0">
+          <div>ID <b>${data.kp_id}</b> не найден в локальном каталоге Кинопоиска.</div>
+          <div class="small mt-1">
+            Проверьте страницу:
+            <a href="${kpUrl(data.kp_id)}" target="_blank" rel="noopener">kinopoisk.ru</a>
           </div>
-        </div>`).join('');
-      el.searchResults.querySelectorAll('[data-accept]').forEach((node) => {
-        node.addEventListener('click', () => accept(node.dataset.accept));
-      });
+          <button type="button" class="btn btn-sm btn-warning mt-2"
+                  data-apply-id="${data.kp_id}">Привязать всё равно</button>
+        </div>`;
+      bindSearchResults();
     } catch (error) {
       el.searchResults.innerHTML = `<div class="text-danger">Ошибка поиска: ${esc(error.message)}</div>`;
     }
@@ -851,6 +937,12 @@
   el.searchInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') { event.preventDefault(); doSearch(); }
   });
+  if (el.linkBtn) el.linkBtn.addEventListener('click', doResolve);
+  if (el.linkInput) {
+    el.linkInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') { event.preventDefault(); doResolve(); }
+    });
+  }
   if (el.errorTake) el.errorTake.addEventListener('click', takeLockedCard);
   if (el.errorModal) el.errorModal.addEventListener('hidden.bs.modal', onErrorModalHidden);
 

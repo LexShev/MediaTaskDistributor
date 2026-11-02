@@ -25,13 +25,26 @@ _PROJECTION = {
 }
 
 
-def search_catalog(query: str, limit: int = 15) -> list:
-    if settings.CATALOG_BACKEND == 'postgres':
-        return pg_catalog.search_catalog(query, limit=limit)
+def search_catalog(query: str, limit: int = 15) -> dict:
+    """Ручной поиск: "Название" или "Название 1962" (год ±1).
 
+    Возвращает ``{'items', 'title', 'year'}``. Mongo-ветка оставлена без
+    изменений: там год не разбирается, база считается устаревшей.
+    """
     text = (query or '').strip()
     if not text:
-        return []
+        return {'items': [], 'title': '', 'year': None}
+
+    if settings.CATALOG_BACKEND == 'postgres':
+        title, year = normalization.split_title_year(text)
+        items = pg_catalog.search_catalog(title, limit=limit, year=year)
+        if year is not None and not items:
+            # Число могло быть частью названия ("Космическая одиссея 2001").
+            fallback = pg_catalog.search_catalog(text, limit=limit)
+            if fallback:
+                return {'items': fallback, 'title': text, 'year': None}
+        return {'items': items, 'title': title, 'year': year}
+
     regex = {'$regex': re.escape(text), '$options': 'i'}
     condition = {'$or': [{'title': regex}, {'original_title': regex}]}
 
@@ -57,4 +70,37 @@ def search_catalog(query: str, limit: int = 15) -> list:
                     'rating': doc.get('rating'),
                 })
     results.sort(key=lambda item: item.get('rating') or 0, reverse=True)
-    return results[:limit]
+    return {'items': results[:limit], 'title': text, 'year': None}
+
+
+def lookup_by_kp_id(kp_id):
+    """Карточка каталога по kinopoisk_id. Для Mongo возвращает None."""
+    try:
+        kp_id = int(kp_id)
+    except (TypeError, ValueError):
+        return None
+    if not (1 <= kp_id <= normalization.MAX_KP_ID):
+        return None
+    if settings.CATALOG_BACKEND != 'postgres':
+        return None
+    return pg_catalog.get_title_by_id(kp_id)
+
+
+def resolve_kinopoisk_reference(query: str) -> dict:
+    """Разбирает ссылку/ID Кинопоиска и ищет карточку в каталоге."""
+    kp_id = normalization.extract_kinopoisk_id(query)
+    if kp_id is None:
+        return {
+            'status': 'error',
+            'message': (
+                'Не удалось распознать ссылку. Нужна ссылка на фильм или '
+                'сериал Кинопоиска либо числовой ID'
+            ),
+        }
+    item = lookup_by_kp_id(kp_id)
+    return {
+        'status': 'success',
+        'kp_id': kp_id,
+        'found': item is not None,
+        'item': item,
+    }
