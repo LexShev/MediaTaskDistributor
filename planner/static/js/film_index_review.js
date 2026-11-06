@@ -71,6 +71,7 @@
     lockedProgramId: null,
     lockedAutoSkip: false,
     loadToken: 0,
+    searchToken: 0,
   };
 
   function esc(value) {
@@ -712,8 +713,12 @@
   }
 
   async function doSearch() {
+    const token = ++state.searchToken;
     const query = el.searchInput.value.trim();
-    if (!query) return;
+    if (!query) {
+      el.searchResults.innerHTML = '';
+      return;
+    }
     if (query.length < 3) {
       el.searchResults.innerHTML = '<div class="text-muted">Введите минимум 3 символа.</div>';
       return;
@@ -721,22 +726,29 @@
     el.searchResults.innerHTML = '<div class="text-muted">Поиск…</div>';
     try {
       const data = await getJson(`${URLS.search}?q=${encodeURIComponent(query)}`);
+      if (token !== state.searchToken) return;
       const hint = data.year
         ? `<div class="small text-muted mb-2">Поиск по названию «${esc(data.title)}», год ${data.year} (±1)</div>`
         : '';
       renderSearchItems(data.items || [], hint);
     } catch (error) {
+      if (token !== state.searchToken) return;
       el.searchResults.innerHTML = `<div class="text-danger">Ошибка поиска: ${esc(error.message)}</div>`;
     }
   }
 
   async function doResolve() {
     if (!el.linkInput) return;
+    const token = ++state.searchToken;
     const query = el.linkInput.value.trim();
-    if (!query) return;
+    if (!query) {
+      el.searchResults.innerHTML = '';
+      return;
+    }
     el.searchResults.innerHTML = '<div class="text-muted">Поиск…</div>';
     try {
       const data = await getJson(`${URLS.resolve}?q=${encodeURIComponent(query)}`);
+      if (token !== state.searchToken) return;
       if (data.status !== 'success') {
         el.searchResults.innerHTML =
           `<div class="text-danger">${esc(data.message || 'Не удалось найти ID')}</div>`;
@@ -750,17 +762,24 @@
         return;
       }
       el.searchResults.innerHTML = `
-        <div class="alert alert-warning mb-0">
-          <div>ID <b>${data.kp_id}</b> не найден в локальном каталоге Кинопоиска.</div>
-          <div class="small mt-1">
-            Проверьте страницу:
-            <a href="${kpUrl(data.kp_id)}" target="_blank" rel="noopener">kinopoisk.ru</a>
+        <div class="alert alert-warning mb-0 d-flex gap-3 align-items-start">
+          <img class="search-poster" loading="lazy"
+               src="${URLS.poster}?kp_id=${data.kp_id}"
+               onerror="this.style.visibility='hidden'"
+               alt="">
+          <div>
+            <div>ID <b>${data.kp_id}</b> не найден в локальном каталоге Кинопоиска.</div>
+            <div class="small mt-1">
+              Проверьте страницу:
+              <a href="${kpUrl(data.kp_id)}" target="_blank" rel="noopener">kinopoisk.ru</a>
+            </div>
+            <button type="button" class="btn btn-sm btn-warning mt-2"
+                    data-apply-id="${data.kp_id}">Привязать всё равно</button>
           </div>
-          <button type="button" class="btn btn-sm btn-warning mt-2"
-                  data-apply-id="${data.kp_id}">Привязать всё равно</button>
         </div>`;
       bindSearchResults();
     } catch (error) {
+      if (token !== state.searchToken) return;
       el.searchResults.innerHTML = `<div class="text-danger">Ошибка поиска: ${esc(error.message)}</div>`;
     }
   }
@@ -934,6 +953,12 @@
   el.revert.addEventListener('click', revert);
   el.reject.addEventListener('click', reject);
   el.searchBtn.addEventListener('click', doSearch);
+  searchModalEl.addEventListener('show.bs.modal', () => {
+    state.searchToken += 1;
+    el.searchInput.value = '';
+    if (el.linkInput) el.linkInput.value = '';
+    el.searchResults.innerHTML = '';
+  });
   el.searchInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') { event.preventDefault(); doSearch(); }
   });
